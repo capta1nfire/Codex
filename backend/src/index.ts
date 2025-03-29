@@ -1,10 +1,12 @@
+import cors from 'cors'; // <-- Añade esta línea
 import express, { Request, Response } from 'express';
 import QRCode from 'qrcode';
 import bwipjs from 'bwip-js';
 
 // Crear la aplicación Express
 const app = express();
-app.use(express.json());
+app.use(express.json()); // Middleware para parsear JSON
+app.use(cors());       // <-- Añade esta línea: Habilita CORS para todas las rutas
 
 // Definir el puerto en el que escuchará el servidor
 // Usamos 3001 para evitar conflictos si el frontend usa 3000

@@ -12,10 +12,12 @@
   "description": "",
   "dependencies": {
     "bwip-js": "^4.5.3",
+    "cors": "^2.8.5",
     "express": "^4.21.2",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/node": "^22.13.14",
     "@types/qrcode": "^1.5.5",
