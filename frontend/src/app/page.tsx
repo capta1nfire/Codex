@@ -70,6 +70,30 @@ export default function Home() {
   };
   // --- FIN NUEVA FUNCIÓN ---
 
+// --- Añade esta función ---
+const handleDownload = () => {
+  if (!imageDataUrl) return; // No hacer nada si no hay imagen
+
+  // Crear un enlace temporal
+  const link = document.createElement('a');
+  // Establecer el href del enlace a la imagen Base64
+  link.href = imageDataUrl;
+
+  // Crear un nombre de archivo sugerido (ej. codigo_qrcode_datos.png)
+  // Tomamos los primeros 15 caracteres de los datos para el nombre
+  const safeDataSubstring = data.substring(0, 15).replace(/[^a-zA-Z0-9]/g, '_') || 'imagen'; // Limpia caracteres no seguros
+  const filename = `codigo_${type}_${safeDataSubstring}.png`;
+  link.download = filename; // Atributo 'download' sugiere el nombre al navegador
+
+  // Añadir el enlace al DOM (necesario en algunos navegadores)
+  document.body.appendChild(link);
+  // Simular un clic en el enlace para iniciar la descarga
+  link.click();
+  // Eliminar el enlace temporal del DOM
+  document.body.removeChild(link);
+};
+// --- Fin de la función ---
+
   // El JSX que se renderiza
   return (
     <main className="flex min-h-screen flex-col items-center p-10 sm:p-24 gap-8">
@@ -124,20 +148,29 @@ export default function Home() {
 
       </div> {/* Fin Contenedor Formulario */}
 
-      {/* Área para mostrar la imagen, el error o el estado de carga */}
-      <div className="w-full max-w-md mt-6 flex justify-center items-center border rounded-lg shadow-md p-4 min-h-[200px] bg-gray-50">
-        {isLoading ? (
-          <p className="text-blue-600">Generando código...</p> // Muestra si está cargando
-        ) : error ? (
-          <p className="text-red-600 font-semibold">Error: {error}</p> // Muestra si hay error
-        ) : imageDataUrl ? (
-          // Si hay imagen, la muestra
-          <img src={imageDataUrl} alt={`Código ${type} generado`} className="max-w-full h-auto" />
-        ) : (
-          // Estado inicial o después de limpiar
-          <p className="text-gray-500">Aquí aparecerá el código generado...</p>
-        )}
-      </div>
+      {/* Área para mostrar la imagen generada y botón de descarga */}
+  <div className="w-full max-w-md mt-6 flex flex-col justify-center items-center border rounded-lg shadow-md p-4 min-h-[200px] bg-gray-50 gap-4"> {/* Añadimos flex-col y gap */}
+    {isLoading ? (
+      <p className="text-blue-600">Generando código...</p>
+    ) : error ? (
+      <p className="text-red-600 font-semibold">Error: {error}</p>
+    ) : imageDataUrl ? (
+      // Si hay imagen, muestra la imagen Y el botón
+      <> {/* Fragmento para agrupar elementos */}
+        <img src={imageDataUrl} alt={`Código ${type} generado`} className="max-w-full h-auto" />
+        <button
+          type="button"
+          onClick={handleDownload} // <--- Llama a la nueva función
+          className="mt-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+        >
+          Descargar PNG
+        </button>
+      </>
+    ) : (
+      // Estado inicial
+      <p className="text-gray-500">Aquí aparecerá el código generado...</p>
+    )}
+  </div>
 
     </main>
   );
