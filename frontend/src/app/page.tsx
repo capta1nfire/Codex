@@ -94,6 +94,8 @@ const handleDownload = () => {
 };
 // --- Fin de la función ---
 
+// Prueba para detectar cambios en Git
+
   // El JSX que se renderiza
   return (
     <main className="flex min-h-screen flex-col items-center p-10 sm:p-24 gap-8">
