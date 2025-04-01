@@ -1,3 +1,0 @@
-cargo:rustc-env=PROFILE=release
-cargo:rustc-env=CARGO_CFG_TARGET_FEATURE=multivalue,mutable-globals,reference-types,sign-ext
-cargo:rustc-env=CARGO_ENCODED_RUSTFLAGS=
