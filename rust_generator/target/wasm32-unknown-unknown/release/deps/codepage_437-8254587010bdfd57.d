@@ -1,0 +1,13 @@
+/Users/inseqio/Codex/backend/rust_generator/target/wasm32-unknown-unknown/release/deps/libcodepage_437-8254587010bdfd57.rmeta: /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/lib.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/decode.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/encode.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/dialect.rs /Users/inseqio/Codex/backend/rust_generator/target/wasm32-unknown-unknown/release/build/codepage-437-694f7ba02e5f486e/out/dialects.rs
+
+/Users/inseqio/Codex/backend/rust_generator/target/wasm32-unknown-unknown/release/deps/libcodepage_437-8254587010bdfd57.rlib: /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/lib.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/decode.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/encode.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/dialect.rs /Users/inseqio/Codex/backend/rust_generator/target/wasm32-unknown-unknown/release/build/codepage-437-694f7ba02e5f486e/out/dialects.rs
+
+/Users/inseqio/Codex/backend/rust_generator/target/wasm32-unknown-unknown/release/deps/codepage_437-8254587010bdfd57.d: /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/lib.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/decode.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/encode.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/dialect.rs /Users/inseqio/Codex/backend/rust_generator/target/wasm32-unknown-unknown/release/build/codepage-437-694f7ba02e5f486e/out/dialects.rs
+
+/Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/lib.rs:
+/Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/decode.rs:
+/Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/encode.rs:
+/Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/codepage-437-0.1.0/src/dialect.rs:
+/Users/inseqio/Codex/backend/rust_generator/target/wasm32-unknown-unknown/release/build/codepage-437-694f7ba02e5f486e/out/dialects.rs:
+
+# env-dep:OUT_DIR=/Users/inseqio/Codex/backend/rust_generator/target/wasm32-unknown-unknown/release/build/codepage-437-694f7ba02e5f486e/out

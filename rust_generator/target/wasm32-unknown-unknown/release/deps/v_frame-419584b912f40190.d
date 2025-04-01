@@ -1,0 +1,11 @@
+/Users/inseqio/Codex/backend/rust_generator/target/wasm32-unknown-unknown/release/deps/libv_frame-419584b912f40190.rmeta: /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/lib.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/frame.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/math.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/pixel.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/plane.rs
+
+/Users/inseqio/Codex/backend/rust_generator/target/wasm32-unknown-unknown/release/deps/libv_frame-419584b912f40190.rlib: /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/lib.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/frame.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/math.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/pixel.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/plane.rs
+
+/Users/inseqio/Codex/backend/rust_generator/target/wasm32-unknown-unknown/release/deps/v_frame-419584b912f40190.d: /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/lib.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/frame.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/math.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/pixel.rs /Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/plane.rs
+
+/Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/lib.rs:
+/Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/frame.rs:
+/Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/math.rs:
+/Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/pixel.rs:
+/Users/inseqio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/v_frame-0.3.8/src/plane.rs:
