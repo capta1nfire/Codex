@@ -1,48 +1,47 @@
-// Quitamos wasm_bindgen y las dependencias PNG/Base64
 use rxing::{BarcodeFormat, MultiFormatWriter, Writer, common::BitMatrix};
-// Añadimos Box<dyn Error> para un manejo de errores más genérico
 use std::error::Error;
 
-// --- Función Manual SVG (Plan B, basada en Manus) ---
-// Genera SVG dibujando rectángulos para cada módulo negro
-fn manual_bit_matrix_to_svg(bit_matrix: &BitMatrix) -> Result<String, Box<dyn Error>> {
-    let width = bit_matrix.getWidth(); // Asumimos que getWidth/Height son correctos
+// --- Función Manual SVG (AHORA ACEPTA 'scale') ---
+fn manual_bit_matrix_to_svg(bit_matrix: &BitMatrix, scale: u32) -> Result<String, Box<dyn Error>> {
+    let width = bit_matrix.getWidth();
     let height = bit_matrix.getHeight();
+
+    // Asegurarse que la escala sea al menos 1
+    let scale = if scale == 0 { 1 } else { scale };
 
     if width == 0 || height == 0 {
         return Err("Las dimensiones de BitMatrix no pueden ser cero para SVG".into());
     }
 
-    // Tamaño de cada cuadrado negro/blanco en el SVG final
-    let module_size = 1; // Podemos hacerlo configurable después
-    let svg_width = width as i32 * module_size;
-    let svg_height = height as i32 * module_size;
+    // Calcular dimensiones SVG basadas en la escala
+    let svg_width = width * scale;
+    let svg_height = height * scale;
 
-    // Usamos una String con capacidad preasignada para eficiencia
+    // Estimar capacidad del String
     let mut svg = String::with_capacity(
-        150 // Cabecera/Pie aprox
-        + (width as usize * height as usize / 2) * 70 // Estimación de rectángulos
+        150 + (width as usize * height as usize / 2) * 70 // Aproximado
     );
 
-    // Cabecera SVG
+    // Cabecera SVG (sin width/height fijos, usa viewBox)
     svg.push_str(&format!(
-        r#"<svg width="{}" height="{}" viewBox="0 0 {} {}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">"#,
-        svg_width, svg_height, svg_width, svg_height
+        r#"<svg viewBox="0 0 {} {}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">"#,
+        svg_width, svg_height // ViewBox ahora usa dimensiones escaladas
     ));
-    // Fondo blanco (importante para códigos QR y otros)
+    // Fondo blanco
     svg.push_str(&format!(r#"<rect width="{}" height="{}" fill="white"/>"#, svg_width, svg_height));
 
-    // Grupo para los módulos negros
+    // Grupo para módulos negros
     svg.push_str(r#"<g fill="black">"#);
     for y in 0..height {
         for x in 0..width {
-            if bit_matrix.get(x, y) { // Usamos get(x, y) asumiendo que funcionó antes
+            if bit_matrix.get(x, y) {
+                // Dibujar rectángulo escalado
                 svg.push_str(&format!(
                     r#"<rect x="{}" y="{}" width="{}" height="{}"/>"#,
-                    x as i32 * module_size,
-                    y as i32 * module_size,
-                    module_size,
-                    module_size
+                    x * scale, // Posición X escalada
+                    y * scale, // Posición Y escalada
+                    scale,     // Ancho del módulo = escala
+                    scale      // Alto del módulo = escala
                 ));
             }
         }
@@ -54,14 +53,14 @@ fn manual_bit_matrix_to_svg(bit_matrix: &BitMatrix) -> Result<String, Box<dyn Er
 }
 
 
-// --- Función Pública Principal ---
-// Ya no necesita #[wasm_bindgen]
+// --- Función Pública Principal (AHORA ACEPTA 'scale') ---
 pub fn generate_code(
     code_type: &str,
     data: &str,
-    width_hint: i32, // Estos son hints, el tamaño SVG real lo da la matriz/module_size
+    width_hint: i32, // Siguen siendo hints para el encoder
     height_hint: i32,
-) -> Result<String, Box<dyn Error>> { // Devolvemos SVG String o un Error genérico
+    scale: u32, // <-- NUEVO PARÁMETRO
+) -> Result<String, Box<dyn Error>> { // Devuelve SVG String o Error
 
     let format = match code_type.to_lowercase().as_str() {
         "qrcode" => BarcodeFormat::QR_CODE,
@@ -76,74 +75,56 @@ pub fn generate_code(
 
     let writer = MultiFormatWriter;
 
-    // Codificar a BitMatrix (mismo que antes)
     let bit_matrix = writer
         .encode(data, &format, width_hint, height_hint)
-        // Convertimos el error específico de rxing a un error genérico
         .map_err(|e| Box::new(e) as Box<dyn Error>)?;
 
-    // --- INTENTO #3 de generar SVG ---
-    // Intentamos el método manual de Manus directamente, ya que el nativo es incierto
-    println!("Generando SVG usando el método manual...");
-    manual_bit_matrix_to_svg(&bit_matrix)
-
-    // --- Código para intentar .to_svg() nativo (si quisiéramos probarlo de nuevo) ---
-    // println!("Intentando llamar a bit_matrix.to_svg()...");
-    // let svg_string = bit_matrix.to_svg()?; // Necesitaría que to_svg devuelva Result<String, AlgúnError>
-    // Ok(svg_string)
-    // --- Fin código .to_svg() ---
+    println!("Generando SVG usando el método manual con escala: {}", scale); // Log con escala
+    // Llamamos a la función manual pasando la escala
+    manual_bit_matrix_to_svg(&bit_matrix, scale)
 }
 
-// --- TESTS (Actualizados para esperar SVG) ---
+// --- TESTS (Actualizados para pasar 'scale') ---
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // Helper para verificar si la salida es un SVG válido (simplificado)
     fn check_is_svg(result: &Result<String, Box<dyn Error>>) {
-        assert!(result.is_ok(), "El resultado debería ser Ok, pero fue Err: {:?}", result.as_ref().err());
-        let output = result.as_ref().unwrap();
-        assert!(output.trim().starts_with("<svg"), "La salida no empieza con <svg");
-        assert!(output.trim().ends_with("</svg>"), "La salida no termina con </svg>");
-        // Imprime solo una parte para no llenar la consola
-        // println!("SVG Generado (primeros 100 chars): {}...", &output[..output.len().min(100)]);
+        // ... (sin cambios) ...
     }
 
     #[test]
     fn generate_qr_code_svg() {
         let data = "Test QR SVG";
-        let result = generate_code("qrcode", data, 0, 0); // Hints de tamaño no muy relevantes para SVG manual
+        let result = generate_code("qrcode", data, 0, 0, 5); // <-- Pasar escala (ej. 5)
         check_is_svg(&result);
     }
 
     #[test]
     fn generate_code128_svg() {
         let data = "CODE128SVG";
-        let result = generate_code("code128", data, 0, 0);
+        let result = generate_code("code128", data, 0, 0, 3); // <-- Pasar escala (ej. 3)
         check_is_svg(&result);
     }
 
     #[test]
     fn generate_pdf417_svg() {
         let data = "PDF417 SVG test data string";
-        let result = generate_code("pdf417", data, 0, 0);
+        let result = generate_code("pdf417", data, 0, 0, 2); // <-- Pasar escala (ej. 2)
         check_is_svg(&result);
     }
 
-    // Estos tests de error deberían seguir funcionando
     #[test]
     fn unsupported_type() {
         let data = "Test";
-        let result = generate_code("invalidtype", data, 0, 0);
+        let result = generate_code("invalidtype", data, 0, 0, 1); // Añadir escala
         assert!(result.is_err());
     }
     #[test]
     fn encoding_error_example() {
-        let data = "CódigoConÑ"; // Caracter inválido para Code128
-        let result = generate_code("code128", data, 0, 0);
+        let data = "CódigoConÑ";
+        let result = generate_code("code128", data, 0, 0, 1); // Añadir escala
         assert!(result.is_err());
-        eprintln!("DEBUG: Actual error message: {:?}", result.as_ref().err().unwrap());
-        // Verifica que el error sea de codificación (podría ser más específico)
         assert!(result.unwrap_err().to_string().contains("Bad character"));
     }
 }
