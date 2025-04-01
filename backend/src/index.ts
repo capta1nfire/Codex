@@ -1,93 +1,88 @@
-import cors from 'cors'; // <-- Añade esta línea
 import express, { Request, Response } from 'express';
-import QRCode from 'qrcode';
-import bwipjs from 'bwip-js';
+import cors from 'cors';
 
-// Crear la aplicación Express
+const rust_generator = require('rust_generator');
+
 const app = express();
-app.use(express.json()); // Middleware para parsear JSON
-app.use(cors());       // <-- Añade esta línea: Habilita CORS para todas las rutas
+app.use(express.json());
+app.use(cors());
 
-// Definir el puerto en el que escuchará el servidor
-// Usamos 3001 para evitar conflictos si el frontend usa 3000
 const PORT = process.env.PORT || 3001;
 
-// Ruta de prueba simple para la raíz '/'
-app.get('/', (req: Request, res: Response) => {
-    res.send('¡El backend está funcionando!');
-  });
-  
-  // Ruta para generar códigos  <---- ASEGÚRATE DE QUE ESTA LÍNEA ESTÉ ANTES O ENCIMA
-  app.post('/generate', async (req: Request, res: Response) => {
-    // 1. Extraer datos del cuerpo de la solicitud
-    const { type, data, options } = req.body;
-  
-    // 2. Validación básica de entrada
-    if (!type || !data) {
-      return res.status(400).json({ success: false, error: 'Faltan parámetros "type" o "data".' });
-    }
-  
-    // 3. Lógica específica por tipo de código
-    if (type === 'qrcode') {
-      try {
-        const qrDataURL = await QRCode.toDataURL(data, options || {});
-        return res.status(200).json({ success: true, imageDataUrl: qrDataURL });
-      } catch (err) {
-        console.error('Error generando QR:', err);
-        return res.status(500).json({ success: false, error: 'Error interno al generar el código QR.' });
-      }
-    } else if (type === 'code128') {
-      try {
-        const pngBuffer = await bwipjs.toBuffer({
-          bcid: 'code128',        // Barcode id
-          text: data,             // Text to encode
-          scale: 3,
-          height: 10,
-          includetext: true,
-          textxalign: 'center',
-          ...(options || {}),
-        });
-        const barcodeDataURL = `data:image/png;base64,${pngBuffer.toString('base64')}`;
-        return res.status(200).json({ success: true, imageDataUrl: barcodeDataURL });
-      } catch (err) {
-        console.error('Error generando Code128:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-        return res.status(500).json({ success: false, error: `Error interno al generar Code128: ${errorMessage}` });
-      }
-    } else if (type === 'pdf417') { // <--- NUEVO BLOQUE PARA PDF417
-      try {
-        // Generar PDF417 como buffer PNG
-        const pngBuffer = await bwipjs.toBuffer({
-          bcid: 'pdf417',       // Barcode id
-          text: data,           // Text to encode
-          scale: 3,             // Scaling factor
-          ratio: 3,             // Aspect ratio (height/width module) typical for PDF417
-          // PDF417 tiene opciones específicas como 'columns', 'rows', 'eclevel'
-          // Puedes añadirlas aquí o pasarlas vía 'options' desde la solicitud
-          ...(options || {}),
-        });
-  
-        // Convertir el buffer a Base64 Data URL
-        const pdf417DataURL = `data:image/png;base64,${pngBuffer.toString('base64')}`;
-  
-        // Enviar respuesta exitosa
-        return res.status(200).json({ success: true, imageDataUrl: pdf417DataURL });
-  
-      } catch (err) {
-        // Manejar errores durante la generación del PDF417
-        console.error('Error generando PDF417:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-        // Podrías necesitar parsear errores específicos de bwip-js para PDF417 si son comunes
-        return res.status(500).json({ success: false, error: `Error interno al generar PDF417: ${errorMessage}` });
-      }
-    } else {
-      // Si no es un tipo conocido, devolvemos un error
-      // TODO: Añadir lógica para otros tipos de códigos de barras aquí
-      return res.status(400).json({ success: false, error: `Tipo de código "${type}" aún no soportado.` });
-    }
-  }); // Fin de app.post('/generate', ...)
+async function initializeWasm() {
+    try {
+        // Verifica si hay una función init y llámala si existe
+        if (typeof rust_generator.init === 'function') {
+            await rust_generator.init();
+            console.log('Módulo WASM inicializado explícitamente con init()');
+        } else {
+            console.log('No se encontró función init, asumiendo inicialización implícita');
+        }
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-  console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
+        // Inspecciona el módulo para confirmar qué está disponible
+        console.log('Claves en rust_generator:', Object.keys(rust_generator));
+        if (rust_generator.__wasm) {
+            console.log('Claves en rust_generator.__wasm:', Object.keys(rust_generator.__wasm));
+        }
+        console.log('Tipo de generate_code:', typeof rust_generator.generate_code);
+
+        // Verifica si generate_code está disponible
+        if (typeof rust_generator.generate_code !== 'function') {
+            throw new Error("La función 'generate_code' no está disponible en el módulo WASM");
+        }
+    } catch (error) {
+        // Tipamos error como Error para acceder a .message
+        console.error('¡¡ERROR CRÍTICO al inicializar WASM!!:', (error as Error).message);
+        process.exit(1); // Sale del proceso si falla la inicialización
+    }
+}
+
+async function main() {
+    // Inicializa el módulo WASM antes de configurar rutas
+    await initializeWasm();
+
+    // Ruta de prueba
+    app.get('/', (req: Request, res: Response) => {
+        res.send('¡El backend (Node + Rust/WASM) está funcionando!');
+    });
+
+    // Ruta para generar códigos
+    app.post('/generate', async (req: Request, res: Response) => {
+        const { type, data, options } = req.body;
+
+        if (!type || !data) {
+            return res.status(400).json({ success: false, error: 'Faltan parámetros "type" o "data"' });
+        }
+
+        const width_hint = options?.width || 200;
+        const height_hint = options?.height || 200;
+
+        try {
+            // Llama a generate_code de forma asíncrona
+            const base64_string = await rust_generator.generate_code(type, data, width_hint, height_hint);
+            res.status(200).json({
+                success: true,
+                imageDataUrl: `data:image/png;base64,${base64_string}`
+            });
+        } catch (error) {
+            console.error('Error al generar código con WASM:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+            res.status(500).json({
+                success: false,
+                error: `Error interno al generar código: ${errorMessage}`
+            });
+        }
+    });
+
+    // Inicia el servidor
+    app.listen(PORT, () => {
+        console.log(`Servidor backend Node.js escuchando en http://localhost:${PORT}`);
+        console.log('Núcleo Rust/WASM listo y esperando llamadas');
+    });
+}
+
+// Ejecuta la función principal
+main().catch((error: Error) => {
+    console.error('Error al iniciar el servidor:', error.message);
+    process.exit(1);
 });
