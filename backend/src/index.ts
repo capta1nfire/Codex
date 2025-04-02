@@ -9,6 +9,17 @@ app.use(cors());
 const PORT = process.env.PORT || 3001; // Puerto para este servidor Node.js
 const RUST_SERVICE_URL = 'http://localhost:3002/generate'; // URL del microservicio Rust
 
+// Mapeo de tipos de códigos de barras
+const barcodeTypeMapping: Record<string, string> = {
+  'qrcode': 'qr',
+  'code128': 'code128',
+  'pdf417': 'pdf417',
+  'ean13': 'ean13',
+  'upca': 'upca',
+  'code39': 'code39',
+  'datamatrix': 'datamatrix'
+};
+
 app.get('/', (req: Request, res: Response) => {
   // Mensaje actualizado para claridad
   res.send('¡API Gateway Node.js funcionando! Llamando a Rust en puerto 3002 para generar.');
@@ -24,7 +35,11 @@ app.post('/generate', async (req: Request, res: Response) => { // Handler ahora 
     return res.status(400).json({ success: false, error: 'Faltan parámetros "barcode_type" o "data".' });
   }
 
-  console.log(`Node API: Recibido ${barcode_type}. Llamando al servicio Rust en ${RUST_SERVICE_URL}...`);
+  // Convertir el tipo usando el mapeo
+  const rustBarcodeType = barcodeTypeMapping[barcode_type] || barcode_type;
+  
+  console.log(`Node API: Recibido ${barcode_type}. Convertido a ${rustBarcodeType} para Rust.`);
+  console.log(`Llamando al servicio Rust en ${RUST_SERVICE_URL}...`);
 
   try {
     // --- Llamada HTTP al Microservicio Rust ---
@@ -34,7 +49,7 @@ app.post('/generate', async (req: Request, res: Response) => { // Handler ahora 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        barcode_type: barcode_type,
+        barcode_type: rustBarcodeType, // Usamos el tipo convertido
         data: data,
         options: options || null
       }),
@@ -46,6 +61,12 @@ app.post('/generate', async (req: Request, res: Response) => { // Handler ahora 
       let errorBody = null;
       try { errorBody = await rustResponse.json(); } catch(e) { errorBody = { error: await rustResponse.text() || 'Error desconocido desde el servicio Rust' }; }
       console.error(`Error desde servicio Rust: Status ${rustResponse.status}`, errorBody);
+      
+      // Pasar la respuesta de error completa del servicio Rust al frontend
+      if (errorBody) {
+        return res.status(rustResponse.status).json(errorBody);
+      }
+      
       throw new Error(errorBody?.error || `El servicio Rust devolvió un error ${rustResponse.status}`);
     }
 

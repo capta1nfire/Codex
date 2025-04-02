@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 # Dependencia principal para generar códigos
 rxing = { version = "0.7.1", features = ["image", "svg_write"] }
+lazy_static = "1.4.0"
 
 # Dependencia 'image' (la mantenemos por si usamos sus tipos o generamos PNG después)
 image = "0.25.1"
