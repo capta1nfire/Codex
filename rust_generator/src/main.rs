@@ -11,7 +11,7 @@ use axum::{
 mod validators; // Importamos el nuevo módulo de validadores
 use validators::{BarcodeRequest, validate_barcode_request}; // Quita ValidationError
 use std::net::SocketAddr;
-use std::time::{Instant, SystemTime}; // Combina las importaciones de tiempo
+use std::time::Instant; // Simplificar importación de tiempo
 use std::sync::OnceLock; // Añade OnceLock
 use chrono::Local;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -20,7 +20,6 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use dashmap::DashMap;
-use std::sync::Arc;
 
 // Estructura para la clave de caché
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -101,11 +100,12 @@ impl GenerationCache {
     // Elimina entradas según política LRU (Least Recently Used)
     fn evict_entries(&self) {
         // Encontrar la entrada accedida menos recientemente
-        if let Some((oldest_key, _)) = self.cache.iter()
-            .min_by_key(|entry| entry.value().last_accessed) {
-            // Clonar la clave para evitar problemas de borrowing
-            let key_to_remove = oldest_key;
-            // Eliminar la entrada
+        let oldest_key = self.cache.iter()
+            .min_by_key(|entry| entry.value().last_accessed)
+            .map(|entry| *entry.key());
+            
+        // Si encontramos una entrada antigua, eliminarla
+        if let Some(key_to_remove) = oldest_key {
             self.cache.remove(&key_to_remove);
         }
     }

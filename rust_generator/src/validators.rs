@@ -93,6 +93,30 @@ impl BarcodeValidator for QRValidator {
             });
         }
         
+        // Nueva validación especializada para URLs
+        if request.data.starts_with("http://") || request.data.starts_with("https://") {
+            // Verificar longitud recomendada para URLs en QR (evitar URLs muy largas)
+            if request.data.len() > 300 {
+                return Err(ValidationError {
+                    code: "QR_URL_TOO_LONG".to_string(),
+                    message: format!(
+                        "La URL es demasiado larga para un QR óptimamente escaneable ({} caracteres)", 
+                        request.data.len()
+                    ),
+                    suggestion: Some("Considere usar un servicio de acortamiento de URLs o reducir la longitud de los parámetros".to_string()),
+                });
+            }
+            
+            // Validar estructura básica de URL
+            if !request.data.contains(".") {
+                return Err(ValidationError {
+                    code: "QR_URL_INVALID_FORMAT".to_string(),
+                    message: "La URL no parece tener un formato válido".to_string(),
+                    suggestion: Some("Verifique que la URL contenga un nombre de dominio correcto".to_string()),
+                });
+            }
+        }
+        
         // Validar nivel de corrección de errores si está especificado
         if let Some(options) = &request.options {
             if let Some(ecl) = &options.error_correction_level {

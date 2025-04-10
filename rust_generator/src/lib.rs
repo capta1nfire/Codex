@@ -64,20 +64,54 @@ pub fn generate_code(
     height_hint: i32, 
     scale: u32,
 ) -> Result<String, Box<dyn Error>> {
-    let format = match code_type.to_lowercase().as_str() {
-        "qr" => BarcodeFormat::QR_CODE,
-        "code128" => BarcodeFormat::CODE_128,
-        "pdf417" => BarcodeFormat::PDF_417,
+    // Corregir esto:
+    // let code_type = code_type.to_lowercase().trim();
+    
+    // Por esto:
+    let binding = code_type.to_lowercase();
+    let code_type = binding.trim();
+    
+    let format = match code_type {
+        // QR Code y variantes
+        "qr" | "qrcode" | "qr-code" | "qr_code" => BarcodeFormat::QR_CODE,
+        
+        // Code 128 y variantes
+        "code128" | "code-128" | "code_128" | "code 128" => BarcodeFormat::CODE_128,
+        
+        // PDF417 y variantes
+        "pdf417" | "pdf-417" | "pdf_417" | "pdf 417" => BarcodeFormat::PDF_417,
+        
+        // Aztec
         "aztec" => BarcodeFormat::AZTEC,
-        "datamatrix" => BarcodeFormat::DATA_MATRIX,
-        "ean8" => BarcodeFormat::EAN_8,
-        "ean13" => BarcodeFormat::EAN_13,
+        
+        // DataMatrix y variantes
+        "datamatrix" | "data-matrix" | "data_matrix" | "data matrix" => BarcodeFormat::DATA_MATRIX,
+        
+        // EAN-8 y variantes
+        "ean8" | "ean-8" | "ean_8" | "ean 8" => BarcodeFormat::EAN_8,
+        
+        // EAN-13 y variantes
+        "ean13" | "ean-13" | "ean_13" | "ean 13" => BarcodeFormat::EAN_13,
+        
+        // ITF
         "itf" => BarcodeFormat::ITF,
-        "upca" => BarcodeFormat::UPC_A,
-        "upce" => BarcodeFormat::UPC_E,
-        "code39" => BarcodeFormat::CODE_39,
-        "code93" => BarcodeFormat::CODE_93,
+        
+        // UPC-A y variantes
+        "upca" | "upc-a" | "upc_a" | "upc a" => BarcodeFormat::UPC_A,
+        
+        // UPC-E y variantes
+        "upce" | "upc-e" | "upc_e" | "upc e" => BarcodeFormat::UPC_E,
+        
+        // Code 39 y variantes
+        "code39" | "code-39" | "code_39" | "code 39" => BarcodeFormat::CODE_39,
+        
+        // Code 93 y variantes
+        "code93" | "code-93" | "code_93" | "code 93" => BarcodeFormat::CODE_93,
+        
+        // Codabar
         "codabar" => BarcodeFormat::CODABAR,
+        
+        // No reconocido
         _ => return Err(format!("Tipo de código no soportado: {}", code_type).into()),
     };
     
