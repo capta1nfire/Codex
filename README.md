@@ -3,7 +3,7 @@
 Aquí tienes una versión actualizada del README.md que incluye las mejoras que hemos implementado:
 
 ```markdown
-# Codex (Nombre Clave Provisional)
+# Codex - Generador de Códigos Avanzado
 
 Plataforma web moderna y potente para la generación online de códigos de barras y QR. Enfocada en rendimiento, experiencia de usuario superior, flexibilidad y escalabilidad.
 
@@ -42,10 +42,14 @@ Este repositorio utiliza un enfoque "monorepo" simple que contiene los diferente
 
 - **Rendimiento Optimizado**: Generación rápida de SVGs con código nativo Rust
 - **Sistema de Caché**: Implementación LRU para generaciones repetidas, reduciendo tiempos de respuesta
+- **Sistema de Caché TTL**: Optimización con caché que soporta tiempo de vida configurable por solicitud
+- **Métricas Avanzadas**: Análisis detallado de rendimiento por tipo de código
 - **Métricas en Tiempo Real**: Monitoreo de solicitudes, errores y estadísticas de caché
-- **Normalización de Tipos**: Flexibilidad para aceptar múltiples formatos de entrada
+- **Normalización de Tipos**: Procesamiento inteligente de tipos de códigos (qrcode, qr-code, qr_code → qr)
 - **Validación Robusta**: Validación específica según el tipo de código
+- **Gestión de Memoria**: Optimización para evitar consumo excesivo en métricas y caché
 - **Gestión de Errores**: Respuestas de error claras con sugerencias y códigos
+- **Endpoints de Administración**: Interfaz completa para gestión y monitoreo
 
 ## Ejecución en Entorno de Desarrollo
 
@@ -91,16 +95,30 @@ npm install
 npm run dev
 ```
 
-## Endpoints Principales
+## Endpoints del Servicio Rust (puerto 3002)
 
-### Núcleo Generador (Rust, puerto 3002)
+| Endpoint | Método | Descripción |
+|---------|--------|-------------|
+| `/generate` | POST | Genera un código de barras/QR en formato SVG |
+| `/status` | GET | Devuelve estadísticas generales del servicio |
+| `/health` | GET | Endpoint simple para health checks |
+| `/cache/clear` | POST | Limpia la caché del sistema |
+| `/cache/config` | POST | Configura parámetros de la caché (TTL) |
+| `/analytics/performance` | GET | Obtiene métricas detalladas de rendimiento |
 
-- **POST /generate**: Genera un código de barras/QR en formato SVG
-- **GET /status**: Devuelve el estado del servicio y métricas en tiempo real
-- **GET /health**: Endpoint simplificado para health checks
-- **POST /cache/clear**: Limpia la caché del sistema
+## Personalización del TTL
+Ahora es posible especificar un TTL personalizado por solicitud:
 
-Para más detalles, consulta la documentación completa de la API.
+```json
+{
+  "barcode_type": "qrcode",
+  "data": "Ejemplo con TTL personalizado",
+  "options": {
+    "scale": 3,
+    "ttlSeconds": 3600  // TTL personalizado en segundos
+  }
+}
+```
 
 ## Documentación
 

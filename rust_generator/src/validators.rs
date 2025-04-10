@@ -15,26 +15,27 @@ pub struct BarcodeRequest {
 }
 
 // Opciones extendidas para soportar más parámetros específicos por tipo
-#[derive(Deserialize, Debug, Default)]
+#[derive(Debug, serde::Deserialize)]
 pub struct BarcodeRequestOptions {
     #[serde(default = "default_scale")]
     pub scale: u32,
     
-    // Opciones comunes
-    #[serde(default)]
     pub margin: Option<u32>,
     
-    // Opciones específicas para QR
-    #[serde(default)]
-    pub error_correction_level: Option<String>, // L, M, Q, H
+    #[serde(rename = "errorCorrectionLevel")]
+    pub error_correction_level: Option<String>,
     
-    // Opciones específicas para PDF417
-    #[serde(default)]
+    #[serde(rename = "minColumns")]
     pub min_columns: Option<u32>,
-    #[serde(default)]
+    
+    #[serde(rename = "maxColumns")]
     pub max_columns: Option<u32>,
-    #[serde(default)]
+    
     pub compact: Option<bool>,
+    
+    // Nuevo campo para TTL personalizado
+    #[serde(rename = "ttlSeconds")]
+    pub ttl_seconds: Option<u64>,
 }
 
 pub fn default_scale() -> u32 { 3 }
