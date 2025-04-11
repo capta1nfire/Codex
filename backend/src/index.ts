@@ -1,5 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+// Importar os para obtener información del sistema
+import * as os from 'os';
 // ¡Ya NO importamos nada de 'rust_generator' aquí!
 
 const app = express();
@@ -23,6 +25,64 @@ const barcodeTypeMapping: Record<string, string> = {
 app.get('/', (req: Request, res: Response) => {
   // Mensaje actualizado para claridad
   res.send('¡API Gateway Node.js funcionando! Llamando a Rust en puerto 3002 para generar.');
+});
+
+// Endpoint de salud para monitoreo
+app.get('/health', async (req: Request, res: Response) => {
+  // Información básica del sistema
+  const healthData = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'codex-api-gateway',
+    uptime: process.uptime(),
+    memoryUsage: {
+      total: Math.round(os.totalmem() / 1024 / 1024) + 'MB',
+      free: Math.round(os.freemem() / 1024 / 1024) + 'MB',
+      processUsage: Math.round(process.memoryUsage().rss / 1024 / 1024) + 'MB'
+    }
+  };
+
+  // Verificar conexión con el servicio Rust
+  try {
+    const rustHealthCheck = await fetch('http://localhost:3002/health', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal: AbortSignal.timeout(1000) // Timeout de 1 segundo
+    });
+    
+    if (rustHealthCheck.ok) {
+      const rustHealth = await rustHealthCheck.json();
+      healthData.dependencies = {
+        rust_service: {
+          status: 'ok',
+          ...rustHealth
+        }
+      };
+    } else {
+      healthData.dependencies = {
+        rust_service: {
+          status: 'degraded',
+          error: `HTTP ${rustHealthCheck.status}`
+        }
+      };
+      healthData.status = 'degraded';
+    }
+  } catch (error) {
+    // Si no podemos conectar con el servicio Rust
+    healthData.dependencies = {
+      rust_service: {
+        status: 'unavailable',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      }
+    };
+    healthData.status = 'degraded';
+  }
+  
+  // Enviar respuesta con el estado adecuado
+  const statusCode = healthData.status === 'ok' ? 200 : 503;
+  res.status(statusCode).json(healthData);
 });
 
 // Ruta para generar códigos (ahora llama al servicio Rust vía HTTP)

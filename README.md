@@ -95,6 +95,16 @@ npm install
 npm run dev
 ```
 
+## Desarrollo
+
+### Configuración del Entorno
+
+1. Clonar el repositorio:
+   ```bash
+   git clone [URL_DEL_REPOSITORIO]
+   cd Codex/frontend
+```
+
 ## Endpoints del Servicio Rust (puerto 3002)
 
 | Endpoint | Método | Descripción |
@@ -119,6 +129,27 @@ Ahora es posible especificar un TTL personalizado por solicitud:
   }
 }
 ```
+
+## Registro de Progreso
+
+### 10 de Abril, 2025 - Mejoras en la Interfaz de Usuario
+
+#### Cambios Realizados:
+- ✅ Solucionados problemas de configuración con Tailwind CSS
+- ✅ Optimizada la estructura del archivo globals.css para mejorar la compatibilidad
+- ✅ Recuperada la funcionalidad completa del generador de códigos
+- ✅ Establecida base para la integración con la API backend
+
+#### Próximos Pasos:
+- Completar la integración con el servidor backend para la generación de códigos
+- Implementar funcionalidades adicionales en la interfaz (personalización avanzada)
+- Añadir soporte para usuarios móviles y mejorar la responsividad
+- Optimizar el rendimiento de la aplicación
+
+#### Tecnologías Utilizadas:
+- Next.js 15.2.4
+- Tailwind CSS 3.4.0
+- Headless UI para componentes interactivos
 
 ## Documentación
 
