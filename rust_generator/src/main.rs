@@ -1,30 +1,31 @@
 // main.rs actualizado con integración del sistema de validación, caché y métricas de rendimiento
 
-// Imports necesarios
+// Imports de biblioteca estándar
+use std::collections::{HashMap, hash_map::DefaultHasher};
+use std::hash::{Hash, Hasher};
+use std::net::SocketAddr;
+use std::sync::{Arc, OnceLock, atomic::{AtomicU64, Ordering}};
+use std::thread;
+use std::time::{Instant, Duration};
+
+// Imports de crates externos
 use axum::{
     extract::Json,
     http::{header, StatusCode},
-    response::IntoResponse,
+    response::{IntoResponse, Response},
     routing::{get, post},
     Router,
 };
-mod validators; // Importamos el nuevo módulo de validadores
-use validators::{BarcodeRequest, validate_barcode_request}; // Quita ValidationError
-use std::net::SocketAddr;
-use std::time::{Instant, Duration}; // Actualizando importación de tiempo
-use std::sync::{Arc, OnceLock}; // Añade Arc y OnceLock
-use chrono::Local;
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::thread;
-
-// Imports adicionales para caché y métricas
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
+use chrono;  // Solo usamos el módulo, no Local directamente
 use dashmap::DashMap;
-use std::collections::HashMap;
-
-// Importar la capa de CORS de Tower
 use tower_http::cors::{CorsLayer, Any};
+use tracing::{info, error, debug};
+use tracing_subscriber::{fmt, EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_appender::rolling::{RollingFileAppender, Rotation};
+
+// Imports locales
+mod validators;
+use validators::{BarcodeRequest, validate_barcode_request};
 
 // Estructura para la clave de caché
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -38,6 +39,7 @@ struct CacheKey {
 // Estructura que contiene los datos de caché y estadísticas
 struct CacheEntry {
     svg: String,
+    #[allow(dead_code)]  // Se mantiene por razones de auditoría e historial
     created_at: Instant,
     last_accessed: Instant,
     expires_at: Instant, // Añadido para manejar tiempos de expiración
@@ -49,6 +51,7 @@ struct CacheEntry {
 struct PerformanceMetric {
     duration_ms: u64,
     data_size: usize,
+    #[allow(dead_code)]  // Se mantiene para posibles análisis temporales futuros
     timestamp: Instant,
 }
 
@@ -79,13 +82,21 @@ impl GenerationCache {
             metrics_retention_count: 1000, // Retener las últimas 1000 métricas por tipo
         };
         
-        // Crear Arc para pasar al thread
+        // Crear thread de limpieza solo si TTL > 0
         if default_ttl_secs > 0 {
-            let cache_ref = Arc::clone(&cache.cache);
+            // Crear una copia de la caché para el thread de limpieza
             let cache_arc = Arc::new(cache);
+            
+            // Referencias para el thread de limpieza
+            let cache_ref = Arc::clone(&cache_arc.cache);
             let cache_cleanup_ref = Arc::clone(&cache_arc);
             
+            // Iniciar thread de limpieza
             std::thread::spawn(move || {
+                info!(
+                    "🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"
+                );
+                
                 // Thread de limpieza usando Arc
                 loop {
                     thread::sleep(Duration::from_secs(60));
@@ -105,18 +116,26 @@ impl GenerationCache {
                     
                     if count > 0 {
                         cache_cleanup_ref.expired_items_removed.fetch_add(count as u64, Ordering::SeqCst);
-                        println!(
-                            "🧹 [{}] Limpieza automática: {} entradas expiradas eliminadas", 
-                            Local::now().format("%Y-%m-%d %H:%M:%S"),
-                            count
+                        info!(
+                            count = count,
+                            "🧹 Limpieza automática: entradas expiradas eliminadas"
                         );
                     }
                 }
             });
             
+            // Intentar extraer la caché del Arc
             match Arc::try_unwrap(cache_arc) {
-                Ok(cache) => cache,
-                Err(arc) => (*arc).clone(),
+                Ok(inner_cache) => inner_cache,
+                Err(strong_arc) => {
+                    // Si no es posible extraer la caché (porque el thread la está usando),
+                    // devolvemos un clon de la caché desde el Arc
+                    info!(
+                        references = Arc::strong_count(&strong_arc),
+                        "No se pudo extraer caché de Arc, usando clone"
+                    );
+                    (*strong_arc).clone()
+                },
             }
         } else {
             cache
@@ -192,6 +211,7 @@ impl GenerationCache {
     }
     
     // Elimina todas las entradas expiradas
+    #[allow(dead_code)]  // Se mantiene como método de utilidad para limpieza manual cuando sea necesario
     fn cleanup_expired(&self) -> usize {
         let now = Instant::now();
         let mut expired_count = 0;
@@ -247,15 +267,23 @@ impl GenerationCache {
         self.default_ttl_secs.store(ttl_secs, Ordering::SeqCst);
     }
 
-    // Registrar métricas de caché hit
-    fn record_cache_hit(&self, barcode_type: &str, duration_ms: u64, data_size: usize) {
+    // Función unificada para registrar métricas (reemplaza record_cache_hit y record_generation)
+    fn record_metric(&self, barcode_type: &str, duration_ms: u64, data_size: usize, is_cache_hit: bool) {
         let metric = PerformanceMetric {
             duration_ms,
             data_size,
             timestamp: Instant::now(),
         };
         
-        let mut entry = self.cache_hit_metrics
+        // Seleccionar el mapa de métricas correcto
+        let metrics_map = if is_cache_hit {
+            &self.cache_hit_metrics
+        } else {
+            &self.cache_miss_metrics
+        };
+        
+        // Registrar la métrica
+        let mut entry = metrics_map
             .entry(barcode_type.to_string())
             .or_insert_with(Vec::new);
             
@@ -264,31 +292,20 @@ impl GenerationCache {
         // Limitar el tamaño para evitar consumo excesivo de memoria
         if entry.len() > self.metrics_retention_count {
             let drain_count = entry.len() - self.metrics_retention_count;
-            let mut entry = self.cache_hit_metrics.get_mut(&barcode_type.to_string()).unwrap();
+            let metric_type = barcode_type.to_string();
+            drop(entry); // Liberamos el RefMut antes de tomar otro
+            let mut entry = metrics_map.get_mut(&metric_type).unwrap();
             entry.drain(0..drain_count);
         }
     }
     
-    // Corregir el método record_generation
+    // Funciones wrapper para mantener compatibilidad API
+    fn record_cache_hit(&self, barcode_type: &str, duration_ms: u64, data_size: usize) {
+        self.record_metric(barcode_type, duration_ms, data_size, true);
+    }
+    
     fn record_generation(&self, barcode_type: &str, duration_ms: u64, data_size: usize) {
-        let metric = PerformanceMetric {
-            duration_ms,
-            data_size,
-            timestamp: Instant::now(),
-        };
-        
-        let mut entry = self.cache_miss_metrics
-            .entry(barcode_type.to_string())
-            .or_insert_with(Vec::new);
-            
-        entry.push(metric);
-        
-        // Limitar el tamaño para evitar consumo excesivo de memoria
-        if entry.len() > self.metrics_retention_count {
-            let drain_count = entry.len() - self.metrics_retention_count;
-            let mut entry = self.cache_miss_metrics.get_mut(&barcode_type.to_string()).unwrap();
-            entry.drain(0..drain_count);
-        }
+        self.record_metric(barcode_type, duration_ms, data_size, false);
     }
     
     // Corregir get_performance_analytics para manejar correctamente los Refs
@@ -393,11 +410,15 @@ impl GenerationCache {
     }
 }
 
+// Tipos para mejorar la legibilidad de PerformanceAnalytics
+type BarcodeTypeMap = HashMap<String, TypePerformance>;
+type Timestamp = String;
+
 #[derive(serde::Serialize)]
 struct PerformanceAnalytics {
-    by_barcode_type: HashMap<String, TypePerformance>,
+    by_barcode_type: BarcodeTypeMap,
     overall: OverallPerformance,
-    timestamp: String,
+    timestamp: Timestamp,
 }
 
 #[derive(serde::Serialize)]
@@ -468,6 +489,9 @@ static START_TIME: OnceLock<Instant> = OnceLock::new();
 // --- Punto de Entrada Principal ---
 #[tokio::main]
 async fn main() {
+    // Inicializar sistema de logging
+    setup_logging();
+    
     let _ = START_TIME.set(Instant::now());
     let _ = CACHE.set(GenerationCache::new(100, 60));
     
@@ -488,12 +512,51 @@ async fn main() {
         .layer(cors);  // Añadir la capa CORS
     
     let addr = SocketAddr::from(([127, 0, 0, 1], 3002));
-    println!("Servicio Rust de Generación (Axum) escuchando en {}", addr);
+    info!("Servicio Rust de Generación (Axum) escuchando en {}", addr);
     
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
         .unwrap();
+}
+
+// Configura el sistema de logging
+fn setup_logging() {
+    // Crear un appender para archivos de logs que rota diariamente
+    let file_appender = RollingFileAppender::new(
+        Rotation::DAILY,
+        "logs",
+        "rust_generator.log",
+    );
+    
+    // Configurar un formato personalizado para la consola con colores
+    let console_layer = fmt::layer()
+        .with_ansi(true)
+        .with_target(true)
+        .with_level(true)
+        .pretty();
+    
+    // Configurar un formato JSON para el archivo de logs
+    let file_layer = fmt::layer()
+        .with_ansi(false)
+        .with_target(true)
+        .json()
+        .with_writer(file_appender);
+    
+    // Configurar filtro de nivel de log basado en una variable de entorno
+    // Si RUST_LOG no está definido, usar INFO como predeterminado
+    let env_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("info"));
+    
+    // Inicializar el subscriber de tracing con las capas configuradas
+    tracing_subscriber::registry()
+        .with(console_layer)
+        .with(file_layer)
+        .with(env_filter)
+        .init();
+    
+    info!("Sistema de logging inicializado");
+    debug!("Nivel de logging configurado desde variable de entorno o predeterminado a INFO");
 }
 
 // Añade esta función después de la función main() y antes de generate_handler()
@@ -506,28 +569,22 @@ async fn generate_handler(Json(payload): Json<BarcodeRequest>) -> impl IntoRespo
     let request_id = REQUEST_COUNTER.fetch_add(1, Ordering::SeqCst);
     let start_time = Instant::now();
 
-    println!(
-        "📝 [{}] REQ-{:06} INICIO | tipo={}, data_length={}, opciones={:?}",
-        Local::now().format("%Y-%m-%d %H:%M:%S"),
-        request_id,
-        payload.barcode_type,
-        payload.data.len(),
-        payload.options
+    info!(
+        request_id = request_id,
+        barcode_type = %payload.barcode_type,
+        data_length = payload.data.len(),
+        "Solicitud de generación recibida"
     );
 
     if let Err(validation_error) = validate_barcode_request(&payload) {
-        println!("Error de validación: {}", validation_error);
+        error!(error = %validation_error, "Error de validación");
         
-        ERROR_COUNTER.fetch_add(1, Ordering::SeqCst);
-        return (
-            StatusCode::BAD_REQUEST, 
-            Json(ErrorResponse { 
-                success: false, 
-                error: validation_error.message.clone(),
-                suggestion: validation_error.suggestion.clone(),
-                code: Some(validation_error.code.clone()),
-            })
-        ).into_response();
+        return handle_error(
+            validation_error.message.clone(),
+            StatusCode::BAD_REQUEST,
+            validation_error.suggestion.clone(),
+            Some(validation_error.code.clone())
+        );
     }
     
     let scale = payload.options.as_ref().map_or_else(
@@ -549,11 +606,10 @@ async fn generate_handler(Json(payload): Json<BarcodeRequest>) -> impl IntoRespo
         _ => payload.barcode_type.to_lowercase()
     };
     
-    println!(
-        "🔄 [{}] Tipo convertido: {} -> {}",
-        Local::now().format("%H:%M:%S"),
-        payload.barcode_type,
-        barcode_type
+    debug!(
+        original_type = %payload.barcode_type,
+        normalized_type = %barcode_type,
+        "Tipo de código normalizado"
     );
     
     let cache_key = CacheKey {
@@ -573,12 +629,11 @@ async fn generate_handler(Json(payload): Json<BarcodeRequest>) -> impl IntoRespo
             let duration_ms = start_time.elapsed().as_millis() as u64;
             cache.record_cache_hit(&barcode_type, duration_ms, payload.data.len());
             
-            println!(
-                "✅ [{}] REQ-{:06} ÉXITO (CACHÉ) | tipo={}, duración={}ms",
-                Local::now().format("%Y-%m-%d %H:%M:%S"),
-                request_id,
-                payload.barcode_type,
-                duration_ms
+            info!(
+                request_id = request_id,
+                barcode_type = %payload.barcode_type,
+                duration_ms = duration_ms,
+                "Éxito en caché"
             );
             
             return (
@@ -610,12 +665,11 @@ async fn generate_handler(Json(payload): Json<BarcodeRequest>) -> impl IntoRespo
                 }
             }
 
-            println!(
-                "✅ [{}] REQ-{:06} ÉXITO | tipo={}, duración={}ms",
-                Local::now().format("%Y-%m-%d %H:%M:%S"),
-                request_id,
-                payload.barcode_type,
-                duration_ms
+            info!(
+                request_id = request_id,
+                barcode_type = %payload.barcode_type,
+                duration_ms = duration_ms,
+                "Generación exitosa"
             );
 
             (
@@ -629,15 +683,14 @@ async fn generate_handler(Json(payload): Json<BarcodeRequest>) -> impl IntoRespo
         Err(e) => {
             let error_message = e.to_string();
             let duration_ms = start_time.elapsed().as_millis() as u64;
-            println!(
-                "❌ [{}] REQ-{:06} ERROR | tipo={}, error={}, duración={}ms",
-                Local::now().format("%H:%M:%S"),
-                request_id,
-                payload.barcode_type,
-                error_message,
-                duration_ms
+            
+            error!(
+                request_id = request_id,
+                barcode_type = %payload.barcode_type,
+                error = %error_message,
+                duration_ms = duration_ms,
+                "Error en generación"
             );
-            ERROR_COUNTER.fetch_add(1, Ordering::SeqCst);
 
             let status_code = if error_message.contains("Tipo de código no soportado") 
                               || error_message.contains("Bad character") {
@@ -646,17 +699,30 @@ async fn generate_handler(Json(payload): Json<BarcodeRequest>) -> impl IntoRespo
                 StatusCode::INTERNAL_SERVER_ERROR
             };
             
-            (
-                status_code, 
-                Json(ErrorResponse { 
-                    success: false, 
-                    error: error_message,
-                    suggestion: None,
-                    code: None,
-                })
-            ).into_response()
+            handle_error(error_message, status_code, None, None)
         }
     }
+}
+
+// Función centralizada para manejar errores
+fn handle_error(error_message: String, status_code: StatusCode, suggestion: Option<String>, code: Option<String>) -> Response {
+    ERROR_COUNTER.fetch_add(1, Ordering::SeqCst);
+    
+    error!(
+        error = %error_message,
+        code = ?code,
+        "Error procesando solicitud"
+    );
+    
+    (
+        status_code, 
+        Json(ErrorResponse { 
+            success: false, 
+            error: error_message,
+            suggestion,
+            code,
+        })
+    ).into_response()
 }
 
 // Endpoint de estado del servicio con métricas en tiempo real
@@ -748,10 +814,19 @@ async fn health_handler() -> Json<serde_json::Value> {
 async fn clear_cache_handler() -> impl IntoResponse {
     if let Some(cache) = CACHE.get() {
         cache.clear();
-        println!("🧹 [{}] Caché limpiada", Local::now().format("%Y-%m-%d %H:%M:%S"));
-        (StatusCode::OK, Json(serde_json::json!({ "success": true, "message": "Cache cleared" })))
+        info!("Caché limpiada");
+        (StatusCode::OK, Json(serde_json::json!({ 
+            "success": true, 
+            "message": "Cache cleared" 
+        }))).into_response()
     } else {
-        (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "success": false, "error": "Cache not initialized" })))
+        error!("Error al limpiar caché: cache no inicializado");
+        handle_error(
+            "Cache not initialized".to_string(),
+            StatusCode::INTERNAL_SERVER_ERROR,
+            None,
+            None
+        )
     }
 }
 
@@ -766,11 +841,10 @@ async fn configure_cache_handler(Json(payload): Json<CacheConfigRequest>) -> imp
         let old_ttl = cache.get_default_ttl_secs();
         cache.set_default_ttl(payload.default_ttl_seconds);
         
-        println!(
-            "⚙️ [{}] Configuración de caché actualizada: TTL predeterminado {} -> {} segundos", 
-            Local::now().format("%Y-%m-%d %H:%M:%S"),
-            old_ttl,
-            payload.default_ttl_seconds
+        info!(
+            old_ttl = old_ttl,
+            new_ttl = payload.default_ttl_seconds,
+            "Configuración de caché actualizada"
         );
         
         (StatusCode::OK, Json(serde_json::json!({
@@ -778,44 +852,53 @@ async fn configure_cache_handler(Json(payload): Json<CacheConfigRequest>) -> imp
             "message": "Cache configuration updated",
             "old_ttl_seconds": old_ttl,
             "new_ttl_seconds": payload.default_ttl_seconds
-        })))
+        }))).into_response()
     } else {
-        (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-            "success": false, 
-            "error": "Cache not initialized"
-        })))
+        error!("Error al configurar caché: cache no inicializado");
+        handle_error(
+            "Cache not initialized".to_string(),
+            StatusCode::INTERNAL_SERVER_ERROR,
+            None,
+            None
+        )
     }
 }
 
 // Endpoint para análisis de rendimiento
 async fn performance_analytics_handler() -> impl IntoResponse {
-    println!("📊 [{}] Solicitud de analytics/performance recibida", 
-             Local::now().format("%Y-%m-%d %H:%M:%S"));
+    info!("Solicitud de analytics/performance recibida");
              
-    if let Some(cache) = CACHE.get() {
-        match serde_json::to_string(&cache.get_performance_analytics()) {
-            Ok(json) => {
-                println!("✅ [{}] Analytics generados correctamente", 
-                         Local::now().format("%Y-%m-%d %H:%M:%S"));
-                (StatusCode::OK, [(header::CONTENT_TYPE, "application/json")], json)
-            },
-            Err(e) => {
-                println!("❌ [{}] Error serializando analytics: {}", 
-                         Local::now().format("%Y-%m-%d %H:%M:%S"), e);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    [(header::CONTENT_TYPE, "application/json")],
-                    format!("{{\"error\":\"Error serializando respuesta: {}\",\"success\":false}}", e)
-                )
-            }
+    // Mover el manejo de errores al inicio de la función
+    let cache = match CACHE.get() {
+        Some(cache) => cache,
+        None => {
+            error!("Error al generar analytics: cache no inicializado");
+            return handle_error(
+                "Cache not initialized".to_string(),
+                StatusCode::INTERNAL_SERVER_ERROR,
+                None,
+                None
+            );
         }
-    } else {
-        println!("❌ [{}] Cache no inicializado al solicitar analytics", 
-                 Local::now().format("%Y-%m-%d %H:%M:%S"));
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            [(header::CONTENT_TYPE, "application/json")],
-            "{\"error\":\"Cache not initialized\",\"success\":false}".to_string()
-        )
+    };
+    
+    // Generar los analytics
+    let analytics = cache.get_performance_analytics();
+    
+    // Serializar los resultados
+    match serde_json::to_string(&analytics) {
+        Ok(json) => {
+            info!("Analytics generados correctamente");
+            (StatusCode::OK, [(header::CONTENT_TYPE, "application/json")], json).into_response()
+        },
+        Err(e) => {
+            error!(error = %e, "Error serializando analytics");
+            return handle_error(
+                format!("Error serializando respuesta: {}", e),
+                StatusCode::INTERNAL_SERVER_ERROR,
+                None,
+                None
+            );
+        }
     }
 }

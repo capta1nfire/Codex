@@ -15,11 +15,12 @@ pub struct BarcodeRequest {
 }
 
 // Opciones extendidas para soportar más parámetros específicos por tipo
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, Default)]
 pub struct BarcodeRequestOptions {
     #[serde(default = "default_scale")]
     pub scale: u32,
     
+    #[allow(dead_code)] // Se mantiene para futuras implementaciones
     pub margin: Option<u32>,
     
     #[serde(rename = "errorCorrectionLevel")]
@@ -31,6 +32,7 @@ pub struct BarcodeRequestOptions {
     #[serde(rename = "maxColumns")]
     pub max_columns: Option<u32>,
     
+    #[allow(dead_code)] // Se mantiene para futuras implementaciones
     pub compact: Option<bool>,
     
     // Nuevo campo para TTL personalizado
@@ -319,7 +321,7 @@ impl BarcodeValidator for EANValidator {
         
         if request.data.len() != expected_length {
             return Err(ValidationError {
-                code: format!("{}_INVALID_LENGTH", ean_type),
+                code: format!("{}_{}", ean_type.to_string().replace("-", ""), "INVALID_LENGTH"),
                 message: format!(
                     "{} requiere exactamente {} dígitos (el dígito de verificación se generará automáticamente)",
                     ean_type, expected_length
