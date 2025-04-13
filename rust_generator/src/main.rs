@@ -23,6 +23,9 @@ use std::hash::{Hash, Hasher};
 use dashmap::DashMap;
 use std::collections::HashMap;
 
+// Importar la capa de CORS de Tower
+use tower_http::cors::{CorsLayer, Any};
+
 // Estructura para la clave de caché
 #[derive(Clone, Hash, PartialEq, Eq)]
 struct CacheKey {
@@ -468,6 +471,12 @@ async fn main() {
     let _ = START_TIME.set(Instant::now());
     let _ = CACHE.set(GenerationCache::new(100, 60));
     
+    // Crear la capa CORS
+    let cors = CorsLayer::new()
+        .allow_origin(["http://localhost:3000".parse().unwrap()])
+        .allow_methods(Any)
+        .allow_headers(Any);
+    
     let app = Router::new()
         .route("/", get(root_handler))
         .route("/generate", post(generate_handler))
@@ -475,23 +484,16 @@ async fn main() {
         .route("/health", get(health_handler))
         .route("/cache/clear", post(clear_cache_handler))
         .route("/cache/config", post(configure_cache_handler))
-        .route("/analytics/performance", get(performance_analytics_handler));
+        .route("/analytics/performance", get(performance_analytics_handler))
+        .layer(cors);  // Añadir la capa CORS
     
     let addr = SocketAddr::from(([127, 0, 0, 1], 3002));
     println!("Servicio Rust de Generación (Axum) escuchando en {}", addr);
     
-    let listener = match tokio::net::TcpListener::bind(addr).await {
-        Ok(listener) => listener,
-        Err(e) => {
-            eprintln!("FATAL: No se pudo enlazar al puerto {}: {}", addr.port(), e);
-            std::process::exit(1);
-        }
-    };
-    
-    if let Err(e) = axum::serve(listener, app).await {
-        eprintln!("FATAL: El servidor Axum falló: {}", e);
-        std::process::exit(1);
-    }
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 }
 
 // Añade esta función después de la función main() y antes de generate_handler()

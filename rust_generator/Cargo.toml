@@ -14,12 +14,14 @@ lazy_static = "1.4.0"
 image = "0.25.1"
 
 # --- Dependencias para el servidor web Axum ---
-axum = "0.7.5"
-tokio = { version = "1.37.0", features = ["full"] } # Runtime asíncrono
+axum = "0.6"
+tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] } # Para (de)serializar JSON
 serde_json = "1.0" # Para trabajar con JSON
 chrono = "0.4.34" # Para formateo de fechas y timestamps en logs
 dashmap = "5.5.3" # Dashmap es una implementación thread-safe de un HashMap, perfecta para nuestra caché
+tower = "0.4"
+tower-http = { version = "0.3", features = ["cors"] }
 
 # --- DEPENDENCIAS WASM Y OTRAS INNECESARIAS ELIMINADAS ---
 # base64 = "0.22.0" # Eliminada
