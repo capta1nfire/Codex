@@ -1,162 +1,139 @@
-# Actualización del README.md con las Mejoras Implementadas
+# Codex - Plataforma de Generación de Códigos de Barras y QR
 
-Aquí tienes una versión actualizada del README.md que incluye las mejoras que hemos implementado:
+<div align="center">
+  <img src="assets/logo.png" alt="Codex Logo" width="200">
+  <p><strong>Generación moderna y eficiente de códigos de barras y QR</strong></p>
+</div>
 
-```markdown
-# Codex - Generador de Códigos Avanzado
+## Estado del Proyecto
 
-Plataforma web moderna y potente para la generación online de códigos de barras y QR. Enfocada en rendimiento, experiencia de usuario superior, flexibilidad y escalabilidad.
+📊 **Fase actual: MVP (Fase 1)** 
 
-*(Desarrollado en colaboración con asistentes de IA bajo supervisión humana).*
+Este proyecto implementa una plataforma moderna para la generación de códigos de barras y QR, utilizando tecnologías avanzadas para garantizar rendimiento, escalabilidad y flexibilidad.
 
-## Tecnologías Principales
+## 🚀 Características Implementadas
 
-* **Frontend:** Next.js (v15+ con App Router), React, Tailwind CSS, TypeScript
-* **Backend (API Gateway):** Node.js (v22+), Express, TypeScript
-* **Backend (Núcleo Generador):** Rust, Axum, Tokio, `rxing`, DashMap (caché)
-* **Base de Datos (Planificada):** PostgreSQL, Redis
-* **Infraestructura (Planificada):** Docker, Kubernetes, Cloud (Proveedor TBD)
+- ✅ Generación de múltiples tipos de códigos de barras y QR
+- ✅ Personalización básica de escala y nivel de corrección
+- ✅ Exportación en formato SVG
+- ✅ Previsualización en tiempo real
+- ✅ Monitoreo de estado del sistema
+- ✅ Dashboard de métricas técnicas
+- ✅ Sistema de caché para optimizar rendimiento
+- ✅ Soporte CORS para comunicación entre servicios
+- ✅ Interfaz intuitiva con Tailwind CSS
 
-## Estructura del Proyecto
+## 🛠️ Tecnologías Utilizadas
 
-Este repositorio utiliza un enfoque "monorepo" simple que contiene los diferentes servicios/aplicaciones:
-
-* `frontend/`: Contiene la aplicación web Next.js que representa la interfaz de usuario con la que interactúan los usuarios finales.
-* `backend/`: Contiene la API principal (API Gateway) construida con Node.js y Express. Maneja las peticiones del frontend, la lógica de negocio general (futuros usuarios/planes) y se comunica con el núcleo de generación en Rust.
-* `rust_generator/`: Contiene el microservicio de alto rendimiento construido con Rust y Axum. Es el responsable exclusivo de generar los códigos de barras/QR usando la librería `rxing`. [Ver documentación de la API](rust_generator/API_DOCS.md).
-
-## Estado Actual del Proyecto
-
-- ✅ **Núcleo generador (Rust)**: Implementación completa con soporte para múltiples tipos de códigos
-- ✅ **Validaciones**: Sistema de validación específica según tipo de código
-- ✅ **API REST**: Endpoints funcionales con manejo de errores robusto
-- ✅ **Monitoreo**: Endpoints de estado y health check con métricas en tiempo real
-- ✅ **Sistema de Caché**: Implementado caché LRU para optimizar generaciones repetidas
-- ✅ **Documentación de API**: Documentación completa de endpoints y formatos
-- 🔄 **API Gateway (Node.js)**: En desarrollo
-- 🔄 **Frontend (Next.js)**: En desarrollo
-- 📅 **Sistema de usuarios**: Planificado
-- 📅 **Despliegue en contenedores**: Planificado
-
-## Características del Núcleo Generador (Rust)
-
-- **Rendimiento Optimizado**: Generación rápida de SVGs con código nativo Rust
-- **Sistema de Caché**: Implementación LRU para generaciones repetidas, reduciendo tiempos de respuesta
-- **Sistema de Caché TTL**: Optimización con caché que soporta tiempo de vida configurable por solicitud
-- **Métricas Avanzadas**: Análisis detallado de rendimiento por tipo de código
-- **Métricas en Tiempo Real**: Monitoreo de solicitudes, errores y estadísticas de caché
-- **Normalización de Tipos**: Procesamiento inteligente de tipos de códigos (qrcode, qr-code, qr_code → qr)
-- **Validación Robusta**: Validación específica según el tipo de código
-- **Gestión de Memoria**: Optimización para evitar consumo excesivo en métricas y caché
-- **Gestión de Errores**: Respuestas de error claras con sugerencias y códigos
-- **Endpoints de Administración**: Interfaz completa para gestión y monitoreo
-
-## Ejecución en Entorno de Desarrollo
-
-Sigue estos pasos para poner en marcha el proyecto en tu máquina local.
-
-**1. Prerrequisitos:**
-
-* **Git:** Instalado ([https://git-scm.com/downloads](https://git-scm.com/downloads))
-* **Node.js:** Versión 22+ recomendada (Instalar desde [https://nodejs.org/](https://nodejs.org/) o usando NVM / nvm-windows).
-* **Rust:** Instalado a través de `rustup` ([https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install)).
-
-**2. Clonar Repositorio:**
-
-```bash
-# Reemplaza con la URL HTTPS de tu repositorio en GitHub
-git clone https://github.com/capta1nfire/Codex.git
-cd Codex
-```
-
-**3. Configurar el Núcleo Generador (Rust):**
-
-```bash
-cd rust_generator
-cargo build
-cargo run
-```
-
-El servicio de generación de códigos estará disponible en http://localhost:3002.
-
-**4. Configurar API Gateway (Backend Node.js):**
-
-```bash
-cd ../backend
-npm install
-npm run dev
-```
-
-**5. Configurar Frontend (Next.js):**
-
-```bash
-cd ../frontend
-npm install
-npm run dev
-```
-
-## Desarrollo
-
-### Configuración del Entorno
-
-1. Clonar el repositorio:
-   ```bash
-   git clone [URL_DEL_REPOSITORIO]
-   cd Codex/frontend
-```
-
-## Endpoints del Servicio Rust (puerto 3002)
-
-| Endpoint | Método | Descripción |
-|---------|--------|-------------|
-| `/generate` | POST | Genera un código de barras/QR en formato SVG |
-| `/status` | GET | Devuelve estadísticas generales del servicio |
-| `/health` | GET | Endpoint simple para health checks |
-| `/cache/clear` | POST | Limpia la caché del sistema |
-| `/cache/config` | POST | Configura parámetros de la caché (TTL) |
-| `/analytics/performance` | GET | Obtiene métricas detalladas de rendimiento |
-
-## Personalización del TTL
-Ahora es posible especificar un TTL personalizado por solicitud:
-
-```json
-{
-  "barcode_type": "qrcode",
-  "data": "Ejemplo con TTL personalizado",
-  "options": {
-    "scale": 3,
-    "ttlSeconds": 3600  // TTL personalizado en segundos
-  }
-}
-```
-
-## Registro de Progreso
-
-### 10 de Abril, 2025 - Mejoras en la Interfaz de Usuario
-
-#### Cambios Realizados:
-- ✅ Solucionados problemas de configuración con Tailwind CSS
-- ✅ Optimizada la estructura del archivo globals.css para mejorar la compatibilidad
-- ✅ Recuperada la funcionalidad completa del generador de códigos
-- ✅ Establecida base para la integración con la API backend
-
-#### Próximos Pasos:
-- Completar la integración con el servidor backend para la generación de códigos
-- Implementar funcionalidades adicionales en la interfaz (personalización avanzada)
-- Añadir soporte para usuarios móviles y mejorar la responsividad
-- Optimizar el rendimiento de la aplicación
-
-#### Tecnologías Utilizadas:
+### Frontend
 - Next.js 15.2.4
 - Tailwind CSS 3.4.0
-- Headless UI para componentes interactivos
+- Componentes interactivos con HeadlessUI
 
-## Documentación
+### Backend
+- Node.js con Express
+- Microservicio de generación en Rust
+- Arquitectura de API Gateway
 
-* **[API del Generador de Códigos (Rust)](rust_generator/API_DOCS.md)**: Documentación completa de endpoints, parámetros y respuestas
-* **API Gateway (Próximamente)**: Documentación en desarrollo
-* **Guía de Contribución (Próximamente)**: Pautas para colaborar en el proyecto
+## 🏗️ Arquitectura
 
-## Licencia
+El sistema utiliza una arquitectura moderna de microservicios:
+
+1. **Frontend (Next.js)**: Interfaz de usuario y lógica de presentación
+2. **API Gateway (Node.js)**: Gestiona las peticiones y orquesta los servicios
+3. **Servicio de Generación (Rust)**: Núcleo optimizado para la generación de códigos
+4. **Dashboard de Métricas**: Monitoreo en tiempo real del rendimiento
+
+## 🚦 Cómo Iniciar
+
+### Requisitos previos
+- Node.js 20.x o superior
+- Rust y Cargo (para el servicio de generación)
+- npm o yarn
+
+### Instalación
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/usuario/codex.git
+cd codex
+
+# Instalar dependencias del frontend
+cd frontend
+npm install
+
+# Instalar dependencias del backend
+cd ../backend
+npm install
+
+# Compilar el servicio Rust
+cd ../rust_generator
+cargo build --release
+```
+
+### Ejecución
+
+Necesitarás iniciar los tres componentes:
+
+```bash
+# Terminal 1: Iniciar el backend
+cd backend
+npm run dev  # Ejecuta en http://localhost:3001
+
+# Terminal 2: Iniciar el servicio Rust
+cd rust_generator
+cargo run --release  # Ejecuta en http://localhost:3002
+
+# Terminal 3: Iniciar el frontend
+cd frontend
+npm run dev  # Ejecuta en http://localhost:3000
+```
+
+## 📈 Estado de Implementación (Fase 1 MVP)
+
+| Característica | Estado | Notas |
+|----------------|--------|-------|
+| Generación básica | ✅ Completo | Soporta QR, Code128, PDF417, EAN13, Code39, DataMatrix y más |
+| Personalización | ⚠️ Parcial | Falta implementar colores y tamaños |
+| Exportación | ⚠️ Parcial | SVG implementado, PNG pendiente |
+| Sistema de monitoreo | ✅ Completo | Endpoint `/health` y dashboard de métricas de rendimiento |
+| Comunicación entre servicios | ✅ Completo | CORS implementado para comunicación segura |
+
+## 📝 Documentación de API
+
+### API Gateway (Puerto 3001)
+
+- **GET /** - Ruta de bienvenida
+- **GET /health** - Estado del sistema y dependencias
+- **POST /generate** - Genera un código basado en parámetros
+
+### Servicio Rust (Puerto 3002)
+
+- **POST /generate** - Generación directa de códigos
+- **GET /status** - Métricas del servicio y estado operacional
+- **GET /health** - Estado del servicio
+- **POST /cache/clear** - Limpia la caché del servicio
+- **POST /cache/config** - Configura parámetros de caché
+
+## 🗺️ Próximos Pasos
+
+Características planificadas para las próximas iteraciones:
+
+1. Implementación de selección de colores
+2. Exportación a formato PNG
+3. Validación avanzada de parámetros
+4. Optimización para dispositivos móviles
+
+## 📚 Documentación Adicional
+
+- [CODEX.md](CODEX.md): Documento estratégico del proyecto
+- [CHANGELOG.md](CHANGELOG.md): Registro detallado de cambios
+- API_DOCS.md: Documentación técnica de la API
+
+## 🤝 Contribución
+
+Las contribuciones son bienvenidas. Consulta CONTRIBUTING.md para conocer las pautas.
+
+## 📄 Licencia
 
 [Especificar la licencia que estés utilizando]

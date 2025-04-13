@@ -23,6 +23,12 @@ dashmap = "5.5.3" # Dashmap es una implementación thread-safe de un HashMap, pe
 tower = "0.4"
 tower-http = { version = "0.3", features = ["cors"] }
 
+# --- Sistema de logging profesional ---
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
+console-subscriber = "0.2" # Para integración con tokio-console (opcional, desarrollo)
+
 # --- DEPENDENCIAS WASM Y OTRAS INNECESARIAS ELIMINADAS ---
 # base64 = "0.22.0" # Eliminada
 # wasm-bindgen = "0.2.92" # Eliminada
