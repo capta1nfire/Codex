@@ -9,6 +9,12 @@ interface ErrorResponse {
   error: string;
   suggestion?: string;
   code?: string;
+  details?: Array<{
+    msg: string;
+    param: string;
+    location: string;
+    value?: string;
+  }>;
 }
 
 // Modal componente
@@ -136,7 +142,25 @@ export default function Home() {
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result as ErrorResponse);
+        // Validación mejorada para detalles de error
+        const errorData: ErrorResponse = {
+          success: false,
+          error: result.error || 'Error desconocido',
+          details: result.details
+        };
+        
+        // Formatear un mensaje más amigable si hay detalles de validación
+        if (result.details && Array.isArray(result.details) && result.details.length > 0) {
+          // Formar una sugerencia basada en los errores de validación
+          const validationMessages = result.details
+            .map((detail: {msg: string; param: string; location: string; value?: string}) => 
+              `${detail.msg} (${detail.param})`)
+            .join('. ');
+          
+          errorData.suggestion = `Por favor corrija los siguientes problemas: ${validationMessages}`;
+        }
+        
+        setError(errorData);
         return;
       }
 
@@ -147,7 +171,11 @@ export default function Home() {
       }
     } catch (err) {
       console.error('Error en handleGenerate:', err);
-      setError({ success: false, error: err instanceof Error ? err.message : 'Ocurrió un error inesperado.' });
+      setError({ 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Ocurrió un error inesperado.',
+        suggestion: 'Verifique su conexión a internet y que el servidor backend esté funcionando correctamente.'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -322,8 +350,23 @@ export default function Home() {
             <div className="bg-red-50 border border-red-300 rounded-lg p-4 text-red-900"> {/* Error más oscuro */}
               <h3 className="font-semibold">Error:</h3>
               <p>{error.error}</p>
-              {error.suggestion && ( <p className="mt-2 text-sm text-red-800"> {/* Más oscuro */}
-                  <span className="font-medium">Sugerencia:</span> {error.suggestion} </p> )}
+              {error.suggestion && ( 
+                <p className="mt-2 text-sm text-red-800"> {/* Más oscuro */}
+                  <span className="font-medium">Sugerencia:</span> {error.suggestion} 
+                </p> 
+              )}
+              {error.details && error.details.length > 0 && (
+                <div className="mt-3">
+                  <h4 className="text-sm font-medium mb-1">Detalles de validación:</h4>
+                  <ul className="text-xs space-y-1 list-disc pl-5">
+                    {error.details.map((detail, index) => (
+                      <li key={index}>
+                        <span className="font-medium">{detail.param}:</span> {detail.msg}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {error.code && ( <p className="mt-1 text-xs text-gray-600">Código: {error.code}</p> )} {/* Mantenemos gris */}
             </div>
           )}

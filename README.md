@@ -22,6 +22,10 @@ Este proyecto implementa una plataforma moderna para la generación de códigos 
 - ✅ Sistema de caché para optimizar rendimiento
 - ✅ Soporte CORS para comunicación entre servicios
 - ✅ Interfaz intuitiva con Tailwind CSS
+- ✅ Seguridad mejorada con Helmet y rate limiting
+- ✅ Validación robusta de entradas con express-validator
+- ✅ Manejo estructurado de errores y mensajes detallados
+- ✅ Configuración flexible mediante variables de entorno
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -34,6 +38,8 @@ Este proyecto implementa una plataforma moderna para la generación de códigos 
 - Node.js con Express
 - Microservicio de generación en Rust
 - Arquitectura de API Gateway
+- Seguridad mediante Helmet y express-rate-limit
+- Validación con express-validator
 
 ## 🏗️ Arquitectura
 
@@ -71,6 +77,21 @@ cd ../rust_generator
 cargo build --release
 ```
 
+### Configuración
+
+El sistema utiliza variables de entorno para configuración flexible:
+
+1. En la carpeta `backend`, crea un archivo `.env` con las siguientes variables (o usa el existente):
+```
+PORT=3001
+HOST=0.0.0.0
+RUST_SERVICE_URL=http://localhost:3002/generate
+ALLOWED_ORIGINS=http://localhost:3000
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100
+MAX_REQUEST_SIZE=1mb
+```
+
 ### Ejecución
 
 Necesitarás iniciar los tres componentes:
@@ -98,6 +119,9 @@ npm run dev  # Ejecuta en http://localhost:3000
 | Exportación | ⚠️ Parcial | SVG implementado, PNG pendiente |
 | Sistema de monitoreo | ✅ Completo | Endpoint `/health` y dashboard de métricas de rendimiento |
 | Comunicación entre servicios | ✅ Completo | CORS implementado para comunicación segura |
+| Seguridad | ✅ Completo | Helmet, rate limiting, validación y CORS restringido implementados |
+| Manejo de errores | ✅ Completo | Sistema estructurado de errores con mensajes detallados |
+| Configuración | ✅ Completo | Sistema flexible de configuración mediante variables de entorno |
 
 ## 📝 Documentación de API
 
@@ -123,6 +147,8 @@ Características planificadas para las próximas iteraciones:
 2. Exportación a formato PNG
 3. Validación avanzada de parámetros
 4. Optimización para dispositivos móviles
+5. Autenticación y autorización
+6. Logging centralizado y monitoreo avanzado
 
 ## 📚 Documentación Adicional
 
