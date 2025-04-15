@@ -24,6 +24,7 @@ Este proyecto implementa una plataforma moderna para la generación de códigos 
 - ✅ Interfaz intuitiva con Tailwind CSS
 - ✅ Seguridad mejorada con Helmet y rate limiting
 - ✅ Validación robusta de entradas con express-validator
+- ✅ Sanitización XSS para prevenir inyección de scripts maliciosos
 - ✅ Manejo estructurado de errores y mensajes detallados
 - ✅ Configuración flexible mediante variables de entorno
 
@@ -38,7 +39,7 @@ Este proyecto implementa una plataforma moderna para la generación de códigos 
 - Node.js con Express
 - Microservicio de generación en Rust
 - Arquitectura de API Gateway
-- Seguridad mediante Helmet y express-rate-limit
+- Seguridad mediante Helmet, express-rate-limit y xss-clean
 - Validación con express-validator
 
 ## 🏗️ Arquitectura
@@ -119,7 +120,7 @@ npm run dev  # Ejecuta en http://localhost:3000
 | Exportación | ⚠️ Parcial | SVG implementado, PNG pendiente |
 | Sistema de monitoreo | ✅ Completo | Endpoint `/health` y dashboard de métricas de rendimiento |
 | Comunicación entre servicios | ✅ Completo | CORS implementado para comunicación segura |
-| Seguridad | ✅ Completo | Helmet, rate limiting, validación y CORS restringido implementados |
+| Seguridad | ✅ Completo | Helmet, rate limiting, CORS restringido, validación y sanitización XSS implementados |
 | Manejo de errores | ✅ Completo | Sistema estructurado de errores con mensajes detallados |
 | Configuración | ✅ Completo | Sistema flexible de configuración mediante variables de entorno |
 

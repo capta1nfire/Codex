@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { check, validationResult } from 'express-validator';
+import xss from 'xss-clean';
 // Importar os para obtener información del sistema
 import * as os from 'os';
 // ¡Ya NO importamos nada de 'rust_generator' aquí!
@@ -90,6 +91,9 @@ app.use(limiter);
 
 // Parse JSON body
 app.use(express.json({ limit: MAX_REQUEST_SIZE })); // Limite el tamaño del cuerpo a 1MB
+
+// Prevenir ataques XSS
+app.use(xss());
 
 // Middleware para validación de solicitudes
 const validateRequest = (req: Request, res: Response, next: NextFunction) => {

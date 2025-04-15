@@ -17,6 +17,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Manejo estructurado de errores con mensajes detallados
 - Validación robusta con express-validator en endpoints de API
 - Configuración flexible mediante variables de entorno
+- Sanitización XSS para prevenir ataques de cross-site scripting
 
 ### Mejorado
 - Optimización de la interfaz de usuario para mejor contraste
