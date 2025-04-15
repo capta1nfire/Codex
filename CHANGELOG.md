@@ -18,6 +18,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Validación robusta con express-validator en endpoints de API
 - Configuración flexible mediante variables de entorno
 - Sanitización XSS para prevenir ataques de cross-site scripting
+- Alias para la ruta `/generator` que redirecciona a `/generate` para compatibilidad con el frontend
 
 ### Mejorado
 - Optimización de la interfaz de usuario para mejor contraste
@@ -29,6 +30,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Visualización de errores de validación en la interfaz de usuario
 - Manejo de cierre graceful para el servidor
 - Limitación de tamaño de solicitudes para prevenir ataques DoS
+- Estandarización de códigos de error para consistencia en el sistema de manejo de errores
 
 ## [0.2.0] - 2025-04-10
 

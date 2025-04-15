@@ -27,6 +27,8 @@ Este proyecto implementa una plataforma moderna para la generación de códigos 
 - ✅ Sanitización XSS para prevenir inyección de scripts maliciosos
 - ✅ Manejo estructurado de errores y mensajes detallados
 - ✅ Configuración flexible mediante variables de entorno
+- ✅ Estandarización de códigos de error para consistencia
+- ✅ Compatibilidad entre servicios mediante alias de rutas
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -121,8 +123,9 @@ npm run dev  # Ejecuta en http://localhost:3000
 | Sistema de monitoreo | ✅ Completo | Endpoint `/health` y dashboard de métricas de rendimiento |
 | Comunicación entre servicios | ✅ Completo | CORS implementado para comunicación segura |
 | Seguridad | ✅ Completo | Helmet, rate limiting, CORS restringido, validación y sanitización XSS implementados |
-| Manejo de errores | ✅ Completo | Sistema estructurado de errores con mensajes detallados |
+| Manejo de errores | ✅ Completo | Sistema estructurado de errores con mensajes detallados y códigos estandarizados |
 | Configuración | ✅ Completo | Sistema flexible de configuración mediante variables de entorno |
+| Compatibilidad entre servicios | ✅ Completo | Alias de rutas implementados para consistencia entre frontend y backend |
 
 ## 📝 Documentación de API
 
@@ -131,6 +134,7 @@ npm run dev  # Ejecuta en http://localhost:3000
 - **GET /** - Ruta de bienvenida
 - **GET /health** - Estado del sistema y dependencias
 - **POST /generate** - Genera un código basado en parámetros
+- **POST /generator** - Alias para /generate, mantiene compatibilidad con clientes existentes
 
 ### Servicio Rust (Puerto 3002)
 

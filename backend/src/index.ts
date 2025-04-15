@@ -6,6 +6,8 @@ import { check, validationResult } from 'express-validator';
 import xss from 'xss-clean';
 // Importar os para obtener información del sistema
 import * as os from 'os';
+// Importar middlewares de manejo de errores
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 // ¡Ya NO importamos nada de 'rust_generator' aquí!
 
 // Interfaces
@@ -43,15 +45,6 @@ const MAX_REQUEST_SIZE = process.env.MAX_REQUEST_SIZE || '1mb';
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',') 
   : ['http://localhost:3000'];
-
-// Middleware para manejo de errores
-const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error('Error no controlado:', err);
-  res.status(500).json({
-    success: false,
-    error: NODE_ENV === 'production' ? 'Error interno del servidor' : err.message
-  });
-};
 
 const app = express();
 
@@ -274,8 +267,81 @@ app.post('/generate', generateValidators, validateRequest, async (req: Request, 
   }
 });
 
+// Alias para la ruta /generator (redirige a /generate)
+// Manejar tanto GET como POST
+app.all('/generator', generateValidators, validateRequest, async (req: Request, res: Response) => {
+  console.log(`Redirigiendo ${req.method} /generator a /generate`);
+  // Usamos 'barcode_type' para coincidir con el struct de Rust
+  const { barcode_type, data, options } = req.body;
+
+  // Convertir el tipo usando el mapeo
+  const rustBarcodeType = barcodeTypeMapping[barcode_type] || barcode_type;
+  
+  console.log(`Node API: Recibido ${barcode_type} en /generator. Convertido a ${rustBarcodeType} para Rust.`);
+  console.log(`Llamando al servicio Rust en ${RUST_SERVICE_URL}...`);
+
+  try {
+    // --- Llamada HTTP al Microservicio Rust ---
+    const rustResponse = await fetch(RUST_SERVICE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        barcode_type: rustBarcodeType, // Usamos el tipo convertido
+        data: data,
+        options: options || null
+      }),
+    });
+    // ---------------------------------------
+
+    // Verificar si la respuesta HTTP del servicio Rust fue OK
+    if (!rustResponse.ok) {
+      let errorBody = null;
+      try { errorBody = await rustResponse.json(); } catch(e) { errorBody = { error: await rustResponse.text() || 'Error desconocido desde el servicio Rust' }; }
+      console.error(`Error desde servicio Rust: Status ${rustResponse.status}`, errorBody);
+      
+      // Pasar la respuesta de error completa del servicio Rust al frontend
+      if (errorBody) {
+        return res.status(rustResponse.status).json(errorBody);
+      }
+      
+      throw new Error(errorBody?.error || `El servicio Rust devolvió un error ${rustResponse.status}`);
+    }
+
+    // Obtener el JSON de la respuesta exitosa del servicio Rust
+    const rustResult = await rustResponse.json();
+    console.log("NODE DEBUG: Objeto rustResult recibido:", JSON.stringify(rustResult, null, 2));
+
+    // --- VERIFICACIÓN CORRECTA ---
+    // Verificar la estructura esperada: success:true Y svgString presente y es string
+    if (rustResult.success && typeof rustResult.svgString === 'string') { // <-- Verifica svgString (camelCase)
+      console.log('Node API: Recibida respuesta SVG exitosa desde Rust.');
+      // Enviar la respuesta exitosa de vuelta al frontend
+      return res.status(200).json({
+        success: true,
+        svgString: rustResult.svgString // <-- Reenvía svgString (camelCase)
+      });
+    } else {
+      // Si el JSON de Rust no tenía la estructura correcta
+      console.error('Respuesta inesperada o inválida desde servicio Rust:', rustResult);
+      throw new Error('Respuesta inválida recibida desde el servicio de generación.');
+    }
+    // --- FIN VERIFICACIÓN CORRECTA ---
+
+  } catch (error) {
+    // Manejar errores
+    console.error('Error en el handler /generator de Node:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido al contactar servicio de generación.';
+    return res.status(500).json({ success: false, error: `Error interno: ${errorMessage}` });
+  }
+});
+
 // Middleware para manejo de errores
 app.use(errorHandler);
+
+// Middleware para manejar rutas no encontradas (debe ir después de todas las rutas definidas)
+app.use(notFoundHandler);
 
 // Iniciar el servidor Node.js
 app.listen(PORT, HOST, () => {
