@@ -1,16 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError, sendErrorResponse, ErrorCode } from '../utils/errors';
+import { AppError, sendErrorResponse, ErrorCode, HttpStatus, NotFoundError } from '../utils/errors';
 import logger from '../utils/logger';
 
-// Middleware para capturar errores de rutas inexistentes
-export function notFoundHandler(req: Request, res: Response, next: NextFunction): Response {
-  console.log(`[notFoundHandler] Ruta no encontrada: ${req.originalUrl}`);
+/**
+ * Middleware para manejar rutas no encontradas
+ */
+export function notFoundHandler(req: Request, res: Response): void {
+  logger.warn(`Ruta no encontrada: ${req.originalUrl}`);
   
-  // Creamos el error con el código correcto
-  const error = new AppError(`Ruta no encontrada: ${req.originalUrl}`, 404, ErrorCode.RESOURCE_NOT_FOUND);
+  // Usar NotFoundError en lugar de AppError directamente
+  const error = new NotFoundError(`Ruta no encontrada: ${req.originalUrl}`);
   
-  // Respondemos directamente con JSON en lugar de pasar al siguiente middleware
-  return sendErrorResponse(res, error);
+  // Utilizar sendErrorResponse para mantener consistencia en el manejo de errores
+  sendErrorResponse(res, error);
 }
 
 // Middleware para capturar y procesar todos los errores de la aplicación

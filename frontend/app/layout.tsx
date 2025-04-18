@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import Navbar from '../src/components/Navbar';
 
 export const metadata: Metadata = {
   title: 'Codex - Dashboard',
@@ -14,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
+        <Navbar />
         {children}
       </body>
     </html>

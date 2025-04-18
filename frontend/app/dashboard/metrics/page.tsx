@@ -43,8 +43,37 @@ const SAMPLE_METRICS = {
   timestamp: "2025-04-09T20:02:00.440633-07:00"
 };
 
+// Definir una interfaz para las métricas
+interface MetricsData {
+  by_barcode_type: {
+    [key: string]: {
+      avg_cache_hit_ms: number;
+      avg_generation_ms: number;
+      max_hit_ms: number;
+      max_generation_ms: number;
+      hit_count: number;
+      miss_count: number;
+      avg_data_size: number;
+      cache_hit_rate_percent: number;
+    }
+  };
+  overall: {
+    avg_response_ms: number;
+    max_response_ms: number;
+    total_requests: number;
+    cache_hit_rate_percent: number;
+  };
+  cache_stats?: {
+    hits: number;
+    misses: number;
+    cache_hit_rate_percent: number;
+    cache_size: number;
+  };
+  timestamp: string;
+}
+
 export default function MetricsDashboard() {
-  const [metrics, setMetrics] = useState(null);
+  const [metrics, setMetrics] = useState<MetricsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -54,12 +83,13 @@ export default function MetricsDashboard() {
     setRefreshing(true);
     
     try {
-      // Primero intentamos con el endpoint real con un timeout
+      // Primero intentamos con el endpoint real del backend Node.js
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 segundos de timeout
         
-        const response = await fetch('http://localhost:3002/status', {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3003';
+        const response = await fetch(`${backendUrl}/metrics`, {
           signal: controller.signal
         });
         
@@ -67,33 +97,17 @@ export default function MetricsDashboard() {
         
         if (response.ok) {
           const rawData = await response.json();
-          console.log('Datos recibidos del servicio Rust:', rawData);
+          console.log('Datos recibidos del servicio Node.js:', rawData);
           
-          // Transformar los datos del formato /status al formato esperado por el dashboard
-          const formattedData = {
-            by_barcode_type: {
-              // Usar datos de muestra para la vista por tipo ya que no están disponibles
-              // en el endpoint /status
-              ...SAMPLE_METRICS.by_barcode_type
-            },
-            overall: {
-              avg_response_ms: rawData.metrics.success_rate_percent > 0 ? 2.5 : 0, // Valor estimado
-              max_response_ms: 10, // Valor estimado
-              total_requests: rawData.metrics.total_requests,
-              cache_hit_rate_percent: rawData.cache_stats.cache_hit_rate_percent
-            },
-            timestamp: rawData.timestamp
-          };
-          
-          // Falta actualizar el estado con los datos formateados
-          setMetrics(formattedData);  // ⬅️ esta línea está siendo ejecutada correctamente
+          // Usar directamente los datos ya que tienen el formato esperado
+          setMetrics(rawData);  
           setLastUpdated(new Date().toLocaleTimeString() + ' (datos reales)');
           setIsLoading(false);
           setRefreshing(false);
           return; // Salimos de la función si todo está bien
         }
       } catch (connectionError) {
-        console.warn('No se pudo conectar al servicio Rust:', connectionError);
+        console.warn('No se pudo conectar al servicio Node:', connectionError);
         // Continuamos con los datos de muestra
       }
       
@@ -189,6 +203,36 @@ export default function MetricsDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {metrics.cache_stats && (
+            <div className="mb-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Estadísticas de Caché</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Hits</p>
+                      <p className="text-2xl font-semibold">{metrics.cache_stats.hits}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Misses</p>
+                      <p className="text-2xl font-semibold">{metrics.cache_stats.misses}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Tamaño del Caché</p>
+                      <p className="text-2xl font-semibold">{metrics.cache_stats.cache_size} entradas</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Tasa de Cache Hit</p>
+                      <p className="text-2xl font-semibold text-green-600">{metrics.cache_stats.cache_hit_rate_percent.toFixed(1)}%</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <Tabs defaultValue="overview">
             <TabsList>

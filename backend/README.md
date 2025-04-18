@@ -8,13 +8,16 @@ Este directorio contiene el API Gateway implementado en Node.js con Express, que
 backend/
 ├── src/                       # Código fuente
 │   ├── middleware/            # Middleware personalizado
-│   │   └── errorHandler.ts    # Manejo centralizado de errores
+│   │   ├── errorHandler.ts    # Manejo centralizado de errores
+│   │   └── authMiddleware.ts  # Middleware de autenticación
 │   ├── utils/                 # Utilidades y helpers
 │   │   ├── errors.ts          # Sistema de errores tipificados
 │   │   └── logger.ts          # Configuración de logging
+│   ├── server-config.ts       # Configuración del servidor con soporte SSL
 │   ├── __tests__/             # Tests unitarios e integración
+│   │   ├── https.test.ts      # Tests para SSL/HTTPS
+│   │   └── performance.test.ts # Tests de rendimiento
 │   ├── custom-types.d.ts      # Definiciones de tipos personalizados
-│   ├── test-error-handling.ts # Utilidad para probar manejo de errores
 │   └── index.ts               # Punto de entrada principal
 ├── logs/                      # Logs de la aplicación
 │   ├── combined.log           # Logs combinados (todos los niveles)
@@ -33,14 +36,18 @@ backend/
   - Express-rate-limit para protección contra ataques de fuerza bruta
   - Validación de entradas con express-validator
   - Sanitización XSS para prevenir inyección de scripts
+  - Soporte SSL/HTTPS para conexiones seguras
 - Sistema robusto de manejo de errores con códigos estandarizados
-- Monitoreo de salud del sistema mediante endpoint `/health`
+- Monitoreo avanzado del sistema:
+  - Endpoint `/health` para estado general del sistema
+  - Endpoint `/metrics` para estadísticas detalladas de caché
+  - Seguimiento detallado de hits/misses por tipo de código de barras
 - Comunicación con el servicio de generación en Rust
 - Sistema de logging estructurado con Winston
 - Configuración CORS para comunicación segura entre servicios
 - Optimización de rendimiento:
   - Compresión de respuestas con middleware compression
-  - Sistema de caché en memoria para reducir carga en el servicio Rust
+  - Sistema de caché en memoria con métricas detalladas
   - Configuración de headers HTTP Cache-Control para browsers
   - Limpieza automática de caché para evitar fugas de memoria
 
@@ -64,6 +71,30 @@ Se utiliza Winston para un logging estructurado:
 - Logs separados para errores y logs combinados
 - Rotación de archivos para gestionar el espacio
 - Integración con el manejo de errores
+
+## Sistema de Monitoreo de Caché
+
+El backend implementa un sistema avanzado de monitoreo de caché:
+
+- Tracking de hits y misses para cada tipo de código de barras
+- Estadísticas en tiempo real accesibles a través del endpoint `/metrics`
+- Métricas detalladas:
+  - Tasa de aciertos (hit rate) global y por tipo
+  - Conteo de hits y misses
+  - Tamaño actual del caché
+  - Tiempo estimado de respuesta
+- Integración con el dashboard de métricas del frontend
+- Limpieza automática para optimizar el uso de memoria
+
+## Soporte SSL/HTTPS
+
+El backend incluye soporte completo para conexiones seguras:
+
+- Configuración flexible mediante variables de entorno
+- Carga de certificados SSL y claves privadas
+- Fallback automático a HTTP si no se encuentran certificados
+- Manejo de errores específicos para problemas de SSL
+- Tests automatizados para verificar la funcionalidad
 
 ## Infraestructura de Testing
 
@@ -104,7 +135,12 @@ npm run test:integration
 
 4. **Tests de Endpoints**: Verifican el comportamiento correcto de los endpoints de la API.
    - Tests para el endpoint de `/health`
+   - Tests para el endpoint de `/metrics`
    - Tests para el endpoint de generación de códigos
+   
+5. **Tests de SSL/HTTPS**: Verifican la configuración segura del servidor.
+   - Tests para diferentes configuraciones de SSL
+   - Tests para fallback a HTTP
 
 ### Estructura de Tests
 
@@ -112,6 +148,8 @@ npm run test:integration
   - `index.test.ts` - Tests para endpoints principales
   - `integration.test.ts` - Tests de integración
   - `health.test.ts` - Tests para el endpoint de salud
+  - `performance.test.ts` - Tests de rendimiento y caché
+  - `https.test.ts` - Tests para SSL/HTTPS
   - `test-error-handling.test.ts` - Tests para manejo de errores
   - `setup.ts` - Configuración común para todos los tests
 - `middleware/__tests__/` - Tests específicos para middleware
@@ -146,11 +184,13 @@ Se utiliza el middleware `compression` para reducir el tamaño de las respuestas
 
 ### Sistema de Caché
 
-Implementación de caché en memoria para reducir la carga en el servicio Rust:
-- Las respuestas del servicio se almacenan en caché por 5 minutos (configurable)
+Implementación avanzada de caché en memoria:
+- Las respuestas del servicio Rust se almacenan en caché por 5 minutos (configurable)
 - Mejora significativa en tiempos de respuesta para solicitudes repetidas
 - Limpieza automática de entradas caducadas cada minuto
 - Identificación de respuestas en caché mediante el campo `fromCache: true`
+- Sistema de estadísticas detalladas por tipo de código
+- Endpoint `/metrics` para acceso a métricas en tiempo real
 
 ### Optimización de Headers HTTP
 
@@ -163,7 +203,7 @@ Configuración de headers de caché para respuestas:
 
 Suite de tests para verificar las optimizaciones:
 - Tests para compresión de respuestas
-- Tests para el sistema de caché
+- Tests para el sistema de caché y métricas
 - Tests de comparación de rendimiento entre respuestas en caché y no en caché
 
 ## Variables de Entorno
@@ -176,7 +216,7 @@ PORT=3001
 HOST=0.0.0.0
 
 # Configuración del servicio Rust
-RUST_SERVICE_URL=http://localhost:3002
+RUST_SERVICE_URL=http://localhost:3002/generate
 
 # Configuración de CORS
 ALLOWED_ORIGINS=http://localhost:3000
@@ -184,7 +224,7 @@ ALLOWED_ORIGINS=http://localhost:3000
 # Configuración de logging
 LOG_LEVEL=info
 
-# Configuración de SSL/TLS (opcional)
+# Configuración de SSL/TLS
 SSL_ENABLED=false
 SSL_KEY_PATH=/path/to/private.key
 SSL_CERT_PATH=/path/to/certificate.crt
@@ -211,6 +251,11 @@ CACHE_MAX_AGE=300             # Tiempo de caché en segundos (5 minutos)
   - Uptime del sistema
   - Uso de memoria
   - Detalles de la plataforma
+- **GET /metrics** - Métricas detalladas del sistema, incluye:
+  - Estadísticas de caché (hits, misses, hit rate)
+  - Métricas por tipo de código de barras
+  - Tiempos de respuesta estimados
+  - Tamaño actual del caché
 - **POST /generate** - Genera un código basado en los siguientes parámetros:
   - `barcode_type`: Tipo de código (qrcode, code128, pdf417, ean13, etc.)
   - `data`: Datos a codificar

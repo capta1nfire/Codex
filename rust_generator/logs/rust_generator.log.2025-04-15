@@ -1,0 +1,82 @@
+{"timestamp":"2025-04-15T02:25:39.259835Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T02:25:39.260128Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-15T02:25:39.260146Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T02:25:39.261345Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T03:43:50.501901Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":0,"barcode_type":"qr","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T03:43:50.503178Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":0,"barcode_type":"qr","duration_ms":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T03:45:39.577861Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:33:05.482645Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:33:05.482956Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:33:05.482993Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:33:05.484168Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:34:58.288497Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:34:58.288814Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:34:58.288833Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:34:58.289176Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:38:46.019123Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":0,"barcode_type":"qr","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:38:46.020352Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":0,"barcode_type":"qr","duration_ms":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:09.266874Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":1,"barcode_type":"qr","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:09.267019Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":1,"barcode_type":"qr","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:10.563651Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":2,"barcode_type":"qr","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:10.563780Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":2,"barcode_type":"qr","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:11.066935Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":3,"barcode_type":"qr","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:11.067019Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":3,"barcode_type":"qr","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:11.928687Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":4,"barcode_type":"qr","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:11.928979Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":4,"barcode_type":"qr","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:12.813718Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":5,"barcode_type":"qr","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:12.813798Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":5,"barcode_type":"qr","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:13.669521Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":6,"barcode_type":"qr","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:13.669602Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":6,"barcode_type":"qr","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:39:58.297623Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:46:33.178908Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":7,"barcode_type":"code39","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:46:33.179077Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":7,"barcode_type":"code39","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:46:37.446835Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":8,"barcode_type":"datamatrix","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:46:37.447248Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":8,"barcode_type":"datamatrix","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:46:38.339879Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":9,"barcode_type":"datamatrix","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:46:38.340008Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":9,"barcode_type":"datamatrix","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:46:41.511051Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":10,"barcode_type":"code39","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:46:41.511219Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":10,"barcode_type":"code39","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:47:58.325038Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":2},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:48:33.314544Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":11,"barcode_type":"datamatrix","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:48:33.314933Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":11,"barcode_type":"datamatrix","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:48:34.594593Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":12,"barcode_type":"datamatrix","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:48:34.594671Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":12,"barcode_type":"datamatrix","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:48:34.823966Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":13,"barcode_type":"datamatrix","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:48:34.824231Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":13,"barcode_type":"datamatrix","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:48:35.010421Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":14,"barcode_type":"datamatrix","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:48:35.010582Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":14,"barcode_type":"datamatrix","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:48:35.179003Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":15,"barcode_type":"datamatrix","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:48:35.179075Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":15,"barcode_type":"datamatrix","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:49:58.332124Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:54:58.228015Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":16,"barcode_type":"qr","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:54:58.228914Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":16,"barcode_type":"qr","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:55:24.331275Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":17,"barcode_type":"qr","data_length":5},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:55:24.332282Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":17,"barcode_type":"qr","duration_ms":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:55:25.430775Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":18,"barcode_type":"qr","data_length":5},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:55:25.430843Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":18,"barcode_type":"qr","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:55:25.784285Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":19,"barcode_type":"qr","data_length":5},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:55:25.784545Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":19,"barcode_type":"qr","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:55:26.006803Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":20,"barcode_type":"qr","data_length":5},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:55:26.006977Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":20,"barcode_type":"qr","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:55:26.201764Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":21,"barcode_type":"qr","data_length":5},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:55:26.201881Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":21,"barcode_type":"qr","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:55:58.352193Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T04:56:58.357038Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:15:48.417559Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:15:48.418078Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:15:48.418115Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:15:48.418705Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:24:46.712508Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":0,"barcode_type":"qr","data_length":7},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:24:46.713731Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":0,"barcode_type":"qr","duration_ms":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:25:41.892510Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":1,"barcode_type":"qr","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:25:41.893602Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":1,"barcode_type":"qr","duration_ms":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:25:48.458182Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:25:52.548214Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":2,"barcode_type":"ean13","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:25:52.548313Z","level":"ERROR","fields":{"message":"Error de validación","error":"EAN_INVALID_CHARS: EAN/UPC solo acepta dígitos (0-9)"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:25:52.548335Z","level":"ERROR","fields":{"message":"Error procesando solicitud","error":"EAN/UPC solo acepta dígitos (0-9)","code":"Some(\"EAN_INVALID_CHARS\")"},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:25:59.613845Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":3,"barcode_type":"pdf417","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:25:59.615439Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":3,"barcode_type":"pdf417","duration_ms":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:26:04.405118Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":4,"barcode_type":"pdf417","data_length":23},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:26:04.405301Z","level":"INFO","fields":{"message":"Éxito en caché","request_id":4,"barcode_type":"pdf417","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:26:48.458448Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-15T05:27:48.490340Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}

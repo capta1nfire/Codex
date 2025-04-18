@@ -39,10 +39,18 @@ export default function Home() {
     console.log('Frontend: Preparando fetch con:', { barcode_type: type, data, options });
 
     try {
-      const response = await fetch('http://localhost:3001/generate', {
+      // Usar la variable de entorno para la URL del backend
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3003';
+      const response = await fetch(`${backendUrl}/generate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ barcode_type: type, data: data, options: options }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          barcode_type: type,
+          data: data,
+          options: options
+        }),
       });
 
       const result = await response.json();
