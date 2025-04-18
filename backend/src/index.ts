@@ -4,10 +4,20 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { check, validationResult } from 'express-validator';
 import xss from 'xss-clean';
+// Importar compression para respuestas comprimidas
+import compression from 'compression';
 // Importar os para obtener información del sistema
 import * as os from 'os';
+// Importar fs y https para soporte SSL
+import * as fs from 'fs';
+import * as http from 'http';
+import * as https from 'https';
 // Importar middlewares de manejo de errores
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+// Importar el logger
+import logger from './utils/logger';
+// Importar la configuración del servidor
+import { startServer } from './server-config';
 // ¡Ya NO importamos nada de 'rust_generator' aquí!
 
 // Interfaces
@@ -40,6 +50,14 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10); // 15 minutos por defecto
 const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX || '100', 10); // 100 solicitudes por ventana por defecto
 const MAX_REQUEST_SIZE = process.env.MAX_REQUEST_SIZE || '1mb';
+// Configuración de caché
+const CACHE_MAX_AGE = parseInt(process.env.CACHE_MAX_AGE || '300', 10); // 5 minutos por defecto
+
+// Configuración SSL
+const SSL_ENABLED = process.env.SSL_ENABLED === 'true';
+const SSL_KEY_PATH = process.env.SSL_KEY_PATH || '';
+const SSL_CERT_PATH = process.env.SSL_CERT_PATH || '';
+const SSL_CA_PATH = process.env.SSL_CA_PATH || '';
 
 // Obtener los orígenes permitidos del .env
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS 
@@ -50,6 +68,9 @@ const app = express();
 
 // Aplicar middleware de seguridad
 app.use(helmet()); // Seguridad mediante headers HTTP
+
+// Aplicar compresión a todas las respuestas
+app.use(compression());
 
 // Configuración de CORS restringido
 app.use(cors({
@@ -88,6 +109,30 @@ app.use(express.json({ limit: MAX_REQUEST_SIZE })); // Limite el tamaño del cue
 // Prevenir ataques XSS
 app.use(xss());
 
+// Caché para recursos estáticos (si existieran)
+app.use(express.static('public', {
+  maxAge: CACHE_MAX_AGE * 1000, // Cache-Control en milisegundos
+  etag: true, // Habilitar ETags
+  lastModified: true // Habilitar Last-Modified
+}));
+
+// Simple caché en memoria para reducir carga en el servicio Rust
+const responseCache = new Map();
+const CACHE_TTL = CACHE_MAX_AGE * 1000; // Tiempo de vida del caché
+
+// Función para limpiar entradas caducadas del caché
+const cleanCache = () => {
+  const now = Date.now();
+  for (const [key, { timestamp }] of responseCache.entries()) {
+    if (now - timestamp > CACHE_TTL) {
+      responseCache.delete(key);
+    }
+  }
+};
+
+// Limpiar caché periódicamente
+setInterval(cleanCache, 60000); // Limpiar cada minuto
+
 // Middleware para validación de solicitudes
 const validateRequest = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -119,6 +164,8 @@ const isValidBarcodeType = (type: string): boolean => {
 
 // Ruta principal
 app.get('/', (req: Request, res: Response) => {
+  // Configurar headers de caché para respuestas inmutables
+  res.set('Cache-Control', `public, max-age=${CACHE_MAX_AGE}`);
   res.send('¡API Gateway Node.js funcionando! Llamando a Rust en puerto 3002 para generar.');
 });
 
@@ -208,6 +255,31 @@ app.post('/generate', generateValidators, validateRequest, async (req: Request, 
   const rustBarcodeType = barcodeTypeMapping[barcode_type] || barcode_type;
   
   console.log(`Node API: Recibido ${barcode_type}. Convertido a ${rustBarcodeType} para Rust.`);
+  
+  // Crear clave para caché que incluya todos los parámetros relevantes
+  const cacheKey = JSON.stringify({
+    barcode_type: rustBarcodeType,
+    data,
+    options: options || null
+  });
+  
+  // Verificar si tenemos una respuesta en caché
+  if (responseCache.has(cacheKey)) {
+    const cachedResponse = responseCache.get(cacheKey);
+    // Verificar si el caché es aún válido
+    if (Date.now() - cachedResponse.timestamp < CACHE_TTL) {
+      logger.info(`Sirviendo código de barras desde caché para tipo: ${barcode_type}, datos: ${data.substring(0, 20)}...`);
+      return res.status(200).json({
+        success: true,
+        svgString: cachedResponse.data.svgString,
+        fromCache: true
+      });
+    } else {
+      // Eliminar caché expirado
+      responseCache.delete(cacheKey);
+    }
+  }
+
   console.log(`Llamando al servicio Rust en ${RUST_SERVICE_URL}...`);
 
   try {
@@ -247,6 +319,16 @@ app.post('/generate', generateValidators, validateRequest, async (req: Request, 
     // Verificar la estructura esperada: success:true Y svgString presente y es string
     if (rustResult.success && typeof rustResult.svgString === 'string') { // <-- Verifica svgString (camelCase)
       console.log('Node API: Recibida respuesta SVG exitosa desde Rust.');
+      
+      // Guardar resultado en caché
+      responseCache.set(cacheKey, {
+        data: rustResult,
+        timestamp: Date.now()
+      });
+      
+      // Configurar headers de caché para SVG (siendo contenido estático)
+      res.set('Cache-Control', `public, max-age=${CACHE_MAX_AGE}`);
+      
       // Enviar la respuesta exitosa de vuelta al frontend
       return res.status(200).json({
         success: true,
@@ -278,6 +360,28 @@ app.all('/generator', generateValidators, validateRequest, async (req: Request, 
   const rustBarcodeType = barcodeTypeMapping[barcode_type] || barcode_type;
   
   console.log(`Node API: Recibido ${barcode_type} en /generator. Convertido a ${rustBarcodeType} para Rust.`);
+  
+  // Reutilizar la lógica de caché del endpoint /generate
+  const cacheKey = JSON.stringify({
+    barcode_type: rustBarcodeType,
+    data,
+    options: options || null
+  });
+  
+  if (responseCache.has(cacheKey)) {
+    const cachedResponse = responseCache.get(cacheKey);
+    if (Date.now() - cachedResponse.timestamp < CACHE_TTL) {
+      logger.info(`Sirviendo código de barras desde caché para tipo: ${barcode_type}, datos: ${data.substring(0, 20)}...`);
+      return res.status(200).json({
+        success: true,
+        svgString: cachedResponse.data.svgString,
+        fromCache: true
+      });
+    } else {
+      responseCache.delete(cacheKey);
+    }
+  }
+
   console.log(`Llamando al servicio Rust en ${RUST_SERVICE_URL}...`);
 
   try {
@@ -317,6 +421,16 @@ app.all('/generator', generateValidators, validateRequest, async (req: Request, 
     // Verificar la estructura esperada: success:true Y svgString presente y es string
     if (rustResult.success && typeof rustResult.svgString === 'string') { // <-- Verifica svgString (camelCase)
       console.log('Node API: Recibida respuesta SVG exitosa desde Rust.');
+      
+      // Guardar resultado en caché
+      responseCache.set(cacheKey, {
+        data: rustResult,
+        timestamp: Date.now()
+      });
+      
+      // Configurar headers de caché
+      res.set('Cache-Control', `public, max-age=${CACHE_MAX_AGE}`);
+      
       // Enviar la respuesta exitosa de vuelta al frontend
       return res.status(200).json({
         success: true,
@@ -343,15 +457,32 @@ app.use(errorHandler);
 // Middleware para manejar rutas no encontradas (debe ir después de todas las rutas definidas)
 app.use(notFoundHandler);
 
-// Iniciar el servidor Node.js
-app.listen(PORT, HOST, () => {
-  console.log(`Servidor backend Node.js (API Gateway) escuchando en http://localhost:${PORT}`);
-  console.log(`Listo para reenviar peticiones al servicio Rust en ${RUST_SERVICE_URL}`);
-  console.log(`Modo: ${NODE_ENV}, Rate limit: ${RATE_LIMIT_MAX} solicitudes por ${RATE_LIMIT_WINDOW_MS/60000} minutos`);
+// Iniciar el servidor con la configuración
+startServer(app, {
+  SSL_ENABLED,
+  SSL_KEY_PATH,
+  SSL_CERT_PATH,
+  SSL_CA_PATH,
+  PORT,
+  HOST,
+  RUST_SERVICE_URL,
+  NODE_ENV,
+  RATE_LIMIT_MAX,
+  RATE_LIMIT_WINDOW_MS
 });
 
 // Manejo de cierre graceful
 process.on('SIGTERM', () => {
-  console.log('SIGTERM recibido, cerrando el servidor...');
+  logger.info('SIGTERM recibido, cerrando el servidor...');
   process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT recibido, cerrando el servidor...');
+  process.exit(0);
+});
+
+process.on('uncaughtException', (error) => {
+  logger.error('Excepción no capturada:', error);
+  process.exit(1);
 });

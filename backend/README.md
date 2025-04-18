@@ -38,6 +38,11 @@ backend/
 - Comunicación con el servicio de generación en Rust
 - Sistema de logging estructurado con Winston
 - Configuración CORS para comunicación segura entre servicios
+- Optimización de rendimiento:
+  - Compresión de respuestas con middleware compression
+  - Sistema de caché en memoria para reducir carga en el servicio Rust
+  - Configuración de headers HTTP Cache-Control para browsers
+  - Limpieza automática de caché para evitar fugas de memoria
 
 ## Sistema de Manejo de Errores
 
@@ -128,6 +133,39 @@ La configuración de Jest se encuentra en `jest.config.js`, con características
 
 Consulta el [README principal](../README.md) para instrucciones detalladas sobre instalación y ejecución del backend junto con el resto de componentes del sistema.
 
+## Mejoras de Rendimiento
+
+El backend incluye varias optimizaciones para mejorar el rendimiento:
+
+### Compresión de Respuestas
+
+Se utiliza el middleware `compression` para reducir el tamaño de las respuestas HTTP:
+- Compresión automática de respuestas grandes como SVGs
+- Reduce el ancho de banda y mejora los tiempos de carga
+- Configurado para todos los endpoints de la API
+
+### Sistema de Caché
+
+Implementación de caché en memoria para reducir la carga en el servicio Rust:
+- Las respuestas del servicio se almacenan en caché por 5 minutos (configurable)
+- Mejora significativa en tiempos de respuesta para solicitudes repetidas
+- Limpieza automática de entradas caducadas cada minuto
+- Identificación de respuestas en caché mediante el campo `fromCache: true`
+
+### Optimización de Headers HTTP
+
+Configuración de headers de caché para respuestas:
+- Headers `Cache-Control` para permitir el almacenamiento en caché en navegadores
+- Tiempo de vida configurable mediante la variable `CACHE_MAX_AGE`
+- Soporte para ETags y Last-Modified en recursos estáticos
+
+### Tests de Rendimiento
+
+Suite de tests para verificar las optimizaciones:
+- Tests para compresión de respuestas
+- Tests para el sistema de caché
+- Tests de comparación de rendimiento entre respuestas en caché y no en caché
+
 ## Variables de Entorno
 
 El backend requiere las siguientes variables de entorno en un archivo `.env`:
@@ -159,6 +197,9 @@ MAX_REQUEST_SIZE=1mb
 SESSION_SECRET=your-secret-key-here
 JWT_SECRET=your-jwt-secret-here
 JWT_EXPIRES_IN=1h
+
+# Configuración de caché y rendimiento
+CACHE_MAX_AGE=300             # Tiempo de caché en segundos (5 minutos)
 ```
 
 ## Endpoints
