@@ -1,0 +1,19 @@
+version: '3.8' # Especifica la versión de Compose
+
+services:
+  # Servicio para la base de datos PostgreSQL
+  postgres_db:
+    image: postgres:15-alpine # Usamos una imagen oficial de PostgreSQL (versión 15, ligera)
+    container_name: codex_postgres # Nombre para el contenedor
+    environment:
+      POSTGRES_USER: codex_user # Nombre de usuario para la base de datos
+      POSTGRES_PASSWORD: codex_password # Contraseña (¡CAMBIAR por una más segura si quieres!)
+      POSTGRES_DB: codex_db # Nombre de la base de datos a crear
+    ports:
+      - "5432:5432" # Mapea el puerto 5432 del contenedor al puerto 5432 de tu máquina
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Guarda los datos para que persistan si detienes/reinicias el contenedor
+
+# Define el volumen para persistir los datos
+volumes:
+  postgres_data:

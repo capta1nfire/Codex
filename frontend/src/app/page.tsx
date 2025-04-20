@@ -2,6 +2,10 @@
 
 import { useState } from 'react';
 import { Disclosure } from '@headlessui/react'; // Importamos Disclosure
+import { Input } from "@/components/ui/input"; // Importar Input (se usará menos)
+import { Label } from "@/components/ui/label"; // Importar Label
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Importar Select
+import { Button } from "@/components/ui/button"; // Importar Button
 
 // Interfaz para el error estructurado devuelto por el backend
 interface ErrorResponse {
@@ -93,159 +97,179 @@ export default function Home() {
   };
 
   const showErrorCorrection = type === 'qrcode';
+  const showHeightOption = !['qrcode', 'datamatrix'].includes(type); // Ejemplo: visible para 1D y PDF417
 
   // --- JSX ---
   return (
-    // Cambiado a un fondo gris muy claro para toda la página y texto base más oscuro
-    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 print:p-0 bg-gray-50 text-gray-900">
-      <h1 className="text-3xl font-bold mb-6 print:hidden text-gray-900"> {/* Texto del título más oscuro */}
+    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 print:p-0 bg-gray-100 text-gray-900">
+      <h1 className="text-3xl font-bold mb-8 print:hidden text-gray-900">
         Generador de Códigos "CODEX"
       </h1>
 
-      {/* Layout de dos columnas */}
-      <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-6 print:block">
-        {/* Columna izquierda: Formulario y Opciones */}
-        <div className="space-y-6 print:hidden">
-          {/* Formulario Principal */}
-          {/* Usamos texto más oscuro para labels y hints */}
-          <div className="bg-white p-6 border rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Configuración</h2>
-            {/* Input Datos */}
-            <div className="mb-4">
-              <label htmlFor="dataInput" className="block mb-1 font-medium text-gray-800"> {/* <-- Más oscuro */}
-                Datos a Codificar:
-              </label>
-              <input type="text" id="dataInput" placeholder="Escribe los datos aquí..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={data} onChange={(e) => setData(e.target.value)} disabled={isLoading}/>
-              {/* Ayuda contextual */}
-              {type === 'ean13' && ( <p className="text-xs text-gray-700 mt-1"> {/* <-- Más oscuro */}
-                  Exactamente 12 dígitos numéricos (el dígito de verificación se calcula automáticamente) </p> )}
-              {type === 'upca' && ( <p className="text-xs text-gray-700 mt-1"> {/* <-- Más oscuro */}
-                  Exactamente 11 dígitos numéricos </p> )}
+      {/* Contenedor principal centrado con ancho máximo */}
+      <div className="w-full max-w-7xl lg:max-w-screen-xl xl:max-w-screen-2xl print:max-w-full">
+        {/* Layout de dos columnas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 xl:gap-10 print:block">
+          
+          {/* Columna Izquierda: Configuración */}
+          <div className="space-y-6 print:hidden">
+            {/* Tarjeta: Configuración Básica */}
+            <div className="bg-white p-6 border rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4 text-gray-800">Configuración</h2>
+              {/* Datos a Codificar: Textarea */}
+              <div className="mb-4">
+                <Label htmlFor="dataInput" className="block mb-1.5 text-sm font-medium text-gray-800">
+                  Datos a Codificar:
+                </Label>
+                <textarea id="dataInput" placeholder="Escribe los datos aquí..."
+                  rows={4} // Altura inicial del textarea
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  value={data} onChange={(e) => setData(e.target.value)} disabled={isLoading}/>
+                {/* Ayuda contextual */}
+                <div className="mt-1.5 text-xs text-gray-600 min-h-[1.2em]"> {/* Placeholder para altura */} 
+                  {type === 'ean13' && (<span>Exactamente 12 dígitos numéricos (checksum automático)</span> )}
+                  {type === 'upca' && (<span>Exactamente 11 dígitos numéricos</span> )}
+                  {/* Añadir más hints aquí */} 
+                </div>
+              </div>
+              {/* Tipo de Código: Select */}
+              <div className="mb-4">
+                <Label htmlFor="typeSelect" className="block mb-1.5 text-sm font-medium text-gray-800">
+                  Tipo de Código:
+                </Label>
+                <Select value={type} onValueChange={setType} disabled={isLoading}>
+                  <SelectTrigger id="typeSelect">
+                    <SelectValue placeholder="Selecciona un tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="qrcode">QR Code</SelectItem>
+                    <SelectItem value="code128">Code 128</SelectItem>
+                    <SelectItem value="pdf417">PDF417</SelectItem>
+                    <SelectItem value="ean13">EAN-13</SelectItem>
+                    <SelectItem value="upca">UPC-A</SelectItem>
+                    <SelectItem value="code39">Code 39</SelectItem>
+                    <SelectItem value="datamatrix">Data Matrix</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* Botón Generar */}
+              <Button type="button" onClick={handleGenerate} disabled={isLoading} className="w-full text-base py-2.5">
+                {isLoading ? 'Generando...' : 'Generar Código'}
+              </Button>
             </div>
-            {/* Select Tipo */}
-            <div className="mb-4">
-              <label htmlFor="typeSelect" className="block mb-1 font-medium text-gray-800"> {/* <-- Más oscuro */}
-                Tipo de Código:
-              </label>
-              <select id="typeSelect" value={type} onChange={(e) => setType(e.target.value)} disabled={isLoading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="qrcode">QR Code</option>
-                <option value="code128">Code 128</option>
-                <option value="pdf417">PDF417</option>
-                <option value="ean13">EAN-13</option>
-                <option value="upca">UPC-A</option>
-                <option value="code39">Code 39</option>
-                <option value="datamatrix">Data Matrix</option>
-              </select>
-            </div>
-            {/* Botón Generar */}
-            <button type="button" onClick={handleGenerate} disabled={isLoading}
-              className={`w-full px-4 py-2 text-white font-semibold rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${ isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }`}>
-              {isLoading ? 'Generando...' : 'Generar Código'}
-            </button>
-          </div>
 
-          {/* Sección de Personalización */}
-          {/* Usamos texto más oscuro para legend y label */}
-          <div className="bg-white border rounded-lg shadow-md overflow-hidden">
-            <Disclosure>
-              {({ open }) => (
-                <div>
-                  <Disclosure.Button className="flex justify-between w-full px-4 py-3 text-sm font-medium text-left text-blue-900 bg-blue-100 hover:bg-blue-200 focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75">
-                    <span>Opciones de Personalización</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 transform transition-transform ${open ? 'rotate-180' : ''}`} >
-                       <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /> </svg>
-                  </Disclosure.Button>
-                  <Disclosure.Panel className="px-4 pt-4 pb-4 bg-white transition-all duration-300 ease-in-out text-gray-800"> {/* <-- Texto base más oscuro */}
-                    <div className="space-y-4">
-                      <fieldset className="border p-4 rounded border-gray-300">
-                        <legend className="font-semibold text-sm px-1 text-gray-700">Apariencia</legend> {/* <-- Más oscuro */}
-                        <div className="flex flex-col gap-4 pt-2">
+            {/* Tarjeta: Opciones de Personalización (Disclosure) */}
+            <div className="bg-white border rounded-lg shadow-md overflow-hidden">
+              <Disclosure defaultOpen={false}> 
+                {({ open }) => (
+                  <>
+                    <Disclosure.Button className="flex justify-between items-center w-full px-4 py-3 text-sm font-medium text-left text-blue-900 bg-blue-50 hover:bg-blue-100 focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75">
+                      <span>Opciones de Personalización</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 transform transition-transform duration-200 ${open ? 'rotate-180' : ''}`} >
+                         <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /> 
+                      </svg>
+                    </Disclosure.Button>
+                    <Disclosure.Panel className="px-6 py-4 border-t border-gray-200 bg-white text-sm text-gray-800">
+                      <div className="space-y-6"> {/* Aumentamos el espacio entre fieldsets */} 
+                        {/* Fieldset: Apariencia */}
+                        <fieldset className="space-y-4">
+                          <legend className="text-base font-semibold mb-2 text-gray-900">Apariencia</legend>
                           <div>
-                            <label htmlFor="scaleRange" className="block text-sm font-medium mb-1 flex justify-between text-gray-800"> {/* <-- Más oscuro */}
-                              <span>Escala (Tamaño Módulo):</span>
+                            <Label htmlFor="scaleRange" className="block text-sm font-medium mb-1 flex justify-between text-gray-800">
+                              <span>Escala (Tamaño):</span>
                               <span className="font-mono text-blue-700 text-xs">{scale}</span>
-                            </label>
+                            </Label>
                             <input type="range" id="scaleRange" min="1" max="10" step="1" value={scale} onChange={(e) => setScale(Number(e.target.value))} disabled={isLoading}
                               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                           </div>
-                          {/* TODO: Colores */}
-                        </div>
-                      </fieldset>
-
-                      {showErrorCorrection && (
-                        <fieldset className="border p-4 rounded border-gray-300">
-                          <legend className="font-semibold text-sm px-1 text-gray-700">Opciones Avanzadas (QR)</legend> {/* <-- Más oscuro */}
-                          <div className="flex flex-col gap-4 pt-2">
-                            <div>
-                              <label htmlFor="errorCorrectionLevel" className="block text-sm font-medium mb-1 text-gray-800"> {/* <-- Más oscuro */}
-                                Nivel de Corrección de Errores:
-                              </label>
-                              <select id="errorCorrectionLevel" value={errorLevel} onChange={(e) => setErrorLevel(e.target.value)} disabled={isLoading}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">Predeterminado (M)</option>
-                                <option value="L">L - Bajo (7%)</option>
-                                <option value="M">M - Medio (15%)</option>
-                                <option value="Q">Q - Cuartil (25%)</option>
-                                <option value="H">H - Alto (30%)</option>
-                              </select>
-                            </div>
-                          </div>
+                          {/* Aquí irían inputs de color si fueran necesarios */}
                         </fieldset>
-                      )}
-                      {/* TODO: Otros fieldsets */}
-                    </div>
-                  </Disclosure.Panel>
-                  </div>
-              )}
-            </Disclosure>
-          </div>
 
-          {/* Mostrar error con formato mejorado */}
-          {/* Usamos texto base más oscuro */}
-          {error && (
-            <div className="bg-red-50 border border-red-300 rounded-lg p-4 text-red-900"> {/* Error más oscuro */}
-              <h3 className="font-semibold">Error:</h3>
-              <p>{error.error}</p>
-              {error.suggestion && ( <p className="mt-2 text-sm text-red-800"> {/* Más oscuro */}
-                  <span className="font-medium">Sugerencia:</span> {error.suggestion} </p> )}
-              {error.code && ( <p className="mt-1 text-xs text-gray-600">Código: {error.code}</p> )} {/* Mantenemos gris */}
+                        {/* Fieldset: Visualización (Condicional) */} 
+                        {showHeightOption && (
+                          <fieldset className="space-y-4 pt-4 border-t border-gray-200">
+                            <legend className="text-base font-semibold mb-2 text-gray-900">Visualización (Códigos 1D)</legend>
+                            {/* Aquí irían opciones como 'Mostrar Texto', 'Altura' */}
+                            <p className="text-xs text-gray-500">(Opciones como Altura y Mostrar Texto irían aquí)</p>
+                          </fieldset>
+                        )}
+
+                        {/* Fieldset: Avanzado (Específico por Tipo) */}
+                        {showErrorCorrection && (
+                          <fieldset className="space-y-4 pt-4 border-t border-gray-200">
+                            <legend className="text-base font-semibold mb-2 text-gray-900">Avanzado (QR Code)</legend>
+                            <div>
+                              <Label htmlFor="errorCorrectionLevel" className="block text-sm font-medium mb-1 text-gray-800">
+                                Nivel de Corrección de Errores (ECL):
+                              </Label>
+                              <Select value={errorLevel} onValueChange={setErrorLevel} disabled={isLoading}>
+                                <SelectTrigger id="errorCorrectionLevel">
+                                  <SelectValue placeholder="Predeterminado (M)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="">Predeterminado (M)</SelectItem>
+                                  <SelectItem value="L">L - Bajo (7%)</SelectItem>
+                                  <SelectItem value="M">M - Medio (15%)</SelectItem>
+                                  <SelectItem value="Q">Q - Cuartil (25%)</SelectItem>
+                                  <SelectItem value="H">H - Alto (30%)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </fieldset>
+                        )}
+                      </div>
+                    </Disclosure.Panel>
+                  </>
+                )}
+              </Disclosure>
             </div>
-          )}
-        </div>
 
-        {/* Columna derecha: Previsualización */}
-        <div className="flex flex-col">
-          {/* Usamos texto más oscuro y placeholder más oscuro */}
-          <div className="bg-white p-6 border rounded-lg shadow-md flex flex-col items-center justify-center h-full min-h-[320px] print:border-none print:shadow-none print:p-0">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800 print:hidden">Previsualización</h2>
-            {isLoading ? ( <p className="text-blue-600 animate-pulse print:hidden">Generando código...</p> )
-             : error ? null // Error ya se muestra en columna izquierda
-             : svgContent ? (
-                <div className="flex flex-col items-center w-full">
-                  <div dangerouslySetInnerHTML={{ __html: svgContent }} className="w-full max-w-[300px] sm:max-w-[400px]" />
-                  <div className="flex gap-4 mt-6 print:hidden">
-                    <button type="button" onClick={handleDownload} className="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">Descargar SVG</button>
-                    <button type="button" onClick={handlePrint} className="px-4 py-2 bg-gray-600 text-white font-semibold rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">Imprimir</button>
-                  </div>
+            {/* Área de Errores */}
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded-lg relative" role="alert">
+                <strong className="font-bold">Error: </strong>
+                <span className="block sm:inline">{error.error}</span>
+                {error.suggestion && ( <p className="mt-1 text-sm"> Sugerencia: {error.suggestion} </p> )}
+                {error.code && ( <p className="mt-1 text-xs text-red-700">Código: {error.code}</p> )}
+              </div>
+            )}
+          </div> {/* Fin Columna Izquierda */} 
+
+          {/* Columna Derecha: Previsualización y Acciones */}
+          <div className="flex flex-col">
+            {/* Tarjeta: Previsualización */}
+            <div className="bg-white p-6 border rounded-lg shadow-md flex flex-col items-center justify-center h-full min-h-[350px] print:border-none print:shadow-none print:p-0 print:bg-transparent">
+              <h2 className="text-xl font-semibold mb-4 text-gray-800 print:hidden">Previsualización</h2>
+              <div className="flex-grow flex items-center justify-center w-full print:block print:w-auto print:h-auto print:flex-grow-0">
+                {isLoading ? ( <p className="text-blue-600 animate-pulse print:hidden">Generando código...</p> )
+                 : error ? ( <p className="text-red-600 print:hidden">Error al generar. Revisa la configuración.</p> )
+                 : svgContent ? (
+                    // Contenedor del SVG - Ahora más adaptable
+                    <div dangerouslySetInnerHTML={{ __html: svgContent }} className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl print:max-w-full print:w-full" />
+                  ) : (
+                    <div className="text-center text-gray-500 print:hidden">
+                      <p className="mb-1">Aquí aparecerá el código generado.</p>
+                      <p className="text-sm">Introduce datos y haz clic en "Generar".</p>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center text-center p-6 print:hidden">
-                  <p className="text-gray-700 mb-2">Aquí aparecerá el código generado...</p> {/* <-- Más oscuro */}
-                  <p className="text-sm text-gray-500">Selecciona un tipo, introduce datos y haz clic en "Generar Código"</p> {/* <-- Más oscuro */}
+              {/* Botones de Acción (solo si hay SVG) */} 
+              {svgContent && !isLoading && !error && (
+                <div className="flex gap-4 mt-6 print:hidden">
+                  <Button type="button" variant="secondary" onClick={handleDownload}>Descargar SVG</Button>
+                  <Button type="button" variant="outline" onClick={handlePrint}>Imprimir</Button>
                 </div>
               )}
-          </div>
-        </div>
-      </div> {/* Fin Grid */}
+            </div>
+          </div> {/* Fin Columna Derecha */} 
+          
+        </div> {/* Fin Grid */}
+      </div> {/* Fin Contenedor Principal */} 
 
       {/* Pie de página */}
-      {/* Usamos texto más oscuro */}
-      <footer className="mt-10 text-center text-sm text-gray-700 print:hidden"> {/* <-- Más oscuro */}
+      <footer className="mt-12 text-center text-sm text-gray-700 print:hidden">
         <p>CODEX - Plataforma de Generación de Códigos de Barras y QR</p>
-        <p className="mt-1">Versión 0.1.0 - Desarrollado con Next.js, Node.js y Rust</p>
+        <p className="mt-1 text-xs">Versión 0.1.0 - Desarrollado con Next.js, Node.js y Rust</p>
       </footer>
     </main>
   );

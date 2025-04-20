@@ -179,6 +179,17 @@ Este documento resume los pilares fundamentales para la construcción de una pla
 
 ## 16. Changelog
 
+### v1.2 - [Fecha Actual]
+- **Backend:** Migración del UserStore en memoria a **PostgreSQL usando Prisma ORM**.
+- **Backend:** Implementación de **hasheo de API Keys** (bcrypt) y generación segura (crypto).
+- **Backend:** Refactorización de la lógica de generación de códigos a `barcodeService.ts`, eliminando duplicación en `index.ts`.
+- **Backend:** Refactorización del manejo de caché en memoria a `utils/cache.ts`.
+- **Backend:** Corrección de errores menores (tipos, configuración de logger).
+- **Frontend:** Mejoras significativas de **responsividad** en Navbar, Formularios (Login/Registro) y Página Principal del Generador para pantallas grandes (4K).
+- **Frontend:** Refactorización de la página del Generador para usar componentes UI (`Input`, `Select`, `Button`, `Label`) y estructura de tarjetas/disclosure.
+- **Frontend:** Aplicación de **estilo visual consistente** (tarjetas, componentes UI) a la página de Perfil.
+- **Infraestructura:** Añadido `docker-compose.yml` para gestionar base de datos PostgreSQL en desarrollo.
+
 ### v1.1 - 13 de abril de 2025
 - Actualización para incluir detalles del componente Rust para generación de códigos.
 - Inclusión de Axum y rxing en la arquitectura del backend.

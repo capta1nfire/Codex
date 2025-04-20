@@ -12,6 +12,7 @@ interface Config {
   
   // Configuración del servicio Rust
   RUST_SERVICE_URL: string;
+  RUST_SERVICE_TIMEOUT_MS?: number; // Timeout para llamadas a Rust
   
   // Configuración de seguridad
   ALLOWED_ORIGINS: string[];
@@ -41,6 +42,7 @@ export const config: Config = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   
   RUST_SERVICE_URL: process.env.RUST_SERVICE_URL || 'http://localhost:3002/generate',
+  RUST_SERVICE_TIMEOUT_MS: parseInt(process.env.RUST_SERVICE_TIMEOUT_MS || '5000', 10), // 5 segundos por defecto
   
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS 
     ? process.env.ALLOWED_ORIGINS.split(',') 

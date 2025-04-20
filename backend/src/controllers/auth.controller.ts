@@ -4,6 +4,7 @@ import { userStore, UserRole } from '../models/user';
 import { authService } from '../services/auth.service';
 import { AppError, ErrorCode } from '../utils/errors';
 import logger from '../utils/logger';
+import crypto from 'crypto';
 
 // Validadores para registro de usuario
 export const registerValidators = [
@@ -189,12 +190,13 @@ export const authController = {
         );
       }
       
-      // Generar una API key aleatoria
-      const apiKey = `api_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+      // Generar una API key segura y aleatoria (ej: 64 caracteres hexadecimales)
+      const apiKey = crypto.randomBytes(32).toString('hex');
+      logger.info(`[AuthController] Nueva API Key generada para usuario ${req.user.id}`);
       
-      // Actualizar usuario con la nueva API key
+      // Actualizar usuario con la *NUEVA* API key (¡IMPORTANTE: UserStore la hasheará!)
       const user = await userStore.updateUser(req.user.id, { 
-        apiKey,
+        apiKey: apiKey, // Pasamos la key en texto plano al store para que la hashee
         updatedAt: new Date()
       });
       
@@ -206,10 +208,10 @@ export const authController = {
         );
       }
       
-      // Responder con la nueva API key
+      // Responder SOLO con la API key en texto plano (¡Mostrar solo esta vez!)
       res.json({
         success: true,
-        apiKey
+        apiKey // Devolver la key recién generada en texto plano
       });
     } catch (error) {
       next(error);

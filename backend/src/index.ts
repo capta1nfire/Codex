@@ -24,6 +24,10 @@ import { config } from './config';
 import { authMiddleware } from './middleware/authMiddleware';
 // Importar rutas
 import { authRoutes } from './routes/auth.routes';
+// Importar el servicio de códigos de barras
+import { generateBarcode } from './services/barcodeService';
+// Importar estadísticas de caché para /metrics
+import { cacheStats, responseCache } from './utils/cache';
 // ¡Ya NO importamos nada de 'rust_generator' aquí!
 
 // Interfaces
@@ -100,30 +104,6 @@ app.use(express.static('public', {
   lastModified: true // Habilitar Last-Modified
 }));
 
-// Simple caché en memoria para reducir carga en el servicio Rust
-const responseCache = new Map();
-const CACHE_TTL = config.CACHE_MAX_AGE * 1000; // Tiempo de vida del caché
-
-// Estadísticas del caché
-const cacheStats = {
-  hits: 0,
-  misses: 0,
-  byType: {} as Record<string, { hits: number, misses: number }>
-};
-
-// Función para limpiar entradas caducadas del caché
-const cleanCache = () => {
-  const now = Date.now();
-  for (const [key, { timestamp }] of responseCache.entries()) {
-    if (now - timestamp > CACHE_TTL) {
-      responseCache.delete(key);
-    }
-  }
-};
-
-// Limpiar caché periódicamente
-setInterval(cleanCache, 60000); // Limpiar cada minuto
-
 // Middleware para validación de solicitudes
 const validateRequest = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -143,22 +123,6 @@ app.use(authMiddleware.apiKeyStrategy);
 
 // Configurar rutas de autenticación
 app.use('/api/auth', authRoutes);
-
-// Mapeo de tipos de códigos de barras
-const barcodeTypeMapping: Record<string, string> = {
-  'qrcode': 'qr',
-  'code128': 'code128',
-  'pdf417': 'pdf417',
-  'ean13': 'ean13',
-  'upca': 'upca',
-  'code39': 'code39',
-  'datamatrix': 'datamatrix'
-};
-
-// Verificar si un tipo de código de barras es válido
-const isValidBarcodeType = (type: string): boolean => {
-  return Object.keys(barcodeTypeMapping).includes(type);
-};
 
 // Ruta principal
 app.get('/', (req: Request, res: Response) => {
@@ -231,8 +195,7 @@ app.get('/health', async (req: Request, res: Response) => {
 const generateValidators = [
   check('barcode_type')
     .exists().withMessage('El tipo de código de barras es obligatorio')
-    .isString().withMessage('El tipo de código de barras debe ser un string')
-    .custom(isValidBarcodeType).withMessage('Tipo de código de barras no soportado'),
+    .isString().withMessage('El tipo de código de barras debe ser un string'),
   
   check('data')
     .exists().withMessage('Los datos a codificar son obligatorios')
@@ -246,290 +209,53 @@ const generateValidators = [
     .isObject().withMessage('Las opciones deben ser un objeto')
 ];
 
-// Ruta para generar códigos (ahora llama al servicio Rust vía HTTP)
-app.post('/generate', generateValidators, validateRequest, async (req: Request, res: Response) => {
-  // Usamos 'barcode_type' para coincidir con el struct de Rust
+// Ruta para generar códigos (simplificada, usa el servicio)
+app.post('/generate', generateValidators, validateRequest, async (req: Request, res: Response, next: NextFunction) => {
   const { barcode_type, data, options } = req.body;
 
-  // Convertir el tipo usando el mapeo
-  const rustBarcodeType = barcodeTypeMapping[barcode_type] || barcode_type;
-  
-  console.log(`Node API: Recibido ${barcode_type}. Convertido a ${rustBarcodeType} para Rust.`);
-  
-  // Crear clave para caché que incluya todos los parámetros relevantes
-  const cacheKey = JSON.stringify({
-    barcode_type: rustBarcodeType,
-    data,
-    options: options || null
-  });
-  
-  // Verificar si tenemos una respuesta en caché
-  if (responseCache.has(cacheKey)) {
-    const cachedResponse = responseCache.get(cacheKey);
-    // Verificar si el caché es aún válido
-    if (Date.now() - cachedResponse.timestamp < CACHE_TTL) {
-      logger.info(`Sirviendo código de barras desde caché para tipo: ${barcode_type}, datos: ${data.substring(0, 20)}...`);
-      
-      // Incrementar contador de hits para este tipo
-      if (!cacheStats.byType[barcode_type]) {
-        cacheStats.byType[barcode_type] = { hits: 0, misses: 0 };
-      }
-      cacheStats.byType[barcode_type].hits++;
-      cacheStats.hits++;
-      
-      return res.status(200).json({
-        success: true,
-        svgString: cachedResponse.data.svgString,
-        fromCache: true
-      });
-    } else {
-      // Eliminar caché expirado
-      responseCache.delete(cacheKey);
-    }
-  }
-
-  // Incrementar contador de misses para este tipo
-  if (!cacheStats.byType[barcode_type]) {
-    cacheStats.byType[barcode_type] = { hits: 0, misses: 0 };
-  }
-  cacheStats.byType[barcode_type].misses++;
-  cacheStats.misses++;
-
-  console.log(`Llamando al servicio Rust en ${config.RUST_SERVICE_URL}...`);
-  console.log(`URL completa: ${config.RUST_SERVICE_URL}, método: POST, contenido: `, JSON.stringify({
-    barcode_type: rustBarcodeType,
-    data: data,
-    options: options || null
-  }));
-
   try {
-    // --- Llamada HTTP al Microservicio Rust ---
-    const rustResponse = await fetch(config.RUST_SERVICE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        barcode_type: rustBarcodeType, // Usamos el tipo convertido
-        data: data,
-        options: options || null
-      }),
+    logger.info(`[Route:/generate] Solicitud recibida para tipo: ${barcode_type}`);
+    const svgString = await generateBarcode(barcode_type, data, options);
+    
+    // Establecer headers de caché para la respuesta SVG
+    res.set('Cache-Control', `public, max-age=${config.CACHE_MAX_AGE}`);
+    
+    res.status(200).json({
+      success: true,
+      svgString
     });
-    // ---------------------------------------
-
-    // Verificar si la respuesta HTTP del servicio Rust fue OK
-    if (!rustResponse.ok) {
-      // Leer el cuerpo de error una sola vez y guardarlo
-      let errorBody;
-      try {
-        // Intentamos leer como JSON primero
-        errorBody = await rustResponse.json();
-      } catch(e) {
-        try {
-          // Si falla JSON, intentamos como texto
-          errorBody = { error: await rustResponse.text() || 'Error desconocido desde el servicio Rust' };
-        } catch(textError) {
-          // Si también falla como texto, usamos un mensaje genérico
-          errorBody = { error: `Error al leer respuesta del servicio Rust: ${rustResponse.status}` };
-        }
-      }
-      
-      console.error(`Error desde servicio Rust: Status ${rustResponse.status}`, errorBody);
-      
-      // Pasar la respuesta de error completa del servicio Rust al frontend
-      if (errorBody) {
-        return res.status(rustResponse.status).json(errorBody);
-      }
-      
-      throw new Error(errorBody?.error || `El servicio Rust devolvió un error ${rustResponse.status}`);
-    }
-
-    // Leer el cuerpo de la respuesta UNA SOLA VEZ
-    let rustResult;
-    try {
-      rustResult = await rustResponse.json();
-      console.log("NODE DEBUG: Objeto rustResult recibido:", JSON.stringify(rustResult, null, 2));
-    } catch (parseError) {
-      console.error("Error al parsear JSON de la respuesta del servicio Rust:", parseError);
-      throw new Error("No se pudo interpretar la respuesta del servicio Rust");
-    }
-
-    // --- VERIFICACIÓN CORRECTA ---
-    // Verificar la estructura esperada: success:true Y svgString presente y es string
-    if (rustResult.success && typeof rustResult.svgString === 'string') { // <-- Verifica svgString (camelCase)
-      console.log('Node API: Recibida respuesta SVG exitosa desde Rust.');
-      
-      // Guardar resultado en caché
-      responseCache.set(cacheKey, {
-        data: rustResult,
-        timestamp: Date.now()
-      });
-      
-      // Configurar headers de caché para SVG (siendo contenido estático)
-      res.set('Cache-Control', `public, max-age=${config.CACHE_MAX_AGE}`);
-      
-      // Enviar la respuesta exitosa de vuelta al frontend
-      return res.status(200).json({
-        success: true,
-        svgString: rustResult.svgString // <-- Reenvía svgString (camelCase)
-      });
-    } else {
-      // Si el JSON de Rust no tenía la estructura correcta
-      console.error('Respuesta inesperada o inválida desde servicio Rust:', rustResult);
-      throw new Error('Respuesta inválida recibida desde el servicio de generación.');
-    }
-    // --- FIN VERIFICACIÓN CORRECTA ---
 
   } catch (error) {
-    // Manejar errores
-    console.error('Error en el handler /generate de Node:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido al contactar servicio de generación.';
-    return res.status(500).json({ success: false, error: `Error interno: ${errorMessage}` });
+    // Pasar el error al errorHandler centralizado
+    logger.error(`[Route:/generate] Error procesando solicitud: ${error instanceof Error ? error.message : error}`)
+    next(error); 
   }
 });
 
-// Alias para la ruta /generator (redirige a /generate)
-// Manejar tanto GET como POST
-app.all('/generator', generateValidators, validateRequest, async (req: Request, res: Response) => {
-  console.log(`Redirigiendo ${req.method} /generator a /generate`);
-  // Usamos 'barcode_type' para coincidir con el struct de Rust
+// Alias para la ruta /generator (simplificado, usa el servicio)
+app.all('/generator', generateValidators, validateRequest, async (req: Request, res: Response, next: NextFunction) => {
   const { barcode_type, data, options } = req.body;
 
-  // Convertir el tipo usando el mapeo
-  const rustBarcodeType = barcodeTypeMapping[barcode_type] || barcode_type;
-  
-  console.log(`Node API: Recibido ${barcode_type} en /generator. Convertido a ${rustBarcodeType} para Rust.`);
-  
-  // Reutilizar la lógica de caché del endpoint /generate
-  const cacheKey = JSON.stringify({
-    barcode_type: rustBarcodeType,
-    data,
-    options: options || null
-  });
-  
-  if (responseCache.has(cacheKey)) {
-    const cachedResponse = responseCache.get(cacheKey);
-    if (Date.now() - cachedResponse.timestamp < CACHE_TTL) {
-      logger.info(`Sirviendo código de barras desde caché para tipo: ${barcode_type}, datos: ${data.substring(0, 20)}...`);
-      
-      // Incrementar contador de hits para este tipo
-      if (!cacheStats.byType[barcode_type]) {
-        cacheStats.byType[barcode_type] = { hits: 0, misses: 0 };
-      }
-      cacheStats.byType[barcode_type].hits++;
-      cacheStats.hits++;
-      
-      return res.status(200).json({
-        success: true,
-        svgString: cachedResponse.data.svgString,
-        fromCache: true
-      });
-    } else {
-      responseCache.delete(cacheKey);
-    }
-  }
-
-  // Incrementar contador de misses para este tipo
-  if (!cacheStats.byType[barcode_type]) {
-    cacheStats.byType[barcode_type] = { hits: 0, misses: 0 };
-  }
-  cacheStats.byType[barcode_type].misses++;
-  cacheStats.misses++;
-
-  console.log(`Llamando al servicio Rust en ${config.RUST_SERVICE_URL}...`);
-  console.log(`URL completa: ${config.RUST_SERVICE_URL}, método: POST, contenido: `, JSON.stringify({
-    barcode_type: rustBarcodeType,
-    data: data,
-    options: options || null
-  }));
-
   try {
-    // --- Llamada HTTP al Microservicio Rust ---
-    const rustResponse = await fetch(config.RUST_SERVICE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        barcode_type: rustBarcodeType, // Usamos el tipo convertido
-        data: data,
-        options: options || null
-      }),
+    logger.info(`[Route:/generator] Solicitud recibida para tipo: ${barcode_type}`);
+    const svgString = await generateBarcode(barcode_type, data, options);
+    
+    // Establecer headers de caché para la respuesta SVG
+    res.set('Cache-Control', `public, max-age=${config.CACHE_MAX_AGE}`);
+    
+    res.status(200).json({
+      success: true,
+      svgString
     });
-    // ---------------------------------------
-
-    // Verificar si la respuesta HTTP del servicio Rust fue OK
-    if (!rustResponse.ok) {
-      // Leer el cuerpo de error una sola vez y guardarlo
-      let errorBody;
-      try {
-        // Intentamos leer como JSON primero
-        errorBody = await rustResponse.json();
-      } catch(e) {
-        try {
-          // Si falla JSON, intentamos como texto
-          errorBody = { error: await rustResponse.text() || 'Error desconocido desde el servicio Rust' };
-        } catch(textError) {
-          // Si también falla como texto, usamos un mensaje genérico
-          errorBody = { error: `Error al leer respuesta del servicio Rust: ${rustResponse.status}` };
-        }
-      }
-      
-      console.error(`Error desde servicio Rust: Status ${rustResponse.status}`, errorBody);
-      
-      // Pasar la respuesta de error completa del servicio Rust al frontend
-      if (errorBody) {
-        return res.status(rustResponse.status).json(errorBody);
-      }
-      
-      throw new Error(errorBody?.error || `El servicio Rust devolvió un error ${rustResponse.status}`);
-    }
-
-    // Leer el cuerpo de la respuesta UNA SOLA VEZ
-    let rustResult;
-    try {
-      rustResult = await rustResponse.json();
-      console.log("NODE DEBUG: Objeto rustResult recibido:", JSON.stringify(rustResult, null, 2));
-    } catch (parseError) {
-      console.error("Error al parsear JSON de la respuesta del servicio Rust:", parseError);
-      throw new Error("No se pudo interpretar la respuesta del servicio Rust");
-    }
-
-    // --- VERIFICACIÓN CORRECTA ---
-    // Verificar la estructura esperada: success:true Y svgString presente y es string
-    if (rustResult.success && typeof rustResult.svgString === 'string') { // <-- Verifica svgString (camelCase)
-      console.log('Node API: Recibida respuesta SVG exitosa desde Rust.');
-      
-      // Guardar resultado en caché
-      responseCache.set(cacheKey, {
-        data: rustResult,
-        timestamp: Date.now()
-      });
-      
-      // Configurar headers de caché
-      res.set('Cache-Control', `public, max-age=${config.CACHE_MAX_AGE}`);
-      
-      // Enviar la respuesta exitosa de vuelta al frontend
-      return res.status(200).json({
-        success: true,
-        svgString: rustResult.svgString // <-- Reenvía svgString (camelCase)
-      });
-    } else {
-      // Si el JSON de Rust no tenía la estructura correcta
-      console.error('Respuesta inesperada o inválida desde servicio Rust:', rustResult);
-      throw new Error('Respuesta inválida recibida desde el servicio de generación.');
-    }
-    // --- FIN VERIFICACIÓN CORRECTA ---
 
   } catch (error) {
-    // Manejar errores
-    console.error('Error en el handler /generator de Node:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido al contactar servicio de generación.';
-    return res.status(500).json({ success: false, error: `Error interno: ${errorMessage}` });
+    // Pasar el error al errorHandler centralizado
+    logger.error(`[Route:/generator] Error procesando solicitud: ${error instanceof Error ? error.message : error}`)
+    next(error);
   }
 });
 
-// Endpoint para métricas y estadísticas de caché
+// Endpoint para métricas y estadísticas de caché (ahora usa stats de cache.ts)
 app.get('/metrics', (req: Request, res: Response) => {
   // Calcular la tasa de aciertos del caché
   const totalRequests = cacheStats.hits + cacheStats.misses;

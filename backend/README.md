@@ -1,55 +1,141 @@
 # Codex Backend
 
-Este directorio contiene el API Gateway implementado en Node.js con Express, que gestiona las peticiones y orquesta los servicios del sistema Codex para la generación de códigos de barras y QR.
+Este directorio contiene el API Gateway implementado en Node.js con Express, que gestiona las peticiones, autenticación, y orquesta la comunicación con el servicio Rust para la generación de códigos de barras y QR.
 
 ## Estructura del Proyecto
 
 ```
 backend/
-├── src/                       # Código fuente
-│   ├── middleware/            # Middleware personalizado
+├── prisma/                  # Configuración y migraciones de Prisma ORM
+│   └── schema.prisma        # Definición del esquema de la base de datos
+│   └── seed.ts              # Script para poblar datos iniciales
+├── src/                     # Código fuente TypeScript
+│   ├── controllers/         # Lógica de manejo de requests/responses
+│   │   └── auth.controller.ts # Controlador para autenticación
+│   ├── lib/                 # Librerías o instancias compartidas
+│   │   └── prisma.ts          # Instancia del cliente Prisma
+│   ├── middleware/          # Middleware personalizado
 │   │   ├── errorHandler.ts    # Manejo centralizado de errores
-│   │   └── authMiddleware.ts  # Middleware de autenticación
-│   ├── utils/                 # Utilidades y helpers
+│   │   └── authMiddleware.ts  # Middleware de autenticación (Passport)
+│   ├── models/              # Definición de modelos y acceso a datos
+│   │   └── user.ts            # Modelo User y UserStore (ahora con Prisma)
+│   ├── routes/              # Definición de rutas de la API
+│   │   └── auth.routes.ts     # Rutas para autenticación
+│   ├── services/            # Lógica de negocio
+│   │   ├── auth.service.ts    # Servicio para lógica de autenticación
+│   │   └── barcodeService.ts  # Servicio para generación de códigos
+│   ├── utils/               # Utilidades y helpers
 │   │   ├── errors.ts          # Sistema de errores tipificados
-│   │   └── logger.ts          # Configuración de logging
-│   ├── server-config.ts       # Configuración del servidor con soporte SSL
-│   ├── __tests__/             # Tests unitarios e integración
-│   │   ├── https.test.ts      # Tests para SSL/HTTPS
-│   │   └── performance.test.ts # Tests de rendimiento
-│   ├── custom-types.d.ts      # Definiciones de tipos personalizados
-│   └── index.ts               # Punto de entrada principal
-├── logs/                      # Logs de la aplicación
-│   ├── combined.log           # Logs combinados (todos los niveles)
-│   └── error.log              # Solo logs de errores
-├── .env                       # Variables de entorno (no incluido en Git)
-├── jest.config.js             # Configuración de Jest para tests
-├── tsconfig.json              # Configuración de TypeScript
-└── package.json               # Dependencias y scripts
+│   │   ├── logger.ts          # Configuración de logging (Winston)
+│   │   └── cache.ts           # Módulo de caché en memoria (temporal)
+│   ├── __tests__/           # Directorios de pruebas (distribuidos)
+│   ├── config.ts            # Configuración principal de la app
+│   ├── server-config.ts     # Configuración del servidor HTTP/HTTPS
+│   ├── custom-types.d.ts    # Definiciones de tipos personalizados
+│   └── index.ts             # Punto de entrada principal de la aplicación
+├── certs/                   # Certificados SSL (si se usan)
+├── logs/                    # Logs de la aplicación (rotados)
+│   ├── combined.log         # Logs combinados
+│   └── error.log            # Solo logs de errores
+├── .env                     # Variables de entorno (¡NO incluir en Git!)
+├── .gitignore               # Archivos ignorados por Git
+├── jest.config.js           # Configuración de Jest para tests
+├── tsconfig.json            # Configuración de TypeScript
+├── package.json             # Dependencias y scripts
+└── package-lock.json        # Lockfile de dependencias
 ```
 
 ## Características
 
-- API Gateway implementado con Express para orquestar los servicios
-- Seguridad reforzada mediante:
-  - Helmet para configuración de headers HTTP
-  - Express-rate-limit para protección contra ataques de fuerza bruta
-  - Validación de entradas con express-validator
-  - Sanitización XSS para prevenir inyección de scripts
-  - Soporte SSL/HTTPS para conexiones seguras
-- Sistema robusto de manejo de errores con códigos estandarizados
-- Monitoreo avanzado del sistema:
-  - Endpoint `/health` para estado general del sistema
-  - Endpoint `/metrics` para estadísticas detalladas de caché
-  - Seguimiento detallado de hits/misses por tipo de código de barras
-- Comunicación con el servicio de generación en Rust
-- Sistema de logging estructurado con Winston
-- Configuración CORS para comunicación segura entre servicios
-- Optimización de rendimiento:
-  - Compresión de respuestas con middleware compression
-  - Sistema de caché en memoria con métricas detalladas
-  - Configuración de headers HTTP Cache-Control para browsers
-  - Limpieza automática de caché para evitar fugas de memoria
+- API Gateway con Express.
+- **Base de Datos:** Persistencia con **PostgreSQL** gestionada mediante **Prisma ORM**.
+- **Autenticación:** Sistema robusto con Passport (JWT, Local, API Key).
+- **Generación de Códigos:** Orquestación de llamadas a servicio externo en Rust.
+- **Seguridad:** Helmet, Rate Limiting, Validación (express-validator), XSS Clean, CORS seguro, HTTPS opcional.
+- **Manejo de Errores:** Sistema tipificado con `AppError` y subclases, manejo centralizado.
+- **Logging:** Estructurado con Winston (JSON a archivo, coloreado a consola), niveles configurables, rotación de archivos.
+- **Monitoreo Básico:** Endpoint `/health` (estado propio y de Rust), Endpoint `/metrics` (estadísticas de caché en memoria - **tiempos estimados**).
+- **Optimización:** Compresión de respuestas, Caché en memoria (MVP, **ver mejoras**), Headers HTTP Cache-Control.
+- **Desarrollo:** TypeScript, Configuración basada en `.env`, Scripts npm para build/dev/test/seed.
+
+## Sistema de Caché (MVP)
+
+- Implementa un caché simple en memoria (`utils/cache.ts`) para las respuestas de `/generate`.
+- **Limitaciones:** No persistente, sin límite de tamaño, solo TTL.
+- **Mejora Planeada:** Migrar a **Redis** para mayor robustez y escalabilidad (ver `Codex.md`).
+- El endpoint `/metrics` refleja las estadísticas (hits, misses, tamaño) de este caché en memoria. Los tiempos reportados son **estimados/placeholders**.
+
+## Infraestructura de Testing
+
+- Framework: **Jest** con `ts-jest` y `supertest`.
+- **Comandos:** `npm test`, `npm run test:watch`, `npm run test:coverage`, etc. (ver `package.json`).
+- **Estructura:** Los tests (`*.test.ts`) residen en directorios `__tests__/` junto al código que prueban (ej. `src/utils/__tests__/errors.test.ts`).
+
+## Variables de Entorno (`.env`)
+
+```
+# Base de Datos PostgreSQL
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+
+# Configuración del servidor
+PORT=3001
+HOST=0.0.0.0
+NODE_ENV=development
+
+# Configuración del servicio Rust
+RUST_SERVICE_URL=http://localhost:3002/generate
+RUST_SERVICE_TIMEOUT_MS=5000 # Opcional, defecto 5000ms
+
+# Configuración de CORS
+ALLOWED_ORIGINS=http://localhost:3000 # Separados por coma si son varios
+
+# Configuración de logging
+LOG_LEVEL=info # (error, warn, info, http, verbose, debug, silly)
+
+# Configuración de SSL/TLS
+SSL_ENABLED=false
+SSL_KEY_PATH=
+SSL_CERT_PATH=
+SSL_CA_PATH=
+
+# Configuración de seguridad
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100
+MAX_REQUEST_SIZE=1mb
+SESSION_SECRET= # Requerido por Passport, aunque no usemos sesiones explícitas
+JWT_SECRET= # ¡IMPORTANTE: Cambiar por un secreto seguro!
+JWT_EXPIRES_IN=1h
+
+# Configuración de caché (para el caché en memoria actual)
+CACHE_MAX_AGE=300
+```
+
+## Endpoints Principales
+
+- **GET /**: Bienvenida.
+- **GET /health**: Estado del sistema (propio y Rust).
+- **GET /metrics**: Estadísticas del caché en memoria (hits, misses, tamaño).
+- **POST /api/auth/register**: Registrar usuario.
+- **POST /api/auth/login**: Iniciar sesión (devuelve JWT).
+- **POST /api/auth/refresh**: Refrescar JWT.
+- **GET /api/auth/me**: Obtener datos del usuario autenticado (JWT/API Key).
+- **POST /api/auth/api-key**: Generar/Regenerar API Key para el usuario autenticado.
+- **POST /generate**: Generar código de barras (requiere `barcode_type`, `data`, `options?`).
+- **POST /generator**: Alias de `/generate`.
+
+(Consultar `src/routes/` y `src/index.ts` para detalles y rutas protegidas adicionales).
+
+## Próximos Pasos / Mejoras Pendientes (Resumen)
+
+- **Base de Datos:** Asegurar configuración y conexión correcta a PostgreSQL.
+- **API Keys:** Revisar/optimizar estrategia de búsqueda `findByApiKey` (actualmente ineficiente).
+- **Caché:** Migrar de caché en memoria a Redis.
+- **Métricas:** Implementar medición real de tiempos o eliminar estimados.
+- **IDs:** Usar UUIDs para IDs de usuario.
+- **Seguridad Logs:** Filtrar/enmascarar datos sensibles en logs.
+- **Documentación API:** Generar documentación OpenAPI/Swagger.
+- **Testing:** Ampliar cobertura de tests.
+- **Organización Rutas:** Mover endpoints de `index.ts` a `src/routes/`.
 
 ## Sistema de Manejo de Errores
 

@@ -8,6 +8,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 ## [No publicado]
 
 ### Añadido
+- **Backend:** Migración de base de datos en memoria a **PostgreSQL con Prisma ORM**.
+- **Backend:** Generación segura (`crypto`) y almacenamiento hasheado (`bcrypt`) de **API Keys**.
+- **Backend:** Script de **seeding** de base de datos (`npm run seed`) con Prisma.
+- **Infraestructura:** Configuración de **Docker Compose** para base de datos PostgreSQL en desarrollo.
 - Sistema de monitoreo de estado con endpoint `/health`
 - Modal visual para mostrar el estado del sistema
 - Documentación estratégica CODEX.md
@@ -33,6 +37,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Panel de estadísticas de caché detallado en el dashboard de métricas
 
 ### Mejorado
+- **Backend:** Refactorización de lógica de generación a `barcodeService.ts`.
+- **Backend:** Refactorización de lógica de caché en memoria a `utils/cache.ts`.
+- **Backend:** Corrección de configuración de logger (evita duplicados en consola dev).
+- **Frontend:** **Responsividad** significativamente mejorada en Navbar, Formularios (Login/Registro) y Página Principal del Generador para pantallas grandes (4K).
+- **Frontend:** Refactorización de Página Principal para usar componentes UI y estructura de tarjetas/disclosure.
+- **Frontend:** Aplicación de **estilo visual consistente** a Página de Perfil (tarjetas, componentes UI).
 - Optimización de la interfaz de usuario para mejor contraste
 - Validación de datos de entrada en el backend
 - Actualización del README con características actuales
