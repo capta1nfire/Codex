@@ -1,2 +1,6 @@
 # Ignorar el directorio de compilación de Rust
 /target/
+
+# Logs
+/logs/
+*.log

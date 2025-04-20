@@ -1,0 +1,22 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# macOS
+.DS_Store
+
+# Environment variables
+.env
+.env.*
+!\.env.example
+
+# Build output
+/dist
+/build
+
+# IDE config files
+.idea/
+.vscode/ 
