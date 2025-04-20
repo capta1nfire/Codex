@@ -38,32 +38,46 @@ Este proyecto implementa una plataforma moderna para la generación de códigos 
 - React
 - Tailwind CSS
 - HeadlessUI
+- Shadcn UI
+- Axios
 
 ### Backend
 - Node.js con Express
-- **PostgreSQL** (Base de Datos)
-- **Prisma ORM** (Acceso a Datos)
-- **Passport.js** (Autenticación JWT, Local)
-- **bcrypt** (Hasheo de contraseñas y API Keys)
-- Microservicio de generación en Rust (Axum)
+- PostgreSQL (Base de Datos)
+- Prisma ORM (Acceso a Datos)
+- Passport.js (Autenticación JWT, Local, API Key)
+- bcrypt (Hasheo de contraseñas y API Keys)
+- **Microservicio de generación en Rust (Axum)**
 - Arquitectura de API Gateway
 - Seguridad: Helmet, express-rate-limit, xss-clean, CORS
 - Validación: express-validator
 - Logging: Winston
 - Compresión HTTP: compression
+- Métricas: prom-client (para Prometheus)
+- Conexión a Redis (configurada)
+
+### Servicio Rust (Generador)
+- Axum (Framework Web)
+- rxing (Generación de Códigos)
+- DashMap (Caché Interno Concurrente)
+- Tracing + Tracing Subscriber (Logging)
+- Tokio (Runtime Asíncrono)
 
 ### Infraestructura (Desarrollo)
-- **Docker** / **Docker Compose** (para PostgreSQL)
+- Docker / Docker Compose (para PostgreSQL, **Prometheus, Grafana**)
+- **Prometheus** (Recolección de Métricas Backend)
+- **Grafana** (Visualización de Métricas)
 
 ## 🏗️ Arquitectura
 
 El sistema utiliza una arquitectura moderna:
 
-1.  **Frontend (Next.js)**: Interfaz de usuario (React, Tailwind).
-2.  **API Gateway (Node.js/Express)**: Gestiona peticiones, autenticación (Passport), orquesta servicios, interactúa con BBDD (Prisma).
-3.  **Base de Datos (PostgreSQL)**: Almacenamiento persistente de usuarios (gestionado con Prisma).
-4.  **Servicio de Generación (Rust/Axum)**: Núcleo optimizado para la generación de códigos.
-5.  **(Futuro)** Caché Externo (Redis), Monitoreo Avanzado (Prometheus/Grafana).
+1.  **Frontend (Next.js)**: Interfaz de usuario (React, Tailwind, Shadcn UI).
+2.  **API Gateway (Node.js/Express)**: Gestiona peticiones, autenticación (Passport), orquesta servicios, interactúa con BBDD (Prisma), expone métricas a Prometheus.
+3.  **Base de Datos (PostgreSQL)**: Almacenamiento persistente (usuarios, etc.).
+4.  **Servicio de Generación (Rust/Axum)**: Núcleo optimizado para la generación de códigos, con caché interno y endpoint de analíticas.
+5.  **Caché Externo (Redis)**: Configurado en backend, pendiente de integración activa en lógica de servicio.
+6.  **Monitoreo (Prometheus/Grafana)**: Stack básico para recolección y visualización de métricas operacionales del backend.
 
 ## 🚦 Cómo Iniciar
 
@@ -71,7 +85,7 @@ El sistema utiliza una arquitectura moderna:
 - Node.js 20.x o superior
 - Rust y Cargo (si se modifica/compila el servicio de generación)
 - npm o yarn
-- **Docker y Docker Compose** (para ejecutar la base de datos PostgreSQL)
+- Docker y Docker Compose
 
 ### Instalación
 
@@ -98,85 +112,67 @@ cd ..
 
 ### Configuración
 
-1.  **Base de Datos:**
+1.  **Base de Datos, Prometheus, Grafana:**
     *   Asegúrate de tener Docker corriendo.
-    *   En la carpeta raíz (`Codex/`), ejecuta `docker-compose up -d`. Esto iniciará un contenedor PostgreSQL.
+    *   En la carpeta raíz (`Codex/`), ejecuta `docker-compose up -d`. Esto iniciará los contenedores necesarios.
 2.  **Variables de Entorno Backend:**
-    *   En la carpeta `backend/`, renombra `.env.example` a `.env` (o crea `.env`).
+    *   En la carpeta `backend/`, crea un archivo `.env` (puedes copiar `.env.example` si existiera, o crearlo manualmente).
     *   Asegúrate de que `DATABASE_URL` apunte a la base de datos Docker:
         ```env
         DATABASE_URL="postgresql://codex_user:codex_password@localhost:5432/codex_db?schema=public"
         ```
-    *   **IMPORTANTE:** Configura un `JWT_SECRET` seguro en el archivo `.env`.
-    *   Ajusta otras variables si es necesario (puertos, URL de Rust, etc.).
-3.  **Migración y Seeding de Base de Datos:**
+    *   Asegúrate de que `REDIS_URL` apunte a Redis (si el compose lo incluye, usualmente `redis://localhost:6379`).
+    *   **IMPORTANTE:** Configura un `JWT_SECRET` y `SESSION_SECRET` seguros en el archivo `.env`.
+    *   Verifica que `PORT` esté configurado (ej: `PORT=3004`) y `RUST_SERVICE_URL` apunte al puerto correcto (ej: `http://localhost:3002/generate`).
+    *   Define `ALLOWED_ORIGINS` incluyendo las URLs de tu frontend (ej: `http://localhost:3000,http://192.168.1.XX:3000`).
+3.  **Variables de Entorno Frontend:**
+    *   En `frontend/`, asegúrate de que `.env.local` tenga las URLs correctas para `NEXT_PUBLIC_BACKEND_URL` (ej: `http://localhost:3004`) y `NEXT_PUBLIC_RUST_SERVICE_URL` (ej: `http://localhost:3002`).
+4.  **Migración y Seeding de Base de Datos:**
     *   Navega a la carpeta `backend/` en tu terminal.
-    *   Ejecuta la migración inicial: `npx prisma migrate dev --name init` (o `npm run prisma:migrate` si prefieres)
-    *   Puebla la base de datos con usuarios iniciales: `npm run seed`
+    *   Ejecuta la migración inicial: `npx prisma migrate dev --name init` (o `npm run prisma:migrate`)
+    *   (Opcional) Puebla la base de datos: `npm run seed`
 
 ### Ejecución (Desarrollo)
 
-Necesitarás iniciar los tres componentes en terminales separadas:
+Necesitarás iniciar los componentes en terminales separadas (después de `docker-compose up -d`):
 
 ```bash
-# Terminal 1: Base de Datos (si no la iniciaste antes)
-# (Asegúrate de estar en la carpeta raíz `Codex/`)
-# docker-compose up
-
-# Terminal 2: Backend (API Gateway)
+# Terminal 1: Backend (API Gateway)
 # (Navega a la carpeta `backend/`)
-npm run dev  # Ejecuta en http://localhost:3001 (o el puerto de tu .env)
+npm run dev  # Ejecuta en http://localhost:3004 (o el puerto de tu .env)
 
-# Terminal 3: Servicio Rust (Generador)
+# Terminal 2: Servicio Rust (Generador)
 # (Navega a la carpeta `rust_generator/`)
-cargo run --release # Asumiendo que se ejecuta aquí
-# O inicia tu binario precompilado si lo tienes
+cargo run # O --release si prefieres. Ejecuta en http://localhost:3002
 
-# Terminal 4: Frontend
+# Terminal 3: Frontend
 # (Navega a la carpeta `frontend/`)
-npm run dev  # Ejecuta en http://localhost:3000
+npm run dev  # Ejecuta en http://localhost:3000 (o el siguiente puerto libre, ej: 3001)
 ```
+
+Accede al frontend en la URL que indique la Terminal 3. Accede a Grafana en `http://localhost:3030` y a Prometheus en `http://localhost:9090` (según `docker-compose.yml`).
 
 ## 📈 Estado de Implementación
 
-| Característica             | Estado      | Notas                                                              |
-|----------------------------|-------------|--------------------------------------------------------------------|
-| Generación básica        | ✅ Completo | Múltiples tipos soportados vía servicio Rust.                      |
-| Personalización          | ⚠️ Parcial  | Escala y ECL (QR) implementados. Colores, etc. pendientes.       |
-| Exportación              | ⚠️ Parcial  | SVG implementado.                                                  |
-| Autenticación/Registro   | ✅ Completo | Registro, Login (JWT), `/me`, API Keys (con hasheo).             |
-| Autorización (Roles)     | ✅ Básico   | Roles User/Admin/Premium definidos, middleware `checkRole` básico.   |
-| Base de Datos (Usuarios) | ✅ Completo | PostgreSQL con Prisma ORM implementado.                            |
-| Monitoreo (`/health`)    | ✅ Básico   | Verifica estado propio y de Rust.                                  |
-| Métricas (`/metrics`)    | ⚠️ Parcial  | Solo estadísticas de caché en memoria, tiempos estimados.          |
-| Caché (Backend)          | ✅ MVP      | Caché en memoria implementado, necesita migración a Redis.         |
-| UI Responsiva            | ✅ Completo | Mejoras aplicadas a Navbar, Forms, Generador, Perfil (4K focus). |
-| UI Consistente           | ✅ Parcial  | Generador y Perfil usan componentes UI/tarjetas. Falta Login/Reg/Dash. |
-| Seguridad Base           | ✅ Completo | Helmet, Rate Limit, CORS, Validación, XSS, HTTPS opcional.       |
-| Manejo Errores Backend   | ✅ Completo | Sistema estructurado y centralizado.                              |
-| Logging Backend          | ✅ Completo | Winston configurado (archivos JSON, consola).                      |
-| Testing Backend          | ⚠️ Básico   | Estructura Jest lista, necesita más cobertura.                     |
+El proyecto ha superado la fase MVP y se encuentra en desarrollo activo de características Beta/Producción. Se han implementado:
+
+- Generación de códigos vía servicio Rust.
+- Autenticación/Autorización básica con JWT/API Keys y persistencia en PostgreSQL (Prisma).
+- Dashboard frontend con estado del sistema y analíticas básicas del servicio Rust.
+- Monitoreo operacional básico del backend vía Prometheus/Grafana.
+
+**Para detalles sobre funcionalidades específicas y el roadmap futuro, consultar [CODEX.md](CODEX.md).**
 
 ## 🗺️ Próximos Pasos (Plan de Mejoras)
 
-Prioridades basadas en la revisión reciente:
-
-1.  **Base de Datos:** Usar UUIDs para IDs de usuario (`models/user.ts` y `schema.prisma`).
-2.  **API Keys:** Optimizar búsqueda `findByApiKey` (actualmente ineficiente).
-3.  **Caché:** Migrar caché en memoria a Redis.
-4.  **Métricas:** Implementar medición real de tiempos o eliminar estimados.
-5.  **Seguridad Logs:** Filtrar/enmascarar datos sensibles (`req.body`) en `errorHandler`.
-6.  **UI Consistente:** Aplicar patrón visual (tarjetas, componentes UI) a Login/Registro y Dashboard.
-7.  **Testing:** Aumentar cobertura de tests (Backend y Frontend).
-8.  **Documentación API:** Generar documentación OpenAPI/Swagger para el backend.
-9.  **Organización Rutas Backend:** Mover endpoints de `index.ts` a `src/routes/`.
-10. **Personalización Frontend:** Implementar opciones pendientes (colores, etc.).
+Consultar las secciones **Roadmap de Desarrollo (13)** y **Mantenimiento y Calidad de Código (17)** en [CODEX.md](CODEX.md) para la planificación detallada.
 
 ## 📚 Documentación Adicional
 
-- [Codex.md](Codex.md): Documento estratégico del proyecto (Pilar Code).
+- [CODEX.md](CODEX.md): Documento estratégico y hoja de ruta del proyecto.
 - [backend/README.md](backend/README.md): Documentación específica del backend.
 - [frontend/README.md](frontend/README.md): Documentación específica del frontend.
+- [rust_generator/API_DOCS.md](rust_generator/API_DOCS.md): Documentación de la API del servicio Rust.
 
 ## 🤝 Contribución
 

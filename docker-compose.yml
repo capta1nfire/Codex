@@ -14,6 +14,51 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data # Guarda los datos para que persistan si detienes/reinicias el contenedor
 
-# Define el volumen para persistir los datos
+  # Servicio para caché Redis
+  redis_cache:
+    image: redis:7-alpine # Imagen oficial ligera de Redis
+    container_name: codex_redis
+    ports:
+      - "6379:6379" # Mapea el puerto por defecto de Redis
+    volumes:
+      - redis_data:/data # Persistir datos de Redis (opcional para caché)
+
+  # Servicio para Prometheus (recolección de métricas)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: codex_prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml # Monta el archivo de config
+      - prometheus_data:/prometheus # Persistir datos de Prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml' # Indica dónde está el config
+    # network_mode: host # Permite acceder a localhost:3001 directamente
+    # ¡Importante! Si usas Linux, network_mode: host funciona bien.
+    # Si usas Mac o Windows con Docker Desktop, necesitarás usar 'host.docker.internal:3001'
+    # en prometheus.yml en lugar de 'localhost:3001' y quitar network_mode: host aquí.
+    # Alternativamente, define una red común para todos los servicios.
+    # Por simplicidad inicial, probaremos con network_mode: host.
+    # Si no conecta, ajustaremos.
+    ports:
+      - "9090:9090" # Puerto de la UI de Prometheus
+    restart: unless-stopped
+
+  # Servicio para Grafana (visualización de métricas)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: codex_grafana
+    ports:
+      - "3030:3000" # Puerto de la UI de Grafana (cambiado a 3030)
+    volumes:
+      - grafana_data:/var/lib/grafana # Persistir datos de Grafana (dashboards, etc)
+    # network_mode: host # Para que pueda alcanzar Prometheus en localhost:9090
+    restart: unless-stopped
+    depends_on:
+      - prometheus # Asegura que Prometheus inicie antes
+
+# Define los volúmenes para persistir los datos
 volumes:
   postgres_data:
+  redis_data:
+  prometheus_data: # Nuevo volumen para Prometheus
+  grafana_data:    # Nuevo volumen para Grafana

@@ -45,25 +45,13 @@ router.post('/api-key', authenticateJwt, authController.generateApiKey);
  * @desc    Punto de acceso exclusivo para administradores (prueba de roles)
  * @access  Privado (sólo admin)
  */
-router.post('/admin', authenticateJwt, checkRole(UserRole.ADMIN), (req, res) => {
-  res.json({
-    success: true,
-    message: 'Acceso de administrador concedido',
-    user: req.user
-  });
-});
+router.post('/admin', authenticateJwt, checkRole(UserRole.ADMIN), authController.adminAccess);
 
 /**
  * @route   POST /api/auth/premium
  * @desc    Punto de acceso exclusivo para usuarios premium (prueba de roles)
  * @access  Privado (sólo premium o admin)
  */
-router.post('/premium', authenticateJwt, checkRole(UserRole.PREMIUM), (req, res) => {
-  res.json({
-    success: true,
-    message: 'Acceso premium concedido',
-    user: req.user
-  });
-});
+router.post('/premium', authenticateJwt, checkRole(UserRole.PREMIUM), authController.premiumAccess);
 
 export const authRoutes = router; 

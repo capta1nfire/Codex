@@ -1,0 +1,180 @@
+{"timestamp":"2025-04-20T00:46:56.468856Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:46:56.469367Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:46:56.469401Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:46:56.469995Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:48:36.168462Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:48:36.168985Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:48:36.169021Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:48:36.169589Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:50:37.471173Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:50:37.471684Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:50:37.471717Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:50:37.472302Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:59:51.895605Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:59:51.896128Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:59:51.896160Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T00:59:51.896735Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:04:50.028581Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:04:50.029079Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:04:50.029113Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:04:50.029676Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:06:28.691335Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:06:28.691839Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:06:28.691873Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:06:28.692455Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:17:58.147016Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:17:58.147517Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:17:58.147552Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:17:58.148129Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:30:44.108763Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:30:44.109280Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:30:44.109313Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T01:30:44.110210Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T02:57:54.855164Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T02:57:54.855713Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T02:57:54.855749Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T02:57:54.856297Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:17:40.059897Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:17:40.060194Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:17:40.060212Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:17:40.060497Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:50:06.470827Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":0,"barcode_type":"qr","data_length":6},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:50:06.473026Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":0,"barcode_type":"qr","duration_ms":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:51:40.057988Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:51:43.859690Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":1,"barcode_type":"qr","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:51:43.862388Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":1,"barcode_type":"qr","duration_ms":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:53:40.033217Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:55:37.792729Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":2,"barcode_type":"qr","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:55:37.794457Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":2,"barcode_type":"qr","duration_ms":1},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:55:40.599409Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":3,"barcode_type":"qr","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:55:40.602556Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":3,"barcode_type":"qr","duration_ms":3},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:56:40.035641Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:57:40.036873Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:57:51.995131Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":4,"barcode_type":"datamatrix","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:57:51.995428Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":4,"barcode_type":"datamatrix","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:58:06.411595Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":5,"barcode_type":"qr","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:58:06.414353Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":5,"barcode_type":"qr","duration_ms":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:58:12.813336Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":6,"barcode_type":"qr","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:58:12.815945Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":6,"barcode_type":"qr","duration_ms":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T03:59:40.042685Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":3},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:37:34.520915Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:37:34.521440Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:37:34.521474Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:37:34.522053Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:40:30.896439Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:40:30.896735Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:40:30.896770Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:40:30.897964Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:55:21.466798Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:55:21.467339Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:55:21.467376Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:55:21.467989Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:57:22.179432Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":0,"barcode_type":"qr","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:57:22.181503Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":0,"barcode_type":"qr","duration_ms":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:57:29.823173Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":1,"barcode_type":"qr","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:57:29.825477Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":1,"barcode_type":"qr","duration_ms":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:57:35.649769Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":2,"barcode_type":"pdf417","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:57:35.651310Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":2,"barcode_type":"pdf417","duration_ms":1},"target":"rust_generator"}
+{"timestamp":"2025-04-20T04:59:21.474698Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":3},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:05:53.452206Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:05:53.452458Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:05:53.452871Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:05:53.452984Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:05:53.460823Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:05:53.460924Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:06:48.511052Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:06:48.511169Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:06:48.527204Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:06:48.527333Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:07:41.130478Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:07:41.130642Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:07:48.718178Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:07:48.718391Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:08:48.716437Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:08:48.716683Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:09:48.716575Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:09:48.716860Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:09:59.318415Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:09:59.318530Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:09:59.332911Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:09:59.333015Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:10:37.912292Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:10:37.912420Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:10:37.925710Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:10:37.925848Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:11:37.927986Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:11:37.929207Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:14:28.915600Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:14:28.915932Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:14:28.915960Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:14:28.917269Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:14:37.090073Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:14:37.090368Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:14:37.112478Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:14:37.112638Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:11.451676Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":0,"barcode_type":"qr","data_length":3},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:11.454271Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":0,"barcode_type":"qr","duration_ms":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:13.240069Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:13.240281Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:13.245395Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:13.245665Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:13.248567Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:13.248695Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:34.465690Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":1,"barcode_type":"datamatrix","data_length":3},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:34.466048Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":1,"barcode_type":"datamatrix","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:41.119909Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":2,"barcode_type":"code39","data_length":3},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:41.120487Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":2,"barcode_type":"code39","duration_ms":0},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:47.739383Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":3,"barcode_type":"pdf417","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:47.740690Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":3,"barcode_type":"pdf417","duration_ms":1},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:50.156727Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:50.156913Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:50.157459Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:50.157562Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:50.166322Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:15:50.166431Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:16:02.159387Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":4,"barcode_type":"qr","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:16:02.161875Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":4,"barcode_type":"qr","duration_ms":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:16:09.944393Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:16:09.944540Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:16:09.944958Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:16:09.945041Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:16:09.955852Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:16:09.956019Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:16:28.921479Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:17:09.957514Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:17:09.957913Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:17:28.922514Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:18:09.957116Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:18:09.957571Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:19:09.957462Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:19:09.957900Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:20:09.957155Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:20:09.957442Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:21:09.958006Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:21:09.958335Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:22:09.958805Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:22:09.959334Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:34:21.465327Z","level":"INFO","fields":{"message":"Sistema de logging inicializado"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:34:21.465669Z","level":"INFO","fields":{"message":"No se pudo extraer caché de Arc, usando clone","references":2},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:34:21.465701Z","level":"INFO","fields":{"message":"🧹 Thread de limpieza de caché iniciado (intervalo: 60s)"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:34:21.466246Z","level":"INFO","fields":{"message":"Servicio Rust de Generación (Axum) escuchando en 127.0.0.1:3002"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:36:57.802901Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":0,"barcode_type":"qr","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:36:57.804857Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":0,"barcode_type":"qr","duration_ms":1},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:37:00.365056Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:37:00.365318Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:37:00.365736Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:37:00.365861Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:37:00.386138Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:37:00.386236Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:38:00.388964Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:38:00.389090Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:38:21.565068Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:38:24.686622Z","level":"INFO","fields":{"message":"Solicitud de generación recibida","request_id":1,"barcode_type":"pdf417","data_length":4},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:38:24.688594Z","level":"INFO","fields":{"message":"Generación exitosa","request_id":1,"barcode_type":"pdf417","duration_ms":1},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:38:26.835303Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:38:26.835441Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:38:26.836014Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:38:26.836152Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:38:26.845251Z","level":"INFO","fields":{"message":"Solicitud de analytics/performance recibida"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:38:26.845371Z","level":"INFO","fields":{"message":"Analytics generados correctamente"},"target":"rust_generator"}
+{"timestamp":"2025-04-20T05:40:21.572015Z","level":"INFO","fields":{"message":"🧹 Limpieza automática: entradas expiradas eliminadas","count":1},"target":"rust_generator"}

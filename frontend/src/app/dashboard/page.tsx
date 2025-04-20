@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import SystemStatus from '@/components/SystemStatus';
+import RustAnalyticsDisplay from '@/components/RustAnalyticsDisplay';
 
 export default function DashboardPage() {
   return (
@@ -10,8 +11,9 @@ export default function DashboardPage() {
         Dashboard del Sistema
       </h1>
       
-      <div className="w-full max-w-5xl">
+      <div className="w-full max-w-5xl space-y-6">
         <SystemStatus />
+        <RustAnalyticsDisplay />
       </div>
     </main>
   );

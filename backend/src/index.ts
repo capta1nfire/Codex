@@ -24,33 +24,12 @@ import { config } from './config';
 import { authMiddleware } from './middleware/authMiddleware';
 // Importar rutas
 import { authRoutes } from './routes/auth.routes';
-// Importar el servicio de códigos de barras
-import { generateBarcode } from './services/barcodeService';
-// Importar estadísticas de caché para /metrics
-import { cacheStats, responseCache } from './utils/cache';
-// ¡Ya NO importamos nada de 'rust_generator' aquí!
-
-// Interfaces
-interface RustServiceStatus {
-  status: string;
-  error?: string;
-  [key: string]: any; // Para otras propiedades que pueda tener
-}
-
-interface HealthData {
-  status: string;
-  timestamp: string;
-  service: string;
-  uptime: number;
-  memoryUsage: {
-    total: string;
-    free: string;
-    processUsage: string;
-  };
-  dependencies?: {
-    rust_service: RustServiceStatus;
-  };
-}
+import { baseRoutes } from './routes/base.routes';
+import { healthRoutes } from './routes/health.routes';
+import { metricsRoutes } from './routes/metrics.routes';
+import { generateRoutes } from './routes/generate.routes';
+// Importar métricas de Prometheus
+import { httpRequestDurationMicroseconds, httpRequestsTotal } from './utils/metrics';
 
 const app = express();
 
@@ -97,214 +76,53 @@ app.use(express.json({ limit: config.MAX_REQUEST_SIZE })); // Limite el tamaño 
 // Prevenir ataques XSS
 app.use(xss());
 
-// Caché para recursos estáticos (si existieran)
-app.use(express.static('public', {
-  maxAge: config.CACHE_MAX_AGE * 1000, // Cache-Control en milisegundos
-  etag: true, // Habilitar ETags
-  lastModified: true // Habilitar Last-Modified
-}));
-
-// Middleware para validación de solicitudes
-const validateRequest = (req: Request, res: Response, next: NextFunction) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      error: 'Datos de entrada inválidos',
-      details: errors.array()
-    });
-  }
+// --- Middleware para Métricas HTTP Prometheus ---
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // Iniciar timer para medir duración
+  const end = httpRequestDurationMicroseconds.startTimer();
+  
+  // Registrar métrica cuando la respuesta finalice
+  res.on('finish', () => {
+    // Obtener ruta (usar originalUrl o intentar mapear a un patrón)
+    // Usar req.route?.path puede ser más genérico si se usan routers bien
+    const route = req.route?.path || req.originalUrl.split('?')[0] || 'unknown'; 
+    
+    const labels = {
+      method: req.method,
+      // Usar el path del router si está disponible, sino la URL original
+      route: route,
+      code: res.statusCode.toString(),
+    };
+    
+    // Observar duración
+    end(labels);
+    // Incrementar contador
+    httpRequestsTotal.inc(labels);
+  });
+  
   next();
-};
+});
+// --- Fin Middleware Métricas ---
+
+// Middleware para validación de solicitudes (movido a generate.routes.ts, eliminar aquí)
+// const validateRequest = (req: Request, res: Response, next: NextFunction) => { ... };
 
 // Configurar autenticación
 app.use(authMiddleware.configurePassport());
 app.use(authMiddleware.apiKeyStrategy);
 
-// Configurar rutas de autenticación
-app.use('/api/auth', authRoutes);
-
-// Ruta principal
-app.get('/', (req: Request, res: Response) => {
-  // Configurar headers de caché para respuestas inmutables
-  res.set('Cache-Control', `public, max-age=${config.CACHE_MAX_AGE}`);
-  res.send('¡API Gateway Node.js funcionando! Llamando a Rust en puerto 3002 para generar.');
-});
-
-// Endpoint de salud para monitoreo
-app.get('/health', async (req: Request, res: Response) => {
-  // Información básica del sistema
-  const healthData: HealthData = {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    service: 'codex-api-gateway',
-    uptime: process.uptime(),
-    memoryUsage: {
-      total: Math.round(os.totalmem() / 1024 / 1024) + 'MB',
-      free: Math.round(os.freemem() / 1024 / 1024) + 'MB',
-      processUsage: Math.round(process.memoryUsage().rss / 1024 / 1024) + 'MB'
-    }
-  };
-
-  // Verificar conexión con el servicio Rust
-  try {
-    // Extraer la URL base del servicio Rust para el health check
-    const rustServiceBaseUrl = config.RUST_SERVICE_URL.split('/').slice(0, 3).join('/'); // Obtiene http://localhost:3002
-    const rustHealthCheck = await fetch(`${rustServiceBaseUrl}/health`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      signal: AbortSignal.timeout(1000) // Timeout de 1 segundo
-    });
-    
-    if (rustHealthCheck.ok) {
-      const rustHealth = await rustHealthCheck.json();
-      healthData.dependencies = {
-        rust_service: {
-          status: 'ok',
-          ...rustHealth
-        }
-      };
-    } else {
-      healthData.dependencies = {
-        rust_service: {
-          status: 'degraded',
-          error: `HTTP ${rustHealthCheck.status}`
-        }
-      };
-      healthData.status = 'degraded';
-    }
-  } catch (error) {
-    // Si no podemos conectar con el servicio Rust
-    healthData.dependencies = {
-      rust_service: {
-        status: 'unavailable',
-        error: error instanceof Error ? error.message : 'Error desconocido'
-      }
-    };
-    healthData.status = 'degraded';
-  }
-  
-  // Enviar respuesta con el estado adecuado
-  const statusCode = healthData.status === 'ok' ? 200 : 503;
-  res.status(statusCode).json(healthData);
-});
-
-// Validadores para el endpoint de generación
-const generateValidators = [
-  check('barcode_type')
-    .exists().withMessage('El tipo de código de barras es obligatorio')
-    .isString().withMessage('El tipo de código de barras debe ser un string'),
-  
-  check('data')
-    .exists().withMessage('Los datos a codificar son obligatorios')
-    .isString().withMessage('Los datos a codificar deben ser un string')
-    .trim()
-    .notEmpty().withMessage('Los datos a codificar no pueden estar vacíos')
-    .isLength({ max: 1000 }).withMessage('Los datos a codificar no pueden exceder 1000 caracteres'),
-  
-  check('options')
-    .optional()
-    .isObject().withMessage('Las opciones deben ser un objeto')
-];
-
-// Ruta para generar códigos (simplificada, usa el servicio)
-app.post('/generate', generateValidators, validateRequest, async (req: Request, res: Response, next: NextFunction) => {
-  const { barcode_type, data, options } = req.body;
-
-  try {
-    logger.info(`[Route:/generate] Solicitud recibida para tipo: ${barcode_type}`);
-    const svgString = await generateBarcode(barcode_type, data, options);
-    
-    // Establecer headers de caché para la respuesta SVG
-    res.set('Cache-Control', `public, max-age=${config.CACHE_MAX_AGE}`);
-    
-    res.status(200).json({
-      success: true,
-      svgString
-    });
-
-  } catch (error) {
-    // Pasar el error al errorHandler centralizado
-    logger.error(`[Route:/generate] Error procesando solicitud: ${error instanceof Error ? error.message : error}`)
-    next(error); 
-  }
-});
-
-// Alias para la ruta /generator (simplificado, usa el servicio)
-app.all('/generator', generateValidators, validateRequest, async (req: Request, res: Response, next: NextFunction) => {
-  const { barcode_type, data, options } = req.body;
-
-  try {
-    logger.info(`[Route:/generator] Solicitud recibida para tipo: ${barcode_type}`);
-    const svgString = await generateBarcode(barcode_type, data, options);
-    
-    // Establecer headers de caché para la respuesta SVG
-    res.set('Cache-Control', `public, max-age=${config.CACHE_MAX_AGE}`);
-    
-    res.status(200).json({
-      success: true,
-      svgString
-    });
-
-  } catch (error) {
-    // Pasar el error al errorHandler centralizado
-    logger.error(`[Route:/generator] Error procesando solicitud: ${error instanceof Error ? error.message : error}`)
-    next(error);
-  }
-});
-
-// Endpoint para métricas y estadísticas de caché (ahora usa stats de cache.ts)
-app.get('/metrics', (req: Request, res: Response) => {
-  // Calcular la tasa de aciertos del caché
-  const totalRequests = cacheStats.hits + cacheStats.misses;
-  const cacheHitRate = totalRequests > 0 ? (cacheStats.hits / totalRequests) * 100 : 0;
-  
-  // Preparar estadísticas por tipo de código
-  const byBarcodeType: Record<string, any> = {};
-  
-  for (const [type, stats] of Object.entries(cacheStats.byType)) {
-    const typeRequests = stats.hits + stats.misses;
-    const typeHitRate = typeRequests > 0 ? (stats.hits / typeRequests) * 100 : 0;
-    
-    byBarcodeType[type] = {
-      avg_cache_hit_ms: 0.5, // Valores estimados - podrían calcularse realmente
-      avg_generation_ms: 2.3,
-      max_hit_ms: 1,
-      max_generation_ms: 5,
-      hit_count: stats.hits,
-      miss_count: stats.misses,
-      avg_data_size: 24, // Valor estimado
-      cache_hit_rate_percent: typeHitRate
-    };
-  }
-  
-  // Crear respuesta con el formato esperado por el dashboard
-  const metricsResponse = {
-    by_barcode_type: byBarcodeType,
-    overall: {
-      avg_response_ms: 1.5, // Valor estimado - podría calcularse realmente
-      max_response_ms: 5,   // Valor estimado
-      total_requests: totalRequests,
-      cache_hit_rate_percent: cacheHitRate
-    },
-    cache_stats: {
-      hits: cacheStats.hits,
-      misses: cacheStats.misses,
-      cache_hit_rate_percent: cacheHitRate,
-      cache_size: responseCache.size
-    },
-    timestamp: new Date().toISOString()
-  };
-  
-  res.json(metricsResponse);
-});
+// --- Montar Rutas --- 
+app.use('/', baseRoutes);                 // Rutas base (GET /)
+app.use('/health', healthRoutes);         // Rutas de salud (GET /health)
+app.use('/metrics', metricsRoutes);       // Rutas de métricas (GET /metrics)
+app.use('/api/auth', authRoutes);       // Rutas de autenticación
+app.use('/api', generateRoutes);          // Rutas de generación (ahora bajo /api)
+// Nota: Montar generateRoutes en '/api'
 
 // Middleware para manejo de errores
 app.use(errorHandler);
 
-// Middleware para manejar rutas no encontradas (debe ir después de todas las rutas definidas)
+// Middleware para manejar rutas no encontradas (esto se queda)
 app.use(notFoundHandler);
 
 // Iniciar el servidor con la configuración

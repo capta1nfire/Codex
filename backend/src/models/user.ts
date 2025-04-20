@@ -32,67 +32,42 @@ export class UserStore {
   }
 
   async findByApiKey(apiKeyPlainText: string): Promise<User | null> {
-    // Esto es más complejo con hashes. No podemos buscar directamente por el hash.
-    // Necesitamos obtener *todos* los usuarios que *tienen* una API key hasheada
-    // y luego comparar el hash de la key proporcionada con cada hash almacenado.
-    // ¡ESTO ES MUY INEFICIENTE! Una mejor solución se discute abajo.
-    
-    /* --- IMPLEMENTACIÓN INEFICIENTE (NO USAR EN PRODUCCIÓN REAL) --- */
-    /*
-    const usersWithKeys = await prisma.user.findMany({
-      where: { apiKey: { not: null } }, // Solo usuarios con apiKey definida
-    });
-
-    for (const user of usersWithKeys) {
-      if (user.apiKey) {
-        const match = await bcrypt.compare(apiKeyPlainText, user.apiKey);
-        if (match) {
-          // Actualizar lastLogin
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLogin: new Date(), updatedAt: new Date() },
-          });
-          return user; // Devolver el usuario encontrado
-        }
-      }
+    // 1. Extraer el prefijo de la key proporcionada
+    const prefixLength = 8; // Debe coincidir con la longitud usada al guardar
+    if (apiKeyPlainText.length < prefixLength) {
+      return null; // La key es demasiado corta para tener un prefijo válido
     }
-    return null; // No se encontró coincidencia
-    */
-   /* --- FIN IMPLEMENTACIÓN INEFICIENTE --- */
+    const prefix = apiKeyPlainText.substring(0, prefixLength);
 
-   // --- SOLUCIÓN MEJORADA (Requiere cambio de enfoque o modelo) ---
-   // La búsqueda por API Key hasheada es intrínsecamente lenta si no puedes 
-   // indexar el hash directamente (lo cual no es seguro si usas salts diferentes por key).
-   // Estrategias comunes:
-   // 1. Key Prefix + Hash: Almacenar un prefijo corto no secreto de la key en texto plano 
-   //    (ej. los primeros 8 caracteres) en una columna indexada, y el hash completo en otra.
-   //    Al verificar, buscas por prefijo y luego comparas el hash solo de los resultados.
-   // 2. API Key ID: Generar un ID público para la API Key (ej. ak_...) y almacenarlo.
-   //    El usuario usaría este ID y un secreto (la key real) para autenticarse. 
-   //    Buscarías por el ID público indexado.
-   // 3. Almacén Externo Optimizado: Usar sistemas como Vault o almacenes especializados.
-
-   // Por ahora, para mantener la funcionalidad *existente* sin cambios mayores,
-   // dejaremos la búsqueda ineficiente comentada y lanzaremos un error temporal
-   // indicando que esta funcionalidad necesita rediseñarse para ser eficiente con BBDD.
-   
-   // O, para que funcione *ahora* (aceptando la ineficiencia en bajo volumen):
-    const usersWithKeys = await prisma.user.findMany({
-      where: { apiKey: { not: null } }, 
+    // 2. Buscar usuarios con ese prefijo (usando índice)
+    const potentialUsers = await prisma.user.findMany({
+      where: { 
+        apiKeyPrefix: prefix,
+        isActive: true // Solo buscar en usuarios activos
+      },
     });
-    for (const user of usersWithKeys) {
-      if (user.apiKey) {
+
+    // Si no se encontraron usuarios con ese prefijo, la key es inválida
+    if (potentialUsers.length === 0) {
+      return null;
+    }
+
+    // 3. Comparar el hash de la key completa solo para los candidatos
+    for (const user of potentialUsers) {
+      if (user.apiKey) { // Doble check por si acaso
         const match = await bcrypt.compare(apiKeyPlainText, user.apiKey);
         if (match) {
+          // ¡Coincidencia encontrada! Actualizar lastLogin y devolver
           return prisma.user.update({
             where: { id: user.id },
-            data: { lastLogin: new Date(), updatedAt: new Date() },
+            data: { lastLogin: new Date() }, // @updatedAt se maneja automáticamente
           });
         }
       }
     }
-    return null;
-   // Fin solución temporal ineficiente
+
+    // Si se encontraron usuarios con el prefijo pero ninguno coincidió con el hash completo
+    return null; 
   }
 
   async createUser(userData: {
@@ -150,7 +125,7 @@ export class UserStore {
     });
   }
 
-  async updateUser(id: string, updates: Partial<Pick<User, 'name' | 'isActive' | 'role' | 'apiKey' | 'password' >>): Promise<User | null> {
+  async updateUser(id: string, updates: Partial<Pick<User, 'name' | 'isActive' | 'role' | 'apiKey' | 'password' | 'apiKeyPrefix' >>): Promise<User | null> {
     // Verificar si el usuario existe
     const userExists = await this.findById(id);
     if (!userExists) return null;
@@ -161,7 +136,10 @@ export class UserStore {
     if (updates.name !== undefined) dataToUpdate.name = updates.name;
     if (updates.isActive !== undefined) dataToUpdate.isActive = updates.isActive;
     if (updates.role !== undefined) dataToUpdate.role = updates.role;
-    // La contraseña y API key se hashean aquí
+    // Incluir apiKeyPrefix si se proporciona
+    if (updates.apiKeyPrefix !== undefined) dataToUpdate.apiKeyPrefix = updates.apiKeyPrefix;
+    
+    // La contraseña y API key (hash) se manejan por separado abajo
     if (updates.password) {
       dataToUpdate.password = await bcrypt.hash(updates.password, 10);
     }

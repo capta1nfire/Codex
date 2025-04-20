@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, ChevronDown, BarChart2, QrCode, User, LogOut, Settings } from 'lucide-react';
 
 // Interface defining the structure of the User object
@@ -26,6 +26,7 @@ export default function Navbar() {
 
   // Hook to get the current URL pathname
   const pathname = usePathname();
+  const router = useRouter(); // Get router instance
 
   // Effect hook to fetch user data when the component mounts or pathname changes
   useEffect(() => {
@@ -90,10 +91,8 @@ export default function Navbar() {
     setIsUserMenuOpen(false);
     // Close the mobile menu if open
     setIsMenuOpen(false);
-    // Redirect to the homepage using Next.js router if available, otherwise fallback
-    // Note: Using window.location.href causes a full page reload.
-    // If using Next.js router (imported as `useRouter`), prefer `router.push('/')`.
-    window.location.href = '/';
+    // Use Next.js router for smoother navigation
+    router.push('/');
   };
 
   // Enlaces de navegación - definidos una vez para reutilizar en escritorio y móvil
@@ -105,7 +104,7 @@ export default function Navbar() {
       isActive: pathname === "/"
     },
     {
-      href: "/dashboard/metrics",
+      href: "/dashboard",
       label: "Dashboard",
       icon: <BarChart2 className="h-4 w-4 md:mr-2 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />,
       isActive: pathname.includes("/dashboard")

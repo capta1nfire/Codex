@@ -1768,7 +1768,6 @@ dependencies = [
  "chrono",
  "console-subscriber",
  "dashmap",
- "image",
  "lazy_static",
  "rxing",
  "serde",

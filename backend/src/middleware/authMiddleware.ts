@@ -114,7 +114,8 @@ export const configurePassport = () => {
   passport.use(jwtStrategy);
   passport.use(localStrategy);
   
-  // Serialización y deserialización para sesiones (si se usan)
+  // Eliminar Serialización y deserialización ya que usamos autenticación stateless (JWT/API Key)
+  /*
   passport.serializeUser((user, done) => {
     done(null, (user as Express.User).id);
   });
@@ -136,7 +137,9 @@ export const configurePassport = () => {
       done(error, false);
     }
   });
+  */
   
+  // Solo necesitamos inicializar Passport
   return passport.initialize();
 };
 

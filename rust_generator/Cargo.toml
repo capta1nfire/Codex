@@ -10,8 +10,8 @@ edition = "2021"
 rxing = { version = "0.7.1", features = ["image", "svg_write"] }
 lazy_static = "1.4.0"
 
-# Dependencia 'image' (la mantenemos por si usamos sus tipos o generamos PNG después)
-image = "0.25.1"
+# Dependencia 'image' eliminada - No se usa
+# image = "0.25.1"
 
 # --- Dependencias para el servidor web Axum ---
 axum = "0.6"
@@ -27,8 +27,12 @@ tower-http = { version = "0.3", features = ["cors"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
 tracing-appender = "0.2"
-console-subscriber = "0.2" # Para integración con tokio-console (opcional, desarrollo)
+# console-subscriber movido a dev-dependencies
 
 # --- DEPENDENCIAS WASM Y OTRAS INNECESARIAS ELIMINADAS ---
 # base64 = "0.22.0" # Eliminada
 # wasm-bindgen = "0.2.92" # Eliminada
+
+[dev-dependencies]
+# Dependencias solo para desarrollo/tests
+console-subscriber = "0.2" # Para integración con tokio-console (opcional, desarrollo)

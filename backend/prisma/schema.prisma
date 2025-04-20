@@ -32,10 +32,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   lastLogin DateTime? // Opcional
+  apiKeyPrefix String? // Prefijo no secreto de la API Key para búsqueda rápida
   apiKey    String?  @unique  // Almacena el hash de la API key, opcional y único
   apiUsage  Int      @default(0)
   isActive  Boolean  @default(true)
 
-  // Índice en apiKey para búsquedas eficientes
-  @@index([apiKey])
+  // Índices
+  @@index([apiKeyPrefix]) // Índice en el prefijo
+  // @@index([apiKey]) // El índice en el hash único ya existe implícitamente por @unique
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Disclosure } from '@headlessui/react'; // Importamos Disclosure
-import { Input } from "@/components/ui/input"; // Importar Input (se usará menos)
+// import { Input } from "@/components/ui/input"; // Eliminado - No usado
 import { Label } from "@/components/ui/label"; // Importar Label
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Importar Select
 import { Button } from "@/components/ui/button"; // Importar Button
@@ -44,8 +44,10 @@ export default function Home() {
 
     try {
       // Usar la variable de entorno para la URL del backend
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3003';
-      const response = await fetch(`${backendUrl}/generate`, {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      const requestUrl = `${backendUrl}/api/generate`; // Construct URL
+      console.log("FETCHING URL:", requestUrl); // Log the exact URL
+      const response = await fetch(requestUrl, { // Use the constructed URL
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,18 +62,55 @@ export default function Home() {
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result as ErrorResponse);
+        let message = 'Error desconocido al generar el código.';
+        let code: string | undefined = undefined;
+        let suggestion: string | undefined = undefined;
+
+        // Check if the error response has the nested structure from Node.js
+        if (result && typeof result.error === 'object' && result.error !== null) {
+          // Extract from { error: { message, code, context } }
+          message = result.error.message || message;
+          code = result.error.code;
+          suggestion = result.error.context?.suggestion;
+        } else if (result && typeof result.error === 'string') {
+          // Handle potential flat error structure (e.g., from Rust directly?)
+          message = result.error;
+          code = result.code; // Attempt to get from top level
+          suggestion = result.suggestion;
+        }
+
+        // Ensure the state matches the ErrorResponse interface
+        const newErrorState: ErrorResponse = {
+          success: false,
+          error: message, // Ensure error is always a string
+          code: typeof code === 'string' ? code : undefined,
+          suggestion: typeof suggestion === 'string' ? suggestion : undefined,
+        };
+        console.log("ERROR set in !response.ok:", JSON.stringify(newErrorState, null, 2));
+        setError(newErrorState);
+        console.log("DEBUG: setError called from !response.ok. New state:", JSON.stringify(newErrorState, null, 2));
         return;
       }
 
       if (result.success && typeof result.svgString === 'string') {
         setSvgContent(result.svgString);
+        setError(null);
+        console.log("DEBUG: setError(null) llamado desde éxito.");
       } else {
-        setError({ success: false, error: result.error || 'Respuesta inválida recibida (se esperaba SVG).' });
+        const errorObj = (result && typeof result.error === 'object' && result.error !== null) ? result.error : {}; 
+        const errorMsg = typeof result.error === 'string' ? result.error : (typeof errorObj.message === 'string' ? errorObj.message : 'Respuesta inválida recibida (se esperaba SVG).');
+        const newErrorState = { success: false, error: errorMsg };
+        console.log("ERROR set in success=false/invalid SVG:", JSON.stringify(newErrorState, null, 2));
+        setError(newErrorState);
+        console.log("DEBUG: setError llamado desde else (success false o svgString inválido). Nuevo estado:", JSON.stringify(newErrorState, null, 2));
       }
     } catch (err) {
       console.error('Error en handleGenerate:', err);
-      setError({ success: false, error: err instanceof Error ? err.message : 'Ocurrió un error inesperado.' });
+      const errorMsg = err instanceof Error ? err.message : (typeof err === 'string' ? err : 'Ocurrió un error inesperado.');
+      const newErrorState = { success: false, error: errorMsg };
+      console.log("ERROR set in catch(err):", JSON.stringify(newErrorState, null, 2));
+      setError(newErrorState);
+      console.log("DEBUG: setError llamado desde catch(err). Nuevo estado:", JSON.stringify(newErrorState, null, 2));
     } finally {
       setIsLoading(false);
     }
@@ -99,11 +138,11 @@ export default function Home() {
   const showErrorCorrection = type === 'qrcode';
   const showHeightOption = !['qrcode', 'datamatrix'].includes(type); // Ejemplo: visible para 1D y PDF417
 
-  // --- JSX ---
+  // Return normal
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 print:p-0 bg-gray-100 text-gray-900">
       <h1 className="text-3xl font-bold mb-8 print:hidden text-gray-900">
-        Generador de Códigos "CODEX"
+        Generador de Códigos "CODEX..."
       </h1>
 
       {/* Contenedor principal centrado con ancho máximo */}
@@ -162,7 +201,7 @@ export default function Home() {
             <div className="bg-white border rounded-lg shadow-md overflow-hidden">
               <Disclosure defaultOpen={false}> 
                 {({ open }) => (
-                  <>
+                  <div>
                     <Disclosure.Button className="flex justify-between items-center w-full px-4 py-3 text-sm font-medium text-left text-blue-900 bg-blue-50 hover:bg-blue-100 focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75">
                       <span>Opciones de Personalización</span>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 transform transition-transform duration-200 ${open ? 'rotate-180' : ''}`} >
@@ -207,7 +246,6 @@ export default function Home() {
                                   <SelectValue placeholder="Predeterminado (M)" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="">Predeterminado (M)</SelectItem>
                                   <SelectItem value="L">L - Bajo (7%)</SelectItem>
                                   <SelectItem value="M">M - Medio (15%)</SelectItem>
                                   <SelectItem value="Q">Q - Cuartil (25%)</SelectItem>
@@ -219,21 +257,26 @@ export default function Home() {
                         )}
                       </div>
                     </Disclosure.Panel>
-                  </>
+                  </div>
                 )}
               </Disclosure>
             </div>
 
-            {/* Área de Errores */}
+            {/* Área de Errores - Revertida a la versión con typeof checks */}
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded-lg relative" role="alert">
                 <strong className="font-bold">Error: </strong>
-                <span className="block sm:inline">{error.error}</span>
-                {error.suggestion && ( <p className="mt-1 text-sm"> Sugerencia: {error.suggestion} </p> )}
-                {error.code && ( <p className="mt-1 text-xs text-red-700">Código: {error.code}</p> )}
+                <span className="block sm:inline">{typeof error.error === 'string' ? error.error : 'Ocurrió un error.'}</span>
+                {/* Restablecer code y suggestion con verificación */} 
+                {error.suggestion && typeof error.suggestion === 'string' && (
+                   <p className="mt-1 text-sm"> Sugerencia: {error.suggestion} </p> 
+                )}
+                {error.code && typeof error.code === 'string' && (
+                   <p className="mt-1 text-xs text-red-700">Código: {error.code}</p> 
+                )}
               </div>
             )}
-          </div> {/* Fin Columna Izquierda */} 
+          </div> {/* Fin Columna Izquierda */}
 
           {/* Columna Derecha: Previsualización y Acciones */}
           <div className="flex flex-col">

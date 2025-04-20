@@ -13,7 +13,6 @@ interface User {
   role: string;
   createdAt?: string;
   lastLogin?: string;
-  apiKey?: string;
 }
 
 export default function UserProfile() {
@@ -64,9 +63,6 @@ export default function UserProfile() {
         if (data.success && data.user) {
           setUser(data.user);
           setName(data.user.name);
-          if (data.user.apiKey) {
-             setApiKey(data.user.apiKey);
-          }
         } else {
           throw new Error(data.error?.message || 'Respuesta inválida del servidor');
         }
@@ -302,18 +298,10 @@ export default function UserProfile() {
                 {apiKey && (
                     <div>
                         <Label className={`text-sm font-medium ${message.includes("Nueva") ? 'text-green-700' : 'text-gray-500'}`}>
-                            {message.includes("Nueva") ? 'Nueva API Key (Guárdala bien)' : 'API Key actual'}
+                            Nueva API Key (Guárdala bien)
                         </Label>
                         <div className={`mt-1 text-sm text-gray-900 font-mono p-3 rounded break-all ${message.includes("Nueva") ? 'bg-green-50 border border-green-300' : 'bg-gray-100'}`}>
                             {apiKey}
-                        </div>
-                    </div>
-                )}
-                {!apiKey && user?.apiKey && (
-                    <div>
-                        <Label className="text-sm font-medium text-gray-500">API Key actual</Label>
-                        <div className="mt-1 text-sm text-gray-900 font-mono bg-gray-100 p-3 rounded break-all">
-                            {user.apiKey}
                         </div>
                     </div>
                 )}
@@ -326,10 +314,10 @@ export default function UserProfile() {
                       onClick={generateApiKey}
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Generando...' : (user?.apiKey || apiKey ? 'Generar Nueva API Key' : 'Generar API Key')}
+                      {isLoading ? 'Generando...' : (apiKey ? 'Generar Nueva API Key' : 'Generar API Key')}
                     </Button>
                     <p className="mt-1.5 text-xs text-gray-600">
-                      {user?.apiKey || apiKey ? 'Al generar una nueva, la anterior quedará invalidada.' : 'Genera tu primera API Key para usar la API.'}
+                      {apiKey ? 'Al generar una nueva, la anterior quedará invalidada.' : 'Genera tu primera API Key para usar la API.'}
                     </p>
                 </div>
             </div>

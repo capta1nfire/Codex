@@ -194,10 +194,13 @@ export const authController = {
       const apiKey = crypto.randomBytes(32).toString('hex');
       logger.info(`[AuthController] Nueva API Key generada para usuario ${req.user.id}`);
       
-      // Actualizar usuario con la *NUEVA* API key (¡IMPORTANTE: UserStore la hasheará!)
+      // Extraer el prefijo de la API Key (ej: primeros 8 caracteres)
+      const apiKeyPrefix = apiKey.substring(0, 8);
+      
+      // Actualizar usuario con la *NUEVA* API key y su prefijo
       const user = await userStore.updateUser(req.user.id, { 
         apiKey: apiKey, // Pasamos la key en texto plano al store para que la hashee
-        updatedAt: new Date()
+        apiKeyPrefix: apiKeyPrefix, // Pasamos el prefijo para almacenamiento
       });
       
       if (!user) {
@@ -216,5 +219,29 @@ export const authController = {
     } catch (error) {
       next(error);
     }
+  },
+  
+  /**
+   * Endpoint de prueba para rol Admin
+   */
+  async adminAccess(req: Request, res: Response) {
+    // Acceso ya verificado por authenticateJwt y checkRole(ADMIN)
+    res.json({
+      success: true,
+      message: 'Acceso de administrador concedido',
+      user: req.user // req.user está disponible gracias a los middlewares
+    });
+  },
+
+  /**
+   * Endpoint de prueba para rol Premium (o Admin)
+   */
+  async premiumAccess(req: Request, res: Response) {
+    // Acceso ya verificado por authenticateJwt y checkRole(PREMIUM)
+    res.json({
+      success: true,
+      message: 'Acceso premium concedido',
+      user: req.user
+    });
   }
 }; 

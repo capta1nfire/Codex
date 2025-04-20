@@ -11,7 +11,7 @@ use std::time::{Instant, Duration};
 // Imports de crates externos
 use axum::{
     extract::Json,
-    http::{header, StatusCode},
+    http::{header::{self, HeaderValue}, StatusCode},
     response::{IntoResponse, Response},
     routing::{get, post},
     Router,
@@ -497,9 +497,15 @@ async fn main() {
     
     // Crear la capa CORS
     let cors = CorsLayer::new()
-        .allow_origin(["http://localhost:3000".parse().unwrap()])
-        .allow_methods(Any)
-        .allow_headers(Any);
+        .allow_origin([
+            "http://localhost:3000".parse::<HeaderValue>().unwrap(),
+            "http://192.168.1.36:3000".parse::<HeaderValue>().unwrap(),
+            // Añadir localhost:3001 por si Next vuelve a cambiar
+            "http://localhost:3001".parse::<HeaderValue>().unwrap(),
+            "http://192.168.1.36:3001".parse::<HeaderValue>().unwrap(),
+        ])
+        .allow_methods(Any) // Permite cualquier método
+        .allow_headers([header::CONTENT_TYPE]); // Solo permitir Content-Type (más seguro)
     
     let app = Router::new()
         .route("/", get(root_handler))

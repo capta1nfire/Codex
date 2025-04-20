@@ -1,7 +1,8 @@
 import { config } from '../config';
 import logger from '../utils/logger';
-import { responseCache, CACHE_TTL, cacheStats } from '../utils/cache';
-import { AppError, ErrorCode } from '../utils/errors'; // Importar para errores
+import { AppError, ErrorCode } from '../utils/errors';
+import { redis } from '../lib/redis';
+import { rustCallDurationSeconds } from '../utils/metrics';
 
 // Mapeo de tipos de códigos de barras (movido desde index.ts)
 const barcodeTypeMapping: Record<string, string> = {
@@ -14,8 +15,11 @@ const barcodeTypeMapping: Record<string, string> = {
     'datamatrix': 'datamatrix'
 };
 
+// Tiempo de expiración para las claves en Redis (en segundos)
+const REDIS_CACHE_EXPIRATION_SECONDS = config.CACHE_MAX_AGE; // Usar el mismo valor de config
+
 /**
- * Genera un código de barras SVG, utilizando caché y llamando al servicio Rust.
+ * Genera un código de barras SVG, utilizando caché Redis y llamando al servicio Rust.
  * @param frontendBarcodeType - El tipo de código solicitado por el frontend.
  * @param data - Los datos a codificar.
  * @param options - Opciones de generación.
@@ -28,49 +32,39 @@ export const generateBarcode = async (
     options?: Record<string, any>
 ): Promise<string> => {
 
-    // Convertir el tipo al formato esperado por Rust
     const rustBarcodeType = barcodeTypeMapping[frontendBarcodeType] || frontendBarcodeType;
     logger.debug(`[BarcodeService] Tipo recibido: ${frontendBarcodeType}, convertido a: ${rustBarcodeType}`);
 
-    // Crear clave para caché
-    const cacheKey = JSON.stringify({
+    // Crear clave para caché Redis (puede ser la misma estructura JSON)
+    const cacheKey = `barcode:${JSON.stringify({
         barcode_type: rustBarcodeType,
         data,
-        options: options || null
-    });
+        options: options || {}
+    })}`;
 
-    // 1. Verificar caché
-    if (responseCache.has(cacheKey)) {
-        const cachedResponse = responseCache.get(cacheKey);
-        if (cachedResponse && Date.now() - cachedResponse.timestamp < CACHE_TTL) {
-            logger.info(`[BarcodeService] Cache HIT para tipo: ${frontendBarcodeType}, datos: ${data.substring(0, 20)}...`);
-            if (!cacheStats.byType[frontendBarcodeType]) {
-                cacheStats.byType[frontendBarcodeType] = { hits: 0, misses: 0 };
-            }
-            cacheStats.byType[frontendBarcodeType].hits++;
-            cacheStats.hits++;
-            // Devolver el SVG directamente desde el caché
-            // Asegurarse de que el caché realmente contiene el svgString
-            if (cachedResponse.data && typeof cachedResponse.data.svgString === 'string') {
-                return cachedResponse.data.svgString;
-            } else {
-                 logger.warn(`[BarcodeService] Cache HIT pero faltaba svgString para key: ${cacheKey}`);
-                 responseCache.delete(cacheKey); // Eliminar entrada corrupta
-            }
-        } else {
-            // Eliminar caché expirado
-            responseCache.delete(cacheKey);
-            logger.info(`[BarcodeService] Cache EXPIRED para key: ${cacheKey}`);
+    // 1. Verificar caché Redis
+    try {
+        const cachedSvg = await redis.get(cacheKey);
+        if (cachedSvg) {
+            logger.info(`[BarcodeService] Cache HIT en Redis para tipo: ${frontendBarcodeType}`);
+            // Aquí podríamos incrementar contadores en Redis si quisiéramos stats
+            // await redis.incr('cache_hits');
+            // await redis.incr(`cache_hits:${frontendBarcodeType}`);
+            return cachedSvg; // Devolver SVG desde Redis
         }
+    } catch (redisError) {
+        logger.error('[BarcodeService] Error al leer de Redis cache:', redisError);
+        // No lanzar error aquí, simplemente continuar como si fuera un cache miss
     }
 
-    // 2. Cache MISS o Expirado: Llamar al servicio Rust
-    logger.info(`[BarcodeService] Cache MISS para tipo: ${frontendBarcodeType}. Llamando a Rust...`);
-    if (!cacheStats.byType[frontendBarcodeType]) {
-        cacheStats.byType[frontendBarcodeType] = { hits: 0, misses: 0 };
-    }
-    cacheStats.byType[frontendBarcodeType].misses++;
-    cacheStats.misses++;
+    // 2. Cache MISS: Llamar al servicio Rust
+    logger.info(`[BarcodeService] Cache MISS en Redis para tipo: ${frontendBarcodeType}. Llamando a Rust...`);
+    // Podríamos incrementar contador de misses si quisiéramos stats
+    // await redis.incr('cache_misses');
+    // await redis.incr(`cache_misses:${frontendBarcodeType}`);
+
+    // Registrar inicio de llamada a Rust para métricas
+    const endRustCallTimer = rustCallDurationSeconds.startTimer({ barcode_type: rustBarcodeType });
 
     const requestBody = {
         barcode_type: rustBarcodeType,
@@ -79,15 +73,19 @@ export const generateBarcode = async (
     };
 
     try {
+        // --- Llamada HTTP al Microservicio Rust ---
         const rustResponse = await fetch(config.RUST_SERVICE_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(requestBody),
-            // Añadir un timeout razonable a la llamada fetch
-            signal: AbortSignal.timeout(config.RUST_SERVICE_TIMEOUT_MS || 5000) // Timeout de 5s por defecto
+            signal: AbortSignal.timeout(config.RUST_SERVICE_TIMEOUT_MS || 5000)
         });
+        // ---------------------------------------
+        
+        // Registrar fin de llamada (éxito o error manejado después)
+        endRustCallTimer();
 
         // 3. Manejar respuesta de Rust
         if (!rustResponse.ok) {
@@ -106,11 +104,10 @@ export const generateBarcode = async (
                  } catch (textE) { /* Ignorar si tampoco es texto */ }
             }
             logger.error(`[BarcodeService] Error desde servicio Rust: Status ${rustResponse.status}`, errorBody);
-            // Lanzar un AppError para que lo capture el errorHandler
             throw new AppError(
                 errorBody.error, 
-                rustResponse.status, // Usar el status code de Rust si es < 500, sino 503?
-                ErrorCode.SERVICE_UNAVAILABLE, // O un código más específico si Rust lo devuelve
+                rustResponse.status, 
+                ErrorCode.SERVICE_UNAVAILABLE, 
                 { suggestion: errorBody.suggestion }
             );
         }
@@ -127,11 +124,16 @@ export const generateBarcode = async (
         if (rustResult.success && typeof rustResult.svgString === 'string') {
             logger.info('[BarcodeService] Respuesta SVG exitosa recibida desde Rust.');
             
-            // Guardar en caché
-            responseCache.set(cacheKey, {
-                data: rustResult,
-                timestamp: Date.now()
-            });
+            // 5. Guardar resultado en caché Redis CON EXPIRACIÓN
+            try {
+                await redis.set(cacheKey, rustResult.svgString, { 
+                    EX: REDIS_CACHE_EXPIRATION_SECONDS // Establecer expiración en segundos
+                });
+                logger.info(`[BarcodeService] Resultado guardado en Redis cache (Key: ${cacheKey.substring(0,50)}...)`);
+            } catch (redisSetError) {
+                logger.error('[BarcodeService] Error al escribir en Redis cache:', redisSetError);
+                // No lanzar error aquí, la solicitud principal tuvo éxito
+            }
             
             // Devolver el SVG
             return rustResult.svgString;
@@ -139,18 +141,17 @@ export const generateBarcode = async (
             logger.error('[BarcodeService] Respuesta inesperada o inválida desde Rust:', rustResult);
             throw new AppError(
                 rustResult.error || 'Respuesta inválida del servicio de generación', 
-                400, // Asumimos que es un bad request si success no es true o falta svgString
-                ErrorCode.VALIDATION_ERROR, // O un código más adecuado
+                400, 
+                ErrorCode.VALIDATION_ERROR, 
                 { suggestion: rustResult.suggestion }
             );
         }
 
     } catch (error) {
-        // Si el error ya es un AppError, relanzarlo para que lo capture el handler
+        // Relanzar errores AppError o crear uno nuevo (igual que antes)
         if (error instanceof AppError) {
             throw error; 
         }
-        // Capturar errores de red (fetch, timeout) u otros errores inesperados
         logger.error('[BarcodeService] Error durante llamada a Rust o procesamiento:', error);
         const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
         throw new AppError(`Error contactando servicio de generación: ${errorMessage}`, 503, ErrorCode.SERVICE_UNAVAILABLE);

@@ -204,3 +204,35 @@ Este documento resume los pilares fundamentales para la construcción de una pla
 - Incorporación de funciones avanzadas como seguimiento de escaneos y monitoreo con Datadog/Sentry.
 - Plan de sostenibilidad y expansión multilingüe.
 - Inclusión del roadmap de desarrollo y KPIs iniciales.
+
+## 17. Mantenimiento y Calidad de Código (Plan de Mejora Continua)
+
+Para asegurar la mantenibilidad, escalabilidad y robustez del proyecto a largo plazo, se adoptarán las siguientes herramientas y prácticas de forma continua:
+
+### 17.1 Herramientas Automatizadas
+
+- **Linters y Análisis Estático:**
+    - **ESLint (Frontend/Backend):** Configurar y reforzar reglas para detectar variables, funciones e importaciones no utilizadas. Integrar en procesos de pre-commit o CI.
+    - **Clippy (Rust):** Ejecutar `cargo clippy` regularmente y configurar para tratar las advertencias relevantes (especialmente las de código no utilizado o complejidad) como errores de compilación.
+    - **Analizador de Dependencias (`depcheck`):** Integrar `depcheck` en los directorios `frontend` y `backend` para identificar y eliminar dependencias de `package.json` que ya no se importan en el código.
+    - **Analizador de Código Muerto (`ts-prune`):** Utilizar `ts-prune` en `frontend` y `backend` para detectar funciones o clases exportadas que no son importadas por ningún otro módulo.
+
+### 17.2 Prácticas de Desarrollo
+
+- **Principio DRY (Don't Repeat Yourself):** Buscar activamente oportunidades para abstraer lógica repetida en funciones, componentes o módulos reutilizables.
+- **Modularidad:** Mantener un diseño de código modular y cohesivo para facilitar la reutilización y la identificación de código obsoleto.
+- **Refactorización Continua:** Dedicar tiempo regularmente a mejorar la estructura y claridad del código existente, eliminando deuda técnica.
+- **Revisiones de Código:** Fomentar la revisión crítica del código (propia o por pares) antes de integrar cambios importantes, enfocándose en claridad, simplicidad y posibles duplicaciones.
+- **Workflow y Continuidad:**
+    - Utilizar el archivo `CONTEXT_SUMMARY.md` para documentar el estado del proyecto al final de cada sesión de trabajo, facilitando la re-contextualización en futuras sesiones.
+    - Realizar commits atómicos y descriptivos (`git commit -m "..."`) con frecuencia y sincronizar con el repositorio remoto (`git push`) para salvaguardar el progreso y facilitar la colaboración.
+
+### 17.3 Comentarios y Documentación
+
+- **Comentarios con Propósito:** Priorizar comentarios que expliquen el *por qué* de decisiones complejas, no el *qué* hace el código.
+- **Uso de Etiquetas `TODO`/`FIXME`:** Marcar áreas que requieren atención futura y revisarlas periódicamente.
+- **Eliminación de Comentarios Obsoletos:** Al refactorizar o eliminar código, eliminar también los comentarios asociados. Evitar dejar grandes bloques de código comentado; usar Git para el historial.
+
+### 17.4 Pruebas Automatizadas
+
+- **Ampliar Cobertura:** Incrementar la cobertura de pruebas unitarias y de integración para dar confianza al refactorizar y eliminar código. Las pruebas que pasan después de una eliminación son un buen indicio (aunque no absoluto) de que el código no era esencial.

@@ -33,6 +33,8 @@ interface Config {
   
   // Configuración de caché
   CACHE_MAX_AGE: number;
+  // Configuración de Redis
+  REDIS_URL: string;
 }
 
 // Crear y exportar la configuración
@@ -60,5 +62,6 @@ export const config: Config = {
   SSL_CERT_PATH: process.env.SSL_CERT_PATH || '',
   SSL_CA_PATH: process.env.SSL_CA_PATH || '',
   
-  CACHE_MAX_AGE: parseInt(process.env.CACHE_MAX_AGE || '300', 10)
+  CACHE_MAX_AGE: parseInt(process.env.CACHE_MAX_AGE || '300', 10),
+  REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379' // URL por defecto para Redis local
 }; 

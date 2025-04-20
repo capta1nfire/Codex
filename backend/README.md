@@ -12,19 +12,19 @@ backend/
 ├── src/                     # Código fuente TypeScript
 │   ├── controllers/         # Lógica de manejo de requests/responses
 │   │   └── auth.controller.ts # Controlador para autenticación
-│   ├── lib/                 # Librerías o instancias compartidas
+│   ├── lib/                 # Librerías o instancias compartidas (Prisma, Redis)
 │   │   └── prisma.ts          # Instancia del cliente Prisma
-│   ├── middleware/          # Middleware personalizado
+│   ├── middleware/          # Middleware personalizado (Errores, Auth)
 │   │   ├── errorHandler.ts    # Manejo centralizado de errores
 │   │   └── authMiddleware.ts  # Middleware de autenticación (Passport)
-│   ├── models/              # Definición de modelos y acceso a datos
+│   ├── models/              # Definición de modelos y acceso a datos (Prisma)
 │   │   └── user.ts            # Modelo User y UserStore (ahora con Prisma)
 │   ├── routes/              # Definición de rutas de la API
 │   │   └── auth.routes.ts     # Rutas para autenticación
-│   ├── services/            # Lógica de negocio
+│   ├── services/            # Lógica de negocio (Auth, Barcode)
 │   │   ├── auth.service.ts    # Servicio para lógica de autenticación
 │   │   └── barcodeService.ts  # Servicio para generación de códigos
-│   ├── utils/               # Utilidades y helpers
+│   ├── utils/               # Utilidades (Errores, Logging, Métricas Prometheus)
 │   │   ├── errors.ts          # Sistema de errores tipificados
 │   │   ├── logger.ts          # Configuración de logging (Winston)
 │   │   └── cache.ts           # Módulo de caché en memoria (temporal)
@@ -49,21 +49,28 @@ backend/
 
 - API Gateway con Express.
 - **Base de Datos:** Persistencia con **PostgreSQL** gestionada mediante **Prisma ORM**.
-- **Autenticación:** Sistema robusto con Passport (JWT, Local, API Key).
+- **Autenticación:** Sistema robusto con Passport (JWT, Local, API Key hasheada).
 - **Generación de Códigos:** Orquestación de llamadas a servicio externo en Rust.
 - **Seguridad:** Helmet, Rate Limiting, Validación (express-validator), XSS Clean, CORS seguro, HTTPS opcional.
-- **Manejo de Errores:** Sistema tipificado con `AppError` y subclases, manejo centralizado.
-- **Logging:** Estructurado con Winston (JSON a archivo, coloreado a consola), niveles configurables, rotación de archivos.
-- **Monitoreo Básico:** Endpoint `/health` (estado propio y de Rust), Endpoint `/metrics` (estadísticas de caché en memoria - **tiempos estimados**).
-- **Optimización:** Compresión de respuestas, Caché en memoria (MVP, **ver mejoras**), Headers HTTP Cache-Control.
+- **Manejo de Errores:** Sistema tipificado con `AppError` y manejo centralizado.
+- **Logging:** Estructurado con Winston (JSON a archivo, coloreado a consola).
+- **Métricas (Prometheus):** Endpoint `/metrics` expone métricas operacionales (duración/tasa HTTP, duración llamadas Rust) para Prometheus.
+- **Caché (Redis):** Cliente Redis configurado (`lib/redis.ts`), pendiente de integración activa en `barcodeService`.
+- **Optimización:** Compresión de respuestas, Headers HTTP Cache-Control.
 - **Desarrollo:** TypeScript, Configuración basada en `.env`, Scripts npm para build/dev/test/seed.
 
-## Sistema de Caché (MVP)
+## Sistema de Caché y Métricas
 
-- Implementa un caché simple en memoria (`utils/cache.ts`) para las respuestas de `/generate`.
-- **Limitaciones:** No persistente, sin límite de tamaño, solo TTL.
-- **Mejora Planeada:** Migrar a **Redis** para mayor robustez y escalabilidad (ver `Codex.md`).
-- El endpoint `/metrics` refleja las estadísticas (hits, misses, tamaño) de este caché en memoria. Los tiempos reportados son **estimados/placeholders**.
+- **Caché:**
+    - El sistema está configurado para conectarse a un servidor **Redis** (definido por `REDIS_URL` en `.env`). La instancia del cliente está disponible en `lib/redis.ts`.
+    - Actualmente, el `barcodeService.ts` **no utiliza Redis activamente** y llama directamente al servicio Rust en cada miss del caché interno de Rust.
+    - El **servicio Rust** implementa su propio **caché interno en memoria** (con DashMap) y expone sus estadísticas detalladas en su endpoint `/analytics/performance`.
+    - **Mejora Pendiente:** Integrar el cliente Redis en `barcodeService.ts` para implementar una capa de caché compartida antes de llamar al servicio Rust.
+- **Métricas:**
+    - El endpoint `/metrics` expone métricas en formato **Prometheus** utilizando `prom-client`.
+    - Métricas incluidas: Duración y tasa de solicitudes HTTP (desglosadas por método, ruta, código), duración de las llamadas al servicio Rust (desglosadas por tipo de código), métricas estándar de proceso Node.js.
+    - Estas métricas están pensadas para ser recolectadas por un servidor Prometheus y visualizadas con Grafana (configurados en `docker-compose.yml` para desarrollo).
+    - Las métricas detalladas del *caché interno de Rust* se consultan directamente desde el frontend a `/analytics/performance` (servicio Rust).
 
 ## Infraestructura de Testing
 
@@ -76,6 +83,9 @@ backend/
 ```
 # Base de Datos PostgreSQL
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+
+# Caché Redis
+REDIS_URL="redis://localhost:6379"
 
 # Configuración del servidor
 PORT=3001
@@ -113,29 +123,27 @@ CACHE_MAX_AGE=300
 ## Endpoints Principales
 
 - **GET /**: Bienvenida.
-- **GET /health**: Estado del sistema (propio y Rust).
-- **GET /metrics**: Estadísticas del caché en memoria (hits, misses, tamaño).
+- **GET /health**: Estado del sistema.
+- **GET /metrics**: Métricas en formato Prometheus.
 - **POST /api/auth/register**: Registrar usuario.
 - **POST /api/auth/login**: Iniciar sesión (devuelve JWT).
 - **POST /api/auth/refresh**: Refrescar JWT.
-- **GET /api/auth/me**: Obtener datos del usuario autenticado (JWT/API Key).
-- **POST /api/auth/api-key**: Generar/Regenerar API Key para el usuario autenticado.
-- **POST /generate**: Generar código de barras (requiere `barcode_type`, `data`, `options?`).
-- **POST /generator**: Alias de `/generate`.
+- **GET /api/auth/me**: Obtener datos del usuario autenticado.
+- **POST /api/auth/api-key**: Generar/Regenerar API Key.
+- **POST /api/generate**: Generar código de barras.
+- **POST /api/generator**: Alias de `/api/generate`.
 
 (Consultar `src/routes/` y `src/index.ts` para detalles y rutas protegidas adicionales).
 
 ## Próximos Pasos / Mejoras Pendientes (Resumen)
 
-- **Base de Datos:** Asegurar configuración y conexión correcta a PostgreSQL.
-- **API Keys:** Revisar/optimizar estrategia de búsqueda `findByApiKey` (actualmente ineficiente).
-- **Caché:** Migrar de caché en memoria a Redis.
-- **Métricas:** Implementar medición real de tiempos o eliminar estimados.
-- **IDs:** Usar UUIDs para IDs de usuario.
-- **Seguridad Logs:** Filtrar/enmascarar datos sensibles en logs.
+Consultar `CODEX.md` (Secciones 13 y 17) para el roadmap completo. Algunas prioridades:
+
+- **Caché:** Implementar uso de Redis en `barcodeService`.
+- **API Keys:** Optimizar búsqueda `findByApiKey`.
+- **Seguridad Logs:** Filtrar/enmascarar datos sensibles en `errorHandler`.
+- **Testing:** Ampliar cobertura.
 - **Documentación API:** Generar documentación OpenAPI/Swagger.
-- **Testing:** Ampliar cobertura de tests.
-- **Organización Rutas:** Mover endpoints de `index.ts` a `src/routes/`.
 
 ## Sistema de Manejo de Errores
 
@@ -337,11 +345,7 @@ CACHE_MAX_AGE=300             # Tiempo de caché en segundos (5 minutos)
   - Uptime del sistema
   - Uso de memoria
   - Detalles de la plataforma
-- **GET /metrics** - Métricas detalladas del sistema, incluye:
-  - Estadísticas de caché (hits, misses, hit rate)
-  - Métricas por tipo de código de barras
-  - Tiempos de respuesta estimados
-  - Tamaño actual del caché
+- **GET /metrics** - Métricas en formato Prometheus.
 - **POST /generate** - Genera un código basado en los siguientes parámetros:
   - `barcode_type`: Tipo de código (qrcode, code128, pdf417, ean13, etc.)
   - `data`: Datos a codificar
