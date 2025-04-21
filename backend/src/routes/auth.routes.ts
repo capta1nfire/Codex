@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import { authController, loginValidators, registerValidators } from '../controllers/auth.controller';
+
+import {
+  authController,
+  loginValidators,
+  registerValidators,
+} from '../controllers/auth.controller';
 import { authenticateJwt, checkRole } from '../middleware/authMiddleware';
 import { UserRole } from '../models/user';
 
@@ -54,4 +59,4 @@ router.post('/admin', authenticateJwt, checkRole(UserRole.ADMIN), authController
  */
 router.post('/premium', authenticateJwt, checkRole(UserRole.PREMIUM), authController.premiumAccess);
 
-export const authRoutes = router; 
+export const authRoutes = router;

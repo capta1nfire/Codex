@@ -1,22 +1,27 @@
 import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
+
 import { Express } from 'express';
+
 import logger from './utils/logger';
 
 // Función para iniciar el servidor
-export const startServer = (app: Express, config: {
-  SSL_ENABLED: boolean;
-  SSL_KEY_PATH: string;
-  SSL_CERT_PATH: string;
-  SSL_CA_PATH: string;
-  PORT: number;
-  HOST: string;
-  RUST_SERVICE_URL: string;
-  NODE_ENV: string;
-  RATE_LIMIT_MAX: number;
-  RATE_LIMIT_WINDOW_MS: number;
-}) => {
+export const startServer = (
+  app: Express,
+  config: {
+    SSL_ENABLED: boolean;
+    SSL_KEY_PATH: string;
+    SSL_CERT_PATH: string;
+    SSL_CA_PATH: string;
+    PORT: number;
+    HOST: string;
+    RUST_SERVICE_URL: string;
+    NODE_ENV: string;
+    RATE_LIMIT_MAX: number;
+    RATE_LIMIT_WINDOW_MS: number;
+  }
+) => {
   const {
     SSL_ENABLED,
     SSL_KEY_PATH,
@@ -27,7 +32,7 @@ export const startServer = (app: Express, config: {
     RUST_SERVICE_URL,
     NODE_ENV,
     RATE_LIMIT_MAX,
-    RATE_LIMIT_WINDOW_MS
+    RATE_LIMIT_WINDOW_MS,
   } = config;
 
   // Configurar servidor HTTP o HTTPS según la configuración
@@ -55,7 +60,9 @@ export const startServer = (app: Express, config: {
       httpsServer.listen(PORT, HOST, () => {
         logger.info(`Servidor HTTPS escuchando en https://${HOST}:${PORT}`);
         logger.info(`Listo para reenviar peticiones al servicio Rust en ${RUST_SERVICE_URL}`);
-        logger.info(`Modo: ${NODE_ENV}, Rate limit: ${RATE_LIMIT_MAX} solicitudes por ${RATE_LIMIT_WINDOW_MS/60000} minutos`);
+        logger.info(
+          `Modo: ${NODE_ENV}, Rate limit: ${RATE_LIMIT_MAX} solicitudes por ${RATE_LIMIT_WINDOW_MS / 60000} minutos`
+        );
       });
 
       // Configurar cierre graceful
@@ -74,7 +81,9 @@ export const startServer = (app: Express, config: {
     httpServer.listen(PORT, HOST, () => {
       logger.info(`Servidor HTTP escuchando en http://${HOST}:${PORT}`);
       logger.info(`Listo para reenviar peticiones al servicio Rust en ${RUST_SERVICE_URL}`);
-      logger.info(`Modo: ${NODE_ENV}, Rate limit: ${RATE_LIMIT_MAX} solicitudes por ${RATE_LIMIT_WINDOW_MS/60000} minutos`);
+      logger.info(
+        `Modo: ${NODE_ENV}, Rate limit: ${RATE_LIMIT_MAX} solicitudes por ${RATE_LIMIT_WINDOW_MS / 60000} minutos`
+      );
     });
 
     // Configurar cierre graceful
@@ -84,4 +93,4 @@ export const startServer = (app: Express, config: {
 
     return httpServer;
   }
-}; 
+};

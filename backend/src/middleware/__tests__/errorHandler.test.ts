@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { notFoundHandler, errorHandler, asyncErrorWrapper } from '../errorHandler';
+
 import { AppError, ErrorCode, HttpStatus } from '../../utils/errors';
+import { notFoundHandler, errorHandler, asyncErrorWrapper } from '../errorHandler';
 
 // Mock dependencies
 jest.mock('../../utils/logger', () => ({
@@ -30,22 +31,18 @@ describe('Error Handler Middleware', () => {
       },
       ip: '127.0.0.1',
     };
-    
+
     mockResponse = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
     };
-    
+
     nextFunction = jest.fn();
   });
 
   describe('notFoundHandler', () => {
     test('should return 404 with RESOURCE_NOT_FOUND error code', () => {
-      notFoundHandler(
-        mockRequest as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      notFoundHandler(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
       expect(mockResponse.json).toHaveBeenCalledWith(
@@ -68,12 +65,7 @@ describe('Error Handler Middleware', () => {
         ErrorCode.VALIDATION_ERROR
       );
 
-      errorHandler(
-        appError,
-        mockRequest as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      errorHandler(appError, mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
       expect(mockResponse.json).toHaveBeenCalledWith(
@@ -90,12 +82,7 @@ describe('Error Handler Middleware', () => {
     test('should handle regular Error as internal server error', () => {
       const error = new Error('Regular error');
 
-      errorHandler(
-        error,
-        mockRequest as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      errorHandler(error, mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
       expect(mockResponse.json).toHaveBeenCalledWith(
@@ -115,11 +102,7 @@ describe('Error Handler Middleware', () => {
       const asyncFn = jest.fn().mockRejectedValue(error);
       const wrappedFn = asyncErrorWrapper(asyncFn);
 
-      await wrappedFn(
-        mockRequest as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      await wrappedFn(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(asyncFn).toHaveBeenCalled();
       expect(nextFunction).toHaveBeenCalledWith(error);
@@ -129,14 +112,10 @@ describe('Error Handler Middleware', () => {
       const asyncFn = jest.fn().mockResolvedValue('success');
       const wrappedFn = asyncErrorWrapper(asyncFn);
 
-      await wrappedFn(
-        mockRequest as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      await wrappedFn(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(asyncFn).toHaveBeenCalled();
       expect(nextFunction).not.toHaveBeenCalled();
     });
   });
-}); 
+});

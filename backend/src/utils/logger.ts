@@ -1,6 +1,7 @@
-import winston from 'winston';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+
+import winston from 'winston';
 
 // Asegurar que el directorio de logs exista
 const logDir = path.join(process.cwd(), 'logs');
@@ -12,9 +13,7 @@ if (!fs.existsSync(logDir)) {
 const consoleFormat = winston.format.combine(
   winston.format.colorize(),
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  winston.format.printf(
-    info => `${info.timestamp} ${info.level}: ${info.message}`
-  )
+  winston.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`)
 );
 
 // Formato para los logs de archivo
@@ -46,28 +45,32 @@ const transports: winston.transport[] = [
 // Añadir transporte de consola condicionalmente
 if (process.env.NODE_ENV !== 'production') {
   // En desarrollo, usar un formato más simple y coloreado
-  transports.push(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple()
-      // Alternativa si prefieres timestamp en dev:
-      // format: consoleFormat 
-    ),
-  }));
+  transports.push(
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+        // Alternativa si prefieres timestamp en dev:
+        // format: consoleFormat
+      ),
+    })
+  );
 } else {
   // En producción (o entornos no-desarrollo), usar el formato con timestamp
   // Podrías incluso querer un nivel diferente para la consola en producción
-  transports.push(new winston.transports.Console({
-    format: consoleFormat, 
-    // level: 'info' // Opcional: Nivel específico para consola prod
-  }));
+  transports.push(
+    new winston.transports.Console({
+      format: consoleFormat,
+      // level: 'info' // Opcional: Nivel específico para consola prod
+    })
+  );
 }
 
 // Crear logger
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   // No necesitamos un formato global aquí, cada transporte tiene el suyo
-  // format: winston.format.json(), 
+  // format: winston.format.json(),
   defaultMeta: { service: 'codex-backend' },
   transports: transports, // Usar el array construido
 });
@@ -82,4 +85,4 @@ const logger = winston.createLogger({
 //   }));
 // }
 
-export default logger; 
+export default logger;

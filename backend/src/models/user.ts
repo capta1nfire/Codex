@@ -1,7 +1,8 @@
+import { User as PrismaUser, Role as PrismaRole } from '@prisma/client';
 import bcrypt from 'bcrypt';
+
 // Importar el cliente Prisma y los tipos generados
 import prisma from '../lib/prisma';
-import { User as PrismaUser, Role as PrismaRole } from '@prisma/client';
 import { AppError, ErrorCode } from '../utils/errors'; // Necesario para errores específicos
 
 // Usar la enumeración Role generada por Prisma
@@ -41,9 +42,9 @@ export class UserStore {
 
     // 2. Buscar usuarios con ese prefijo (usando índice)
     const potentialUsers = await prisma.user.findMany({
-      where: { 
+      where: {
         apiKeyPrefix: prefix,
-        isActive: true // Solo buscar en usuarios activos
+        isActive: true, // Solo buscar en usuarios activos
       },
     });
 
@@ -54,7 +55,8 @@ export class UserStore {
 
     // 3. Comparar el hash de la key completa solo para los candidatos
     for (const user of potentialUsers) {
-      if (user.apiKey) { // Doble check por si acaso
+      if (user.apiKey) {
+        // Doble check por si acaso
         const match = await bcrypt.compare(apiKeyPlainText, user.apiKey);
         if (match) {
           // ¡Coincidencia encontrada! Actualizar lastLogin y devolver
@@ -67,7 +69,7 @@ export class UserStore {
     }
 
     // Si se encontraron usuarios con el prefijo pero ninguno coincidió con el hash completo
-    return null; 
+    return null;
   }
 
   async createUser(userData: {
@@ -81,12 +83,16 @@ export class UserStore {
     const existingUser = await this.findByEmail(userData.email);
     if (existingUser) {
       // Usar AppError para un error más estructurado
-      throw new AppError(`Usuario con email ${userData.email} ya existe`, 409, ErrorCode.CONFLICT_ERROR);
+      throw new AppError(
+        `Usuario con email ${userData.email} ya existe`,
+        409,
+        ErrorCode.CONFLICT_ERROR
+      );
     }
 
     // Hashear contraseña
     const hashedPassword = await bcrypt.hash(userData.password, 10);
-    
+
     // Crear usuario usando Prisma (ID es autogenerado por @default(uuid()))
     // No generamos API Key aquí, se hace por separado
     const newUser = await prisma.user.create({
@@ -108,13 +114,14 @@ export class UserStore {
 
   async verifyPassword(email: string, password: string): Promise<User | null> {
     const user = await this.findByEmail(email);
-    if (!user || !user.isActive) { // Añadir chequeo isActive
-        return null;
+    if (!user || !user.isActive) {
+      // Añadir chequeo isActive
+      return null;
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) { 
-        return null;
+    if (!passwordMatch) {
+      return null;
     }
 
     // Actualizar último login usando Prisma.update
@@ -125,12 +132,17 @@ export class UserStore {
     });
   }
 
-  async updateUser(id: string, updates: Partial<Pick<User, 'name' | 'isActive' | 'role' | 'apiKey' | 'password' | 'apiKeyPrefix' >>): Promise<User | null> {
+  async updateUser(
+    id: string,
+    updates: Partial<
+      Pick<User, 'name' | 'isActive' | 'role' | 'apiKey' | 'password' | 'apiKeyPrefix'>
+    >
+  ): Promise<User | null> {
     // Verificar si el usuario existe
     const userExists = await this.findById(id);
     if (!userExists) return null;
 
-    const dataToUpdate: Record<string, any> = {};
+    const dataToUpdate: Record<string, unknown> = {};
 
     // Preparar datos a actualizar (solo campos permitidos y proporcionados)
     if (updates.name !== undefined) dataToUpdate.name = updates.name;
@@ -138,7 +150,7 @@ export class UserStore {
     if (updates.role !== undefined) dataToUpdate.role = updates.role;
     // Incluir apiKeyPrefix si se proporciona
     if (updates.apiKeyPrefix !== undefined) dataToUpdate.apiKeyPrefix = updates.apiKeyPrefix;
-    
+
     // La contraseña y API key (hash) se manejan por separado abajo
     if (updates.password) {
       dataToUpdate.password = await bcrypt.hash(updates.password, 10);
@@ -149,7 +161,7 @@ export class UserStore {
 
     // Si no hay nada que actualizar (además de updatedAt que lo hace Prisma)
     if (Object.keys(dataToUpdate).length === 0) {
-        return userExists; // Devolver el usuario existente sin cambios
+      return userExists; // Devolver el usuario existente sin cambios
     }
 
     // Actualizar usuario usando Prisma.update
@@ -170,4 +182,4 @@ export class UserStore {
 }
 
 // Instancia singleton para uso en toda la aplicación
-export const userStore = new UserStore(); 
+export const userStore = new UserStore();

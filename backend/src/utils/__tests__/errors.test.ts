@@ -33,4 +33,4 @@ describe('ErrorCode enum', () => {
     expect(ErrorCode.INTERNAL_ERROR).toBe('INTERNAL_ERROR');
     expect(ErrorCode.BAD_REQUEST).toBe('BAD_REQUEST');
   });
-}); 
+});

@@ -1,4 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
+
 import { config } from '../config';
 import logger from '../utils/logger';
 
@@ -31,7 +32,7 @@ const connectRedis = async () => {
 };
 
 // Llamar a la función de conexión al iniciar
-connectRedis();
+void connectRedis();
 
 // Exportar el cliente conectado (o que intenta conectar)
 // El tipo explícito ayuda con el autocompletado
@@ -43,4 +44,4 @@ export const redis: RedisClientType = redisClient as RedisClientType;
 //     await connectRedis();
 //   }
 //   return isConnected ? redisClient as RedisClientType : null;
-// }; 
+// };

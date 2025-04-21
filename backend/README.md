@@ -62,15 +62,15 @@ backend/
 ## Sistema de Caché y Métricas
 
 - **Caché:**
-    - El sistema está configurado para conectarse a un servidor **Redis** (definido por `REDIS_URL` en `.env`). La instancia del cliente está disponible en `lib/redis.ts`.
-    - Actualmente, el `barcodeService.ts` **no utiliza Redis activamente** y llama directamente al servicio Rust en cada miss del caché interno de Rust.
-    - El **servicio Rust** implementa su propio **caché interno en memoria** (con DashMap) y expone sus estadísticas detalladas en su endpoint `/analytics/performance`.
-    - **Mejora Pendiente:** Integrar el cliente Redis en `barcodeService.ts` para implementar una capa de caché compartida antes de llamar al servicio Rust.
+  - El sistema está configurado para conectarse a un servidor **Redis** (definido por `REDIS_URL` en `.env`). La instancia del cliente está disponible en `lib/redis.ts`.
+  - Actualmente, el `barcodeService.ts` **no utiliza Redis activamente** y llama directamente al servicio Rust en cada miss del caché interno de Rust.
+  - El **servicio Rust** implementa su propio **caché interno en memoria** (con DashMap) y expone sus estadísticas detalladas en su endpoint `/analytics/performance`.
+  - **Mejora Pendiente:** Integrar el cliente Redis en `barcodeService.ts` para implementar una capa de caché compartida antes de llamar al servicio Rust.
 - **Métricas:**
-    - El endpoint `/metrics` expone métricas en formato **Prometheus** utilizando `prom-client`.
-    - Métricas incluidas: Duración y tasa de solicitudes HTTP (desglosadas por método, ruta, código), duración de las llamadas al servicio Rust (desglosadas por tipo de código), métricas estándar de proceso Node.js.
-    - Estas métricas están pensadas para ser recolectadas por un servidor Prometheus y visualizadas con Grafana (configurados en `docker-compose.yml` para desarrollo).
-    - Las métricas detalladas del *caché interno de Rust* se consultan directamente desde el frontend a `/analytics/performance` (servicio Rust).
+  - El endpoint `/metrics` expone métricas en formato **Prometheus** utilizando `prom-client`.
+  - Métricas incluidas: Duración y tasa de solicitudes HTTP (desglosadas por método, ruta, código), duración de las llamadas al servicio Rust (desglosadas por tipo de código), métricas estándar de proceso Node.js.
+  - Estas métricas están pensadas para ser recolectadas por un servidor Prometheus y visualizadas con Grafana (configurados en `docker-compose.yml` para desarrollo).
+  - Las métricas detalladas del _caché interno de Rust_ se consultan directamente desde el frontend a `/analytics/performance` (servicio Rust).
 
 ## Infraestructura de Testing
 
@@ -216,14 +216,17 @@ npm run test:integration
 ### Tipos de Tests
 
 1. **Tests Unitarios**: Verifican componentes individuales como utilidades y funciones.
+
    - Tests para el sistema de errores
    - Tests para el sistema de logging
 
 2. **Tests de Integración**: Prueban la interacción entre componentes.
+
    - Tests para el flujo de validación
    - Tests para el flujo de manejo de recursos no encontrados
 
 3. **Tests de Middleware**: Validan el comportamiento de los middleware.
+
    - Tests para el middleware de manejo de errores
    - Tests para el wrapper de errores asíncronos
 
@@ -231,7 +234,6 @@ npm run test:integration
    - Tests para el endpoint de `/health`
    - Tests para el endpoint de `/metrics`
    - Tests para el endpoint de generación de códigos
-   
 5. **Tests de SSL/HTTPS**: Verifican la configuración segura del servidor.
    - Tests para diferentes configuraciones de SSL
    - Tests para fallback a HTTP
@@ -272,6 +274,7 @@ El backend incluye varias optimizaciones para mejorar el rendimiento:
 ### Compresión de Respuestas
 
 Se utiliza el middleware `compression` para reducir el tamaño de las respuestas HTTP:
+
 - Compresión automática de respuestas grandes como SVGs
 - Reduce el ancho de banda y mejora los tiempos de carga
 - Configurado para todos los endpoints de la API
@@ -279,6 +282,7 @@ Se utiliza el middleware `compression` para reducir el tamaño de las respuestas
 ### Sistema de Caché
 
 Implementación avanzada de caché en memoria:
+
 - Las respuestas del servicio Rust se almacenan en caché por 5 minutos (configurable)
 - Mejora significativa en tiempos de respuesta para solicitudes repetidas
 - Limpieza automática de entradas caducadas cada minuto
@@ -289,6 +293,7 @@ Implementación avanzada de caché en memoria:
 ### Optimización de Headers HTTP
 
 Configuración de headers de caché para respuestas:
+
 - Headers `Cache-Control` para permitir el almacenamiento en caché en navegadores
 - Tiempo de vida configurable mediante la variable `CACHE_MAX_AGE`
 - Soporte para ETags y Last-Modified en recursos estáticos
@@ -296,6 +301,7 @@ Configuración de headers de caché para respuestas:
 ### Tests de Rendimiento
 
 Suite de tests para verificar las optimizaciones:
+
 - Tests para compresión de respuestas
 - Tests para el sistema de caché y métricas
 - Tests de comparación de rendimiento entre respuestas en caché y no en caché
@@ -362,14 +368,17 @@ Todas las respuestas de error siguen un formato estandarizado:
   "error": {
     "code": "ERROR_CODE",
     "message": "Descripción del error",
-    "context": { /* Información adicional */ }
+    "context": {
+      /* Información adicional */
+    }
   }
 }
 ```
 
 Los códigos de error posibles incluyen:
+
 - `VALIDATION_ERROR` - Error en los datos de entrada
 - `AUTHENTICATION_ERROR` - Error de autenticación
 - `AUTHORIZATION_ERROR` - Error de autorización
 - `RESOURCE_NOT_FOUND` - Recurso no encontrado
-- `INTERNAL_ERROR` - Error interno del servidor 
+- `INTERNAL_ERROR` - Error interno del servidor

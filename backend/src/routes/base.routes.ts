@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+
 import { config } from '../config'; // Importar config para CACHE_MAX_AGE
 
 const router = Router();
@@ -10,4 +11,4 @@ router.get('/', (req: Request, res: Response) => {
   res.send('¡API Gateway Node.js funcionando! Llamando a Rust en puerto 3002 para generar.');
 });
 
-export const baseRoutes = router; 
+export const baseRoutes = router;

@@ -1,15 +1,16 @@
 import jwt from 'jsonwebtoken';
+
+import { config } from '../config';
 import { User, UserRole, userStore } from '../models/user';
 import logger from '../utils/logger';
-import { config } from '../config';
 
 // Interfaz para el payload del token JWT
 export interface JwtPayload {
-  sub: string;        // ID del usuario
-  email: string;      // Email del usuario
-  role: UserRole;     // Rol del usuario
-  iat?: number;       // Issued at (cuándo fue creado el token)
-  exp?: number;       // Expiration time (cuándo expira el token)
+  sub: string; // ID del usuario
+  email: string; // Email del usuario
+  role: UserRole; // Rol del usuario
+  iat?: number; // Issued at (cuándo fue creado el token)
+  exp?: number; // Expiration time (cuándo expira el token)
 }
 
 // Interfaz para respuesta de login
@@ -47,15 +48,15 @@ export class AuthService {
 
       // Generar token JWT
       const token = this.generateToken(user);
-      
+
       // Calcular tiempo de expiración en segundos
       const expiresIn = this.getExpirationSeconds();
-      
+
       // Devolver respuesta sin incluir la contraseña
       return {
         user: userStore.sanitizeUser(user),
         token,
-        expiresIn
+        expiresIn,
       };
     } catch (error) {
       logger.error('Error durante login:', error);
@@ -70,11 +71,11 @@ export class AuthService {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
-      role: user.role
+      role: user.role,
     };
 
     return jwt.sign(payload, this.jwtSecret, {
-      expiresIn: this.jwtExpiresIn
+      expiresIn: this.jwtExpiresIn,
     } as jwt.SignOptions);
   }
 
@@ -94,7 +95,7 @@ export class AuthService {
   /**
    * Refresca un token JWT existente
    */
-  async refreshToken(oldToken: string): Promise<{ token: string, expiresIn: number } | null> {
+  async refreshToken(oldToken: string): Promise<{ token: string; expiresIn: number } | null> {
     try {
       // Verificar token actual
       const decoded = this.verifyToken(oldToken);
@@ -135,16 +136,21 @@ export class AuthService {
     // Parsear el string de expiración (ej: '1h', '7d', '60m', etc)
     const unit = this.jwtExpiresIn.slice(-1);
     const value = parseInt(this.jwtExpiresIn.slice(0, -1), 10);
-    
+
     switch (unit) {
-      case 'h': return value * 60 * 60;
-      case 'd': return value * 24 * 60 * 60;
-      case 'm': return value * 60;
-      case 's': return value;
-      default: return 3600; // 1 hora por defecto
+      case 'h':
+        return value * 60 * 60;
+      case 'd':
+        return value * 24 * 60 * 60;
+      case 'm':
+        return value * 60;
+      case 's':
+        return value;
+      default:
+        return 3600; // 1 hora por defecto
     }
   }
 }
 
 // Instancia singleton para uso en toda la aplicación
-export const authService = new AuthService(); 
+export const authService = new AuthService();

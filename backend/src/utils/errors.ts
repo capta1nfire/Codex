@@ -1,4 +1,5 @@
 import { Response } from 'express';
+
 import logger from './logger';
 
 // Códigos de error HTTP
@@ -34,13 +35,13 @@ export enum ErrorCode {
 export class AppError extends Error {
   public readonly statusCode: HttpStatus;
   public readonly errorCode: ErrorCode;
-  public readonly context?: Record<string, any>;
+  public readonly context?: Record<string, unknown>;
 
   constructor(
     message: string,
     statusCode: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
     errorCode: ErrorCode = ErrorCode.INTERNAL_ERROR,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -53,81 +54,48 @@ export class AppError extends Error {
 
 // Error para fallos de validación
 export class ValidationError extends AppError {
-  constructor(message: string, context?: Record<string, any>) {
-    super(
-      message,
-      HttpStatus.BAD_REQUEST,
-      ErrorCode.VALIDATION_ERROR,
-      context
-    );
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR, context);
   }
 }
 
 // Error para recursos no encontrados
 export class NotFoundError extends AppError {
-  constructor(message: string, context?: Record<string, any>) {
-    super(
-      message,
-      HttpStatus.NOT_FOUND,
-      ErrorCode.RESOURCE_NOT_FOUND,
-      context
-    );
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND, context);
   }
 }
 
 // Error para autenticación
 export class AuthenticationError extends AppError {
-  constructor(message: string, context?: Record<string, any>) {
-    super(
-      message,
-      HttpStatus.UNAUTHORIZED,
-      ErrorCode.AUTHENTICATION_ERROR,
-      context
-    );
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, HttpStatus.UNAUTHORIZED, ErrorCode.AUTHENTICATION_ERROR, context);
   }
 }
 
 // Error para autorización
 export class AuthorizationError extends AppError {
-  constructor(message: string, context?: Record<string, any>) {
-    super(
-      message,
-      HttpStatus.FORBIDDEN,
-      ErrorCode.AUTHORIZATION_ERROR,
-      context
-    );
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, HttpStatus.FORBIDDEN, ErrorCode.AUTHORIZATION_ERROR, context);
   }
 }
 
 // Error para servicios no disponibles
 export class ServiceUnavailableError extends AppError {
-  constructor(message: string, context?: Record<string, any>) {
-    super(
-      message,
-      HttpStatus.SERVICE_UNAVAILABLE,
-      ErrorCode.SERVICE_UNAVAILABLE,
-      context
-    );
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, HttpStatus.SERVICE_UNAVAILABLE, ErrorCode.SERVICE_UNAVAILABLE, context);
   }
 }
 
 // Error para limite de peticiones
 export class RateLimitError extends AppError {
-  constructor(message: string, context?: Record<string, any>) {
-    super(
-      message,
-      HttpStatus.TOO_MANY_REQUESTS,
-      ErrorCode.RATE_LIMIT_ERROR,
-      context
-    );
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, HttpStatus.TOO_MANY_REQUESTS, ErrorCode.RATE_LIMIT_ERROR, context);
   }
 }
 
 // Función para enviar respuestas de error estandarizadas
-export function sendErrorResponse(
-  res: Response,
-  error: AppError | Error
-): Response {
+export function sendErrorResponse(res: Response, error: AppError | Error): Response {
   if (error instanceof AppError) {
     logger.error(`${error.errorCode}: ${error.message}`, {
       stack: error.stack,
@@ -161,11 +129,11 @@ export function sendErrorResponse(
 // Función para enviar respuestas exitosas estandarizadas
 export function sendSuccessResponse(
   res: Response,
-  data: any,
+  data: unknown,
   statusCode: HttpStatus = HttpStatus.OK
 ): Response {
   return res.status(statusCode).json({
     success: true,
     data,
   });
-} 
+}
