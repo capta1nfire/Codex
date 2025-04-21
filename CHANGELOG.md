@@ -10,13 +10,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 ### Añadido
 - **Calidad:** Configuración de ESLint y Prettier para el backend (`backend/`).
 - **Calidad:** Migración de configuración de ESLint del backend a formato "flat config" (`eslint.config.js`).
+- **Dev:** Añadida dependencia `tsx` al backend para ejecución en desarrollo.
 
 ### Mejorado
+- **Calidad:** Verificado y aplicado formato (`cargo fmt`) y linting (`cargo clippy`) al código Rust (`rust_generator`).
+- **Calidad:** Verificado linting (`eslint`/`next lint`) y formato (`prettier --check`) en `frontend` y `backend` (sin errores/advertencias actualmente).
+- **Frontend:** Mejorada retroalimentación en formulario de registro (mensaje de éxito, redirección retardada a login).
+- **Frontend:** Corregido flujo de login para actualizar estado visual en Navbar (mediante `window.location.href` y lógica existente en Navbar).
 
 ### Corregido
+- **Backend:** Solucionado error crítico de arranque (`triggerUncaughtException`) al usar Node.js v22 con ESM, cambiando el script `dev` de `node --loader ts-node/esm` a `tsx watch src/index.ts`.
+- **Backend:** Resuelto error "Table `public.User` does not exist" ejecutando `prisma migrate dev`.
+- **Backend:** Corregidas importaciones relativas sin extensión `.js` requeridas por ESM en `src/index.ts`, `src/utils/errors.ts`, `src/config.ts`.
 - **Calidad:** Resueltos todos los errores y advertencias iniciales de ESLint en el backend.
+- **Calidad:** Añadidas dependencias de ESLint (`eslint-plugin-import`, `eslint-plugin-prettier`) que faltaban en `backend/package.json` según `depcheck`.
 
 ### Eliminado
+- **Calidad:** Eliminada función `sendSuccessResponse` no utilizada de `backend/src/utils/errors.ts` (detectada por `ts-prune`).
 
 ## [1.3.0] - 2024-07-27
 

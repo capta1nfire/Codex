@@ -1,8 +1,13 @@
 import * as path from 'path';
-
+import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
-// Cargar variables de entorno desde .env
+// Obtener __dirname en ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Cargar variables de entorno desde .env en la raíz del backend
+// La ruta ahora asume que .env está en la carpeta 'backend', un nivel arriba de 'src'
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 interface Config {

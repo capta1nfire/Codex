@@ -1,6 +1,6 @@
 import { Response } from 'express';
 
-import logger from './logger';
+import logger from '../utils/logger.js';
 
 // Códigos de error HTTP
 export enum HttpStatus {
@@ -123,17 +123,5 @@ export function sendErrorResponse(res: Response, error: AppError | Error): Respo
       code: ErrorCode.INTERNAL_ERROR,
       message: 'Ha ocurrido un error inesperado',
     },
-  });
-}
-
-// Función para enviar respuestas exitosas estandarizadas
-export function sendSuccessResponse(
-  res: Response,
-  data: unknown,
-  statusCode: HttpStatus = HttpStatus.OK
-): Response {
-  return res.status(statusCode).json({
-    success: true,
-    data,
   });
 }

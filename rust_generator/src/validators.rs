@@ -19,28 +19,30 @@ pub struct BarcodeRequest {
 pub struct BarcodeRequestOptions {
     #[serde(default = "default_scale")]
     pub scale: u32,
-    
+
     #[allow(dead_code)] // Se mantiene para futuras implementaciones
     pub margin: Option<u32>,
-    
+
     #[serde(rename = "errorCorrectionLevel")]
     pub error_correction_level: Option<String>,
-    
+
     #[serde(rename = "minColumns")]
     pub min_columns: Option<u32>,
-    
+
     #[serde(rename = "maxColumns")]
     pub max_columns: Option<u32>,
-    
+
     #[allow(dead_code)] // Se mantiene para futuras implementaciones
     pub compact: Option<bool>,
-    
+
     // Nuevo campo para TTL personalizado
     #[serde(rename = "ttlSeconds")]
     pub ttl_seconds: Option<u64>,
 }
 
-pub fn default_scale() -> u32 { 3 }
+pub fn default_scale() -> u32 {
+    3
+}
 
 // ----------------- 2. Estructura de Error de Validación -----------------
 
@@ -74,7 +76,7 @@ pub struct QRValidator;
 impl BarcodeValidator for QRValidator {
     fn validate(&self, request: &BarcodeRequest) -> Result<(), ValidationError> {
         // Validar longitud de datos según el modo detectado
-        
+
         // Usar un enfoque heurístico para detectar el modo
         // Esta es una simplificación, el modo real lo decide la librería rxing
         let mode = detect_qr_mode(&request.data);
@@ -84,7 +86,7 @@ impl BarcodeValidator for QRValidator {
             QRMode::Byte => 2953,
             QRMode::Kanji => 1817,
         };
-        
+
         if request.data.len() > max_length {
             return Err(ValidationError {
                 code: "QR_DATA_TOO_LONG".to_string(),
@@ -92,10 +94,10 @@ impl BarcodeValidator for QRValidator {
                     "Los datos exceden la longitud máxima permitida para el modo {} ({} > {})",
                     mode, request.data.len(), max_length
                 ),
-                suggestion: Some(format!("Reduzca la cantidad de datos o considere usar un formato diferente como PDF417 para datos más extensos.")),
+                suggestion: Some("Reduzca la cantidad de datos o considere usar un formato diferente como PDF417 para datos más extensos.".to_string()),
             });
         }
-        
+
         // Nueva validación especializada para URLs
         if request.data.starts_with("http://") || request.data.starts_with("https://") {
             // Verificar longitud recomendada para URLs en QR (evitar URLs muy largas)
@@ -109,17 +111,19 @@ impl BarcodeValidator for QRValidator {
                     suggestion: Some("Considere usar un servicio de acortamiento de URLs o reducir la longitud de los parámetros".to_string()),
                 });
             }
-            
+
             // Validar estructura básica de URL
             if !request.data.contains(".") {
                 return Err(ValidationError {
                     code: "QR_URL_INVALID_FORMAT".to_string(),
                     message: "La URL no parece tener un formato válido".to_string(),
-                    suggestion: Some("Verifique que la URL contenga un nombre de dominio correcto".to_string()),
+                    suggestion: Some(
+                        "Verifique que la URL contenga un nombre de dominio correcto".to_string(),
+                    ),
                 });
             }
         }
-        
+
         // Validar nivel de corrección de errores si está especificado
         if let Some(options) = &request.options {
             if let Some(ecl) = &options.error_correction_level {
@@ -136,7 +140,7 @@ impl BarcodeValidator for QRValidator {
                 }
             }
         }
-        
+
         // Validar escala
         validate_scale(request)
     }
@@ -168,19 +172,19 @@ fn detect_qr_mode(data: &str) -> QRMode {
     if data.chars().all(|c| c.is_ascii_digit()) {
         return QRMode::Numeric;
     }
-    
+
     // Si tiene solo caracteres alfanuméricos según la especificación QR
     // (0-9, A-Z, espacio y algunos símbolos)
     let qr_alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
     if data.chars().all(|c| qr_alphanum.contains(c)) {
         return QRMode::Alphanumeric;
     }
-    
+
     // Detección básica de Kanji (simplificado)
     if data.chars().any(|c| c > '\u{4E00}' && c <= '\u{9FFF}') {
         return QRMode::Kanji;
     }
-    
+
     // Por defecto asumimos modo Byte
     QRMode::Byte
 }
@@ -192,7 +196,7 @@ impl BarcodeValidator for Code128Validator {
     fn validate(&self, request: &BarcodeRequest) -> Result<(), ValidationError> {
         // Detectar automáticamente el subtipo de Code128
         let subtype = detect_code128_subtype(&request.data);
-        
+
         // Validar caracteres según el subtipo
         match subtype {
             Code128Subtype::A => {
@@ -204,17 +208,21 @@ impl BarcodeValidator for Code128Validator {
                         suggestion: Some("Revise los datos de entrada o use Code128B para soporte de minúsculas".to_string()),
                     });
                 }
-            },
+            }
             Code128Subtype::B => {
                 // Code128B: ASCII 32-127 (0-9, A-Z, a-z, caracteres especiales)
-                if !request.data.chars().all(|c| c.is_ascii() && c >= ' ' && c <= '~') {
+                if !request
+                    .data
+                    .chars()
+                    .all(|c| c.is_ascii() && (' '..='~').contains(&c))
+                {
                     return Err(ValidationError {
                         code: "CODE128B_INVALID_CHAR".to_string(),
                         message: "Code128B solo acepta caracteres ASCII 32-127 (0-9, A-Z, a-z, caracteres especiales)".to_string(),
                         suggestion: Some("Revise los datos de entrada o use un formato diferente para caracteres no ASCII".to_string()),
                     });
                 }
-            },
+            }
             Code128Subtype::C => {
                 // Code128C: Dígitos en pares (00-99)
                 if !request.data.chars().all(|c| c.is_ascii_digit()) {
@@ -224,18 +232,21 @@ impl BarcodeValidator for Code128Validator {
                         suggestion: Some("Utilice solo caracteres numéricos o cambie a Code128A/B para caracteres no numéricos".to_string()),
                     });
                 }
-                
+
                 // Code128C requiere un número par de dígitos
                 if request.data.len() % 2 != 0 {
                     return Err(ValidationError {
                         code: "CODE128C_ODD_LENGTH".to_string(),
                         message: "Code128C requiere un número par de dígitos".to_string(),
-                        suggestion: Some("Añada un cero al principio o utilice Code128B para longitudes impares".to_string()),
+                        suggestion: Some(
+                            "Añada un cero al principio o utilice Code128B para longitudes impares"
+                                .to_string(),
+                        ),
                     });
                 }
-            },
+            }
         }
-        
+
         // Validar longitud práctica (recomendación, no limitación estricta)
         const MAX_PRACTICAL_LENGTH: usize = 80;
         if request.data.len() > MAX_PRACTICAL_LENGTH {
@@ -248,7 +259,7 @@ impl BarcodeValidator for Code128Validator {
                 suggestion: Some("Los códigos demasiado largos pueden ser difíciles de escanear. Considere dividir los datos en múltiples códigos.".to_string()),
             });
         }
-        
+
         // Validar escala
         validate_scale(request)
     }
@@ -267,17 +278,17 @@ fn detect_code128_subtype(data: &str) -> Code128Subtype {
     if data.chars().all(|c| c.is_ascii_digit()) && data.len() % 2 == 0 {
         return Code128Subtype::C;
     }
-    
+
     // Si tiene minúsculas, debe ser Code128B
     if data.chars().any(|c| c.is_ascii_lowercase()) {
         return Code128Subtype::B;
     }
-    
+
     // Si tiene caracteres de control (ASCII < 32), debe ser Code128A
     if data.chars().any(|c| c.is_ascii() && (c as u8) < 32) {
         return Code128Subtype::A;
     }
-    
+
     // Por defecto usamos Code128B que es el más versátil
     Code128Subtype::B
 }
@@ -291,8 +302,8 @@ impl BarcodeValidator for EANValidator {
         let ean_type = match request.barcode_type.to_lowercase().as_str() {
             "ean13" => EANType::EAN13,
             "ean8" => EANType::EAN8,
-            "upca" => EANType::UPCA,
-            "upce" => EANType::UPCE,
+            "upca" => EANType::Upca,
+            "upce" => EANType::Upce,
             _ => {
                 return Err(ValidationError {
                     code: "EAN_UNKNOWN_TYPE".to_string(),
@@ -301,7 +312,7 @@ impl BarcodeValidator for EANValidator {
                 });
             }
         };
-        
+
         // Validar que solo contenga dígitos
         if !request.data.chars().all(|c| c.is_ascii_digit()) {
             return Err(ValidationError {
@@ -310,15 +321,15 @@ impl BarcodeValidator for EANValidator {
                 suggestion: None,
             });
         }
-        
+
         // Validar longitud según el tipo
         let expected_length = match ean_type {
             EANType::EAN13 => 12, // 12 dígitos de datos + 1 dígito de verificación (generado)
             EANType::EAN8 => 7,   // 7 dígitos de datos + 1 dígito de verificación
-            EANType::UPCA => 11,  // 11 dígitos de datos + 1 dígito de verificación
-            EANType::UPCE => 6,   // UPC-E es un formato comprimido
+            EANType::Upca => 11,  // 11 dígitos de datos + 1 dígito de verificación
+            EANType::Upce => 6,   // UPC-E es un formato comprimido
         };
-        
+
         if request.data.len() != expected_length {
             return Err(ValidationError {
                 code: format!("{}_{}", ean_type.to_string().replace("-", ""), "INVALID_LENGTH"),
@@ -329,9 +340,9 @@ impl BarcodeValidator for EANValidator {
                 suggestion: Some(format!("Asegúrese de que su entrada contiene exactamente {} dígitos", expected_length)),
             });
         }
-        
+
         // Para UPCE, validar reglas adicionales de compresión
-        if ean_type == EANType::UPCE {
+        if ean_type == EANType::Upce {
             // UPC-E tiene reglas específicas - simplificado para este ejemplo
             let first = request.data.chars().next().unwrap().to_digit(10).unwrap();
             if first != 0 && first != 1 {
@@ -342,7 +353,7 @@ impl BarcodeValidator for EANValidator {
                 });
             }
         }
-        
+
         // Validar escala
         validate_scale(request)
     }
@@ -352,8 +363,8 @@ impl BarcodeValidator for EANValidator {
 enum EANType {
     EAN13,
     EAN8,
-    UPCA,
-    UPCE,
+    Upca,
+    Upce,
 }
 
 impl std::fmt::Display for EANType {
@@ -361,8 +372,8 @@ impl std::fmt::Display for EANType {
         match self {
             EANType::EAN13 => write!(f, "EAN-13"),
             EANType::EAN8 => write!(f, "EAN-8"),
-            EANType::UPCA => write!(f, "UPC-A"),
-            EANType::UPCE => write!(f, "UPC-E"),
+            EANType::Upca => write!(f, "UPC-A"),
+            EANType::Upce => write!(f, "UPC-E"),
         }
     }
 }
@@ -374,7 +385,7 @@ impl BarcodeValidator for PDF417Validator {
     fn validate(&self, request: &BarcodeRequest) -> Result<(), ValidationError> {
         // PDF417 no tiene restricciones específicas de caracteres,
         // pero sí tiene límites de tamaño y parámetros
-        
+
         // Validar longitud de datos (límite aproximado)
         const MAX_BYTES: usize = 1200; // Valor conservador
         if request.data.len() > MAX_BYTES {
@@ -382,17 +393,20 @@ impl BarcodeValidator for PDF417Validator {
                 code: "PDF417_DATA_TOO_LONG".to_string(),
                 message: format!(
                     "Los datos exceden la longitud máxima recomendada para PDF417 ({} > {})",
-                    request.data.len(), MAX_BYTES
+                    request.data.len(),
+                    MAX_BYTES
                 ),
-                suggestion: Some("Considere dividir los datos en múltiples códigos PDF417".to_string()),
+                suggestion: Some(
+                    "Considere dividir los datos en múltiples códigos PDF417".to_string(),
+                ),
             });
         }
-        
+
         // Validar parámetros específicos si están presentes
         if let Some(options) = &request.options {
             // Validar min_columns si está presente
             if let Some(min_cols) = options.min_columns {
-                if min_cols < 1 || min_cols > 30 {
+                if !(1..=30).contains(&min_cols) {
                     return Err(ValidationError {
                         code: "PDF417_INVALID_MIN_COLUMNS".to_string(),
                         message: format!("Número mínimo de columnas inválido: {}", min_cols),
@@ -400,17 +414,17 @@ impl BarcodeValidator for PDF417Validator {
                     });
                 }
             }
-            
+
             // Validar max_columns si está presente
             if let Some(max_cols) = options.max_columns {
-                if max_cols < 1 || max_cols > 30 {
+                if !(1..=30).contains(&max_cols) {
                     return Err(ValidationError {
                         code: "PDF417_INVALID_MAX_COLUMNS".to_string(),
                         message: format!("Número máximo de columnas inválido: {}", max_cols),
                         suggestion: Some("El valor debe estar entre 1 y 30".to_string()),
                     });
                 }
-                
+
                 // Validar que max_columns >= min_columns si ambos están especificados
                 if let Some(min_cols) = options.min_columns {
                     if max_cols < min_cols {
@@ -426,7 +440,7 @@ impl BarcodeValidator for PDF417Validator {
                 }
             }
         }
-        
+
         // Validar escala
         validate_scale(request)
     }
@@ -438,7 +452,7 @@ pub struct DefaultValidator;
 impl BarcodeValidator for DefaultValidator {
     fn validate(&self, request: &BarcodeRequest) -> Result<(), ValidationError> {
         // Validación mínima para tipos no específicamente implementados
-        
+
         // Validar que haya datos
         if request.data.is_empty() {
             return Err(ValidationError {
@@ -447,7 +461,7 @@ impl BarcodeValidator for DefaultValidator {
                 suggestion: None,
             });
         }
-        
+
         // Validar escala
         validate_scale(request)
     }
@@ -457,14 +471,16 @@ impl BarcodeValidator for DefaultValidator {
 
 // Función común para validar la escala (usada por todos los validadores)
 fn validate_scale(request: &BarcodeRequest) -> Result<(), ValidationError> {
-    let scale = request.options.as_ref()
+    let scale = request
+        .options
+        .as_ref()
         .map(|o| o.scale)
         .unwrap_or_else(default_scale);
-    
+
     const MIN_SCALE: u32 = 1;
     const MAX_SCALE: u32 = 20;
-    
-    if scale < MIN_SCALE || scale > MAX_SCALE {
+
+    if !(MIN_SCALE..=MAX_SCALE).contains(&scale) {
         return Err(ValidationError {
             code: "INVALID_SCALE".to_string(),
             message: format!(
@@ -474,7 +490,7 @@ fn validate_scale(request: &BarcodeRequest) -> Result<(), ValidationError> {
             suggestion: Some(format!("Use un valor entre {} y {}", MIN_SCALE, MAX_SCALE)),
         });
     }
-    
+
     Ok(())
 }
 
@@ -498,7 +514,7 @@ lazy_static::lazy_static! {
 // Función pública para obtener el validador apropiado según el tipo de código
 pub fn get_validator(barcode_type: &str) -> &'static (dyn BarcodeValidator + Sync + Send) {
     let barcode_type = barcode_type.to_lowercase();
-    
+
     match VALIDATOR_MAP.get(barcode_type.as_str()) {
         Some(validator) => validator.as_ref(),
         None => &DefaultValidator as &(dyn BarcodeValidator + Sync + Send),
@@ -518,7 +534,7 @@ pub fn validate_barcode_request(request: &BarcodeRequest) -> Result<(), Validati
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     // Test para QR con datos válidos
     #[test]
     fn test_valid_qr() {
@@ -531,11 +547,11 @@ mod tests {
                 ..Default::default()
             }),
         };
-        
+
         let result = validate_barcode_request(&request);
         assert!(result.is_ok());
     }
-    
+
     // Test para QR con nivel de corrección de errores inválido
     #[test]
     fn test_invalid_qr_ecl() {
@@ -548,13 +564,13 @@ mod tests {
                 ..Default::default()
             }),
         };
-        
+
         let result = validate_barcode_request(&request);
         assert!(result.is_err());
         let err = result.unwrap_err();
         assert_eq!(err.code, "QR_INVALID_ECL");
     }
-    
+
     // Test para EAN-13 válido
     #[test]
     fn test_valid_ean13() {
@@ -563,11 +579,11 @@ mod tests {
             data: "978020137962".to_string(), // 12 dígitos
             options: None,
         };
-        
+
         let result = validate_barcode_request(&request);
         assert!(result.is_ok());
     }
-    
+
     // Test para EAN-13 con longitud incorrecta
     #[test]
     fn test_invalid_ean13_length() {
@@ -576,13 +592,13 @@ mod tests {
             data: "12345".to_string(), // Demasiado corto
             options: None,
         };
-        
+
         let result = validate_barcode_request(&request);
         assert!(result.is_err());
         let err = result.unwrap_err();
         assert_eq!(err.code, "EAN13_INVALID_LENGTH");
     }
-    
+
     // Test para Code128 con datos válidos
     #[test]
     fn test_valid_code128() {
@@ -591,11 +607,11 @@ mod tests {
             data: "ABC123".to_string(),
             options: None,
         };
-        
+
         let result = validate_barcode_request(&request);
         assert!(result.is_ok());
     }
-    
+
     // Test para Code128 con datos demasiado largos
     #[test]
     fn test_long_code128() {
@@ -605,13 +621,13 @@ mod tests {
             data: long_data,
             options: None,
         };
-        
+
         let result = validate_barcode_request(&request);
         assert!(result.is_err());
         let err = result.unwrap_err();
         assert_eq!(err.code, "CODE128_LONG_DATA");
     }
-    
+
     // Test para escala inválida
     #[test]
     fn test_invalid_scale() {
@@ -623,7 +639,7 @@ mod tests {
                 ..Default::default()
             }),
         };
-        
+
         let result = validate_barcode_request(&request);
         assert!(result.is_err());
         let err = result.unwrap_err();

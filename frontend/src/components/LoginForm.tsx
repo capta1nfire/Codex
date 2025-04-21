@@ -40,12 +40,12 @@ export default function LoginForm() {
         // Eliminar versión antigua si existe
         localStorage.removeItem('authToken');
 
-        console.log('Token guardado correctamente, redirigiendo...');
+        console.log('Token guardado correctamente, refrescando...');
 
-        // Redireccionar a la página principal
-        router.push('/');
+        // Redireccionar a la página principal FORZANDO REFRESCO
+        window.location.href = '/';
       } else {
-        throw new Error('Respuesta inválida del servidor');
+        throw new Error(data.error?.message || 'Token no recibido o respuesta inválida');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');

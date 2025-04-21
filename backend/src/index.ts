@@ -13,28 +13,26 @@ import rateLimit from 'express-rate-limit';
 // import { check, validationResult } from 'express-validator'; // <- Unused
 import helmet from 'helmet';
 import xss from 'xss-clean';
-
-// Importar middlewares de manejo de errores
-// Importar el logger
-// Importar la configuración del servidor
-// Importar configuración centralizada
-import { config } from './config';
+// import express from 'express'; // <-- Comentado
+import { config } from './config.js';
+// import { config } from './config.js'; // <-- Comentar esta línea
 // Importar módulos de autenticación
-import { authMiddleware } from './middleware/authMiddleware';
-import { errorHandler, notFoundHandler } from './middleware/errorHandler';
-// Importar rutas
-import { authRoutes } from './routes/auth.routes';
-import { baseRoutes } from './routes/base.routes';
-import { generateRoutes } from './routes/generate.routes';
-import { healthRoutes } from './routes/health.routes';
-import { metricsRoutes } from './routes/metrics.routes';
-import { startServer } from './server-config';
-import logger from './utils/logger';
+import { authMiddleware } from './middleware/authMiddleware.js';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+// Importar rutas (Comentadas para depuración)
+import { authRoutes } from './routes/auth.routes.js';
+import { baseRoutes } from './routes/base.routes.js';
+import { generateRoutes } from './routes/generate.routes.js';
+import { healthRoutes } from './routes/health.routes.js';
+import { metricsRoutes } from './routes/metrics.routes.js';
+import { startServer } from './server-config.js'; // <--- Descomentar esta línea
+import logger from './utils/logger.js';
 // Importar métricas de Prometheus
-import { httpRequestDurationMicroseconds, httpRequestsTotal } from './utils/metrics';
+import { httpRequestDurationMicroseconds, httpRequestsTotal } from './utils/metrics.js'; // <--- Descomentar esta línea
 
 const app = express();
 
+// --- Configuración de Middleware (Restaurada) ---
 // Aplicar middleware de seguridad
 app.use(helmet()); // Seguridad mediante headers HTTP
 
@@ -83,28 +81,17 @@ app.use(xss());
 
 // --- Middleware para Métricas HTTP Prometheus ---
 app.use((req: Request, res: Response, next: NextFunction) => {
-  // Iniciar timer para medir duración
   const end = httpRequestDurationMicroseconds.startTimer();
-
-  // Registrar métrica cuando la respuesta finalice
   res.on('finish', () => {
-    // Obtener ruta (usar originalUrl o intentar mapear a un patrón)
-    // Usar req.route?.path puede ser más genérico si se usan routers bien
     const route = req.route?.path || req.originalUrl.split('?')[0] || 'unknown';
-
     const labels = {
       method: req.method,
-      // Usar el path del router si está disponible, sino la URL original
       route: route,
       code: res.statusCode.toString(),
     };
-
-    // Observar duración
     end(labels);
-    // Incrementar contador
     httpRequestsTotal.inc(labels);
   });
-
   next();
 });
 // --- Fin Middleware Métricas ---
@@ -116,21 +103,22 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(authMiddleware.configurePassport());
 app.use(authMiddleware.apiKeyStrategy);
 
-// --- Montar Rutas ---
-app.use('/', baseRoutes); // Rutas base (GET /)
-app.use('/health', healthRoutes); // Rutas de salud (GET /health)
-app.use('/metrics', metricsRoutes); // Rutas de métricas (GET /metrics)
-app.use('/api/auth', authRoutes); // Rutas de autenticación
-app.use('/api', generateRoutes); // Rutas de generación (ahora bajo /api)
-// Nota: Montar generateRoutes en '/api'
+// --- Montar Rutas (Restaurado) ---
+app.use('/', baseRoutes);
+app.use('/health', healthRoutes);
+app.use('/metrics', metricsRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api', generateRoutes);
 
 // Middleware para manejo de errores
 app.use(errorHandler);
 
-// Middleware para manejar rutas no encontradas (esto se queda)
+// Middleware para manejar rutas no encontradas
 app.use(notFoundHandler);
 
-// Iniciar el servidor con la configuración
+// console.log("Script reached end (before server start)"); // Remover log de depuración
+
+// Iniciar el servidor con la configuración (Restaurado)
 startServer(app, {
   SSL_ENABLED: config.SSL_ENABLED,
   SSL_KEY_PATH: config.SSL_KEY_PATH,
@@ -144,7 +132,7 @@ startServer(app, {
   RATE_LIMIT_WINDOW_MS: config.RATE_LIMIT_WINDOW_MS,
 });
 
-// Manejo de cierre graceful
+// Manejo de cierre graceful (Restaurar logger)
 process.on('SIGTERM', () => {
   logger.info('SIGTERM recibido, cerrando el servidor...');
   process.exit(0);

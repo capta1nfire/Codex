@@ -31,25 +31,26 @@ Frontend moderno para la plataforma Codex de generación de códigos de barras y
 ```
 frontend/
 ├── src/                      # Código fuente principal
-│   ├── components/           # Componentes reutilizables
-│   │   ├── ui/               # Componentes UI base (button, card, etc.)
-│   │   ├── Navbar.tsx        # Componente de barra de navegación
-│   │   ├── SystemStatus.tsx  # Componente de monitoreo de estado del sistema
-│   │   └── UserProfile.tsx   # Componente de perfil de usuario
-│   └── app/                  # Rutas de la aplicación (App Router de Next.js)
-├── app/                      # Estructura de páginas y layouts
-│   ├── layout.tsx            # Layout principal de la aplicación
-│   ├── page.tsx              # Página principal (generador de códigos)
-│   ├── dashboard/            # Sección de dashboard
-│   │   ├── layout.tsx        # Layout específico del dashboard
-│   │   ├── metrics/          # Páginas de métricas
-│   │   │   ├── page.tsx      # Vista principal de métricas
-│   │   │   └── components/   # Componentes específicos de métricas
-│   ├── profile/              # Sección de perfil de usuario
-│   └── generator/            # Páginas del generador de códigos
-├── public/                   # Archivos estáticos
-├── next.config.js            # Configuración de Next.js
-├── tailwind.config.js        # Configuración de Tailwind CSS
+│   ├── components/           # Componentes reutilizables (Navbar, SystemStatus, UserProfile, etc.)
+│   │   └── ui/               # Componentes UI base (generados por Shadcn/CLI)
+│   ├── lib/                  # Utilidades (ej: utils.ts)
+│   └── app/                  # Rutas y layouts (App Router de Next.js)
+│       ├── layout.tsx        # Layout principal de la aplicación
+│       ├── page.tsx          # Página principal (generador de códigos)
+│       ├── dashboard/        # Sección de dashboard (métricas, etc.)
+│       │   └── ...
+│       ├── profile/          # Página de perfil de usuario
+│       │   └── ...
+│       ├── login/            # Página de inicio de sesión
+│       │   └── ...
+│       ├── register/         # Página de registro
+│       │   └── ...
+│       └── globals.css       # Estilos globales (importados en layout.tsx)
+├── public/                   # Archivos estáticos (imágenes, fuentes, etc.)
+├── next.config.mjs           # Configuración de Next.js (ahora .mjs)
+├── tailwind.config.ts        # Configuración de Tailwind CSS (ahora .ts)
+├── postcss.config.mjs        # Configuración de PostCSS (ahora .mjs)
+├── tsconfig.json             # Configuración de TypeScript
 └── package.json              # Dependencias y scripts
 ```
 
@@ -104,8 +105,8 @@ Barra de navegación mejorada con diseño optimizado:
 El frontend utiliza variables de entorno para la configuración:
 
 ```bash
-# .env.local
-NEXT_PUBLIC_BACKEND_URL=http://localhost:3003
+# .env.local (Crear este archivo en la raíz de /frontend si no existe)
+NEXT_PUBLIC_BACKEND_URL=http://localhost:3004 # Puerto actualizado
 NEXT_PUBLIC_RUST_SERVICE_URL=http://localhost:3002
 ```
 
