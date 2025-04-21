@@ -8,10 +8,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 ## [No publicado]
 
 ### Añadido
+- **Calidad:** Configuración de ESLint y Prettier para el backend (`backend/`).
+- **Calidad:** Migración de configuración de ESLint del backend a formato "flat config" (`eslint.config.js`).
 
 ### Mejorado
 
 ### Corregido
+- **Calidad:** Resueltos todos los errores y advertencias iniciales de ESLint en el backend.
 
 ### Eliminado
 
