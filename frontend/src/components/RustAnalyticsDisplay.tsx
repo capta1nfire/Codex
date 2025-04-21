@@ -1,14 +1,8 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -16,9 +10,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
-// --- Interfaces ajustadas para coincidir con la respuesta real de Rust --- 
+// --- Interfaces ajustadas para coincidir con la respuesta real de Rust ---
 
 interface TypePerformance {
   avg_cache_hit_ms: number | null; // Puede ser null si hit_count es 0
@@ -57,19 +51,18 @@ const formatDuration = (ms: number | null | undefined): string => {
 
 // Helper para formatear tamaño (maneja null)
 const formatSize = (bytes: number | null | undefined): string => {
-    if (bytes === null || bytes === undefined || isNaN(bytes)) return '-';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+  if (bytes === null || bytes === undefined || isNaN(bytes)) return '-';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 // Helper para formatear porcentaje (maneja null/undefined)
 const formatPercentage = (rate: number | null | undefined): string => {
-    if (rate === null || rate === undefined || isNaN(rate)) return '-';
-    // Asumiendo que el rate de Rust ya está en porcentaje (0-100)
-    return `${rate.toFixed(1)}%`; 
-}
-
+  if (rate === null || rate === undefined || isNaN(rate)) return '-';
+  // Asumiendo que el rate de Rust ya está en porcentaje (0-100)
+  return `${rate.toFixed(1)}%`;
+};
 
 export default function RustAnalyticsDisplay() {
   const [analyticsData, setAnalyticsData] = useState<RustAnalyticsData | null>(null);
@@ -80,33 +73,35 @@ export default function RustAnalyticsDisplay() {
     const fetchAnalyticsData = async () => {
       const rustServiceUrl = process.env.NEXT_PUBLIC_RUST_SERVICE_URL;
       if (!rustServiceUrl) {
-        setError("La URL del servicio Rust no está configurada (NEXT_PUBLIC_RUST_SERVICE_URL).");
+        setError('La URL del servicio Rust no está configurada (NEXT_PUBLIC_RUST_SERVICE_URL).');
         setIsLoading(false);
         return;
       }
 
       try {
-        const response = await axios.get<RustAnalyticsData>(`${rustServiceUrl}/analytics/performance`);
+        const response = await axios.get<RustAnalyticsData>(
+          `${rustServiceUrl}/analytics/performance`
+        );
         setAnalyticsData(response.data);
-        setError(null); 
+        setError(null);
       } catch (err) {
         console.error('Error fetching Rust analytics data:', err);
-        if (!analyticsData) { 
-           setError('No se pudo cargar la información de rendimiento del servicio Rust.');
+        if (!analyticsData) {
+          setError('No se pudo cargar la información de rendimiento del servicio Rust.');
         } else {
-           setError('Error al actualizar la información de rendimiento.');
+          setError('Error al actualizar la información de rendimiento.');
         }
       } finally {
-         if (isLoading) setIsLoading(false);
+        if (isLoading) setIsLoading(false);
       }
     };
 
-    fetchAnalyticsData(); 
-    const interval = setInterval(fetchAnalyticsData, 60000); 
+    fetchAnalyticsData();
+    const interval = setInterval(fetchAnalyticsData, 60000);
 
-    return () => clearInterval(interval); 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]); 
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
 
   return (
     <Card className="mt-6">
@@ -115,11 +110,10 @@ export default function RustAnalyticsDisplay() {
         <CardDescription>
           Métricas de caché y rendimiento de generación de códigos. Actualizado cada 60s.
           {/* Usar 'timestamp' en lugar de 'last_updated_at' */}
-          {analyticsData && ` Última act: ${new Date(analyticsData.timestamp).toLocaleTimeString()}`}
+          {analyticsData &&
+            ` Última act: ${new Date(analyticsData.timestamp).toLocaleTimeString()}`}
         </CardDescription>
-        {error && !isLoading && (
-           <p className="mt-2 text-sm text-red-600">Error: {error}</p>
-        )}
+        {error && !isLoading && <p className="mt-2 text-sm text-red-600">Error: {error}</p>}
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -127,7 +121,7 @@ export default function RustAnalyticsDisplay() {
             <p className="text-gray-500 animate-pulse">Cargando análisis de rendimiento...</p>
           </div>
         ) : !analyticsData ? (
-           <></> 
+          <></>
         ) : (
           <div className="space-y-6">
             {/* Sección de Estadísticas Globales (usando 'overall') */}
@@ -136,10 +130,22 @@ export default function RustAnalyticsDisplay() {
                 <CardTitle className="text-lg">Estadísticas Globales (Overall)</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div><span className="font-medium text-gray-600">Peticiones Totales:</span> {analyticsData.overall.total_requests}</div>
-                <div><span className="font-medium text-gray-600">Cache Hit Rate:</span> {formatPercentage(analyticsData.overall.cache_hit_rate_percent)}</div>
-                <div><span className="font-medium text-gray-600">Ø Duración Resp.:</span> {formatDuration(analyticsData.overall.avg_response_ms)}</div>
-                <div><span className="font-medium text-gray-600">Máx Duración Resp.:</span> {formatDuration(analyticsData.overall.max_response_ms)}</div>
+                <div>
+                  <span className="font-medium text-gray-600">Peticiones Totales:</span>{' '}
+                  {analyticsData.overall.total_requests}
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">Cache Hit Rate:</span>{' '}
+                  {formatPercentage(analyticsData.overall.cache_hit_rate_percent)}
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">Ø Duración Resp.:</span>{' '}
+                  {formatDuration(analyticsData.overall.avg_response_ms)}
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">Máx Duración Resp.:</span>{' '}
+                  {formatDuration(analyticsData.overall.max_response_ms)}
+                </div>
                 {/* Podríamos añadir más datos de 'overall' si los hubiera */}
               </CardContent>
             </Card>
@@ -159,7 +165,7 @@ export default function RustAnalyticsDisplay() {
                       <TableHead className="text-right">Hit Rate</TableHead>
                       <TableHead className="text-right">Ø Dur. Hit</TableHead>
                       <TableHead className="text-right">Ø Dur. Miss</TableHead>
-                      <TableHead className="text-right">Ø Tamaño</TableHead> 
+                      <TableHead className="text-right">Ø Tamaño</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -169,10 +175,18 @@ export default function RustAnalyticsDisplay() {
                         <TableCell className="font-medium">{type}</TableCell>
                         <TableCell className="text-right">{stats.hit_count}</TableCell>
                         <TableCell className="text-right">{stats.miss_count}</TableCell>
-                        <TableCell className="text-right">{formatPercentage(stats.cache_hit_rate_percent)}</TableCell>
-                        <TableCell className="text-right font-mono text-xs">{formatDuration(stats.avg_cache_hit_ms)}</TableCell>
-                        <TableCell className="text-right font-mono text-xs">{formatDuration(stats.avg_generation_ms)}</TableCell>
-                        <TableCell className="text-right font-mono text-xs">{formatSize(stats.avg_data_size)}</TableCell>
+                        <TableCell className="text-right">
+                          {formatPercentage(stats.cache_hit_rate_percent)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs">
+                          {formatDuration(stats.avg_cache_hit_ms)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs">
+                          {formatDuration(stats.avg_generation_ms)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs">
+                          {formatSize(stats.avg_data_size)}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -184,4 +198,4 @@ export default function RustAnalyticsDisplay() {
       </CardContent>
     </Card>
   );
-} 
+}

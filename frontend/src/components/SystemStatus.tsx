@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -66,18 +66,18 @@ export default function SystemStatus() {
 
   const formatUptime = (seconds: number): string => {
     if (isNaN(seconds)) return 'Desconocido';
-    
+
     const days = Math.floor(seconds / (24 * 60 * 60));
     const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
     const minutes = Math.floor((seconds % (60 * 60)) / 60);
     const secs = Math.floor(seconds % 60);
-    
+
     let result = '';
     if (days > 0) result += `${days}d `;
     if (hours > 0 || days > 0) result += `${hours}h `;
     if (minutes > 0 || hours > 0 || days > 0) result += `${minutes}m `;
     result += `${secs}s`;
-    
+
     return result;
   };
 
@@ -124,9 +124,14 @@ export default function SystemStatus() {
     <div className="bg-white border rounded-lg shadow-md p-6 w-full">
       <div className="mb-6 flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-800">Estado del Sistema</h2>
-        <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(healthData.status)}`}>
-          {healthData.status === 'ok' ? 'Todo Correcto' : 
-           healthData.status === 'degraded' ? 'Degradado' : 'Error'}
+        <div
+          className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(healthData.status)}`}
+        >
+          {healthData.status === 'ok'
+            ? 'Todo Correcto'
+            : healthData.status === 'degraded'
+              ? 'Degradado'
+              : 'Error'}
         </div>
       </div>
 
@@ -159,12 +164,14 @@ export default function SystemStatus() {
 
         <div className="border rounded-lg p-4">
           <h3 className="font-bold text-lg mb-3 text-gray-700">Estado de Servicios</h3>
-          
+
           {/* Backend Service */}
           <div className="mb-4 border-b pb-3">
             <div className="flex justify-between items-center mb-2">
               <span className="font-semibold">API Gateway (Backend)</span>
-              <div className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor('ok')}`}>
+              <div
+                className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor('ok')}`}
+              >
                 OK
               </div>
             </div>
@@ -179,20 +186,20 @@ export default function SystemStatus() {
               </div>
             </div>
           </div>
-          
+
           {/* Rust Service */}
           {healthData.dependencies?.rust_service && (
             <div className="mb-4 border-b pb-3">
               <div className="flex justify-between items-center mb-2">
                 <span className="font-semibold">Servicio Rust</span>
-                <div className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(healthData.dependencies.rust_service.status)}`}>
+                <div
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(healthData.dependencies.rust_service.status)}`}
+                >
                   {healthData.dependencies.rust_service.status.toUpperCase()}
                 </div>
               </div>
               {healthData.dependencies.rust_service.status === 'ok' ? (
-                <div className="text-sm text-gray-600">
-                  Servicio funcionando correctamente
-                </div>
+                <div className="text-sm text-gray-600">Servicio funcionando correctamente</div>
               ) : (
                 <div className="text-sm text-red-600">
                   {healthData.dependencies.rust_service.error || 'Error en el servicio'}
@@ -200,12 +207,14 @@ export default function SystemStatus() {
               )}
             </div>
           )}
-          
+
           {/* Frontend Service */}
           <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
               <span className="font-semibold">Frontend (Next.js)</span>
-              <div className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor('ok')}`}>
+              <div
+                className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor('ok')}`}
+              >
                 OK
               </div>
             </div>
@@ -215,10 +224,10 @@ export default function SystemStatus() {
           </div>
         </div>
       </div>
-      
+
       <div className="mt-6 text-xs text-gray-500 text-right">
         Actualización automática cada 30 segundos
       </div>
     </div>
   );
-} 
+}

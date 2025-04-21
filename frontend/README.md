@@ -15,7 +15,7 @@ Frontend moderno para la plataforma Codex de generación de códigos de barras y
 - **Personalización**: Opciones para personalizar la generación de códigos:
   - Escala (tamaño)
   - Nivel de corrección de errores para QR
-- **Visualización en Tiempo Real**: Previsualización inmediata de los códigos generados 
+- **Visualización en Tiempo Real**: Previsualización inmediata de los códigos generados
 - **Exportación**: Descarga de códigos en formato SVG
 - **Diseño Responsivo**: Interfaz adaptable a dispositivos móviles y de escritorio
 - **Dashboard de Métricas**: Visualización detallada del rendimiento del sistema:
@@ -67,6 +67,7 @@ frontend/
 ### Generador de Códigos
 
 El componente principal para la generación de códigos de barras ubicado en `app/page.tsx`:
+
 - Formulario interactivo para ingresar datos y seleccionar tipo de código
 - Panel de opciones avanzadas (escala, corrección de errores)
 - Previsualización en tiempo real
@@ -75,6 +76,7 @@ El componente principal para la generación de códigos de barras ubicado en `ap
 ### Dashboard de Métricas
 
 Visualización de métricas del sistema ubicado en `app/dashboard/metrics/page.tsx`:
+
 - Estadísticas generales del sistema
 - Detalles de rendimiento del caché
 - Visualización por tipo de código
@@ -83,6 +85,7 @@ Visualización de métricas del sistema ubicado en `app/dashboard/metrics/page.t
 ### SystemStatus
 
 Componente para monitorear el estado de los servicios:
+
 - Estado de servicios frontend, backend y Rust
 - Información detallada de cada servicio
 - Actualización automática
@@ -90,6 +93,7 @@ Componente para monitorear el estado de los servicios:
 ### Navbar
 
 Barra de navegación mejorada con diseño optimizado:
+
 - Enlaces principales horizontales junto al logo
 - Menú responsivo para dispositivos móviles
 - Alto contraste visual para mejor experiencia de usuario

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,7 +9,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,9 +23,9 @@ export default function LoginForm() {
       const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -39,9 +39,9 @@ export default function LoginForm() {
         localStorage.setItem('auth_token', data.token);
         // Eliminar versión antigua si existe
         localStorage.removeItem('authToken');
-        
+
         console.log('Token guardado correctamente, redirigiendo...');
-        
+
         // Redireccionar a la página principal
         router.push('/');
       } else {
@@ -57,17 +57,15 @@ export default function LoginForm() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 bg-gray-50">
       <div className="w-full max-w-md">
-        <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-6">
-          Iniciar sesión
-        </h2>
-        
+        <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-6">Iniciar sesión</h2>
+
         <div className="bg-white py-8 px-6 shadow rounded-lg w-full">
           {error && (
             <div className="bg-red-50 border border-red-300 rounded-md p-4 mb-6 text-red-900">
               <p>{error}</p>
             </div>
           )}
-          
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left">
@@ -89,7 +87,10 @@ export default function LoginForm() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 text-left">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 text-left"
+              >
                 Contraseña
               </label>
               <div className="mt-1">
@@ -128,9 +129,7 @@ export default function LoginForm() {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  ¿No tienes una cuenta?
-                </span>
+                <span className="px-2 bg-white text-gray-500">¿No tienes una cuenta?</span>
               </div>
             </div>
 
@@ -147,4 +146,4 @@ export default function LoginForm() {
       </div>
     </div>
   );
-} 
+}

@@ -1,20 +1,18 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from 'react';
+// import { useState, useEffect } from 'react'; // Remove unused imports
 import SystemStatus from '@/components/SystemStatus';
 import RustAnalyticsDisplay from '@/components/RustAnalyticsDisplay';
 
 export default function DashboardPage() {
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-gray-50 text-gray-900">
-      <h1 className="text-3xl font-bold mb-6 text-gray-900">
-        Dashboard del Sistema
-      </h1>
-      
+      <h1 className="text-3xl font-bold mb-6 text-gray-900">Dashboard del Sistema</h1>
+
       <div className="w-full max-w-5xl space-y-6">
         <SystemStatus />
         <RustAnalyticsDisplay />
       </div>
     </main>
   );
-} 
+}
