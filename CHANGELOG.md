@@ -8,11 +8,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 ## [No publicado]
 
 ### Añadido
+- **Rust Generator:** Integración de `rxing::EncodeHints` para permitir opciones avanzadas de codificación (ECL, margen) vía `encode_with_hints`.
 - **Calidad:** Configuración de ESLint y Prettier para el backend (`backend/`).
 - **Calidad:** Migración de configuración de ESLint del backend a formato "flat config" (`eslint.config.js`).
 - **Dev:** Añadida dependencia `tsx` al backend para ejecución en desarrollo.
 
 ### Mejorado
+- **Frontend:** Implementada carga inicial de QR por defecto al visitar la página.
+- **Frontend:** El campo de datos ahora se actualiza dinámicamente con ejemplos válidos al cambiar el tipo de código seleccionado.
 - **Calidad:** Verificado y aplicado formato (`cargo fmt`) y linting (`cargo clippy`) al código Rust (`rust_generator`).
 - **Calidad:** Verificado linting (`eslint`/`next lint`) y formato (`prettier --check`) en `frontend` y `backend` (sin errores/advertencias actualmente).
 - **Frontend:** Mejorada retroalimentación en formulario de registro (mensaje de éxito, redirección retardada a login).

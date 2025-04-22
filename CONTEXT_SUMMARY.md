@@ -1,6 +1,6 @@
 # Documento de Contexto del Proyecto "Codex"
 
-**Fecha de Actualización:** 2024-07-28
+**Fecha de Actualización:** 2024-07-29
 
 **Propósito:** Este documento sirve para re-contextualizar rápidamente al asistente IA sobre el estado actual y la historia reciente del proyecto Codex, una plataforma web para la generación de códigos de barras y QR.
 
@@ -46,22 +46,18 @@
     *   `docker-compose.yml`: Define los servicios de infraestructura.
     *   `prometheus.yml`: Define los targets de scrapeo para Prometheus (actualmente `host.docker.internal:3004/metrics`).
 
-## 3. Hitos Recientes y Estado Funcional (Sesión: 2024-07-28)
+## 3. Hitos Recientes y Estado Funcional (Sesión: 2024-07-29)
 
-*   **Backend:**
-    *   **Resuelto error crítico de arranque** (Node.js v22 + ESM) cambiando el ejecutor de desarrollo a `tsx` (`npm run dev` ahora funciona).
-    *   **Resuelto error de base de datos** ("Table `public.User` does not exist") ejecutando `prisma migrate dev`.
-    *   Verificada la implementación existente y funcional del **caché Redis** en `barcodeService.ts`.
-    *   Revisada y confirmada la **optimización actual de `findByApiKey`** (prefijo + índice).
-    *   Añadidas dependencias ESLint faltantes (`eslint-plugin-import`, `eslint-plugin-prettier`).
-    *   Eliminada función `sendSuccessResponse` no utilizada.
-    *   Corregidos imports relativos sin extensión `.js`.
+*   **Servicio Rust (Generador):**
+    *   **Integrada la estructura `EncodeHints`** de `rxing` (v0.7.0+).
+    *   La función `generate_code` ahora utiliza `encode_with_hints`, permitiendo pasar opciones como nivel de corrección de errores (ECL) y margen (inferido de `scale`).
 *   **Frontend:**
-    *   **Mejorado flujo de registro:** Muestra mensaje de éxito y redirige a login con delay.
-    *   **Corregido flujo de login:** Ahora actualiza correctamente el estado visual en la Navbar (usando `window.location.href` + lógica `useEffect` de Navbar).
-*   **Calidad General:** Verificado que linters y formatters (`clippy`, `fmt`, `eslint`, `prettier`) pasan en todos los componentes. Ejecutados `depcheck` y `ts-prune`.
-*   **Documentación:** Actualizados `CHANGELOG.md`, `frontend/README.md`, creado `rust_generator/README.md`. Actualizado este documento (`CONTEXT_SUMMARY.md`).
-*   **Estado General Actual:** El proyecto compila y se ejecuta correctamente en todas sus partes. Flujo de autenticación básico funcional con retroalimentación. Código limpio según linters/formatters. Documentación al día con los últimos cambios.
+    *   Implementada la **carga inicial de un código QR por defecto** al visitar la página.
+    *   El campo de datos ahora se **actualiza dinámicamente con ejemplos válidos** y relevantes al cambiar el tipo de código seleccionado en el desplegable.
+    *   Añadidos los tipos de código restantes al selector de tipos.
+*   **Documentación:**
+    *   Actualizados `CHANGELOG.md`, `CODEX.md` (Changelog interno) y este documento (`CONTEXT_SUMMARY.md`) para reflejar los avances de la sesión.
+*   **Estado General Actual:** El proyecto compila y se ejecuta. La generación de códigos ahora soporta hints básicos. El frontend ofrece una mejor experiencia inicial y guía al usuario con ejemplos dinámicos.
 
 ## 4. Próximos Pasos y Planificación (Según Plan Revisado)
 

@@ -188,6 +188,8 @@ Este documento resume los pilares fundamentales para la construcción de una pla
 - **Frontend:** Mejoras significativas de **responsividad** en Navbar, Formularios (Login/Registro) y Página Principal del Generador para pantallas grandes (4K).
 - **Frontend:** Refactorización de la página del Generador para usar componentes UI (`Input`, `Select`, `Button`, `Label`) y estructura de tarjetas/disclosure.
 - **Frontend:** Aplicación de **estilo visual consistente** (tarjetas, componentes UI) a la página de Perfil.
+- **Frontend:** Implementada carga inicial de QR por defecto y actualización dinámica de datos de ejemplo.
+- **Servicio Rust:** Integración de `EncodeHints` de `rxing` para soportar opciones de codificación avanzadas.
 - **Infraestructura:** Añadido `docker-compose.yml` para gestionar base de datos PostgreSQL en desarrollo.
 
 ### v1.1 - 13 de abril de 2025
