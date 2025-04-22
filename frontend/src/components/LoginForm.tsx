@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  const { login } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,8 +19,7 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      // Usar la variable de entorno para la URL del backend
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3003';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
       const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
@@ -35,15 +35,9 @@ export default function LoginForm() {
       }
 
       if (data.success && data.token) {
-        // Guardar token en localStorage con el nombre correcto
-        localStorage.setItem('auth_token', data.token);
-        // Eliminar versión antigua si existe
-        localStorage.removeItem('authToken');
-
-        console.log('Token guardado correctamente, refrescando...');
-
-        // Redireccionar a la página principal FORZANDO REFRESCO
-        window.location.href = '/';
+        await login(data.token);
+        
+        router.push('/');
       } else {
         throw new Error(data.error?.message || 'Token no recibido o respuesta inválida');
       }

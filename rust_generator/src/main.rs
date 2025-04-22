@@ -31,15 +31,14 @@ use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, Env
 
 // Imports locales
 mod validators;
-use validators::{validate_barcode_request, BarcodeRequest};
+use validators::{validate_barcode_request, BarcodeRequest, BarcodeRequestOptions};
 
-// Estructura para la clave de caché
+// Estructura para la clave de caché (simplificada para usar BarcodeRequestOptions)
 #[derive(Clone, Hash, PartialEq, Eq)]
 struct CacheKey {
     barcode_type: String,
     data: String,
-    scale: u32,
-    error_correction_level: Option<String>,
+    options: BarcodeRequestOptions, // Usar directamente la estructura de opciones
 }
 
 // Estructura que contiene los datos de caché y estadísticas
@@ -178,7 +177,8 @@ impl GenerationCache {
     // Almacena un valor en la caché con el TTL predeterminado
     fn put(&self, key: &CacheKey, svg: String) {
         let ttl_secs = self.default_ttl_secs.load(Ordering::Relaxed);
-        self.put_with_ttl(key, svg, Duration::from_secs(ttl_secs));
+        let effective_ttl = key.options.ttl_seconds.map(Duration::from_secs).unwrap_or_else(|| Duration::from_secs(ttl_secs));
+        self.put_with_ttl(key, svg, effective_ttl);
     }
 
     // Almacena un valor en la caché con un TTL específico
@@ -215,7 +215,7 @@ impl GenerationCache {
         }
     }
 
-    // Calcular hash para la clave
+    // Calcular hash para la clave (ahora hashea toda la estructura CacheKey)
     fn calculate_hash(&self, key: &CacheKey) -> u64 {
         let mut hasher = DefaultHasher::new();
         key.hash(&mut hasher);
@@ -506,7 +506,7 @@ impl Clone for GenerationCache {
     }
 }
 
-// Instancia global de caché
+// Singleton para la caché global
 static CACHE: OnceLock<GenerationCache> = OnceLock::new();
 
 // --- Structs de Respuesta ---
@@ -615,113 +615,75 @@ async fn root_handler() -> &'static str {
 
 // --- Handlers ---
 async fn generate_handler(Json(payload): Json<BarcodeRequest>) -> impl IntoResponse {
-    let request_id = REQUEST_COUNTER.fetch_add(1, Ordering::SeqCst);
     let start_time = Instant::now();
+    debug!("Request payload: {:?}", payload);
 
-    info!(
-        request_id = request_id,
-        barcode_type = %payload.barcode_type,
-        data_length = payload.data.len(),
-        "Solicitud de generación recibida"
-    );
-
+    // Validar la solicitud completa
     if let Err(validation_error) = validate_barcode_request(&payload) {
-        error!(error = %validation_error, "Error de validación");
-
+        error!("Validation error: {}", validation_error);
         return handle_error(
-            validation_error.message.clone(),
+            validation_error.message,
             StatusCode::BAD_REQUEST,
-            validation_error.suggestion.clone(),
-            Some(validation_error.code.clone()),
+            validation_error.suggestion,
+            Some(validation_error.code),
         );
     }
 
-    let scale = payload
-        .options
-        .as_ref()
-        .map_or_else(validators::default_scale, |opts| opts.scale);
+    // Mapear tipo de código si es necesario (ej. qr a qrcode)
+    let mapped_barcode_type = match payload.barcode_type.to_lowercase().as_str() {
+        "qr" => "qrcode",
+        other => other,
+    }.to_string();
 
-    let width_hint = 0;
-    let height_hint = 0;
+    // Extraer las opciones o usar Default si no vienen
+    let options = payload.options.unwrap_or_default();
 
-    let barcode_type = match payload.barcode_type.to_lowercase().trim() {
-        "qrcode" | "qr-code" | "qr_code" | "qr" => "qr".to_string(),
-        "code128" | "code-128" | "code_128" | "code 128" => "code128".to_string(),
-        "code39" | "code-39" | "code_39" | "code 39" => "code39".to_string(),
-        "datamatrix" | "data-matrix" | "data_matrix" | "data matrix" => "datamatrix".to_string(),
-        "ean13" | "ean-13" | "ean_13" | "ean 13" => "ean13".to_string(),
-        "pdf417" | "pdf-417" | "pdf_417" | "pdf 417" => "pdf417".to_string(),
-        "upca" | "upc-a" | "upc_a" | "upc a" => "upca".to_string(),
-        _ => payload.barcode_type.to_lowercase(),
-    };
-
-    debug!(
-        original_type = %payload.barcode_type,
-        normalized_type = %barcode_type,
-        "Tipo de código normalizado"
-    );
-
+    // Crear la clave de caché usando la estructura de opciones clonada
     let cache_key = CacheKey {
-        barcode_type: barcode_type.clone(),
+        barcode_type: mapped_barcode_type.clone(),
         data: payload.data.clone(),
-        scale,
-        error_correction_level: payload
-            .options
-            .as_ref()
-            .and_then(|opts| opts.error_correction_level.clone()),
+        options: options.clone(),
     };
 
-    let custom_ttl = payload
-        .options
-        .as_ref()
-        .and_then(|opts| opts.ttl_seconds)
-        .map(Duration::from_secs);
+    // Acceder a la instancia de caché global de forma segura
+    let cache_instance = CACHE.get().expect("Cache no inicializado");
 
-    if let Some(cache) = CACHE.get() {
-        if let Some(cached_svg) = cache.get(&cache_key) {
-            let duration_ms = start_time.elapsed().as_millis() as u64;
-            cache.record_cache_hit(&barcode_type, duration_ms, payload.data.len());
-
-            info!(
-                request_id = request_id,
-                barcode_type = %payload.barcode_type,
-                duration_ms = duration_ms,
-                "Éxito en caché"
-            );
-
-            return (
-                StatusCode::OK,
-                Json(SuccessResponse {
-                    success: true,
-                    svg_string: cached_svg,
-                }),
-            )
-                .into_response();
-        }
+    // Intentar obtener de la caché usando la instancia
+    if let Some(cached_svg) = cache_instance.get(&cache_key) {
+        let duration_ms = start_time.elapsed().as_millis() as u64;
+        cache_instance.record_cache_hit(&cache_key.barcode_type, duration_ms, payload.data.len());
+        info!(type=%cache_key.barcode_type, duration_ms=duration_ms, cache="hit", "Cache hit, returning cached SVG");
+        return (StatusCode::OK, Json(SuccessResponse { success: true, svg_string: cached_svg })).into_response();
     }
 
-    match rust_generator::generate_code(
-        &barcode_type,
-        &payload.data,
-        width_hint,
-        height_hint,
-        scale,
-    ) {
+    // Cache miss: Proceder a generar
+    info!(type=%cache_key.barcode_type, cache="miss", "Cache miss, proceeding to generate barcode");
+
+    // --- Llamada a la función de generación desde lib.rs --- 
+    // Pasar todas las opciones extraídas de cache_key.options
+    let generation_result = rust_generator::generate_code( // Usar nombre del crate:: para llamar a la función de lib.rs
+        &cache_key.barcode_type, 
+        &cache_key.data, 
+        cache_key.options.scale,               // scale: u32
+        cache_key.options.ecl.as_deref(),      // _ecl: Option<&str>
+        cache_key.options.height,              // height: Option<u32>
+        cache_key.options.includetext,         // _includetext: Option<bool>
+        cache_key.options.fgcolor.as_deref(),  // fgcolor: Option<&str>
+        cache_key.options.bgcolor.as_deref(),  // bgcolor: Option<&str>
+    );
+    // ---------------------------------------------------------
+    
+    match generation_result {
         Ok(svg_string) => {
             let duration_ms = start_time.elapsed().as_millis() as u64;
 
             if let Some(cache) = CACHE.get() {
-                cache.record_generation(&barcode_type, duration_ms, payload.data.len());
-                if let Some(ttl) = custom_ttl {
-                    cache.put_with_ttl(&cache_key, svg_string.clone(), ttl);
-                } else {
-                    cache.put(&cache_key, svg_string.clone());
-                }
+                cache.record_generation(&cache_key.barcode_type, duration_ms, payload.data.len());
+                cache.put(&cache_key, svg_string.clone());
             }
 
             info!(
-                request_id = request_id,
-                barcode_type = %payload.barcode_type,
+                type = %cache_key.barcode_type,
                 duration_ms = duration_ms,
                 "Generación exitosa"
             );
@@ -740,8 +702,7 @@ async fn generate_handler(Json(payload): Json<BarcodeRequest>) -> impl IntoRespo
             let duration_ms = start_time.elapsed().as_millis() as u64;
 
             error!(
-                request_id = request_id,
-                barcode_type = %payload.barcode_type,
+                barcode_type = %cache_key.barcode_type,
                 error = %error_message,
                 duration_ms = duration_ms,
                 "Error en generación"

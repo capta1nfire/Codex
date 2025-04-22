@@ -15,7 +15,7 @@ pub struct BarcodeRequest {
 }
 
 // Opciones extendidas para soportar más parámetros específicos por tipo
-#[derive(Debug, serde::Deserialize, Default)]
+#[derive(Debug, serde::Deserialize, Default, Clone, Hash, PartialEq, Eq)]
 pub struct BarcodeRequestOptions {
     #[serde(default = "default_scale")]
     pub scale: u32,
@@ -23,8 +23,8 @@ pub struct BarcodeRequestOptions {
     #[allow(dead_code)] // Se mantiene para futuras implementaciones
     pub margin: Option<u32>,
 
-    #[serde(rename = "errorCorrectionLevel")]
-    pub error_correction_level: Option<String>,
+    #[serde(rename = "ecl")]
+    pub ecl: Option<String>,
 
     #[serde(rename = "minColumns")]
     pub min_columns: Option<u32>,
@@ -38,6 +38,17 @@ pub struct BarcodeRequestOptions {
     // Nuevo campo para TTL personalizado
     #[serde(rename = "ttlSeconds")]
     pub ttl_seconds: Option<u64>,
+
+    #[serde(rename = "fgcolor")]
+    pub fgcolor: Option<String>,
+
+    #[serde(rename = "bgcolor")]
+    pub bgcolor: Option<String>,
+
+    pub height: Option<u32>,
+
+    #[serde(rename = "includetext")]
+    pub includetext: Option<bool>,
 }
 
 pub fn default_scale() -> u32 {
@@ -126,7 +137,7 @@ impl BarcodeValidator for QRValidator {
 
         // Validar nivel de corrección de errores si está especificado
         if let Some(options) = &request.options {
-            if let Some(ecl) = &options.error_correction_level {
+            if let Some(ecl) = &options.ecl {
                 let ecl_upper = ecl.to_uppercase();
                 if !["L", "M", "Q", "H"].contains(&ecl_upper.as_str()) {
                     return Err(ValidationError {
@@ -543,7 +554,7 @@ mod tests {
             data: "https://ejemplo.com".to_string(),
             options: Some(BarcodeRequestOptions {
                 scale: 5,
-                error_correction_level: Some("H".to_string()),
+                ecl: Some("H".to_string()),
                 ..Default::default()
             }),
         };
@@ -560,7 +571,7 @@ mod tests {
             data: "https://ejemplo.com".to_string(),
             options: Some(BarcodeRequestOptions {
                 scale: 5,
-                error_correction_level: Some("Z".to_string()), // Inválido
+                ecl: Some("Z".to_string()), // Inválido
                 ..Default::default()
             }),
         };

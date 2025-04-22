@@ -1,21 +1,14 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
-import Navbar from '../components/Navbar';
+import Navbar from '@/components/Navbar';
+import { AuthProvider } from '@/context/AuthContext';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'CODEX - Generador de Códigos de Barras',
-  description: 'Plataforma avanzada para generación de códigos de barras y QR',
+  title: 'Codex - Generador Códigos',
+  description: 'Genera códigos de barras y QR fácilmente',
 };
 
 export default function RootLayout({
@@ -25,9 +18,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Navbar />
-        {children}
+      <body className={`${inter.className} bg-gray-100`}>
+        <AuthProvider>
+          <Navbar />
+          <main className="pt-16 lg:pt-20 xl:pt-24">
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   );

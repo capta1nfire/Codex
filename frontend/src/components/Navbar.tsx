@@ -1,98 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+// import { useState, useEffect } from 'react'; // Ya no se necesitan
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, ChevronDown, BarChart2, QrCode, User, LogOut, Settings } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext'; // Importar useAuth
+import { useState } from 'react'; // Mantener useState para isMenuOpen, isUserMenuOpen
 
-// Interface defining the structure of the User object
+// Ya no necesitamos la interfaz User aquí, vendrá del contexto
+/*
 interface User {
   id: string;
   name: string;
   email: string;
   role: string;
 }
+*/
 
 // Default export of the Navbar component
 export default function Navbar() {
-  // State for managing mobile menu visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // State for managing user dropdown menu visibility
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  // State to store user data
-  const [user, setUser] = useState<User | null>(null);
-  // State to track loading status for user data fetching
-  const [isLoading, setIsLoading] = useState(true);
+  // Obtener estado y funciones del contexto
+  const { user, isLoading, logout } = useAuth();
 
-  // Hook to get the current URL pathname
   const pathname = usePathname();
-  const router = useRouter(); // Get router instance
+  const router = useRouter(); // Todavía podríamos necesitarlo para otras navegaciones
 
-  // Effect hook to fetch user data when the component mounts or pathname changes
+  // Eliminar el useEffect que hacía fetch localmente
+  /*
   useEffect(() => {
-    // Retrieve the authentication token from local storage
-    const token = localStorage.getItem('auth_token');
-
-    // If a token exists, attempt to fetch user data
-    if (token) {
-      // Determine the backend URL from environment variables or use a default
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
-
-      // Fetch user data from the '/api/auth/me' endpoint
-      fetch(`${backendUrl}/api/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Send token in Authorization header
-        },
-      })
-        .then((res) => {
-          // If the response is OK, parse the JSON body
-          if (res.ok) return res.json();
-          // Otherwise, throw an error (e.g., unauthorized)
-          // Log specific error status for better debugging
-          console.error(`Error fetching user: Status ${res.status}`);
-          throw new Error(`No autorizado (status: ${res.status})`);
-        })
-        .then((data) => {
-          // If the request was successful and user data is present, update the user state
-          if (data.success && data.user) {
-            setUser(data.user);
-          } else {
-            // Throw an error if the server response is invalid or unsuccessful
-            throw new Error(data.message || 'Respuesta inválida del servidor');
-          }
-        })
-        .catch((err) => {
-          // If any error occurs (fetch error, unauthorized, invalid response),
-          // remove the token, clear user state
-          console.error('Error fetching user data:', err.message); // Log the specific error message
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('authToken'); // Remove potential legacy token
-          setUser(null); // Ensure user state is cleared on error
-        })
-        .finally(() => {
-          // Set loading state to false regardless of success or failure
-          setIsLoading(false);
-        });
-    } else {
-      // If no token exists, set loading to false and ensure user is null
-      setIsLoading(false);
-      setUser(null);
-    }
+    // ... lógica de fetch eliminada ...
   }, []);
+  */
 
-  // Function to handle user logout
+  // Función de logout ahora usa la función del contexto
   const handleLogout = () => {
-    // Remove token from local storage
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('authToken'); // Also remove legacy token if present
-    // Clear user state
-    setUser(null);
-    // Close the user menu
+    logout(); // Llama a la función logout del contexto
     setIsUserMenuOpen(false);
-    // Close the mobile menu if open
     setIsMenuOpen(false);
-    // Use Next.js router for smoother navigation
-    router.push('/');
+    // La redirección la puede manejar el contexto o simplemente el estado cambia
+    // router.push('/'); // Opcional: redirigir si el contexto no lo hace
   };
 
   // Enlaces de navegación - definidos una vez para reutilizar en escritorio y móvil
@@ -180,7 +128,7 @@ export default function Navbar() {
                       <User className="mr-3 h-4 w-4 text-gray-500 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
                       Mi Perfil
                     </Link>
-                    {user.role === 'admin' && (
+                    {user.role === 'ADMIN' && ( // Comparar con rol del contexto
                       <Link
                         href="/admin"
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50
@@ -192,7 +140,7 @@ export default function Navbar() {
                       </Link>
                     )}
                     <button
-                      onClick={handleLogout}
+                      onClick={handleLogout} // Llama a la nueva función handleLogout
                       className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left
                       lg:px-5 lg:py-3 lg:text-base xl:px-6 xl:py-4 xl:text-lg"
                     >
@@ -252,29 +200,57 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-          </div>
 
-          {/* Usuario móvil - solo se muestra si no hay sesión iniciada */}
-          {!isLoading && !user && (
-            <div className="py-3 border-t border-blue-800">
-              <div className="flex flex-col space-y-2 px-4">
+            {/* Lógica condicional móvil basada en contexto */}
+            {isLoading ? (
+               <div className="h-10 bg-blue-800/50 rounded animate-pulse mt-2"></div>
+            ) : user ? (
+              <>
                 <Link
-                  href="/login"
-                  className="flex justify-center items-center px-4 py-3 text-base font-medium rounded-md text-white bg-blue-800/30 hover:bg-blue-800/50"
+                  href="/profile"
+                  className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"
                   onClick={() => setIsMenuOpen(false)}
+                 >
+                   <User className="mr-3 h-5 w-5" />
+                   Mi Perfil
+                </Link>
+                {user.role === 'ADMIN' && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Settings className="mr-3 h-5 w-5" />
+                    Panel Admin
+                  </Link>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white text-left"
+                >
+                  <LogOut className="mr-3 h-5 w-5" />
+                  Cerrar Sesión
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                   href="/login"
+                   className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"
+                   onClick={() => setIsMenuOpen(false)}
                 >
                   Iniciar Sesión
                 </Link>
                 <Link
-                  href="/register"
-                  className="flex justify-center items-center px-4 py-3 text-base font-medium rounded-md text-blue-900 bg-white hover:bg-blue-50"
-                  onClick={() => setIsMenuOpen(false)}
+                   href="/register"
+                   className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"
+                   onClick={() => setIsMenuOpen(false)}
                 >
                   Registrarse
                 </Link>
-              </div>
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
       )}
     </header>
