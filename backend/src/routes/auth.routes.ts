@@ -1,12 +1,10 @@
 import { Router } from 'express';
 
-import {
-  authController,
-  loginValidators,
-  registerValidators,
-} from '../controllers/auth.controller';
-import { authenticateJwt, checkRole } from '../middleware/authMiddleware';
-import { UserRole } from '../models/user';
+import { authController } from '../controllers/auth.controller.js';
+import { validateBody } from '../middleware/validationMiddleware.js';
+import { registerSchema, loginSchema } from '../schemas/authSchemas.js';
+import { authenticateJwt, checkRole } from '../middleware/authMiddleware.js';
+import { UserRole } from '../models/user.js';
 
 const router = Router();
 
@@ -15,14 +13,14 @@ const router = Router();
  * @desc    Registrar un nuevo usuario
  * @access  Público
  */
-router.post('/register', registerValidators, authController.register);
+router.post('/register', validateBody(registerSchema), authController.register);
 
 /**
  * @route   POST /api/auth/login
  * @desc    Iniciar sesión y obtener token JWT
  * @access  Público
  */
-router.post('/login', loginValidators, authController.login);
+router.post('/login', validateBody(loginSchema), authController.login);
 
 /**
  * @route   POST /api/auth/refresh

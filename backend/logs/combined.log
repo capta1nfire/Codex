@@ -1522,3 +1522,7 @@
 {"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:51:16"}
 {"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:51:16"}
 {"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:51:16"}
+{"level":"info","message":"Servidor HTTP escuchando en http://0.0.0.0:3004","service":"codex-backend","timestamp":"2025-04-22 20:35:07"}
+{"level":"info","message":"Listo para reenviar peticiones al servicio Rust en http://localhost:3002/generate","service":"codex-backend","timestamp":"2025-04-22 20:35:07"}
+{"level":"info","message":"Modo: development, Rate limit: 100 solicitudes por 15 minutos","service":"codex-backend","timestamp":"2025-04-22 20:35:07"}
+{"level":"info","message":"[Redis] Client connected","service":"codex-backend","timestamp":"2025-04-22 20:35:07"}

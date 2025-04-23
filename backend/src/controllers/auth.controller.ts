@@ -1,66 +1,22 @@
 import crypto from 'crypto';
 
-import { Request, Response, NextFunction } from 'express';
-import { check, validationResult } from 'express-validator';
+import { Request as ExpressRequest, Response, NextFunction } from 'express';
+import type { User } from '../models/user.js';
 
-import { userStore, UserRole } from '../models/user';
-import { authService } from '../services/auth.service';
-import { AppError, ErrorCode } from '../utils/errors';
-import logger from '../utils/logger';
+import { userStore, UserRole } from '../models/user.js';
+import { authService } from '../services/auth.service.js';
+import { AppError, ErrorCode } from '../utils/errors.js';
+import logger from '../utils/logger.js';
 
-// Validadores para registro de usuario
-export const registerValidators = [
-  check('email')
-    .exists()
-    .withMessage('El email es obligatorio')
-    .isEmail()
-    .withMessage('Formato de email inválido')
-    .normalizeEmail(),
-
-  check('password')
-    .exists()
-    .withMessage('La contraseña es obligatoria')
-    .isLength({ min: 8 })
-    .withMessage('La contraseña debe tener al menos 8 caracteres')
-    .matches(/[a-z]/)
-    .withMessage('La contraseña debe tener al menos una letra minúscula')
-    .matches(/[A-Z]/)
-    .withMessage('La contraseña debe tener al menos una letra mayúscula')
-    .matches(/[0-9]/)
-    .withMessage('La contraseña debe tener al menos un número'),
-
-  check('name')
-    .exists()
-    .withMessage('El nombre es obligatorio')
-    .isLength({ min: 3 })
-    .withMessage('El nombre debe tener al menos 3 caracteres')
-    .trim(),
-];
-
-// Validadores para login de usuario
-export const loginValidators = [
-  check('email')
-    .exists()
-    .withMessage('El email es obligatorio')
-    .isEmail()
-    .withMessage('Formato de email inválido')
-    .normalizeEmail(),
-
-  check('password').exists().withMessage('La contraseña es obligatoria'),
-];
+// Custom request type with authenticated user (Prisma User)
+type RequestWithUser = ExpressRequest & { user: User };
 
 export const authController = {
   /**
    * Registrar un nuevo usuario
    */
-  async register(req: Request, res: Response, next: NextFunction) {
+  async register(req: ExpressRequest, res: Response, next: NextFunction) {
     try {
-      // Validar datos de entrada
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        throw new AppError('Error de validación', 400, ErrorCode.VALIDATION_ERROR, errors.array());
-      }
-
       const { email, password, name } = req.body;
 
       // Crear el usuario (por defecto con rol USER)
@@ -94,14 +50,8 @@ export const authController = {
   /**
    * Iniciar sesión de usuario
    */
-  async login(req: Request, res: Response, next: NextFunction) {
+  async login(req: ExpressRequest, res: Response, next: NextFunction) {
     try {
-      // Validar datos de entrada
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        throw new AppError('Error de validación', 400, ErrorCode.VALIDATION_ERROR, errors.array());
-      }
-
       const { email, password } = req.body;
 
       // Intentar autenticar usuario
@@ -124,7 +74,7 @@ export const authController = {
   /**
    * Renovar token JWT
    */
-  async refreshToken(req: Request, res: Response, next: NextFunction) {
+  async refreshToken(req: ExpressRequest, res: Response, next: NextFunction) {
     try {
       // Obtener token del header Authorization
       const authHeader = req.headers.authorization || '';
@@ -154,7 +104,7 @@ export const authController = {
   /**
    * Obtener información del usuario actual
    */
-  async me(req: Request, res: Response) {
+  async me(req: ExpressRequest, res: Response) {
     // El usuario ya debe estar autenticado mediante middleware
     res.json({
       success: true,
@@ -165,7 +115,7 @@ export const authController = {
   /**
    * Generar una nueva API key
    */
-  async generateApiKey(req: Request, res: Response, next: NextFunction) {
+  async generateApiKey(req: RequestWithUser, res: Response, next: NextFunction) {
     try {
       // El usuario debe estar autenticado
       if (!req.user) {
@@ -202,7 +152,7 @@ export const authController = {
   /**
    * Endpoint de prueba para rol Admin
    */
-  async adminAccess(req: Request, res: Response) {
+  async adminAccess(req: RequestWithUser, res: Response) {
     // Acceso ya verificado por authenticateJwt y checkRole(ADMIN)
     res.json({
       success: true,
@@ -214,7 +164,7 @@ export const authController = {
   /**
    * Endpoint de prueba para rol Premium (o Admin)
    */
-  async premiumAccess(req: Request, res: Response) {
+  async premiumAccess(req: RequestWithUser, res: Response) {
     // Acceso ya verificado por authenticateJwt y checkRole(PREMIUM)
     res.json({
       success: true,
