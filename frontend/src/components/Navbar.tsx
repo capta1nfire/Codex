@@ -22,7 +22,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   // Obtener estado y funciones del contexto
-  const { user, isLoading, logout } = useAuth();
+  const { isAuthenticated, user, isLoading, logout } = useAuth();
 
   const pathname = usePathname();
   const router = useRouter(); // Todavía podríamos necesitarlo para otras navegaciones
@@ -95,7 +95,7 @@ export default function Navbar() {
           <div className="flex items-center">
             {isLoading ? (
               <div className="h-8 w-24 bg-blue-800/50 rounded animate-pulse lg:h-10 lg:w-32 xl:h-12 xl:w-40"></div>
-            ) : user ? (
+            ) : isAuthenticated && user ? (
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -128,7 +128,7 @@ export default function Navbar() {
                       <User className="mr-3 h-4 w-4 text-gray-500 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
                       Mi Perfil
                     </Link>
-                    {user.role === 'ADMIN' && ( // Comparar con rol del contexto
+                    {user.role.toUpperCase() === 'ADMIN' && (
                       <Link
                         href="/admin"
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50
@@ -140,7 +140,7 @@ export default function Navbar() {
                       </Link>
                     )}
                     <button
-                      onClick={handleLogout} // Llama a la nueva función handleLogout
+                      onClick={handleLogout}
                       className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left
                       lg:px-5 lg:py-3 lg:text-base xl:px-6 xl:py-4 xl:text-lg"
                     >
@@ -204,7 +204,7 @@ export default function Navbar() {
             {/* Lógica condicional móvil basada en contexto */}
             {isLoading ? (
                <div className="h-10 bg-blue-800/50 rounded animate-pulse mt-2"></div>
-            ) : user ? (
+            ) : isAuthenticated && user ? (
               <>
                 <Link
                   href="/profile"
@@ -212,9 +212,9 @@ export default function Navbar() {
                   onClick={() => setIsMenuOpen(false)}
                  >
                    <User className="mr-3 h-5 w-5" />
-                   Mi Perfil
+                   Mi Perfil ({user.name})
                 </Link>
-                {user.role === 'ADMIN' && (
+                {user.role.toUpperCase() === 'ADMIN' && (
                   <Link
                     href="/admin"
                     className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"

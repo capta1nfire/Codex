@@ -1460,3 +1460,65 @@
 {"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:29:09"}
 {"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:29:09"}
 {"level":"info","message":"[AuthController] Nueva API Key generada para usuario 7520b688-c7df-4b83-8de5-1755c5213ddb","service":"codex-backend","timestamp":"2025-04-21 22:29:21"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:35:20"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:35:20"}
+{"level":"info","message":"[BarcodeService] Cache MISS en Redis para tipo: qrcode. Llamando a Rust...","service":"codex-backend","timestamp":"2025-04-21 22:35:20"}
+{"level":"info","message":"[BarcodeService] Cache MISS en Redis para tipo: qrcode. Llamando a Rust...","service":"codex-backend","timestamp":"2025-04-21 22:35:20"}
+{"level":"info","message":"[BarcodeService] Respuesta SVG exitosa recibida desde Rust.","service":"codex-backend","timestamp":"2025-04-21 22:35:20"}
+{"level":"info","message":"[BarcodeService] Respuesta SVG exitosa recibida desde Rust.","service":"codex-backend","timestamp":"2025-04-21 22:35:20"}
+{"level":"info","message":"[BarcodeService] Resultado guardado en Redis cache (Key: barcode:{\"barcode_type\":\"qr\",\"data\":\"https://tu-si...)","service":"codex-backend","timestamp":"2025-04-21 22:35:20"}
+{"level":"info","message":"[BarcodeService] Resultado guardado en Redis cache (Key: barcode:{\"barcode_type\":\"qr\",\"data\":\"https://tu-si...)","service":"codex-backend","timestamp":"2025-04-21 22:35:20"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:40:43"}
+{"level":"info","message":"[BarcodeService] Cache MISS en Redis para tipo: qrcode. Llamando a Rust...","service":"codex-backend","timestamp":"2025-04-21 22:40:43"}
+{"level":"info","message":"[BarcodeService] Respuesta SVG exitosa recibida desde Rust.","service":"codex-backend","timestamp":"2025-04-21 22:40:43"}
+{"level":"info","message":"[BarcodeService] Resultado guardado en Redis cache (Key: barcode:{\"barcode_type\":\"qr\",\"data\":\"https://tu-si...)","service":"codex-backend","timestamp":"2025-04-21 22:40:43"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:40:55"}
+{"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:40:55"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:44:56"}
+{"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:44:56"}
+{"body":{},"error":"Unexpected token '\"', \"\"eyJhbGciO\"... is not valid JSON","headers":{"content-length":"253","content-type":"application/json","origin":"http://localhost:3000","referer":"http://localhost:3000/","user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"},"ip":"127.0.0.1","level":"error","message":"Error en la solicitud","method":"POST","params":{},"path":"/api/auth/login","query":{},"service":"codex-backend","stack":"SyntaxError: Unexpected token '\"', \"\"eyJhbGciO\"... is not valid JSON\n    at JSON.parse (<anonymous>)\n    at createStrictSyntaxError (/Users/inseqio/Codex Project/backend/node_modules/body-parser/lib/types/json.js:169:10)\n    at parse (/Users/inseqio/Codex Project/backend/node_modules/body-parser/lib/types/json.js:86:15)\n    at /Users/inseqio/Codex Project/backend/node_modules/body-parser/lib/read.js:128:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:211:14)\n    at invokeCallback (/Users/inseqio/Codex Project/backend/node_modules/raw-body/index.js:238:16)\n    at done (/Users/inseqio/Codex Project/backend/node_modules/raw-body/index.js:227:7)\n    at IncomingMessage.onEnd (/Users/inseqio/Codex Project/backend/node_modules/raw-body/index.js:287:7)\n    at IncomingMessage.emit (node:events:518:28)\n    at endReadableNT (node:internal/streams/readable:1698:12)","timestamp":"2025-04-21 22:46:22"}
+{"level":"error","message":"UNEXPECTED_ERROR: Unexpected token '\"', \"\"eyJhbGciO\"... is not valid JSON","service":"codex-backend","stack":"SyntaxError: Unexpected token '\"', \"\"eyJhbGciO\"... is not valid JSON\n    at JSON.parse (<anonymous>)\n    at createStrictSyntaxError (/Users/inseqio/Codex Project/backend/node_modules/body-parser/lib/types/json.js:169:10)\n    at parse (/Users/inseqio/Codex Project/backend/node_modules/body-parser/lib/types/json.js:86:15)\n    at /Users/inseqio/Codex Project/backend/node_modules/body-parser/lib/read.js:128:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:211:14)\n    at invokeCallback (/Users/inseqio/Codex Project/backend/node_modules/raw-body/index.js:238:16)\n    at done (/Users/inseqio/Codex Project/backend/node_modules/raw-body/index.js:227:7)\n    at IncomingMessage.onEnd (/Users/inseqio/Codex Project/backend/node_modules/raw-body/index.js:287:7)\n    at IncomingMessage.emit (node:events:518:28)\n    at endReadableNT (node:internal/streams/readable:1698:12)","timestamp":"2025-04-21 22:46:22"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:46:22"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:46:22"}
+{"level":"info","message":"[BarcodeService] Cache MISS en Redis para tipo: qrcode. Llamando a Rust...","service":"codex-backend","timestamp":"2025-04-21 22:46:22"}
+{"level":"info","message":"[BarcodeService] Cache MISS en Redis para tipo: qrcode. Llamando a Rust...","service":"codex-backend","timestamp":"2025-04-21 22:46:22"}
+{"level":"info","message":"[BarcodeService] Respuesta SVG exitosa recibida desde Rust.","service":"codex-backend","timestamp":"2025-04-21 22:46:22"}
+{"level":"info","message":"[BarcodeService] Respuesta SVG exitosa recibida desde Rust.","service":"codex-backend","timestamp":"2025-04-21 22:46:22"}
+{"level":"info","message":"[BarcodeService] Resultado guardado en Redis cache (Key: barcode:{\"barcode_type\":\"qr\",\"data\":\"https://tu-si...)","service":"codex-backend","timestamp":"2025-04-21 22:46:22"}
+{"level":"info","message":"[BarcodeService] Resultado guardado en Redis cache (Key: barcode:{\"barcode_type\":\"qr\",\"data\":\"https://tu-si...)","service":"codex-backend","timestamp":"2025-04-21 22:46:22"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:48:01"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:48:01"}
+{"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:48:01"}
+{"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:48:01"}
+{"level":"info","message":"[AuthController] Nueva API Key generada para usuario 7520b688-c7df-4b83-8de5-1755c5213ddb","service":"codex-backend","timestamp":"2025-04-21 22:48:09"}
+{"level":"info","message":"SIGINT recibido, cerrando el servidor...","service":"codex-backend","timestamp":"2025-04-21 22:48:33"}
+{"level":"info","message":"Servidor HTTP escuchando en http://0.0.0.0:3004","service":"codex-backend","timestamp":"2025-04-21 22:48:44"}
+{"level":"info","message":"Listo para reenviar peticiones al servicio Rust en http://localhost:3002/generate","service":"codex-backend","timestamp":"2025-04-21 22:48:44"}
+{"level":"info","message":"Modo: development, Rate limit: 100 solicitudes por 15 minutos","service":"codex-backend","timestamp":"2025-04-21 22:48:44"}
+{"level":"info","message":"[Redis] Client connected","service":"codex-backend","timestamp":"2025-04-21 22:48:44"}
+{"level":"info","message":"[AuthController] Nueva API Key generada para usuario 7520b688-c7df-4b83-8de5-1755c5213ddb","service":"codex-backend","timestamp":"2025-04-21 22:49:18"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:50:00"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:50:00"}
+{"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:50:00"}
+{"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:50:00"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: pdf417","service":"codex-backend","timestamp":"2025-04-21 22:50:04"}
+{"level":"info","message":"[BarcodeService] Cache MISS en Redis para tipo: pdf417. Llamando a Rust...","service":"codex-backend","timestamp":"2025-04-21 22:50:04"}
+{"level":"info","message":"[BarcodeService] Respuesta SVG exitosa recibida desde Rust.","service":"codex-backend","timestamp":"2025-04-21 22:50:04"}
+{"level":"info","message":"[BarcodeService] Resultado guardado en Redis cache (Key: barcode:{\"barcode_type\":\"pdf417\",\"data\":\"Texto de ...)","service":"codex-backend","timestamp":"2025-04-21 22:50:04"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: aztec","service":"codex-backend","timestamp":"2025-04-21 22:50:09"}
+{"level":"info","message":"[BarcodeService] Cache MISS en Redis para tipo: aztec. Llamando a Rust...","service":"codex-backend","timestamp":"2025-04-21 22:50:09"}
+{"level":"info","message":"[BarcodeService] Respuesta SVG exitosa recibida desde Rust.","service":"codex-backend","timestamp":"2025-04-21 22:50:09"}
+{"level":"info","message":"[BarcodeService] Resultado guardado en Redis cache (Key: barcode:{\"barcode_type\":\"aztec\",\"data\":\"Texto de e...)","service":"codex-backend","timestamp":"2025-04-21 22:50:09"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: upca","service":"codex-backend","timestamp":"2025-04-21 22:50:19"}
+{"level":"info","message":"[BarcodeService] Cache MISS en Redis para tipo: upca. Llamando a Rust...","service":"codex-backend","timestamp":"2025-04-21 22:50:19"}
+{"level":"info","message":"[BarcodeService] Respuesta SVG exitosa recibida desde Rust.","service":"codex-backend","timestamp":"2025-04-21 22:50:19"}
+{"level":"info","message":"[BarcodeService] Resultado guardado en Redis cache (Key: barcode:{\"barcode_type\":\"upca\",\"data\":\"03600029145...)","service":"codex-backend","timestamp":"2025-04-21 22:50:19"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:50:32"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:50:32"}
+{"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:50:32"}
+{"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:50:32"}
+{"level":"info","message":"[AuthController] Nueva API Key generada para usuario 7520b688-c7df-4b83-8de5-1755c5213ddb","service":"codex-backend","timestamp":"2025-04-21 22:51:06"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:51:16"}
+{"level":"info","message":"[Route:/generate] Solicitud recibida para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:51:16"}
+{"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:51:16"}
+{"level":"info","message":"[BarcodeService] Cache HIT en Redis para tipo: qrcode","service":"codex-backend","timestamp":"2025-04-21 22:51:16"}

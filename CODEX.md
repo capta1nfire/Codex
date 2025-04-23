@@ -1,11 +1,15 @@
 # PILAR-CODE: Documento Base del Proyecto
 
-## Versión: v1.1 
-**Fecha de publicación:** 13 de abril de 2025  
+## Versión: v1.2  
+**Fecha de publicación:** 22 de abril de 2025  
 **Estado:** Activo  
 **Tipo:** Documento vivo (sujeto a revisión continua)
 
-*Este documento representa el fundamento estratégico y técnico del proyecto de plataforma web para generación de códigos de barras y QR. Servirá como eje central para su construcción, evolución e integración con tecnologías emergentes e inteligencias artificiales.*
+**Resumen Ejecutivo:**
+- **Perfiles de usuarios gratuitos:** Estudiantes, diseñadores, ONG, testers, microempresas.  
+- **Clientes premium:** PYMEs, grandes empresas, desarrolladores, agencias de marketing, retail, salud, eventos.  
+- **Competencia global:** Herramientas como TEC‑IT, Uniqode, QR Tiger, Scanova y ME‑QR dominan la oferta; destacan en APIs, analíticas, GS1, UX y personalización.  
+- **Oportunidades para Codex:** UX moderna, backend en Rust, GS1 Digital Link nativo, seguridad avanzada, exportación vectorial, white‑label, precios claros.
 
 ---
 
@@ -15,14 +19,34 @@
 
 La plataforma web para generación de códigos de barras y QR está concebida para ofrecer una experiencia moderna, rápida e intuitiva a usuarios de todos los niveles. Compatible con navegadores modernos como Chrome, Firefox, Safari y Edge, estará diseñada para ser accesible desde dispositivos móviles y de escritorio. Con un enfoque modular y escalable, la plataforma integrará tecnologías actuales para brindar personalización avanzada, rendimiento óptimo y soporte para diferentes perfiles de usuario. Se garantizará la compatibilidad mediante pruebas automatizadas y herramientas como BrowserStack.
 
-## 2. Objetivos Estratégicos
+## 2. Objetivos Estratégicos (actualizado)
+- Crear la plataforma más completa y versátil para generación de códigos de barras y QR online.  
+- Ofrecer compatibilidad con la mayor variedad de lectores y escáneres del mercado.  
+- Garantizar escalabilidad técnica y de negocio con modelos de suscripción.  
+- Implementar APIs robustas para integraciones empresariales y SDKs nativos.  
+- Mantener disponibilidad constante (99.99%+) y soporte técnico basado en IA.  
+- Promover la sostenibilidad mediante soluciones digitales y hosting ecológico.  
+- **Nuevo:** Soporte nativo y validación GTIN/GS1 Digital Link (Sunrise 2027).  
+- **Nuevo:** Panel de analíticas avanzado para QR dinámicos.  
+- **Nuevo:** UX diferenciada y rendimiento superior (Next.js + Rust).
 
-- Crear la plataforma más completa y versátil para generación de códigos de barras y QR online.
-- Ofrecer compatibilidad con la mayor variedad de lectores y escáneres del mercado.
-- Garantizar escalabilidad técnica y de negocio con modelos de suscripción.
-- Implementar APIs robustas para integraciones empresariales.
-- Mantener disponibilidad constante (99.99%+) y soporte técnico basado en IA.
-- Promover la sostenibilidad mediante soluciones digitales y hosting ecológico.
+## 2 bis. Análisis de Mercado y Competencia
+1. **Perfiles de clientes:**  
+   - **Gratuitos:** Generación rápida de códigos estáticos, limitaciones (sin marca blanca, sin analíticas, sin lote).  
+   - **Premium:** APIs, generación en lote, QR dinámicos, branding, cumplimiento GS1, altas SLA, analíticas.  
+2. **Competidores clave (10–15):**  
+   - **TEC‑IT, Uniqode, QR Tiger, qr‑code‑generator.com, Scanova, QRCodeChimp, ME‑QR, Flowcode, Orca Scan, Canva, Adobe Express, Avery, QRCode Monkey**.  
+3. **Modelos de monetización:** Freemium escalado, APIs de pago, publicidad en free, valor añadido en suites de diseño, software on‑premise.  
+4. **Fortalezas comunes:** Variedad de simbologías, UX minimalista, APIs e integraciones, analíticas, exportación vectorial, GS1.  
+5. **Debilidades detectadas:** UX densa en soluciones técnicas, precios complejos, publicidad intrusiva, falta de seguridad avanzada.
+
+## 2 ter. Oportunidades Estratégicas
+- **UX + Rendimiento:** Flujos simples (3–4 pasos) con interfaz pulida (Tailwind), backend Rust de alta concurrencia para lote/API.  
+- **Compliance GS1:** Validación automática de GTIN, soporte GS1 Digital Link QR.  
+- **Análisis y BI:** Panel de analíticas con mapas de calor, tendencias, alertas SLA.  
+- **Personalización avanzada:** Logos, degradados, marcos CTA, plantillas white‑label.  
+- **Seguridad & Confianza:** Certificaciones SOC2/ISO/GDPR, dominios custom, detección de phishing QR.  
+- **Precios transparentes:** Bundle freemium claro + planes Pro/Enterprise + add‑ons.
 
 ## 3. Audiencia Objetivo
 
@@ -93,18 +117,11 @@ Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, 
 - Exportación en formatos de alta calidad (PNG, SVG)
 - Guías para resolución, tamaño, compatibilidad con impresoras como Zebra
 
-## 8. Planes y Monetización
-
-- Plan gratuito con límites diarios y marcas de agua
-- Planes Pro y Empresarial con:
-  - Mayor número de tipos de código
-  - Descargas en lote
-  - Personalización avanzada
-  - Acceso a la API
-  - Soporte prioritario
-  - Seguimiento de escaneos (analytics)
-- Modelo "pay-as-you-go" para startups y bajo volumen
-- Programas de referidos y pruebas gratuitas temporales
+## 8. Planes y Monetización (actualizado)
+- **Plan Gratis:** Códigos estáticos ilimitados, personalización básica (color), PNG; sin exportación vectorial, sin analíticas, con marca Codex.  
+- **Plan Profesional/PYME:** QR dinámicos limitados (X escaneos/mes), SVG/EPS, generación en lote (hasta Y), analíticas básicas, API estándar, soporte comunitario.  
+- **Plan Enterprise/API:** QR dinámicos ilimitados, analíticas avanzadas, GS1 Digital Link, multiusuario, SSO/SAML, SLA 99.99%, dominios custom, soporte dedicado, plan pay‑as‑you‑go.  
+- **Add-ons:** Usuarios adicionales, white‑label, pruebas de carga personalizadas.
 
 ## 9. API Externa e Integraciones
 
@@ -142,29 +159,29 @@ Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, 
 - NPS ≥ 8
 - Tasa de adopción mensual > 15%
 
-## 13. Roadmap de Desarrollo
-
+## 13. Roadmap de Desarrollo (actualizado)
 ### Fase 1: MVP
-- Interfaz web básica con generación de códigos estándar (QR, EAN, Code128)
-- Descarga en PNG y SVG
-- Personalización básica (color, tamaño)
-- Sin registro obligatorio
-- Feedback de usuarios
+- Interfaz básica con QR, EAN, Code128. PNG/SVG. Personalización mínima. Sin registro.
+
+### Fase 1.5: Pre‑Beta
+- **Pruebas de usabilidad** con benchmarks de Uniqode y Scanova.  
+- API básica y exportación EPS.  
+- Primeros tests GS1 Digital Link.
 
 ### Fase 2: Beta
-- Registro e inicio de sesión
-- Más tipos de códigos
-- Carga masiva (CSV)
-- Primeros planes de pago
-- Versión inicial de la API
+- Registro/SSO.  
+- Más simbologías + GS1 Digital Link.  
+- Lote (CSV).  
+- Panel de analíticas básicas.  
+- White‑label piloto.
 
 ### Fase 3: Producción
-- API robusta y documentada
-- Dashboard de usuarios
-- Sistema de roles y permisos
-- Planes empresariales
-- Integraciones con terceros
-- Seguimiento de escaneos QR (analytics)
+- API REST y GraphQL robusta.  
+- SDKs nativos.  
+- Dashboard multiusuario.  
+- Planes Enterprise y SLA.  
+- Integraciones completas (Zapier, ERP).  
+- Analíticas avanzadas y exportable a BI.
 
 ## 14. Consideraciones Finales
 
@@ -178,34 +195,12 @@ Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, 
 Este documento resume los pilares fundamentales para la construcción de una plataforma líder en generación de códigos de barras y QR en línea. Su arquitectura modular, enfoque en compatibilidad, escalabilidad, innovación y soporte la posicionan como una solución de referencia tanto para usuarios individuales como para empresas. La incorporación de estándares como GS1 Digital Link, seguimiento de escaneos y monitoreo avanzado refuerzan su proyección futura.
 
 ## 16. Changelog
-
-### v1.2 - [Fecha Actual]
-- **Backend:** Migración del UserStore en memoria a **PostgreSQL usando Prisma ORM**.
-- **Backend:** Implementación de **hasheo de API Keys** (bcrypt) y generación segura (crypto).
-- **Backend:** Refactorización de la lógica de generación de códigos a `barcodeService.ts`, eliminando duplicación en `index.ts`.
-- **Backend:** Refactorización del manejo de caché en memoria a `utils/cache.ts`.
-- **Backend:** Corrección de errores menores (tipos, configuración de logger).
-- **Frontend:** Mejoras significativas de **responsividad** en Navbar, Formularios (Login/Registro) y Página Principal del Generador para pantallas grandes (4K).
-- **Frontend:** Refactorización de la página del Generador para usar componentes UI (`Input`, `Select`, `Button`, `Label`) y estructura de tarjetas/disclosure.
-- **Frontend:** Aplicación de **estilo visual consistente** (tarjetas, componentes UI) a la página de Perfil.
-- **Frontend:** Implementada carga inicial de QR por defecto y actualización dinámica de datos de ejemplo.
-- **Servicio Rust:** Integración de `EncodeHints` de `rxing` para soportar opciones de codificación avanzadas.
-- **Infraestructura:** Añadido `docker-compose.yml` para gestionar base de datos PostgreSQL en desarrollo.
-
-### v1.1 - 13 de abril de 2025
-- Actualización para incluir detalles del componente Rust para generación de códigos.
-- Inclusión de Axum y rxing en la arquitectura del backend.
-- Detalles sobre el sistema de caché y tracing avanzado en el componente Rust.
-- Actualización de la versión del documento.
-
-### v1.0 - 28 de marzo de 2025
-- Documento base inicial "PILAR-CODE" creado.
-- Incluye arquitectura general (Next.js, Node.js, Docker, Kubernetes).
-- Definición de audiencias, objetivos estratégicos y compatibilidad con navegadores.
-- Integración de estándares como GS1 Digital Link.
-- Incorporación de funciones avanzadas como seguimiento de escaneos y monitoreo con Datadog/Sentry.
-- Plan de sostenibilidad y expansión multilingüe.
-- Inclusión del roadmap de desarrollo y KPIs iniciales.
+- **v1.2 – 22 de abril de 2025:**  
+  - Incorporación de Análisis de Mercado y Competencia global.  
+  - Añadidos capítulos de Oportunidades Estratégicas.  
+  - Actualización de Objetivos con GS1 y analíticas.  
+  - Nuevos planes de monetización y roadmap con Fase 1.5.  
+  - Referencias a investigaciones de Grok, ChatGPT y Gemini.
 
 ## 17. Mantenimiento y Calidad de Código (Plan de Mejora Continua)
 
