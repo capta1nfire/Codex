@@ -1,6 +1,5 @@
 // Imports
 use rxing::{common::BitMatrix, BarcodeFormat, MultiFormatWriter, Writer, EncodeHints};
-use std::collections::HashMap;
 use std::error::Error;
 
 // --- Función Manual SVG (Usa scale para coords/viewBox, SIN width/height en <svg>) ---
@@ -65,6 +64,7 @@ fn manual_bit_matrix_to_svg(
 }
 
 // --- Función Pública Principal (firma actualizada, sin hints internos por ahora) ---
+#[allow(clippy::too_many_arguments)]
 pub fn generate_code(
     code_type: &str,
     data: &str,

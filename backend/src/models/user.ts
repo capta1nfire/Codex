@@ -2,8 +2,8 @@ import { User as PrismaUser, Role as PrismaRole } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
 // Importar el cliente Prisma y los tipos generados
-import prisma from '../lib/prisma';
-import { AppError, ErrorCode } from '../utils/errors'; // Necesario para errores específicos
+import prisma from '../lib/prisma.js';
+import { AppError, ErrorCode } from '../utils/errors.js'; // Necesario para errores específicos
 
 // Usar la enumeración Role generada por Prisma
 export const UserRole = PrismaRole;

@@ -1,4 +1,4 @@
-import { AppError, ErrorCode } from '../utils/errors';
+import { AppError, ErrorCode } from '../utils/errors.js';
 
 // Mock logger
 jest.mock('../utils/logger', () => ({

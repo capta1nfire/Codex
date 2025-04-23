@@ -3,11 +3,11 @@ import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
-import { config } from '../config';
-import { userStore, UserRole } from '../models/user';
-import { authService, JwtPayload } from '../services/auth.service';
-import { AppError, ErrorCode } from '../utils/errors';
-import logger from '../utils/logger';
+import { config } from '../config.js';
+import { userStore, UserRole } from '../models/user.js';
+import { authService, JwtPayload } from '../services/auth.service.js';
+import { AppError, ErrorCode } from '../utils/errors.js';
+import logger from '../utils/logger.js';
 
 // Configuración de estrategia JWT
 const jwtOptions = {
@@ -70,7 +70,7 @@ const localStrategy = new LocalStrategy(localOptions, async (email, password, do
 });
 
 // Estrategia para autenticación mediante API key
-const apiKeyStrategy = async (req: Request, res: Response, next: NextFunction) => {
+const apiKeyStrategy = async (req: Request, _res: Response, next: NextFunction) => {
   try {
     const apiKey = req.headers['x-api-key'] as string;
 
@@ -167,12 +167,12 @@ export const authenticateJwt = (req: Request, res: Response, next: NextFunction)
 
 // Middleware para verificar rol del usuario
 export const checkRole = (requiredRole: UserRole) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(new AppError('No autorizado', 401, ErrorCode.AUTHENTICATION_ERROR));
     }
 
-    const userRole = req.user.role;
+    const userRole = (req.user as any).role;
 
     if (!authService.hasRole(userRole, requiredRole)) {
       return next(new AppError('Acceso denegado', 403, ErrorCode.AUTHORIZATION_ERROR));

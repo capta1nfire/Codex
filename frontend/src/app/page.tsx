@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Disclosure } from '@headlessui/react'; // Importamos Disclosure
-import { Input } from "@/components/ui/input"; // Descomentar/Añadir Input
+import { Input } from '@/components/ui/input'; // Descomentar/Añadir Input
 import { Label } from '@/components/ui/label'; // Importar Label
 import {
   Select,
@@ -12,8 +12,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'; // Importar Select
 import { Button } from '@/components/ui/button'; // Importar Button
-import { Slider } from "@/components/ui/slider"; // Añadir Slider
-import { Switch } from "@/components/ui/switch"; // Añadir Switch
+import { Slider } from '@/components/ui/slider'; // Añadir Slider
+import { Switch } from '@/components/ui/switch'; // Añadir Switch
 import { AlertCircle, Copy, Download, Printer } from 'lucide-react'; // Importar iconos
 
 // Interfaz para el error estructurado devuelto por el backend
@@ -90,7 +90,17 @@ export default function Home() {
 
   const handleGenerate = async () => {
     console.log('[handleGenerate] Iniciado.');
-    console.log('[handleGenerate] Estado actual:', { data, type, isLoading, /* Añadir nuevas opciones si es útil */ scale, foregroundColor, backgroundColor, showText, height, qrEcl });
+    console.log('[handleGenerate] Estado actual:', {
+      data,
+      type,
+      isLoading,
+      /* Añadir nuevas opciones si es útil */ scale,
+      foregroundColor,
+      backgroundColor,
+      showText,
+      height,
+      qrEcl,
+    });
 
     // --- Validaciones del lado del cliente ---
     setError(null); // Limpiar errores previos al inicio
@@ -254,7 +264,7 @@ export default function Home() {
     console.log('[useEffect] Montado. Generando QR inicial.');
     // Solo genera si hay datos iniciales (evita llamadas vacías si getDefaultData retorna '')
     if (data) {
-        handleGenerate();
+      handleGenerate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Array vacío para que se ejecute solo al montar
@@ -343,7 +353,15 @@ export default function Home() {
                   {type === 'datamatrix' && (
                     <span>Datos alfanuméricos o binarios. Alta capacidad.</span>
                   )}
-                  {!['qrcode', 'code128', 'pdf417', 'ean13', 'upca', 'code39', 'datamatrix'].includes(type) && (
+                  {![
+                    'qrcode',
+                    'code128',
+                    'pdf417',
+                    'ean13',
+                    'upca',
+                    'code39',
+                    'datamatrix',
+                  ].includes(type) && (
                     <span>Introduce los datos a codificar.</span> // Mensaje genérico
                   )}
                 </div>
@@ -357,8 +375,8 @@ export default function Home() {
                   Tipo de Código:
                 </Label>
                 <Select value={type} onValueChange={handleTypeChange} disabled={isLoading}>
-                  <SelectTrigger 
-                    id="typeSelect" 
+                  <SelectTrigger
+                    id="typeSelect"
                     className="w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
                   >
                     <SelectValue placeholder="Selecciona un tipo" />
@@ -418,11 +436,18 @@ export default function Home() {
                     <Disclosure.Panel className="p-6 border-t space-y-6">
                       {/* --- Sección Apariencia --- */}
                       <fieldset className="space-y-4 border border-gray-200 p-4 rounded-md">
-                        <legend className="text-sm font-medium text-gray-600 px-1 mb-2">Apariencia</legend>
+                        <legend className="text-sm font-medium text-gray-600 px-1 mb-2">
+                          Apariencia
+                        </legend>
 
                         {/* Escala (Tamaño General) */}
                         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
-                          <Label htmlFor="scaleSlider" className="text-sm font-medium text-gray-700">Escala:</Label>
+                          <Label
+                            htmlFor="scaleSlider"
+                            className="text-sm font-medium text-gray-700"
+                          >
+                            Escala:
+                          </Label>
                           <Slider
                             id="scaleSlider"
                             min={1}
@@ -447,89 +472,114 @@ export default function Home() {
 
                         {/* Colores */}
                         <div className="flex items-center space-x-4">
-                           <Label htmlFor="foregroundColor" className="text-sm font-medium text-gray-700">Color:</Label>
-                           <Input
-                              type="color"
-                              id="foregroundColor"
-                              value={foregroundColor}
-                              onChange={(e) => setForegroundColor(e.target.value)}
-                              disabled={isLoading}
-                              className="h-8 w-10 p-0 border-gray-300 rounded-md cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
-                           />
-                           <Label htmlFor="backgroundColor" className="text-sm font-medium text-gray-700">Fondo:</Label>
-                           <Input
-                              type="color"
-                              id="backgroundColor"
-                              value={backgroundColor}
-                              onChange={(e) => setBackgroundColor(e.target.value)}
-                              disabled={isLoading}
-                              className="h-8 w-10 p-0 border-gray-300 rounded-md cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
-                           />
+                          <Label
+                            htmlFor="foregroundColor"
+                            className="text-sm font-medium text-gray-700"
+                          >
+                            Color:
+                          </Label>
+                          <Input
+                            type="color"
+                            id="foregroundColor"
+                            value={foregroundColor}
+                            onChange={(e) => setForegroundColor(e.target.value)}
+                            disabled={isLoading}
+                            className="h-8 w-10 p-0 border-gray-300 rounded-md cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
+                          />
+                          <Label
+                            htmlFor="backgroundColor"
+                            className="text-sm font-medium text-gray-700"
+                          >
+                            Fondo:
+                          </Label>
+                          <Input
+                            type="color"
+                            id="backgroundColor"
+                            value={backgroundColor}
+                            onChange={(e) => setBackgroundColor(e.target.value)}
+                            disabled={isLoading}
+                            className="h-8 w-10 p-0 border-gray-300 rounded-md cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
+                          />
                         </div>
                       </fieldset>
 
                       {/* --- Sección Visualización (Condicional) --- */}
                       {(is1DBarcode || isHeightRelevant) && (
-                         <fieldset className="space-y-4 border border-gray-200 p-4 rounded-md">
-                           <legend className="text-sm font-medium text-gray-600 px-1 mb-2">Visualización</legend>
+                        <fieldset className="space-y-4 border border-gray-200 p-4 rounded-md">
+                          <legend className="text-sm font-medium text-gray-600 px-1 mb-2">
+                            Visualización
+                          </legend>
 
-                           {/* Mostrar Texto Legible (Solo 1D) */}
-                           {is1DBarcode && (
-                             <div className="flex items-center justify-between">
-                               <Label htmlFor="showTextSwitch" className="text-sm font-medium text-gray-700">
-                                 Mostrar Texto Legible:
-                               </Label>
-                               <Switch
-                                 id="showTextSwitch"
-                                 checked={showText}
-                                 onCheckedChange={setShowText}
-                                 disabled={isLoading}
-                               />
-                             </div>
-                           )}
+                          {/* Mostrar Texto Legible (Solo 1D) */}
+                          {is1DBarcode && (
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="showTextSwitch"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Mostrar Texto Legible:
+                              </Label>
+                              <Switch
+                                id="showTextSwitch"
+                                checked={showText}
+                                onCheckedChange={setShowText}
+                                disabled={isLoading}
+                              />
+                            </div>
+                          )}
 
-                           {/* Altura (1D y PDF417) */}
-                           {isHeightRelevant && (
-                              <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
-                                <Label htmlFor="heightSlider" className="text-sm font-medium text-gray-700">Altura (px):</Label>
-                                <Slider
-                                  id="heightSlider"
-                                  min={20}
-                                  max={200}
-                                  step={10}
-                                  value={[height]}
-                                  onValueChange={(value) => setHeight(value[0])}
-                                  disabled={isLoading}
-                                  className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 rounded-lg"
-                                />
-                                <Input
-                                  type="number"
-                                  id="heightInput"
-                                  min={20}
-                                  max={200}
-                                  value={height}
-                                  onChange={(e) => setHeight(Number(e.target.value))}
-                                  disabled={isLoading}
-                                  className="w-16 px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
-                                />
-                              </div>
-                           )}
-                         </fieldset>
+                          {/* Altura (1D y PDF417) */}
+                          {isHeightRelevant && (
+                            <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+                              <Label
+                                htmlFor="heightSlider"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Altura (px):
+                              </Label>
+                              <Slider
+                                id="heightSlider"
+                                min={20}
+                                max={200}
+                                step={10}
+                                value={[height]}
+                                onValueChange={(value) => setHeight(value[0])}
+                                disabled={isLoading}
+                                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 rounded-lg"
+                              />
+                              <Input
+                                type="number"
+                                id="heightInput"
+                                min={20}
+                                max={200}
+                                value={height}
+                                onChange={(e) => setHeight(Number(e.target.value))}
+                                disabled={isLoading}
+                                className="w-16 px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
+                              />
+                            </div>
+                          )}
+                        </fieldset>
                       )}
 
                       {/* --- Sección Avanzado (Condicional) --- */}
                       {isQrCode && (
                         <fieldset className="space-y-4 border border-gray-200 p-4 rounded-md">
-                          <legend className="text-sm font-medium text-gray-600 px-1 mb-2">Avanzado (Específico)</legend>
+                          <legend className="text-sm font-medium text-gray-600 px-1 mb-2">
+                            Avanzado (Específico)
+                          </legend>
 
                           {/* Nivel Corrección Errores (Solo QR) */}
                           <div>
-                            <Label htmlFor="qrEclSelect" className="block text-sm font-medium text-gray-700 mb-1">
+                            <Label
+                              htmlFor="qrEclSelect"
+                              className="block text-sm font-medium text-gray-700 mb-1"
+                            >
                               Nivel Corrección Errores (QR):
                             </Label>
                             <Select value={qrEcl} onValueChange={setQrEcl} disabled={isLoading}>
-                              <SelectTrigger 
-                                id="qrEclSelect" 
+                              <SelectTrigger
+                                id="qrEclSelect"
                                 className="w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
                               >
                                 <SelectValue placeholder="Selecciona nivel" />
@@ -544,7 +594,6 @@ export default function Home() {
                           </div>
                         </fieldset>
                       )}
-
                     </Disclosure.Panel>
                   </div>
                 )}
@@ -575,7 +624,7 @@ export default function Home() {
           {/* Columna Derecha: Previsualización y Acciones */}
           <div className="bg-white p-6 border rounded-lg shadow-md flex flex-col print:hidden sticky top-8 self-start">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">Resultado</h2>
-            
+
             {/* Área de Previsualización */}
             <div className="flex-grow flex items-center justify-center min-h-[200px] bg-gray-50 rounded border border-dashed border-gray-300 p-4 mb-6">
               {isLoading ? (
@@ -608,8 +657,19 @@ export default function Home() {
                 className="flex-1 flex items-center justify-center gap-2"
               >
                 {/* Icono Imprimir */}
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0M15.75 5.884l-8.25.825a2.25 2.25 0 0 1-2.176-1.671L4.5 3.75A2.25 2.25 0 0 1 6.728 1.5h10.544a2.25 2.25 0 0 1 2.228 2.25l-.162 1.463a2.25 2.25 0 0 1-2.176 1.67z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0M15.75 5.884l-8.25.825a2.25 2.25 0 0 1-2.176-1.671L4.5 3.75A2.25 2.25 0 0 1 6.728 1.5h10.544a2.25 2.25 0 0 1 2.228 2.25l-.162 1.463a2.25 2.25 0 0 1-2.176 1.67z"
+                  />
                 </svg>
                 Imprimir
               </Button>
@@ -620,8 +680,19 @@ export default function Home() {
                 className="flex-1 bg-green-600 hover:bg-green-700 flex items-center justify-center gap-2"
               >
                 {/* Icono Descargar */}
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                  />
                 </svg>
                 Descargar SVG
               </Button>

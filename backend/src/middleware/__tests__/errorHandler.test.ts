@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { AppError, ErrorCode, HttpStatus } from '../../utils/errors';
-import { notFoundHandler, errorHandler, asyncErrorWrapper } from '../errorHandler';
+import { AppError, ErrorCode, HttpStatus } from '../../utils/errors.js';
+import { notFoundHandler, errorHandler, asyncErrorWrapper } from '../errorHandler.js';
 
 // Mock dependencies
 jest.mock('../../utils/logger', () => ({

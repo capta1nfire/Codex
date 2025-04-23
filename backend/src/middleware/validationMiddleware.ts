@@ -2,7 +2,7 @@ import { ZodSchema, ZodError } from 'zod';
 import { Request, Response, NextFunction } from 'express';
 import { AppError, ErrorCode } from '../utils/errors.js';
 
-export const validateBody = (schema: ZodSchema<any>) => async (req: Request, res: Response, next: NextFunction) => {
+export const validateBody = (schema: ZodSchema<any>) => async (req: Request, _res: Response, next: NextFunction) => {
   try {
     req.body = schema.parse(req.body);
     next();

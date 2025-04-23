@@ -203,16 +203,16 @@ export default function Navbar() {
 
             {/* Lógica condicional móvil basada en contexto */}
             {isLoading ? (
-               <div className="h-10 bg-blue-800/50 rounded animate-pulse mt-2"></div>
+              <div className="h-10 bg-blue-800/50 rounded animate-pulse mt-2"></div>
             ) : isAuthenticated && user ? (
               <>
                 <Link
                   href="/profile"
                   className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"
                   onClick={() => setIsMenuOpen(false)}
-                 >
-                   <User className="mr-3 h-5 w-5" />
-                   Mi Perfil ({user.name})
+                >
+                  <User className="mr-3 h-5 w-5" />
+                  Mi Perfil ({user.name})
                 </Link>
                 {user.role.toUpperCase() === 'ADMIN' && (
                   <Link
@@ -235,16 +235,16 @@ export default function Navbar() {
             ) : (
               <>
                 <Link
-                   href="/login"
-                   className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"
-                   onClick={() => setIsMenuOpen(false)}
+                  href="/login"
+                  className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   Iniciar Sesión
                 </Link>
                 <Link
-                   href="/register"
-                   className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"
-                   onClick={() => setIsMenuOpen(false)}
+                  href="/register"
+                  className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   Registrarse
                 </Link>

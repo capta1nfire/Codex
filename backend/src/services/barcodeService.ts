@@ -1,8 +1,8 @@
-import { config } from '../config';
-import { redis } from '../lib/redis';
-import { AppError, ErrorCode } from '../utils/errors';
-import logger from '../utils/logger';
-import { rustCallDurationSeconds } from '../utils/metrics';
+import { config } from '../config.js';
+import { redis } from '../lib/redis.js';
+import { AppError, ErrorCode } from '../utils/errors.js';
+import logger from '../utils/logger.js';
+import { rustCallDurationSeconds } from '../utils/metrics.js';
 
 // Mapeo de tipos de códigos de barras (movido desde index.ts)
 const barcodeTypeMapping: Record<string, string> = {

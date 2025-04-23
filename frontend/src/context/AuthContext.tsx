@@ -1,6 +1,14 @@
 'use client';
 
-import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback, FC } from 'react';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  ReactNode,
+  useCallback,
+  FC,
+} from 'react';
 import { useRouter } from 'next/navigation'; // Para redirección si es necesario
 
 // 1. Definir la forma del Usuario y del Contexto
@@ -22,8 +30,8 @@ interface AuthState {
 
 // Tipo para la respuesta de login/error
 interface LoginResult {
-    success: boolean;
-    message?: string; // Mensaje de error opcional
+  success: boolean;
+  message?: string; // Mensaje de error opcional
 }
 
 // 2. Definir las acciones que el contexto proveerá
@@ -102,53 +110,59 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   }, [fetchUser]);
 
   // Función de Login
-  const login = useCallback(async (credentials: { email: string; password: string }): Promise<LoginResult> => {
-    setIsLoading(true);
-    let result: LoginResult = { success: false }; // Valor por defecto
+  const login = useCallback(
+    async (credentials: { email: string; password: string }): Promise<LoginResult> => {
+      setIsLoading(true);
+      let result: LoginResult = { success: false }; // Valor por defecto
 
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
-      const response = await fetch(`${backendUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+        const response = await fetch(`${backendUrl}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(credentials),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok || !data.success) {
-        // Extraer mensaje de error del backend (estructura anidada o plana)
-        let errorMessage = 'Error de autenticación.';
-        if (data.error && typeof data.error === 'object' && data.error.message) {
+        if (!response.ok || !data.success) {
+          // Extraer mensaje de error del backend (estructura anidada o plana)
+          let errorMessage = 'Error de autenticación.';
+          if (data.error && typeof data.error === 'object' && data.error.message) {
             errorMessage = data.error.message;
-        } else if (typeof data.error === 'string') {
+          } else if (typeof data.error === 'string') {
             errorMessage = data.error;
-        } else if (response.status === 401) {
+          } else if (response.status === 401) {
             errorMessage = 'Credenciales inválidas.';
+          }
+          console.error('Login failed:', errorMessage);
+          result = { success: false, message: errorMessage };
+        } else if (data.success && data.token) {
+          // Éxito: guardar token y obtener datos del usuario
+          localStorage.setItem('authToken', data.token);
+          await fetchUser(data.token); // Actualiza user, isAuthenticated, token
+          console.log('Login successful');
+          result = { success: true };
+        } else {
+          // Respuesta inesperada
+          console.error('Login failed: Invalid response format', data);
+          result = { success: false, message: 'Respuesta inesperada del servidor.' };
         }
-        console.error('Login failed:', errorMessage);
-        result = { success: false, message: errorMessage };
-      } else if (data.success && data.token) {
-        // Éxito: guardar token y obtener datos del usuario
-        localStorage.setItem('authToken', data.token);
-        await fetchUser(data.token); // Actualiza user, isAuthenticated, token
-        console.log('Login successful');
-        result = { success: true };
-      } else {
-        // Respuesta inesperada
-        console.error('Login failed: Invalid response format', data);
-        result = { success: false, message: 'Respuesta inesperada del servidor.' };
+      } catch (error) {
+        console.error('Login request failed:', error);
+        result = {
+          success: false,
+          message: error instanceof Error ? error.message : 'Error de red o desconocido.',
+        };
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Login request failed:', error);
-      result = { success: false, message: error instanceof Error ? error.message : 'Error de red o desconocido.' };
-    } finally {
-      setIsLoading(false);
-    }
-    return result; // Devolver el resultado
-  }, [fetchUser]);
+      return result; // Devolver el resultado
+    },
+    [fetchUser]
+  );
 
   // Función de Logout
   const logout = useCallback(() => {
@@ -173,11 +187,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Envolver a los hijos con el Provider y el valor del contexto
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 // 5. Crear un Hook personalizado para consumir el contexto fácilmente
@@ -187,4 +197,4 @@ export const useAuth = (): AuthContextType => {
     throw new Error('useAuth debe ser usado dentro de un AuthProvider');
   }
   return context;
-}; 
+};

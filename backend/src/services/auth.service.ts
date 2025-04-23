@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
 
-import { config } from '../config';
-import { User, UserRole, userStore } from '../models/user';
-import logger from '../utils/logger';
+import { config } from '../config.js';
+import { User, UserRole, userStore } from '../models/user.js';
+import logger from '../utils/logger.js';
 
 // Interfaz para el payload del token JWT
 export interface JwtPayload {

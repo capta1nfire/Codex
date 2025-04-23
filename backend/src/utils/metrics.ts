@@ -1,4 +1,5 @@
 import client from 'prom-client';
+import prisma from '../lib/prisma.js';
 
 // Crear un registro para las métricas
 export const registry = new client.Registry();
@@ -36,6 +37,30 @@ export const rustCallDurationSeconds = new client.Histogram({
   buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.3, 0.5, 1],
 });
 registry.registerMetric(rustCallDurationSeconds);
+
+// ---------------------------------------------------------------------------
+// Métrica Personalizada: Estado de la Base de Datos (1=OK, 0=Caída)
+export const dbUpGauge = new client.Gauge({
+  name: METRIC_PREFIX + 'db_up',
+  help: 'Indicador de salud de la base de datos (1=OK, 0=Down)',
+});
+registry.registerMetric(dbUpGauge);
+
+// Chequeo periódico de salud de la base de datos cada 10 segundos
+const startDbHealthCheck = () => {
+  const updateHealth = async () => {
+    try {
+      await prisma.$queryRaw`SELECT 1;`;
+      dbUpGauge.set(1);
+    } catch {
+      dbUpGauge.set(0);
+    }
+  };
+  // Primera comprobación inmediata y luego en intervalos
+  void updateHealth();
+  setInterval(updateHealth, 10000);
+};
+startDbHealthCheck();
 
 // Podríamos añadir más métricas aquí (ej. Cache Hits/Misses si Redis lo soporta fácil, Errores por tipo, etc.)
 

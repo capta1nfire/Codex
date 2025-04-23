@@ -1,4 +1,4 @@
-import { AppError, ErrorCode, HttpStatus } from '../errors';
+import { AppError, ErrorCode, HttpStatus } from '../errors.js';
 
 describe('AppError', () => {
   test('should create an error with the correct properties', () => {

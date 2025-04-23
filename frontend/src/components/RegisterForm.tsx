@@ -83,7 +83,10 @@ export default function RegisterForm() {
             <>
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 text-left">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 text-left"
+                  >
                     Nombre
                   </label>
                   <div className="mt-1">
@@ -102,7 +105,10 @@ export default function RegisterForm() {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 text-left"
+                  >
                     Correo electrónico
                   </label>
                   <div className="mt-1">

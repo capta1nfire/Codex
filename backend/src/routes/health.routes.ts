@@ -2,7 +2,8 @@ import * as os from 'os'; // Necesario para info del sistema
 
 import { Router, Request, Response } from 'express';
 
-import { config } from '../config';
+import { config } from '../config.js';
+import prisma from '../lib/prisma.js';
 // import logger from '../utils/logger'; // Remove unused import
 
 const router = Router();
@@ -26,11 +27,16 @@ interface HealthData {
   };
   dependencies?: {
     rust_service: RustServiceStatus;
+    db?: {
+      status: string;
+      error?: string;
+      [key: string]: unknown;
+    };
   };
 }
 
 // Endpoint de salud para monitoreo
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   // Información básica del sistema
   const healthData: HealthData = {
     status: 'ok',
@@ -78,6 +84,21 @@ router.get('/', async (req: Request, res: Response) => {
         status: 'unavailable',
         error: error instanceof Error ? error.message : 'Error desconocido',
       },
+    };
+    healthData.status = 'degraded';
+  }
+
+  // Verificar conexión con la base de datos
+  try {
+    await prisma.$queryRaw`SELECT 1;`;
+    healthData.dependencies = {
+      ...healthData.dependencies,
+      db: { status: 'ok' },
+    };
+  } catch (err) {
+    healthData.dependencies = {
+      ...healthData.dependencies,
+      db: { status: 'error', error: err instanceof Error ? err.message : 'Desconocido' },
     };
     healthData.status = 'degraded';
   }

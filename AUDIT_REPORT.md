@@ -83,10 +83,35 @@ Tras revisar la arquitectura (Node.js + Express, Rust + Axum, Next.js 15, Postgr
 | UX / Accesibilidad             | Bajo    | 6 semanas     |
 | Documentación API              | Bajo    | 6 semanas     |
 
----
-
 **Resumen Final:**  
 - **Eliminar** hallazgos no aplicables (Firebase, Cloud Functions, Cold Starts).  
 - **Priorizar** validación de inputs, tipado TS y establecimiento de CI/CD.  
 - **Medir** bundle size y latencias en CI para evitar regresiones.  
-- **Documentar** la API con OpenAPI/Swagger e incluir ejemplos de uso. 
+- **Documentar** la API con OpenAPI/Swagger e incluir ejemplos de uso.
+
+---
+
+## 5. Estado de Implementación
+
+| Acción                                     | Estado     |
+|--------------------------------------------|------------|
+| Integrar Zod/Joi en frontend y backend     | Pendiente  |
+| Activar strict TS y `noImplicitAny`        | Completado |
+| Configurar CI/CD (GitHub Actions)         | Completado |
+| Limpieza de imports y optimizaciones       | Completado |
+| Implementar métricas de Prometheus         | Completado |
+| Chequeo de estado de la base de datos      | Completado |
+| Refactorizar Navbar y UserProfile          | Completado |
+| UI de monitorización en frontend (`/status`)| Completado |
+| Integrar Redis en `barcodeService`         | Pendiente  |
+| Definir índices compuestos en Prisma/Postgres | Pendiente |
+| Configurar Prometheus Alertmanager y Sentry| Pendiente  |
+| Crear documentación OpenAPI/Swagger        | Pendiente  |
+
+---
+
+### Notas Finales
+
+- Se avanzó fuerte en la infraestructura: TS estricto, CI/CD, limpieza de código y métricas.
+- Quedan pendientes Redis, alertas automáticas y documentación Swagger.
+- Próximo paso: planificar sprint de Redis y alertas (2–3 días estimados). 

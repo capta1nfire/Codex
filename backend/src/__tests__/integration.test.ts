@@ -7,7 +7,7 @@ import {
   ValidationError,
   NotFoundError,
   sendErrorResponse,
-} from '../utils/errors';
+} from '../utils/errors.js';
 
 describe('Integration Tests', () => {
   let app: Express;

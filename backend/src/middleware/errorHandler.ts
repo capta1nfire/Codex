@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { JwtPayload } from '../services/auth.service';
-import { AppError, sendErrorResponse, NotFoundError } from '../utils/errors';
-import logger from '../utils/logger';
+import { JwtPayload } from '../services/auth.service.js';
+import { AppError, sendErrorResponse, NotFoundError } from '../utils/errors.js';
+import logger from '../utils/logger.js';
 
 /**
  * Middleware para manejar rutas no encontradas

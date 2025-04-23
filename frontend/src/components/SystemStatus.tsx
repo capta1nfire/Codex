@@ -41,6 +41,8 @@ export default function SystemStatus() {
   const [healthData, setHealthData] = useState<HealthData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [dbUp, setDbUp] = useState<boolean | null>(null);
+  const [dbError, setDbError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchHealthData = async () => {
@@ -50,6 +52,8 @@ export default function SystemStatus() {
         const response = await axios.get(`${backendUrl}/health`);
         setHealthData(response.data);
         setError(null);
+        setDbUp(response.data.dependencies?.rust_service?.status === 'ok');
+        setDbError(response.data.dependencies?.rust_service?.error);
       } catch (err) {
         console.error('Error fetching health data:', err);
         setError('No se pudo cargar la información del sistema');
@@ -207,6 +211,25 @@ export default function SystemStatus() {
               )}
             </div>
           )}
+
+          {/* Base de Datos */}
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-semibold">Base de Datos</span>
+              <div
+                className={`px-2 py-0.5 rounded-full text-xs font-medium border ${
+                  dbUp === null
+                    ? 'bg-gray-100 text-gray-800 border-gray-300'
+                    : dbUp
+                    ? 'bg-green-100 text-green-800 border-green-300'
+                    : 'bg-red-100 text-red-800 border-red-300'
+                }`}
+              >
+                {dbUp === null ? 'Cargando...' : dbUp ? 'Operativa' : 'Caída'}
+              </div>
+            </div>
+            {dbError && <p className="text-red-600 text-sm">{dbError}</p>}
+          </div>
 
           {/* Frontend Service */}
           <div className="mb-4">

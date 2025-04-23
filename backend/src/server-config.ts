@@ -4,7 +4,7 @@ import * as https from 'https';
 
 import { Express } from 'express';
 
-import logger from './utils/logger';
+import logger from './utils/logger.js';
 
 // Función para iniciar el servidor
 export const startServer = (

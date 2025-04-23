@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/context/AuthContext';
 
 interface User {
   id: string;
@@ -25,59 +26,19 @@ export default function UserProfile() {
   const [apiKey, setApiKey] = useState('');
 
   const router = useRouter();
+  const { user: authUser, isAuthenticated, isLoading: authLoading, token: authToken } = useAuth();
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        setError('Sesión no válida. Por favor, inicie sesión de nuevo.');
-        setIsLoading(false);
+    if (!authLoading) {
+      if (!isAuthenticated) {
         router.push('/login');
-        return;
+      } else {
+        setUser(authUser);
+        setName(authUser?.name || '');
       }
-
-      try {
-        setIsLoading(true);
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3003';
-        const response = await fetch(`${backendUrl}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            localStorage.removeItem('auth_token');
-            router.push('/login');
-            return;
-          }
-          let errorData = { error: { message: 'Error al obtener datos del usuario' } };
-          try {
-            errorData = await response.json();
-          } catch {
-            /* Ignorar error de parseo */
-          }
-          throw new Error(errorData.error?.message || 'Error al obtener datos del usuario');
-        }
-
-        const data = await response.json();
-
-        if (data.success && data.user) {
-          setUser(data.user);
-          setName(data.user.name);
-        } else {
-          throw new Error(data.error?.message || 'Respuesta inválida del servidor');
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido al cargar perfil.');
-        setUser(null);
-        setName('');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUserData();
-  }, [router]);
+      setIsLoading(false);
+    }
+  }, [authLoading, isAuthenticated, authUser, router]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,8 +46,7 @@ export default function UserProfile() {
     setMessage('');
     setIsLoading(true);
 
-    const token = localStorage.getItem('auth_token');
-    if (!token || !user) {
+    if (!authToken || !user) {
       router.push('/login');
       return;
     }
@@ -97,7 +57,7 @@ export default function UserProfile() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({ name }),
       });
@@ -129,8 +89,7 @@ export default function UserProfile() {
     setIsLoading(true);
     setApiKey('');
 
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
+    if (!authToken) {
       router.push('/login');
       return;
     }
@@ -140,7 +99,7 @@ export default function UserProfile() {
       const response = await fetch(`${backendUrl}/api/auth/api-key`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
       });
 

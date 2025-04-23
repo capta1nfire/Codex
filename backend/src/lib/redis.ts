@@ -1,7 +1,7 @@
 import { createClient, RedisClientType } from 'redis';
 
-import { config } from '../config';
-import logger from '../utils/logger';
+import { config } from '../config.js';
+import logger from '../utils/logger.js';
 
 // Crear cliente Redis
 const redisClient = createClient({

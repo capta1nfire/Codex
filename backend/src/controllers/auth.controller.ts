@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-import { Request as ExpressRequest, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import type { User } from '../models/user.js';
 
 import { userStore, UserRole } from '../models/user.js';
@@ -8,14 +8,13 @@ import { authService } from '../services/auth.service.js';
 import { AppError, ErrorCode } from '../utils/errors.js';
 import logger from '../utils/logger.js';
 
-// Custom request type with authenticated user (Prisma User)
-type RequestWithUser = ExpressRequest & { user: User };
+// We use Express.Request augmented with user?: User for authenticated user
 
 export const authController = {
   /**
    * Registrar un nuevo usuario
    */
-  async register(req: ExpressRequest, res: Response, next: NextFunction) {
+  async register(req: Request, res: Response, next: NextFunction) {
     try {
       const { email, password, name } = req.body;
 
@@ -50,7 +49,7 @@ export const authController = {
   /**
    * Iniciar sesión de usuario
    */
-  async login(req: ExpressRequest, res: Response, next: NextFunction) {
+  async login(req: Request, res: Response, next: NextFunction) {
     try {
       const { email, password } = req.body;
 
@@ -74,7 +73,7 @@ export const authController = {
   /**
    * Renovar token JWT
    */
-  async refreshToken(req: ExpressRequest, res: Response, next: NextFunction) {
+  async refreshToken(req: Request, res: Response, next: NextFunction) {
     try {
       // Obtener token del header Authorization
       const authHeader = req.headers.authorization || '';
@@ -104,46 +103,42 @@ export const authController = {
   /**
    * Obtener información del usuario actual
    */
-  async me(req: ExpressRequest, res: Response) {
+  async me(req: Request, res: Response) {
     // El usuario ya debe estar autenticado mediante middleware
-    res.json({
-      success: true,
-      user: req.user,
-    });
+    const user = req.user as User;
+    res.json({ success: true, user });
   },
 
   /**
    * Generar una nueva API key
    */
-  async generateApiKey(req: RequestWithUser, res: Response, next: NextFunction) {
+  async generateApiKey(req: Request, res: Response, next: NextFunction) {
     try {
       // El usuario debe estar autenticado
-      if (!req.user) {
+      const user = req.user as User;
+      if (!user) {
         throw new AppError('No autenticado', 401, ErrorCode.AUTHENTICATION_ERROR);
       }
 
       // Generar una API key segura y aleatoria (ej: 64 caracteres hexadecimales)
       const apiKey = crypto.randomBytes(32).toString('hex');
-      logger.info(`[AuthController] Nueva API Key generada para usuario ${req.user.id}`);
+      logger.info(`[AuthController] Nueva API Key generada para usuario ${user.id}`);
 
       // Extraer el prefijo de la API Key (ej: primeros 8 caracteres)
       const apiKeyPrefix = apiKey.substring(0, 8);
 
       // Actualizar usuario con la *NUEVA* API key y su prefijo
-      const user = await userStore.updateUser(req.user.id, {
+      const updated = await userStore.updateUser(user.id, {
         apiKey: apiKey, // Pasamos la key en texto plano al store para que la hashee
         apiKeyPrefix: apiKeyPrefix, // Pasamos el prefijo para almacenamiento
       });
 
-      if (!user) {
+      if (!updated) {
         throw new AppError('Usuario no encontrado', 404, ErrorCode.RESOURCE_NOT_FOUND);
       }
 
       // Responder SOLO con la API key en texto plano (¡Mostrar solo esta vez!)
-      res.json({
-        success: true,
-        apiKey, // Devolver la key recién generada en texto plano
-      });
+      res.json({ success: true, apiKey });
     } catch (error) {
       next(error);
     }
@@ -152,24 +147,20 @@ export const authController = {
   /**
    * Endpoint de prueba para rol Admin
    */
-  async adminAccess(req: RequestWithUser, res: Response) {
+  async adminAccess(req: Request, res: Response, next: NextFunction) {
     // Acceso ya verificado por authenticateJwt y checkRole(ADMIN)
-    res.json({
-      success: true,
-      message: 'Acceso de administrador concedido',
-      user: req.user, // req.user está disponible gracias a los middlewares
-    });
+    const user = req.user as User;
+    res.json({ success: true, message: 'Acceso de administrador concedido', user });
+    next();
   },
 
   /**
    * Endpoint de prueba para rol Premium (o Admin)
    */
-  async premiumAccess(req: RequestWithUser, res: Response) {
+  async premiumAccess(req: Request, res: Response, next: NextFunction) {
     // Acceso ya verificado por authenticateJwt y checkRole(PREMIUM)
-    res.json({
-      success: true,
-      message: 'Acceso premium concedido',
-      user: req.user,
-    });
+    const user = req.user as User;
+    res.json({ success: true, message: 'Acceso premium concedido', user });
+    next();
   },
 };

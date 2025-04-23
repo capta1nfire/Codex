@@ -3,9 +3,9 @@ import jwt from 'jsonwebtoken';
 // import passport from 'passport';
 import request from 'supertest';
 
-import { config } from '../config';
-import { UserRole } from '../models/user';
-import { authService, JwtPayload } from '../services/auth.service';
+import { config } from '../config.js';
+import { UserRole } from '../models/user.js';
+import { authService, JwtPayload } from '../services/auth.service.js';
 
 // Mock de logger para minimizar ruido en los tests
 jest.mock('../utils/logger', () => ({

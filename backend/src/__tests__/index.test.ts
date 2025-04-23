@@ -1,7 +1,7 @@
 import express, { Express } from 'express';
 import request from 'supertest';
 
-import { ErrorCode, HttpStatus } from '../utils/errors';
+import { ErrorCode, HttpStatus } from '../utils/errors.js';
 
 // Mock fetch
 const mockFetch = jest.fn();

@@ -19,10 +19,10 @@ export default function LoginForm() {
     const result = await login({ email, password });
 
     if (result.success) {
-        console.log('Login successful, redirecting...');
-        router.push('/');
+      console.log('Login successful, redirecting...');
+      router.push('/');
     } else {
-        setError(result.message || 'Error desconocido durante el inicio de sesión.');
+      setError(result.message || 'Error desconocido durante el inicio de sesión.');
     }
   };
 

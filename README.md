@@ -22,6 +22,7 @@ Este proyecto implementa una plataforma moderna para la generación de códigos 
 - ✅ **Base de Datos:** Persistencia de usuarios en **PostgreSQL** con **Prisma ORM**.
 - ✅ Monitoreo de estado del sistema (`/health`)
 - ✅ Dashboard de métricas (caché en memoria, `/metrics`)
+- ✅ UI de estado del sistema en frontend (páginas `/status` y `/dashboard`)
 - ✅ Sistema de caché en memoria (MVP)
 - ✅ Soporte CORS para comunicación entre servicios
 - ✅ Interfaz intuitiva con Tailwind CSS y diseño responsivo (mejorado para 4K)
@@ -114,70 +115,7 @@ cd ..
 
 1.  **Base de Datos, Prometheus, Grafana:**
     *   Asegúrate de tener Docker corriendo.
-    *   En la carpeta raíz (`Codex/`), ejecuta `docker-compose up -d`. Esto iniciará los contenedores necesarios.
-2.  **Variables de Entorno Backend:**
-    *   En la carpeta `backend/`, crea un archivo `.env` (puedes copiar `.env.example` si existiera, o crearlo manualmente).
-    *   Asegúrate de que `DATABASE_URL` apunte a la base de datos Docker:
-        ```env
-        DATABASE_URL="postgresql://codex_user:codex_password@localhost:5432/codex_db?schema=public"
+    *   En la carpeta raíz (`Codex/`), ejecuta:
+        ```bash
+        docker-compose up -d
         ```
-    *   Asegúrate de que `REDIS_URL` apunte a Redis (si el compose lo incluye, usualmente `redis://localhost:6379`).
-    *   **IMPORTANTE:** Configura un `JWT_SECRET` y `SESSION_SECRET` seguros en el archivo `.env`.
-    *   Verifica que `PORT` esté configurado (ej: `PORT=3004`) y `RUST_SERVICE_URL` apunte al puerto correcto (ej: `http://localhost:3002/generate`).
-    *   Define `ALLOWED_ORIGINS` incluyendo las URLs de tu frontend (ej: `http://localhost:3000,http://192.168.1.XX:3000`).
-3.  **Variables de Entorno Frontend:**
-    *   En `frontend/`, asegúrate de que `.env.local` tenga las URLs correctas para `NEXT_PUBLIC_BACKEND_URL` (ej: `http://localhost:3004`) y `NEXT_PUBLIC_RUST_SERVICE_URL` (ej: `http://localhost:3002`).
-4.  **Migración y Seeding de Base de Datos:**
-    *   Navega a la carpeta `backend/` en tu terminal.
-    *   Ejecuta la migración inicial: `npx prisma migrate dev --name init` (o `npm run prisma:migrate`)
-    *   (Opcional) Puebla la base de datos: `npm run seed`
-
-### Ejecución (Desarrollo)
-
-Necesitarás iniciar los componentes en terminales separadas (después de `docker-compose up -d`):
-
-```bash
-# Terminal 1: Backend (API Gateway)
-# (Navega a la carpeta `backend/`)
-npm run dev  # Ejecuta en http://localhost:3004 (o el puerto de tu .env)
-
-# Terminal 2: Servicio Rust (Generador)
-# (Navega a la carpeta `rust_generator/`)
-cargo run # O --release si prefieres. Ejecuta en http://localhost:3002
-
-# Terminal 3: Frontend
-# (Navega a la carpeta `frontend/`)
-npm run dev  # Ejecuta en http://localhost:3000 (o el siguiente puerto libre, ej: 3001)
-```
-
-Accede al frontend en la URL que indique la Terminal 3. Accede a Grafana en `http://localhost:3030` y a Prometheus en `http://localhost:9090` (según `docker-compose.yml`).
-
-## 📈 Estado de Implementación
-
-El proyecto ha superado la fase MVP y se encuentra en desarrollo activo de características Beta/Producción. Se han implementado:
-
-- Generación de códigos vía servicio Rust.
-- Autenticación/Autorización básica con JWT/API Keys y persistencia en PostgreSQL (Prisma).
-- Dashboard frontend con estado del sistema y analíticas básicas del servicio Rust.
-- Monitoreo operacional básico del backend vía Prometheus/Grafana.
-
-**Para detalles sobre funcionalidades específicas y el roadmap futuro, consultar [CODEX.md](CODEX.md).**
-
-## 🗺️ Próximos Pasos (Plan de Mejoras)
-
-Consultar las secciones **Roadmap de Desarrollo (13)** y **Mantenimiento y Calidad de Código (17)** en [CODEX.md](CODEX.md) para la planificación detallada.
-
-## 📚 Documentación Adicional
-
-- [CODEX.md](CODEX.md): Documento estratégico y hoja de ruta del proyecto.
-- [backend/README.md](backend/README.md): Documentación específica del backend.
-- [frontend/README.md](frontend/README.md): Documentación específica del frontend.
-- [rust_generator/API_DOCS.md](rust_generator/API_DOCS.md): Documentación de la API del servicio Rust.
-
-## 🤝 Contribución
-
-(A definir)
-
-## 📄 Licencia
-
-(A definir)
