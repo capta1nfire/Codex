@@ -1,6 +1,6 @@
 # Documento de Contexto del Proyecto "Codex"
 
-**Fecha de Actualización:** 2024-07-29
+**Fecha de Actualización:** 2024-08-01
 
 **Propósito:** Este documento sirve para re-contextualizar rápidamente al asistente IA sobre el estado actual y la historia reciente del proyecto Codex, una plataforma web para la generación de códigos de barras y QR.
 
@@ -46,26 +46,32 @@
     *   `docker-compose.yml`: Define los servicios de infraestructura.
     *   `prometheus.yml`: Define los targets de scrapeo para Prometheus (actualmente `host.docker.internal:3004/metrics`).
 
-## 3. Hitos Recientes y Estado Funcional (Sesión: 2024-07-29)
+## 3. Hitos Recientes y Estado Funcional (Sesión: 2024-08-01)
 
-*   **Servicio Rust (Generador):**
-    *   **Integrada la estructura `EncodeHints`** de `rxing` (v0.7.0+).
-    *   La función `generate_code` ahora utiliza `encode_with_hints`, permitiendo pasar opciones como nivel de corrección de errores (ECL) y margen (inferido de `scale`).
+*   **Backend:**
+    *   Activado TS estricto (`strict`, `noImplicitAny`) y linters (ESLint, Prettier).
+    *   Configurado CI/CD con GitHub Actions (lint, test, build).
+    *   Expuesto métricas Prometheus (`/metrics`) e integrado gauge de salud de BD.
+    *   Añadido chequeo de estado de BD en `/health`.
+    *   Mejorada configuración de pruebas en modelos de usuario, implementando mocks de bcrypt y resolviendo errores de tipo en TypeScript.
 *   **Frontend:**
-    *   Implementada la **carga inicial de un código QR por defecto** al visitar la página.
-    *   El campo de datos ahora se **actualiza dinámicamente con ejemplos válidos** y relevantes al cambiar el tipo de código seleccionado en el desplegable.
-    *   Añadidos los tipos de código restantes al selector de tipos.
-*   **Documentación:**
-    *   Actualizados `CHANGELOG.md`, `CODEX.md` (Changelog interno) y este documento (`CONTEXT_SUMMARY.md`) para reflejar los avances de la sesión.
-*   **Estado General Actual:** El proyecto compila y se ejecuta. La generación de códigos ahora soporta hints básicos. El frontend ofrece una mejor experiencia inicial y guía al usuario con ejemplos dinámicos.
+    *   Refactorizado `Navbar` y `UserProfile` usando Context API para auth.
+    *   Añadida página de estado `/status` mostrando semáforo de salud de BD.
+    *   Mejorado `SystemStatus` para incluir estado de BD, Rust y backend.
+*   **UI y Rutas:**
+    *   Dashboard de métricas accesible en `/dashboard` con `SystemStatus` y `RustAnalyticsDisplay`.
+    *   Nueva UI de estado del sistema.
+*   **Estado General Actual:**
+    El proyecto está en fase de integración de Redis y alertas. La generación de códigos, autenticación, métricas y monitorización están completamente funcionales.
 
-## 4. Próximos Pasos y Planificación (Según Plan Revisado)
+## 4. Próximos Pasos y Planificación (Según Informe de Auditoría)
 
-1.  **Refactorizar Estado de Autenticación Frontend** (Context API, etc.).
-2.  **Definir Contrato de API Externa** (OpenAPI/Swagger).
-3.  **Implementar Exportación a PNG**.
-4.  **Mejorar Dashboards Iniciales en Grafana**.
-5.  **Abordar Dependencias Deprecadas (Backend)**.
+1.  **Integrar validación Zod/Joi** en backend y frontend (Validación de inputs).
+2.  **Implementar caché Redis** en `barcodeService`.
+3.  **Definir índices compuestos** en Prisma/PostgreSQL.
+4.  **Configurar alertas** en Prometheus Alertmanager (Slack/Email).
+5.  **Integrar Sentry** (o Datadog) para captura de errores en producción.
+6.  **Generar documentación** OpenAPI/Swagger de la API.
 
 ## 5. Puntos Específicos a Recordar
 

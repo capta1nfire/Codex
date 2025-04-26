@@ -20,6 +20,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Calidad:** Verificado linting (`eslint`/`next lint`) y formato (`prettier --check`) en `frontend` y `backend` (sin errores/advertencias actualmente).
 - **Frontend:** Mejorada retroalimentación en formulario de registro (mensaje de éxito, redirección retardada a login).
 - **Frontend:** Corregido flujo de login para actualizar estado visual en Navbar (mediante `window.location.href` y lógica existente en Navbar).
+- **Backend:** Mejorada configuración de pruebas en modelos de usuario, implementando mocks de bcrypt y resolviendo errores de tipo en TypeScript.
 
 ### Corregido
 - **Backend:** Solucionado error crítico de arranque (`triggerUncaughtException`) al usar Node.js v22 con ESM, cambiando el script `dev` de `node --loader ts-node/esm` a `tsx watch src/index.ts`.
