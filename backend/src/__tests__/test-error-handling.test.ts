@@ -1,12 +1,9 @@
 import { AppError, ErrorCode } from '../utils/errors.js';
+import request from 'supertest';
+import { jest } from '@jest/globals';
 
-// Mock logger
-jest.mock('../utils/logger', () => ({
-  error: jest.fn(),
-  info: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-}));
+// Import logger statically - Jest should swap with the mock
+import logger from '../utils/logger.js';
 
 // Mock console.log
 const originalConsoleLog = console.log;
@@ -19,37 +16,48 @@ describe('Error Handling Tests', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Clear the imported manual mock
+    (logger.error as jest.Mock).mockClear();
+    (logger.info as jest.Mock).mockClear();
+    (logger.warn as jest.Mock).mockClear();
+    (logger.debug as jest.Mock).mockClear();
+    (console.log as jest.Mock).mockClear();
   });
 
   test('should create an AppError with correct error code', () => {
     const error = new AppError('Prueba de error', 404, ErrorCode.RESOURCE_NOT_FOUND);
-
     expect(error.message).toBe('Prueba de error');
     expect(error.statusCode).toBe(404);
     expect(error.errorCode).toBe(ErrorCode.RESOURCE_NOT_FOUND);
   });
 
   test('should log error with correct information', () => {
-    const logger = jest.requireMock('../utils/logger');
+    // Spy on the actual logger's error method
+    const errorSpy = jest.spyOn(logger, 'error');
+
     const error = new AppError('Prueba de error', 404, ErrorCode.RESOURCE_NOT_FOUND);
 
+    // Call the logger method that we are spying on
     logger.error(`${error.errorCode}: ${error.message}`, {
       stack: error.stack,
       context: error.context,
     });
 
-    expect(logger.error).toHaveBeenCalledWith(
+    // Assert on the spy
+    expect(errorSpy).toHaveBeenCalledWith(
       `${ErrorCode.RESOURCE_NOT_FOUND}: Prueba de error`,
       expect.objectContaining({
         stack: expect.any(String),
       })
     );
+
+    // Restore the original implementation
+    errorSpy.mockRestore();
   });
 
   test('should log to console when error is created', () => {
     const error = new AppError('Prueba de error', 404, ErrorCode.RESOURCE_NOT_FOUND);
-
+    // Use console mock defined globally
     console.log('Error creado con código correcto:');
     console.log(JSON.stringify(error, null, 2));
 

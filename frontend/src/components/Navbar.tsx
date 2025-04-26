@@ -2,7 +2,7 @@
 
 // import { useState, useEffect } from 'react'; // Ya no se necesitan
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Menu, X, ChevronDown, BarChart2, QrCode, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext'; // Importar useAuth
 import { useState } from 'react'; // Mantener useState para isMenuOpen, isUserMenuOpen
@@ -25,7 +25,7 @@ export default function Navbar() {
   const { isAuthenticated, user, isLoading, logout } = useAuth();
 
   const pathname = usePathname();
-  const router = useRouter(); // Todavía podríamos necesitarlo para otras navegaciones
+  // const router = useRouter(); // Remover variable no utilizada
 
   // Eliminar el useEffect que hacía fetch localmente
   /*

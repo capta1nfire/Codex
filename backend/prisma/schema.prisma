@@ -39,5 +39,7 @@ model User {
 
   // Índices
   @@index([apiKeyPrefix]) // Índice en el prefijo
+  @@index([apiKeyPrefix, isActive]) // Índice compuesto para búsqueda de API key
+  @@index([role, isActive]) // Índice compuesto para consultas por rol y estado
   // @@index([apiKey]) // El índice en el hash único ya existe implícitamente por @unique
 }

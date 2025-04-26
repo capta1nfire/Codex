@@ -35,7 +35,86 @@ interface HealthData {
   };
 }
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     DependencyStatus:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           enum: [ok, degraded, unavailable, error]
+ *           description: Estado del servicio dependiente.
+ *         error:
+ *           type: string
+ *           nullable: true
+ *           description: Mensaje de error si el estado no es 'ok'.
+ *     HealthData:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           enum: [ok, degraded]
+ *           description: Estado general del servicio API Gateway.
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha y hora de la comprobación.
+ *         service:
+ *           type: string
+ *           example: codex-api-gateway
+ *         uptime:
+ *           type: number
+ *           format: float
+ *           description: Tiempo que lleva activo el proceso del servidor en segundos.
+ *         memoryUsage:
+ *           type: object
+ *           properties:
+ *             total:
+ *               type: string
+ *               description: Memoria total del sistema.
+ *               example: 8192MB
+ *             free:
+ *               type: string
+ *               description: Memoria libre del sistema.
+ *               example: 4096MB
+ *             processUsage:
+ *               type: string
+ *               description: Memoria usada por el proceso Node.js.
+ *               example: 150MB
+ *         dependencies:
+ *           type: object
+ *           properties:
+ *             rust_service:
+ *               $ref: '#/components/schemas/DependencyStatus'
+ *             db:
+ *               $ref: '#/components/schemas/DependencyStatus'
+ */
+
 // Endpoint de salud para monitoreo
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     tags:
+ *       - Health
+ *     summary: Comprobar estado de salud del sistema
+ *     description: Devuelve el estado actual del API Gateway y sus dependencias (Servicio Rust, Base de Datos).
+ *     responses:
+ *       200:
+ *         description: El sistema está operativo (puede estar degradado si alguna dependencia falla).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthData'
+ *       503:
+ *         description: El sistema está degradado porque una o más dependencias críticas están caídas.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthData'
+ */
 router.get('/', async (_req: Request, res: Response) => {
   // Información básica del sistema
   const healthData: HealthData = {

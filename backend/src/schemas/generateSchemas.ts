@@ -1,5 +1,60 @@
 import { z } from 'zod';
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     GenerateInput:
+ *       type: object
+ *       required:
+ *         - barcode_type
+ *         - data
+ *       properties:
+ *         barcode_type:
+ *           type: string
+ *           description: Tipo de código de barras a generar (ej. qrcode, code128).
+ *           example: qrcode
+ *         data:
+ *           type: string
+ *           description: Datos a codificar en el código de barras.
+ *           maxLength: 1000
+ *           example: 'https://ejemplo.com'
+ *         options:
+ *           type: object
+ *           description: Opciones de personalización (opcional).
+ *           properties:
+ *             scale:
+ *               type: integer
+ *               description: Factor de escala (tamaño).
+ *               minimum: 1
+ *               maximum: 10
+ *               example: 4
+ *             fgcolor:
+ *               type: string
+ *               format: color-hex
+ *               description: Color de primer plano en hexadecimal.
+ *               example: '#000000'
+ *             bgcolor:
+ *               type: string
+ *               format: color-hex
+ *               description: Color de fondo en hexadecimal.
+ *               example: '#FFFFFF'
+ *             height:
+ *               type: integer
+ *               description: Altura del código en píxeles (para códigos 1D).
+ *               minimum: 10
+ *               maximum: 500
+ *               example: 100
+ *             includetext:
+ *               type: boolean
+ *               description: Incluir el texto debajo del código (para códigos 1D).
+ *               example: true
+ *             ecl:
+ *               type: string
+ *               enum: [L, M, Q, H]
+ *               description: Nivel de corrección de errores para QR Code.
+ *               example: M
+ */
 export const generateSchema = z.object({
   barcode_type: z.string().nonempty('El tipo de código de barras es obligatorio'),
   data: z.string()

@@ -42,9 +42,18 @@ export default function StatusPage() {
             <span
               className={`inline-block w-4 h-4 mr-2 rounded-full ${dbUp ? 'bg-green-500' : 'bg-red-500'}`}
             />
-            <p className={`text-lg font-medium ${dbUp ? 'text-green-700' : 'text-red-700'}`}>{dbUp ? 'Operativa' : 'Caída'}</p>
+            <span
+              className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold ${dbUp ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+            >
+              {dbUp ? 'Operativa' : 'Caída'}
+            </span>
           </div>
         )}
+      </div>
+
+      {/* Sección Servicio Rust */}
+      <div className="p-4 border rounded-lg shadow-sm">
+        {/* Más detalles si es necesario */}
       </div>
     </main>
   );

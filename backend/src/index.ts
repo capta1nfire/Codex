@@ -29,6 +29,8 @@ import { startServer } from './server-config.js'; // <--- Descomentar esta líne
 import logger from './utils/logger.js';
 // Importar métricas de Prometheus
 import { httpRequestDurationMicroseconds, httpRequestsTotal } from './utils/metrics.js'; // <--- Descomentar esta línea
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 
 const app = express();
 
@@ -103,10 +105,53 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(authMiddleware.configurePassport());
 app.use(authMiddleware.apiKeyStrategy);
 
+// --- Configuración de Swagger ---
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Codex API',
+      version: '1.0.0',
+      description: 'API Gateway para la plataforma de generación de códigos Codex',
+    },
+    servers: [
+      {
+        url: `http://localhost:${config.PORT}`,
+        description: 'Servidor de Desarrollo',
+      },
+      // Puedes añadir más servidores (staging, producción) aquí
+    ],
+    components: {
+      schemas: {},
+       // Aquí podríamos definir esquemas reutilizables (ej. ErrorResponse)
+       securitySchemes: {
+         bearerAuth: { // Nombre del esquema de seguridad JWT
+           type: 'http',
+           scheme: 'bearer',
+           bearerFormat: 'JWT',
+         },
+         apiKeyAuth: { // Nombre del esquema de seguridad API Key
+           type: 'apiKey',
+           in: 'header',
+           name: 'X-API-Key', // Nombre del header
+         },
+       },
+    },
+  },
+  // Apunta a los archivos donde están las definiciones JSDoc
+  apis: ['./src/routes/*.ts', './src/schemas/*.ts'], // Rutas y esquemas Zod
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+// --- Fin Configuración de Swagger ---
+
 // --- Montar Rutas (Restaurado) ---
 app.use('/', baseRoutes);
 app.use('/health', healthRoutes);
 app.use('/metrics', metricsRoutes);
+// --- Montar UI de Swagger ---
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// --- Fin Montar UI de Swagger ---
 app.use('/api/auth', authRoutes);
 app.use('/api', generateRoutes);
 

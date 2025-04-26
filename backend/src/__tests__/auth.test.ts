@@ -2,18 +2,19 @@ import express, { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 // import passport from 'passport';
 import request from 'supertest';
+import { jest } from '@jest/globals';
 
 import { config } from '../config.js';
 import { UserRole } from '../models/user.js';
 import { authService, JwtPayload } from '../services/auth.service.js';
 
-// Mock de logger para minimizar ruido en los tests
-jest.mock('../utils/logger', () => ({
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-}));
+// REMOVE jest.mock - Se usará el mock manual
+// jest.mock('../utils/logger', () => ({
+//   info: jest.fn(),
+//   error: jest.fn(),
+//   warn: jest.fn(),
+//   debug: jest.fn(),
+// }));
 
 describe('Authentication Tests', () => {
   // Usuario de prueba
@@ -146,7 +147,7 @@ describe('Authentication Tests', () => {
       '/api/auth/admin',
       authenticateJwt,
       requireRole(UserRole.ADMIN),
-      (req: Request, res: Response) => {
+      (_req: Request, res: Response) => {
         res.status(200).json({ message: 'Admin access granted' });
       }
     );
@@ -155,7 +156,7 @@ describe('Authentication Tests', () => {
       '/api/auth/premium',
       authenticateJwt,
       requireRole(UserRole.PREMIUM),
-      (req: Request, res: Response) => {
+      (_req: Request, res: Response) => {
         res.status(200).json({ message: 'Premium access granted' });
       }
     );

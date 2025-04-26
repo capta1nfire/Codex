@@ -93,25 +93,28 @@ Tras revisar la arquitectura (Node.js + Express, Rust + Axum, Next.js 15, Postgr
 
 ## 5. Estado de Implementación
 
-| Acción                                     | Estado     |
-|--------------------------------------------|------------|
-| Integrar Zod/Joi en frontend y backend     | Pendiente  |
-| Activar strict TS y `noImplicitAny`        | Completado |
-| Configurar CI/CD (GitHub Actions)         | Completado |
-| Limpieza de imports y optimizaciones       | Completado |
-| Implementar métricas de Prometheus         | Completado |
-| Chequeo de estado de la base de datos      | Completado |
-| Refactorizar Navbar y UserProfile          | Completado |
-| UI de monitorización en frontend (`/status`)| Completado |
-| Integrar Redis en `barcodeService`         | Pendiente  |
-| Definir índices compuestos en Prisma/Postgres | Pendiente |
-| Configurar Prometheus Alertmanager y Sentry| Pendiente  |
-| Crear documentación OpenAPI/Swagger        | Pendiente  |
+| Acción                                     | Estado                               |
+|--------------------------------------------|--------------------------------------|
+| Integrar Zod/Joi en frontend y backend     | Completado                           |
+| Activar strict TS y `noImplicitAny`        | Completado                           |
+| Configurar CI/CD (GitHub Actions)         | Completado                           |
+| Limpieza de imports y optimizaciones       | Completado                           |
+| Implementar métricas de Prometheus         | Completado                           |
+| Chequeo de estado de la base de datos      | Completado                           |
+| Refactorizar Navbar y UserProfile          | Completado                           |
+| UI de monitorización en frontend (`/status`)| Completado                           |
+| Integrar Redis en `barcodeService`         | Completado (Verificado 2024-08-01)   |
+| Definir índices compuestos en Prisma/Postgres | Parcialmente Completado (Revisar)    |
+| Configurar Prometheus Alertmanager y Sentry| Pendiente (Pre-Producción)         |
+| Crear documentación OpenAPI/Swagger        | Pendiente (Completar JSDoc)          |
 
 ---
 
 ### Notas Finales
 
-- Se avanzó fuerte en la infraestructura: TS estricto, CI/CD, limpieza de código y métricas.
-- Quedan pendientes Redis, alertas automáticas y documentación Swagger.
-- Próximo paso: planificar sprint de Redis y alertas (2–3 días estimados). 
+- Se avanzó fuerte en la infraestructura: TS estricto, CI/CD, limpieza de código, métricas y caché Redis (confirmado activo).
+- Se añadió un índice compuesto clave en BD; revisar si se necesitan más optimizaciones.
+- La estructura base de Swagger está lista; pendiente completar/verificar JSDoc en todas las rutas/schemas.
+- Quedan pendientes **clave antes de producción**: alertas automáticas (Alertmanager) y monitorización de errores en runtime (Sentry/similar).
+- Próximo paso: planificar sprint para configurar Alertas y Sentry.
+- **Importante:** Integrar Sentry (o similar) para monitorización de errores en runtime *antes* del despliegue a producción, idealmente en entorno de staging. 

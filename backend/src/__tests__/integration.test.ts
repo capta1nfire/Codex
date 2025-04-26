@@ -62,7 +62,9 @@ describe('Integration Tests', () => {
     });
 
     // Error handler middleware (simplified version)
-    app.use((err: Error | AppError, req: Request, res: Response, _next: NextFunction) => {
+    app.use((err: Error | AppError, _req: Request, res: Response, _next: NextFunction) => {
+      console.error('TEST Error Handler Captured:', err); // Log para ver el error
+      const statusCode = err instanceof AppError ? err.statusCode : 500;
       return sendErrorResponse(res, err);
     });
   });

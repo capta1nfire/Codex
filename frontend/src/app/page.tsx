@@ -14,7 +14,15 @@ import {
 import { Button } from '@/components/ui/button'; // Importar Button
 import { Slider } from '@/components/ui/slider'; // Añadir Slider
 import { Switch } from '@/components/ui/switch'; // Añadir Switch
-import { AlertCircle, Copy, Download, Printer } from 'lucide-react'; // Importar iconos
+import {
+  // ChevronDown, // Remove unused
+  // ChevronUp, // Remove unused
+  // Info, // Remove unused
+  // AlertCircle, // Remove unused
+  // Copy, // Remove unused
+  // Download, // Remove unused
+  // Printer, // Remove unused
+} from 'lucide-react';
 
 // Interfaz para el error estructurado devuelto por el backend
 interface ErrorResponse {
@@ -285,12 +293,23 @@ export default function Home() {
   };
 
   const handlePrint = () => {
-    window.print();
+    console.log('Imprimiendo SVG...');
   };
 
+  /* Remove unused function
   const handleCopySvg = () => {
-    // ... (sin cambios)
+    if (svgContent) {
+      navigator.clipboard.writeText(svgContent)
+        .then(() => {
+          toast({ title: 'SVG copiado al portapapeles' });
+        })
+        .catch(err => {
+          console.error('Error al copiar SVG:', err);
+          toast({ title: 'Error al copiar', description: 'No se pudo copiar el SVG.', variant: 'destructive' });
+        });
+    }
   };
+  */
 
   // const showErrorCorrection = type === 'qrcode'; // Unused
   // const showHeightOption = !['qrcode', 'datamatrix'].includes(type); // Unused
@@ -299,7 +318,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 print:p-0 bg-gray-100 text-gray-900">
       <h1 className="text-3xl font-bold mb-8 print:hidden text-gray-900">
-        Generador de Códigos &quot;CODEX...&quot;
+        Generador de Códigos &quot;CODEX&quot;
       </h1>
       {/* Contenedor principal centrado con ancho máximo */}
       <div className="w-full max-w-7xl lg:max-w-screen-xl xl:max-w-screen-2xl print:max-w-full">
@@ -404,7 +423,7 @@ export default function Home() {
                 type="button"
                 onClick={handleGenerate}
                 disabled={isLoading}
-                className="w-full text-base py-2.5"
+                className="w-full text-base py-2.5 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:opacity-100 disabled:transition-none"
               >
                 {isLoading ? 'Generando...' : 'Generar Código'}
               </Button>
@@ -654,7 +673,7 @@ export default function Home() {
                 variant="secondary"
                 onClick={handlePrint}
                 disabled={!svgContent || isLoading}
-                className="flex-1 flex items-center justify-center gap-2"
+                className="flex-1 flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:opacity-100 disabled:transition-none"
               >
                 {/* Icono Imprimir */}
                 <svg
@@ -677,7 +696,7 @@ export default function Home() {
                 type="button"
                 onClick={handleDownload}
                 disabled={!svgContent || isLoading}
-                className="flex-1 bg-green-600 hover:bg-green-700 flex items-center justify-center gap-2"
+                className="flex-1 bg-green-600 hover:bg-green-700 flex items-center justify-center gap-2 disabled:bg-green-300 disabled:text-green-500 disabled:cursor-not-allowed disabled:opacity-100 disabled:transition-none"
               >
                 {/* Icono Descargar */}
                 <svg

@@ -1,11 +1,18 @@
 // Global setup for tests
 import dotenv from 'dotenv';
+import path from 'path';
+import url from 'url';
+import { jest } from '@jest/globals';
+
+// Obtener la ruta del directorio actual en ESM
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables from .env.test if it exists
-dotenv.config({ path: '.env.test' });
+dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 
-// Increase timeout for tests
-jest.setTimeout(30000);
+// Increase timeout for tests (MOVED to jest.config.cjs)
+// jest.setTimeout(30000);
 
 // Add custom matchers if needed
 // expect.extend({
@@ -15,7 +22,7 @@ jest.setTimeout(30000);
 // });
 
 // Global mocks
-global.fetch = jest.fn() as jest.Mock;
+global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -30,3 +37,9 @@ global.console = {
   warn: jest.fn(),
   info: jest.fn(),
 };
+
+// Example: Mocking a global function or module
+// jest.mock('../some-module');
+
+// Enable ESM module mocking (suggested by Claude)
+jest.unstable_mockModule = jest.mock;

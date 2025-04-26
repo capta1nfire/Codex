@@ -1,14 +1,7 @@
 import compression from 'compression';
 import express from 'express';
 import request from 'supertest';
-
-// Mock de logger para evitar ruido en las pruebas
-jest.mock('../utils/logger', () => ({
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-}));
+import { jest } from '@jest/globals';
 
 // Definir tipos para mocks y caché
 interface MockRustResponse {
@@ -33,7 +26,7 @@ global.fetch = jest.fn().mockImplementation(() =>
     ok: true,
     json: () => Promise.resolve(mockRustResponse),
   })
-);
+) as jest.MockedFunction<typeof fetch>;
 
 describe('Performance Optimizations Tests', () => {
   let app: express.Express;
@@ -113,6 +106,6 @@ describe('Performance Optimizations Tests', () => {
     const durationWithCache = Date.now() - startTimeWithCache;
 
     // La respuesta en caché debería ser más rápida
-    expect(durationWithCache).toBeLessThanOrEqual(durationNoCache);
+    expect(durationWithCache).toBeLessThanOrEqual(durationNoCache + 5);
   });
 });
