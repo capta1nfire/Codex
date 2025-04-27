@@ -14,10 +14,17 @@ import { useRouter } from 'next/navigation'; // Para redirección si es necesari
 // 1. Definir la forma del Usuario y del Contexto
 interface User {
   id: string;
-  name: string;
+  firstName: string;
+  lastName?: string;
   email: string;
+  username: string;
   role: string;
-  // Añadir otros campos si son necesarios
+  profilePictureUrl?: string;
+  profilePictureType?: string;
+  currentApiKey?: string; // Campo para la API Key actual (NO es el hash del backend)
+  createdAt?: string;
+  updatedAt?: string;
+  lastLogin?: string;
 }
 
 // 1. Definir la "forma" del estado de autenticación
@@ -31,13 +38,15 @@ interface AuthState {
 // Tipo para la respuesta de login/error
 interface LoginResult {
   success: boolean;
+  user?: User;
   message?: string; // Mensaje de error opcional
 }
 
 // 2. Definir las acciones que el contexto proveerá
 interface AuthContextActions {
-  login: (credentials: { email: string; password: string }) => Promise<LoginResult>; // Modificado para aceptar credenciales y devolver resultado
+  login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void; // <-- Acepta datos parciales para actualizar solo campos específicos
   // Podríamos añadir más acciones: register, loadUserFromToken, etc.
 }
 
@@ -110,71 +119,81 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   }, [fetchUser]);
 
   // Función de Login
-  const login = useCallback(
-    async (credentials: { email: string; password: string }): Promise<LoginResult> => {
-      setIsLoading(true);
-      let result: LoginResult = { success: false }; // Valor por defecto
+  const login = async (email: string, password: string): Promise<LoginResult> => {
+    setIsLoading(true);
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      const response = await fetch(`${backendUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
-        const response = await fetch(`${backendUrl}/api/auth/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(credentials),
-        });
+      const data = await response.json();
 
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-          // Extraer mensaje de error del backend (estructura anidada o plana)
-          let errorMessage = 'Error de autenticación.';
-          if (data.error && typeof data.error === 'object' && data.error.message) {
-            errorMessage = data.error.message;
-          } else if (typeof data.error === 'string') {
-            errorMessage = data.error;
-          } else if (response.status === 401) {
-            errorMessage = 'Credenciales inválidas.';
-          }
-          console.error('Login failed:', errorMessage);
-          result = { success: false, message: errorMessage };
-        } else if (data.success && data.token) {
-          // Éxito: guardar token y obtener datos del usuario
-          localStorage.setItem('authToken', data.token);
-          await fetchUser(data.token); // Actualiza user, isAuthenticated, token
-          console.log('Login successful');
-          result = { success: true };
-        } else {
-          // Respuesta inesperada
-          console.error('Login failed: Invalid response format', data);
-          result = { success: false, message: 'Respuesta inesperada del servidor.' };
-        }
-      } catch (error) {
-        console.error('Login request failed:', error);
-        result = {
+      if (!response.ok) {
+        return {
           success: false,
-          message: error instanceof Error ? error.message : 'Error de red o desconocido.',
+          message: data.error?.message || 'Error de autenticación'
         };
-      } finally {
-        setIsLoading(false);
       }
-      return result; // Devolver el resultado
-    },
-    [fetchUser]
-  );
+
+      // Si tenemos token
+      if (data.success && data.token) {
+        localStorage.setItem('authToken', data.token);
+
+        if (data.user) {
+          // Usuario vino en la respuesta del login
+          setUser(data.user);
+          setIsAuthenticated(true);
+          setToken(data.token);
+          return { success: true, user: data.user }; // Devolver usuario aquí
+        } else {
+          // Usuario NO vino en la respuesta, intentar obtenerlo con /me
+          // fetchUser actualizará el estado internamente de forma asíncrona
+          await fetchUser(data.token);
+          // Como fetchUser es async y actualiza el estado,
+          // no podemos garantizar que 'user' esté disponible inmediatamente aquí.
+          // Devolvemos success: true, pero el consumidor debería observar el estado del contexto.
+          return { success: true, user: undefined };
+        }
+      } else {
+        // Caso: respuesta ok, pero success: false o sin token
+        return {
+          success: false,
+          message: data.error?.message || 'No se recibió token o datos válidos'
+        };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Error desconocido durante el inicio de sesión'
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Función de Logout
-  const logout = useCallback(() => {
-    setIsLoading(true);
-    console.log('[AuthProvider] logout llamado');
+  const logout = () => {
+    localStorage.removeItem('authToken');
     setIsAuthenticated(false);
     setUser(null);
     setToken(null);
-    localStorage.removeItem('authToken');
-    setIsLoading(false);
-    router.push('/'); // Redirigir a home tras logout
-  }, [router]);
+    router.push('/login');
+  };
+
+  // Función para actualizar datos del usuario (modificada)
+  const updateUser = (userData: Partial<User>) => {
+    setUser(prevUser => {
+      if (!prevUser) return null; // No debería pasar si está autenticado, pero por seguridad
+      // Fusionar datos previos con los nuevos
+      return { ...prevUser, ...userData };
+    });
+  };
 
   // --- Valor que el Provider pasará a los consumidores ---
   const contextValue: AuthContextType = {
@@ -184,6 +203,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     logout,
+    updateUser,
   };
 
   // Envolver a los hijos con el Provider y el valor del contexto

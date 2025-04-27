@@ -44,7 +44,7 @@ const router = Router();
  *         description: Servicio de generación no disponible.
  */
 router.post(
-  '/generate',
+  '/',
   validateBody(generateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     const { barcode_type, data, options } = req.body;

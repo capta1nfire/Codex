@@ -64,7 +64,6 @@ describe('Integration Tests', () => {
     // Error handler middleware (simplified version)
     app.use((err: Error | AppError, _req: Request, res: Response, _next: NextFunction) => {
       console.error('TEST Error Handler Captured:', err); // Log para ver el error
-      const statusCode = err instanceof AppError ? err.statusCode : 500;
       return sendErrorResponse(res, err);
     });
   });
@@ -111,7 +110,7 @@ describe('Integration Tests', () => {
         expect.objectContaining({
           success: false,
           error: expect.objectContaining({
-            code: ErrorCode.RESOURCE_NOT_FOUND,
+            code: ErrorCode.NOT_FOUND,
             message: 'User with ID 999 not found',
           }),
         })

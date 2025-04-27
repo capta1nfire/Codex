@@ -21,174 +21,178 @@ import { authMiddleware } from './middleware/authMiddleware.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 // Importar rutas (Comentadas para depuración)
 import { authRoutes } from './routes/auth.routes.js';
+import { avatarRoutes } from './routes/avatar.routes.js';
 import { baseRoutes } from './routes/base.routes.js';
 import { generateRoutes } from './routes/generate.routes.js';
 import { healthRoutes } from './routes/health.routes.js';
 import { metricsRoutes } from './routes/metrics.routes.js';
+import { userRoutes } from './routes/user.routes.js';
 import { startServer } from './server-config.js'; // <--- Descomentar esta línea
 import logger from './utils/logger.js';
 // Importar métricas de Prometheus
 import { httpRequestDurationMicroseconds, httpRequestsTotal } from './utils/metrics.js'; // <--- Descomentar esta línea
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+// Obtener __dirname en ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
 // --- Configuración de Middleware (Restaurada) ---
-// Aplicar middleware de seguridad
-app.use(helmet()); // Seguridad mediante headers HTTP
+// Aplicar middleware de seguridad - Configurar CORP para permitir imágenes cross-origin
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" } 
+}));
 
-// Aplicar compresión a todas las respuestas
-app.use(compression());
-
-// Configuración de CORS restringido
+// Configurar opciones de CORS
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Permitir solicitudes sin origen (como aplicaciones móviles o curl)
-      if (!origin) return callback(null, true);
-
-      if (config.ALLOWED_ORIGINS.indexOf(origin) === -1) {
-        const msg = `El origen ${origin} no está permitido por la política CORS`;
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+    origin: config.ALLOWED_ORIGINS,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
-
-// Configuración de límite de tasa
-const limiter = rateLimit({
-  windowMs: config.RATE_LIMIT_WINDOW_MS,
-  max: config.RATE_LIMIT_MAX,
-  message: {
-    success: false,
-    error:
-      'Demasiadas solicitudes desde esta IP, por favor inténtelo de nuevo después de 15 minutos',
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// Aplicar limitador a todas las solicitudes
-app.use(limiter);
-
-// Parse JSON body
-app.use(express.json({ limit: config.MAX_REQUEST_SIZE })); // Limite el tamaño del cuerpo a 1MB
 
 // Prevenir ataques XSS
 app.use(xss());
 
-// --- Middleware para Métricas HTTP Prometheus ---
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const end = httpRequestDurationMicroseconds.startTimer();
-  res.on('finish', () => {
-    const route = req.route?.path || req.originalUrl.split('?')[0] || 'unknown';
-    const labels = {
-      method: req.method,
-      route: route,
-      code: res.statusCode.toString(),
-    };
-    end(labels);
-    httpRequestsTotal.inc(labels);
-  });
-  next();
+// Parse JSON body
+app.use(express.json({ limit: config.MAX_REQUEST_SIZE }));
+
+// Servir archivos estáticos PRIMERO (para que no cuenten en el rate limit)
+app.use('/static', express.static(path.join(__dirname, '../static')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Aplicar límites de tasa DESPUÉS de estáticos y CORS
+const limiter = rateLimit({
+  windowMs: config.RATE_LIMIT_WINDOW_MS,
+  max: config.RATE_LIMIT_MAX,
+  standardHeaders: true,
+  message: {
+    success: false,
+    error: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Demasiadas solicitudes. Intenta de nuevo más tarde.',
+    },
+  },
 });
-// --- Fin Middleware Métricas ---
+app.use(limiter);
 
-// Middleware para validación de solicitudes (movido a generate.routes.ts, eliminar aquí)
-// const validateRequest = (req: Request, res: Response, next: NextFunction) => { ... };
+// Aplicar compresión para respuestas (después del limiter está bien)
+app.use(compression());
 
-// Configurar autenticación
+// --- Configuración de Autenticación ---
+// Configurar y usar passport para la autenticación JWT
 app.use(authMiddleware.configurePassport());
 app.use(authMiddleware.apiKeyStrategy);
 
-// --- Configuración de Swagger ---
+// Middleware para registrar solicitudes (usando winston)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // Registrar solo en desarrollo (o ajustar según necesidades)
+  if (config.NODE_ENV === 'development') {
+    logger.info(`[${req.method}] ${req.url}`);
+  }
+
+  // Registrar métricas para Prometheus
+  const end = httpRequestDurationMicroseconds.startTimer();
+  const countPath = req.path || 'unknown';
+
+  // Al finalizar la respuesta
+  res.on('finish', () => {
+    const respTime = end();
+    httpRequestsTotal.labels(req.method, countPath, res.statusCode.toString()).inc();
+    if (respTime > 1000) {
+      // Registrar respuestas lentas (más de 1 segundo)
+      logger.warn(`Respuesta lenta (${respTime.toFixed(2)}ms): [${req.method}] ${req.url}`);
+    }
+  });
+
+  next();
+});
+
+// --- ENDPOINTS PÚBLICOS ---
+// Rutas de salud (ping, etc.)
+app.use('/health', healthRoutes);
+app.use('/metrics', metricsRoutes);
+
+// --- Rutas de la API ---
+app.use('/', baseRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/generate', generateRoutes);
+app.use('/api/avatars', avatarRoutes);
+app.use('/api/users', userRoutes);
+
+// Documentación Swagger
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Codex API',
+      title: 'API de Codex - Generador de Códigos QR / Barras',
       version: '1.0.0',
-      description: 'API Gateway para la plataforma de generación de códigos Codex',
+      description:
+        'API para generación y gestión de códigos QR y de barras integrada con servicio Rust',
+      license: {
+        name: 'MIT',
+        url: 'https://spdx.org/licenses/MIT.html',
+      },
+      contact: {
+        name: 'Soporte de Codex',
+        url: 'https://codexproject.com',
+        email: 'soporte@codexproject.com',
+      },
     },
     servers: [
       {
-        url: `http://localhost:${config.PORT}`,
-        description: 'Servidor de Desarrollo',
+        url: '/',
       },
-      // Puedes añadir más servidores (staging, producción) aquí
     ],
     components: {
-      schemas: {},
-       // Aquí podríamos definir esquemas reutilizables (ej. ErrorResponse)
-       securitySchemes: {
-         bearerAuth: { // Nombre del esquema de seguridad JWT
-           type: 'http',
-           scheme: 'bearer',
-           bearerFormat: 'JWT',
-         },
-         apiKeyAuth: { // Nombre del esquema de seguridad API Key
-           type: 'apiKey',
-           in: 'header',
-           name: 'X-API-Key', // Nombre del header
-         },
-       },
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+        apiKeyAuth: {
+          type: 'apiKey',
+          in: 'header',
+          name: 'x-api-key',
+        },
+      },
     },
   },
-  // Apunta a los archivos donde están las definiciones JSDoc
-  apis: ['./src/routes/*.ts', './src/schemas/*.ts'], // Rutas y esquemas Zod
+  apis: ['./src/routes/*.ts'], // Rutas a archivos con anotaciones JSDoc
 };
 
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-// --- Fin Configuración de Swagger ---
+const swaggerSpecification = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecification, {
+  customCss: `
+    .swagger-ui .topbar { display: none }
+    .swagger-ui .info { margin: 30px 0 }
+    .swagger-ui .scheme-container { background: none; box-shadow: none; margin: 0 }
+    .swagger-ui .opblock-tag { font-size: 18px; margin: 0 0 10px 0; padding: 10px !important; }
+    .swagger-ui .opblock { margin: 0 0 15px 0; border-radius: 4px; }
+    .swagger-ui .opblock .opblock-summary { padding: 10px; }
+    .swagger-ui .opblock .opblock-summary-method { border-radius: 4px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+  `,
+  customSiteTitle: "Codex API - Documentación",
+  customfavIcon: "/static/favicon.ico"
+}));
 
-// --- Montar Rutas (Restaurado) ---
-app.use('/', baseRoutes);
-app.use('/health', healthRoutes);
-app.use('/metrics', metricsRoutes);
-// --- Montar UI de Swagger ---
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-// --- Fin Montar UI de Swagger ---
-app.use('/api/auth', authRoutes);
-app.use('/api', generateRoutes);
-
-// Middleware para manejo de errores
-app.use(errorHandler);
-
-// Middleware para manejar rutas no encontradas
+// Manejador para rutas no encontradas (404)
 app.use(notFoundHandler);
 
-// console.log("Script reached end (before server start)"); // Remover log de depuración
+// Manejador de errores global
+app.use(errorHandler);
 
-// Iniciar el servidor con la configuración (Restaurado)
-startServer(app, {
-  SSL_ENABLED: config.SSL_ENABLED,
-  SSL_KEY_PATH: config.SSL_KEY_PATH,
-  SSL_CERT_PATH: config.SSL_CERT_PATH,
-  SSL_CA_PATH: config.SSL_CA_PATH,
-  PORT: config.PORT,
-  HOST: config.HOST,
-  RUST_SERVICE_URL: config.RUST_SERVICE_URL,
-  NODE_ENV: config.NODE_ENV,
-  RATE_LIMIT_MAX: config.RATE_LIMIT_MAX,
-  RATE_LIMIT_WINDOW_MS: config.RATE_LIMIT_WINDOW_MS,
-});
+// Iniciar servidor HTTP o HTTPS según configuración
+startServer(app, config);
 
-// Manejo de cierre graceful (Restaurar logger)
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM recibido, cerrando el servidor...');
-  process.exit(0);
-});
-
-process.on('SIGINT', () => {
-  logger.info('SIGINT recibido, cerrando el servidor...');
-  process.exit(0);
-});
-
-process.on('uncaughtException', (error) => {
-  logger.error('Excepción no capturada:', error);
-  process.exit(1);
-});
+// Para testing (exportar app)
+export default app;

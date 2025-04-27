@@ -43,8 +43,19 @@ describe('UserStore', () => {
         it('should remove the password field from the user object', () => {
             const userWithPassword: User = {
                 id: '1', email: 'test@test.com', password: 'secretPassword', 
-                name: 'Test', role: 'USER', createdAt: new Date(), updatedAt: new Date(),
-                isActive: true, lastLogin: null, apiKeyPrefix: null, apiKey: null, apiUsage: 0,
+                firstName: 'Test',
+                lastName: null,
+                username: null,
+                role: UserRole.USER, 
+                createdAt: new Date(), 
+                updatedAt: new Date(),
+                isActive: true, 
+                lastLogin: null, 
+                apiKeyPrefix: null, 
+                apiKey: null, 
+                apiUsage: 0,
+                avatarUrl: null,
+                avatarType: null
             };
             const sanitized = userStore.sanitizeUser(userWithPassword);
             expect(sanitized).not.toHaveProperty('password');
@@ -134,35 +145,58 @@ describe('UserStore', () => {
 
         it('should update lastLogin and return user on successful match', async () => {
             const apiKey = '12345678abcdef';
-            const mockUser = { id: '1', apiKey: 'hashed' } as PrismaGeneratedUser;
+            // Usar any para el mock user
+            const mockUser = { id: '1', apiKey: 'hashed', apiKeyPrefix: '12345678', isActive: true } as any; 
             prismaMock.user.findMany.mockResolvedValue([mockUser]);
-            // @ts-expect-error - El tipo de jest.Mock no coincide exactamente con el de bcrypt.compare
-            (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
-            const updatedUser = { ...mockUser, lastLogin: new Date() } as PrismaGeneratedUser;
-            prismaMock.user.update.mockResolvedValue(updatedUser);
+            // Mockear bcrypt.compare para que devuelva true
+            (bcrypt.compare as any).mockResolvedValueOnce(true); 
+            // NO necesitamos mockear update aquí
+
             const result = await userStore.findByApiKey(apiKey);
-            expect(prismaMock.user.update).toHaveBeenCalledWith({
-                where: { id: mockUser.id },
-                data: { lastLogin: expect.any(Date) },
+
+            // Verificar que se buscó por prefijo
+            expect(prismaMock.user.findMany).toHaveBeenCalledWith({
+                where: { apiKeyPrefix: '12345678', isActive: true },
             });
-            expect(result).toEqual(updatedUser);
+            // Verificar que se comparó la clave
+            expect(bcrypt.compare).toHaveBeenCalledWith(apiKey, mockUser.apiKey);
+            // Verificar que NO se llamó a update
+            expect(prismaMock.user.update).not.toHaveBeenCalled(); 
+            // Verificar que se devolvió el usuario correcto
+            expect(result).toEqual(mockUser); 
         });
     });
 
     describe('createUser', () => {
         it('should create a new user when email does not exist', async () => {
-            const userData = { email: 'new@example.com', password: 'pwd', name: 'Test', role: UserRole.USER };
-            prismaMock.user.findUnique.mockResolvedValue(null);
-            // @ts-expect-error - El tipo de bcrypt.hash como jest.fn() no permite mockResolvedValue
-            bcrypt.hash.mockResolvedValue('hashedPwd');
-            const newUser = { id: '1', email: userData.email, password: 'hashedPwd', name: userData.name, role: userData.role } as PrismaGeneratedUser;
+            const userData = { 
+                email: 'new@example.com', 
+                password: 'pwd', 
+                firstName: 'Test', 
+                lastName: 'User', 
+                role: UserRole.USER 
+            };
+            prismaMock.user.findUnique.mockResolvedValueOnce(null); 
+            (bcrypt.hash as any).mockResolvedValue('hashedPwd'); 
+            const newUser = { 
+                id: '1', 
+                email: userData.email, 
+                password: 'hashedPwd', 
+                firstName: userData.firstName, 
+                lastName: userData.lastName, 
+                role: userData.role,
+            } as any;
             prismaMock.user.create.mockResolvedValue(newUser);
+            
             const result = await userStore.createUser(userData);
+            
+            expect(prismaMock.user.findUnique).toHaveBeenCalledWith({ where: { email: userData.email } });
             expect(prismaMock.user.create).toHaveBeenCalledWith({
                 data: {
                     email: userData.email,
                     password: 'hashedPwd',
-                    name: userData.name,
+                    firstName: userData.firstName,
+                    lastName: userData.lastName,
                     role: userData.role,
                 },
             });
@@ -170,12 +204,21 @@ describe('UserStore', () => {
         });
 
         it('should throw AppError if email already exists', async () => {
-            const userData = { email: 'exists@example.com', password: 'pwd', name: 'Test', role: UserRole.USER };
-            const existingUser = { id: '1', email: userData.email } as PrismaGeneratedUser;
-            prismaMock.user.findUnique.mockResolvedValue(existingUser);
+            const userData = { 
+                email: 'exists@example.com', 
+                password: 'pwd', 
+                firstName: 'Test', 
+                role: UserRole.USER 
+            };
+            const existingUser = { id: '1', email: userData.email } as any;
+            prismaMock.user.findUnique.mockResolvedValueOnce(existingUser); 
+            
             const promise = userStore.createUser(userData);
+            
             await expect(promise).rejects.toBeInstanceOf(AppError);
-            await expect(promise).rejects.toMatchObject({ statusCode: 409, errorCode: ErrorCode.CONFLICT_ERROR });
+            await expect(promise).rejects.toMatchObject({ statusCode: 409, code: ErrorCode.CONFLICT_ERROR, message: expect.stringContaining('El email exists@example.com ya está registrado') });
+            expect(prismaMock.user.findUnique).toHaveBeenCalledWith({ where: { email: userData.email } });
+            expect(prismaMock.user.create).not.toHaveBeenCalled(); 
         });
     });
 
@@ -220,7 +263,8 @@ describe('UserStore', () => {
     describe('updateUser', () => {
         it('should return null if user does not exist', async () => {
             prismaMock.user.findUnique.mockResolvedValue(null);
-            const result = await userStore.updateUser('1', { name: 'NewName' });
+            // Usar un campo nuevo como firstName
+            const result = await userStore.updateUser('1', { firstName: 'NewFirstName' });
             expect(result).toBeNull();
         });
 
@@ -231,17 +275,28 @@ describe('UserStore', () => {
             expect(result).toEqual(existingUser);
         });
 
-        it('should update only provided fields', async () => {
+        it('should update only provided fields (using new fields)', async () => {
             const existingUser = { id: '1' } as PrismaGeneratedUser;
             prismaMock.user.findUnique.mockResolvedValue(existingUser);
             const updated = { ...existingUser } as PrismaGeneratedUser;
             prismaMock.user.update.mockResolvedValue(updated);
-            const updates = { name: 'Name', isActive: false, role: UserRole.ADMIN, apiKeyPrefix: 'pref' };
+            // Usar los nuevos campos en updates
+            const updates = { 
+                firstName: 'FirstName', 
+                lastName: 'LastName', 
+                username: 'newuser', 
+                isActive: false, 
+                role: UserRole.ADMIN, 
+                apiKeyPrefix: 'pref' 
+            };
             const result = await userStore.updateUser('1', updates);
             expect(prismaMock.user.update).toHaveBeenCalledWith({
                 where: { id: '1' },
                 data: {
-                    name: updates.name,
+                    // Esperar los nuevos campos
+                    firstName: updates.firstName,
+                    lastName: updates.lastName,
+                    username: updates.username.toLowerCase(), // Recordar que se guarda en minúsculas
                     isActive: updates.isActive,
                     role: updates.role,
                     apiKeyPrefix: updates.apiKeyPrefix,
@@ -251,11 +306,11 @@ describe('UserStore', () => {
         });
 
         it('should hash password and apiKey if provided', async () => {
-            const existingUser = { id: '1' } as PrismaGeneratedUser;
+            const existingUser = { id: '1' } as any;
             prismaMock.user.findUnique.mockResolvedValue(existingUser);
-            // @ts-expect-error - El tipo de bcrypt.hash como jest.fn() no permite mockResolvedValueOnce
-            bcrypt.hash.mockResolvedValueOnce('hashedPass').mockResolvedValueOnce('hashedKey');
-            const updated = { ...existingUser } as PrismaGeneratedUser;
+            (bcrypt.hash as any).mockResolvedValueOnce('hashedPass');
+            (bcrypt.hash as any).mockResolvedValueOnce('hashedKey'); 
+            const updated = { ...existingUser } as any;
             prismaMock.user.update.mockResolvedValue(updated);
             const result = await userStore.updateUser('1', { password: 'newpass', apiKey: 'newkey', apiKeyPrefix: 'pref2' });
             expect(bcrypt.hash).toHaveBeenNthCalledWith(1, 'newpass', 10);

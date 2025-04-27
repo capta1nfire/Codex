@@ -16,15 +16,28 @@ export const authController = {
    */
   async register(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, password, name } = req.body;
-
-      // Crear el usuario (por defecto con rol USER)
-      const user = await userStore.createUser({
-        email,
-        password,
-        name,
-        role: UserRole.USER,
-      });
+      // Obtener los nuevos campos del body
+      const { email, password, firstName, lastName, username } = req.body;
+      let user;
+      try {
+        // Crear el usuario con los nuevos campos
+        user = await userStore.createUser({
+          email,
+          password,
+          firstName,
+          lastName, // Pasamos lastName (puede ser undefined)
+          username, // Pasamos username
+          role: UserRole.USER,
+        });
+      } catch (error) {
+          // Manejar error específico de username duplicado (o email duplicado)
+          if (error instanceof AppError && error.code === ErrorCode.CONFLICT_ERROR) {
+            // El error de userStore ya indica si es email o username
+             return next(error); 
+          }
+          // Re-lanzar otros errores de createUser
+          throw error; 
+      }
 
       // Generar token JWT
       const token = authService.generateToken(user);
@@ -37,11 +50,7 @@ export const authController = {
         expiresIn: 3600, // 1 hora por defecto
       });
     } catch (error) {
-      // Si es un error de usuario existente
-      if (error instanceof Error && error.message.includes('ya existe')) {
-        return next(new AppError('El email ya está registrado', 409, ErrorCode.VALIDATION_ERROR));
-      }
-
+      // Captura errores generales o re-lanzados
       next(error);
     }
   },
@@ -57,7 +66,7 @@ export const authController = {
       const authResponse = await authService.login(email, password);
 
       if (!authResponse) {
-        throw new AppError('Credenciales inválidas', 401, ErrorCode.AUTHENTICATION_ERROR);
+        throw new AppError('Credenciales inválidas', 401, ErrorCode.UNAUTHORIZED);
       }
 
       // Responder con los datos del usuario y token
@@ -80,14 +89,14 @@ export const authController = {
       const token = authHeader.split(' ')[1]; // Formato: "Bearer <token>"
 
       if (!token) {
-        throw new AppError('Token no proporcionado', 401, ErrorCode.AUTHENTICATION_ERROR);
+        throw new AppError('Token no proporcionado', 401, ErrorCode.UNAUTHORIZED);
       }
 
       // Intentar refrescar el token
       const refreshResult = await authService.refreshToken(token);
 
       if (!refreshResult) {
-        throw new AppError('Token inválido o expirado', 401, ErrorCode.AUTHENTICATION_ERROR);
+        throw new AppError('Token inválido o expirado', 401, ErrorCode.UNAUTHORIZED);
       }
 
       // Responder con el nuevo token
@@ -117,7 +126,7 @@ export const authController = {
       // El usuario debe estar autenticado
       const user = req.user as User;
       if (!user) {
-        throw new AppError('No autenticado', 401, ErrorCode.AUTHENTICATION_ERROR);
+        throw new AppError('No autenticado', 401, ErrorCode.UNAUTHORIZED);
       }
 
       // Generar una API key segura y aleatoria (ej: 64 caracteres hexadecimales)
@@ -134,7 +143,7 @@ export const authController = {
       });
 
       if (!updated) {
-        throw new AppError('Usuario no encontrado', 404, ErrorCode.RESOURCE_NOT_FOUND);
+        throw new AppError('Usuario no encontrado', 404, ErrorCode.NOT_FOUND);
       }
 
       // Responder SOLO con la API key en texto plano (¡Mostrar solo esta vez!)

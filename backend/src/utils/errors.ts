@@ -20,35 +20,33 @@ export enum HttpStatus {
 
 // Códigos de error internos
 export enum ErrorCode {
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-  AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
-  AUTHORIZATION_ERROR = 'AUTHORIZATION_ERROR',
-  RESOURCE_NOT_FOUND = 'RESOURCE_NOT_FOUND',
-  CONFLICT_ERROR = 'CONFLICT_ERROR',
-  RATE_LIMIT_ERROR = 'RATE_LIMIT_ERROR',
-  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-  INTERNAL_ERROR = 'INTERNAL_ERROR',
   BAD_REQUEST = 'BAD_REQUEST',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  FORBIDDEN = 'FORBIDDEN',
+  NOT_FOUND = 'NOT_FOUND',
+  CONFLICT_ERROR = 'CONFLICT_ERROR',
+  INTERNAL_SERVER = 'INTERNAL_SERVER',
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE'
 }
 
 // Clase base para todos los errores de la aplicación
 export class AppError extends Error {
-  public readonly statusCode: HttpStatus;
-  public readonly errorCode: ErrorCode;
-  public readonly context?: Record<string, unknown>;
+  statusCode: number;
+  code?: ErrorCode;
+  details?: unknown;
 
   constructor(
     message: string,
-    statusCode: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
-    errorCode: ErrorCode = ErrorCode.INTERNAL_ERROR,
-    context?: Record<string, unknown>
+    statusCode: number = 500,
+    code?: ErrorCode,
+    details?: unknown
   ) {
     super(message);
-    this.name = this.constructor.name;
+    this.name = 'AppError';
     this.statusCode = statusCode;
-    this.errorCode = errorCode;
-    this.context = context;
-    Error.captureStackTrace(this, this.constructor);
+    this.code = code;
+    this.details = details;
   }
 }
 
@@ -62,21 +60,21 @@ export class ValidationError extends AppError {
 // Error para recursos no encontrados
 export class NotFoundError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND, context);
+    super(message, HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND, context);
   }
 }
 
 // Error para autenticación
 export class AuthenticationError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, HttpStatus.UNAUTHORIZED, ErrorCode.AUTHENTICATION_ERROR, context);
+    super(message, HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED, context);
   }
 }
 
 // Error para autorización
 export class AuthorizationError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, HttpStatus.FORBIDDEN, ErrorCode.AUTHORIZATION_ERROR, context);
+    super(message, HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN, context);
   }
 }
 
@@ -90,24 +88,24 @@ export class ServiceUnavailableError extends AppError {
 // Error para limite de peticiones
 export class RateLimitError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, HttpStatus.TOO_MANY_REQUESTS, ErrorCode.RATE_LIMIT_ERROR, context);
+    super(message, HttpStatus.TOO_MANY_REQUESTS, ErrorCode.INTERNAL_SERVER, context);
   }
 }
 
 // Función para enviar respuestas de error estandarizadas
 export function sendErrorResponse(res: Response, error: AppError | Error): Response {
   if (error instanceof AppError) {
-    logger.error(`${error.errorCode}: ${error.message}`, {
+    logger.error(`${error.code}: ${error.message}`, {
       stack: error.stack,
-      context: error.context,
+      context: error.details,
     });
 
     return res.status(error.statusCode).json({
       success: false,
       error: {
-        code: error.errorCode,
+        code: error.code,
         message: error.message,
-        context: error.context,
+        context: error.details,
       },
     });
   }
@@ -120,8 +118,38 @@ export function sendErrorResponse(res: Response, error: AppError | Error): Respo
   return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
     success: false,
     error: {
-      code: ErrorCode.INTERNAL_ERROR,
+      code: ErrorCode.INTERNAL_SERVER,
       message: 'Ha ocurrido un error inesperado',
     },
   });
 }
+
+// Función para convertir un error genérico en una respuesta de error estandarizada
+export const formatError = (error: Error | AppError): {
+  success: false;
+  error: {
+    message: string;
+    code?: string;
+    details?: unknown;
+  };
+} => {
+  if (error instanceof AppError) {
+    return {
+      success: false,
+      error: {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+      },
+    };
+  }
+
+  // Error genérico (no AppError)
+  return {
+    success: false,
+    error: {
+      message: error.message || 'Error del servidor',
+      code: ErrorCode.INTERNAL_SERVER,
+    },
+  };
+};

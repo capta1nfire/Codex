@@ -1,17 +1,12 @@
 import { jest } from '@jest/globals';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 
 import { authService, JwtPayload } from '../auth.service.js';
 import { config } from '../../config.js';
-import { User, UserRole, userStore } from '../../models/user.js';
-import { AppError, ErrorCode } from '../../utils/errors.js';
+import { User, userStore } from '../../models/user.js';
 
 // Mockear SOLO dependencias EXTERNAS (no userStore)
 // jest.mock('jsonwebtoken');
-jest.mock('bcrypt');
-jest.mock('crypto');
 
 // Mock de logger (manual sigue OK)
 // jest.mock('../../utils/__mocks__/logger.js'); // Asegurarse que apunta al mock si es necesario

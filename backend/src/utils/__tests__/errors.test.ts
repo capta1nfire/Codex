@@ -11,26 +11,28 @@ describe('AppError', () => {
 
     expect(error.message).toBe('Test error message');
     expect(error.statusCode).toBe(HttpStatus.BAD_REQUEST);
-    expect(error.errorCode).toBe(ErrorCode.VALIDATION_ERROR);
-    expect(error.context).toEqual({ field: 'test' });
+    expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+    expect(error.details).toEqual({ field: 'test' });
   });
 
   test('should set default values when not provided', () => {
     const error = new AppError('Test error message');
 
     expect(error.statusCode).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
-    expect(error.errorCode).toBe(ErrorCode.INTERNAL_ERROR);
-    expect(error.context).toBeUndefined();
+    expect(error.code).toBeUndefined();
+    expect(error.details).toBeUndefined();
   });
 });
 
 describe('ErrorCode enum', () => {
   test('should have the expected error codes', () => {
     expect(ErrorCode.VALIDATION_ERROR).toBe('VALIDATION_ERROR');
-    expect(ErrorCode.AUTHENTICATION_ERROR).toBe('AUTHENTICATION_ERROR');
-    expect(ErrorCode.AUTHORIZATION_ERROR).toBe('AUTHORIZATION_ERROR');
-    expect(ErrorCode.RESOURCE_NOT_FOUND).toBe('RESOURCE_NOT_FOUND');
-    expect(ErrorCode.INTERNAL_ERROR).toBe('INTERNAL_ERROR');
+    expect(ErrorCode.UNAUTHORIZED).toBe('UNAUTHORIZED');
+    expect(ErrorCode.FORBIDDEN).toBe('FORBIDDEN');
+    expect(ErrorCode.NOT_FOUND).toBe('NOT_FOUND');
+    expect(ErrorCode.INTERNAL_SERVER).toBe('INTERNAL_SERVER');
     expect(ErrorCode.BAD_REQUEST).toBe('BAD_REQUEST');
+    expect(ErrorCode.CONFLICT_ERROR).toBe('CONFLICT_ERROR');
+    expect(ErrorCode.SERVICE_UNAVAILABLE).toBe('SERVICE_UNAVAILABLE');
   });
 });

@@ -168,10 +168,9 @@ export default function Home() {
     try {
       // Usar la variable de entorno para la URL del backend
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
-      const requestUrl = `${backendUrl}/api/generate`; // Construct URL
-      console.log('[handleGenerate] FETCHING URL:', requestUrl); // Log 6: URL a fetchear
+      const requestUrl = `${backendUrl}/api/generate`;
+      console.log('[handleGenerate] FETCHING URL:', requestUrl);
       const response = await fetch(requestUrl, {
-        // Use the constructed URL
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

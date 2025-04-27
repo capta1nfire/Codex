@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { jest } from '@jest/globals';
 
 import { AppError, ErrorCode, HttpStatus } from '../../utils/errors.js';
@@ -12,8 +12,8 @@ import { notFoundHandler, errorHandler, asyncErrorWrapper } from '../errorHandle
 
 describe('Error Handler Middleware', () => {
   let mockRequest: Partial<Request>;
-  let mockResponse: Partial<Response>;
-  let nextFunction: jest.Mock;
+  let mockResponse: any; // Usar 'any' para simplificar el tipado del mock
+  let mockNext: jest.Mock;
 
   beforeEach(() => {
     mockRequest = {
@@ -31,34 +31,34 @@ describe('Error Handler Middleware', () => {
       ip: '127.0.0.1',
     };
 
-    // Cast mocks to any again, but keep the corrected assertion below
+    // Crear mocks y castear el objeto completo a 'any'
     mockResponse = {
-      status: jest.fn().mockReturnThis() as any,
-      json: jest.fn().mockReturnThis() as any,
-    };
-
-    nextFunction = jest.fn();
+      status: jest.fn().mockReturnThis(), // mockReturnThis para encadenar
+      json: jest.fn().mockReturnThis(),
+      // Añadir otros métodos si es necesario
+    } as any; 
+    mockNext = jest.fn();
   });
 
   describe('notFoundHandler', () => {
-    test('should return 404 with RESOURCE_NOT_FOUND error code', () => {
-      notFoundHandler(mockRequest as Request, mockResponse as Response);
+    test('should call next with a NotFoundError', () => {
+      notFoundHandler(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: {
-          code: ErrorCode.RESOURCE_NOT_FOUND,
+      // Verificar que se llamó a next()
+      expect(mockNext).toHaveBeenCalledTimes(1);
+      // Verificar que se llamó a next() con un AppError
+      expect(mockNext).toHaveBeenCalledWith(expect.any(AppError));
+      // Verificar las propiedades del error pasado a next()
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: HttpStatus.NOT_FOUND,
+          code: ErrorCode.NOT_FOUND,
           message: expect.stringContaining('Ruta no encontrada: /test-url'),
-          context: undefined,
-        },
-      });
-    });
-
-    it('should call notFoundHandler with correct arguments', () => {
-      notFoundHandler(mockRequest as Request, mockResponse as Response);
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalled();
+        })
+      );
+      // Verificar que status y json NO fueron llamados
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
   });
 
@@ -67,10 +67,11 @@ describe('Error Handler Middleware', () => {
       const appError = new AppError(
         'Test error',
         HttpStatus.BAD_REQUEST,
-        ErrorCode.VALIDATION_ERROR
+        ErrorCode.VALIDATION_ERROR,
+        { detail: 'some context' }
       );
 
-      errorHandler(appError, mockRequest as Request, mockResponse as Response, nextFunction);
+      errorHandler(appError, mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
       expect(mockResponse.json).toHaveBeenCalledWith(
@@ -79,49 +80,52 @@ describe('Error Handler Middleware', () => {
           error: expect.objectContaining({
             code: ErrorCode.VALIDATION_ERROR,
             message: 'Test error',
+            details: { detail: 'some context' }
           }),
         })
       );
+      expect(mockNext).not.toHaveBeenCalled();
     });
 
     test('should handle regular Error as internal server error', () => {
       const error = new Error('Regular error');
 
-      errorHandler(error, mockRequest as Request, mockResponse as Response, nextFunction);
+      errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
           error: expect.objectContaining({
-            code: ErrorCode.INTERNAL_ERROR,
+            code: ErrorCode.INTERNAL_SERVER,
+            message: 'Error interno del servidor'
           }),
         })
       );
+       expect(mockNext).not.toHaveBeenCalled();
     });
   });
 
   describe('asyncErrorWrapper', () => {
     test('should pass error to next function when async function throws', async () => {
       const error = new Error('Async error');
-      // Keep the typed mock for the async function itself
       const asyncFn = jest.fn<() => Promise<never>>().mockRejectedValue(error);
       const wrappedFn = asyncErrorWrapper(asyncFn);
 
-      await wrappedFn(mockRequest as Request, mockResponse as Response, nextFunction);
+      await wrappedFn(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(asyncFn).toHaveBeenCalled();
-      expect(nextFunction).toHaveBeenCalledWith(error);
+      expect(mockNext).toHaveBeenCalledWith(error);
     });
 
     test('should resolve normally when async function succeeds', async () => {
       const asyncFn = jest.fn<() => Promise<unknown>>().mockResolvedValue('success');
       const wrappedFn = asyncErrorWrapper(asyncFn);
 
-      await wrappedFn(mockRequest as Request, mockResponse as Response, nextFunction);
+      await wrappedFn(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(asyncFn).toHaveBeenCalled();
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(mockNext).not.toHaveBeenCalled();
     });
   });
 });

@@ -2,8 +2,9 @@ import { Router } from 'express';
 
 import { authController } from '../controllers/auth.controller.js';
 import { validateBody } from '../middleware/validationMiddleware.js';
-import { registerSchema, loginSchema } from '../schemas/authSchemas.js';
-import { authenticateJwt, checkRole } from '../middleware/authMiddleware.js';
+import { loginSchema } from '../schemas/authSchemas.js';
+import { createUserSchema } from '../schemas/user.schema.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import { UserRole } from '../models/user.js';
 
 const router = Router();
@@ -49,7 +50,7 @@ const router = Router();
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/register', validateBody(registerSchema), authController.register);
+router.post('/register', validateBody(createUserSchema), authController.register);
 
 /**
  * @openapi
@@ -157,7 +158,7 @@ router.post('/refresh', authController.refreshToken);
  *       500:
  *         description: Error interno del servidor.
  */
-router.get('/me', authenticateJwt, authController.me);
+router.get('/me', authMiddleware.authenticateJwt, authController.me);
 
 /**
  * @openapi
@@ -191,7 +192,7 @@ router.get('/me', authenticateJwt, authController.me);
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/api-key', authenticateJwt, authController.generateApiKey);
+router.post('/api-key', authMiddleware.authenticateJwt, authController.generateApiKey);
 
 /**
  * @openapi
@@ -227,7 +228,7 @@ router.post('/api-key', authenticateJwt, authController.generateApiKey);
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/admin', authenticateJwt, checkRole(UserRole.ADMIN), authController.adminAccess);
+router.post('/admin', authMiddleware.authenticateJwt, authMiddleware.checkRole(UserRole.ADMIN), authController.adminAccess);
 
 /**
  * @openapi
@@ -263,7 +264,7 @@ router.post('/admin', authenticateJwt, checkRole(UserRole.ADMIN), authController
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/premium', authenticateJwt, checkRole(UserRole.PREMIUM), authController.premiumAccess);
+router.post('/premium', authMiddleware.authenticateJwt, authMiddleware.checkRole(UserRole.PREMIUM), authController.premiumAccess);
 
 /**
  * @openapi

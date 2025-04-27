@@ -3,19 +3,10 @@
 // import { useState, useEffect } from 'react'; // Ya no se necesitan
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ChevronDown, BarChart2, QrCode, User, LogOut, Settings } from 'lucide-react';
+import { Menu, X, BarChart2, QrCode, User, LogOut, Settings, FileText } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext'; // Importar useAuth
-import { useState } from 'react'; // Mantener useState para isMenuOpen, isUserMenuOpen
-
-// Ya no necesitamos la interfaz User aquí, vendrá del contexto
-/*
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
-*/
+import { useState, useRef, useEffect } from 'react'; // Added useRef, useEffect
+import ProfilePicture from './ui/ProfilePicture'; // <-- Updated import
 
 // Default export of the Navbar component
 export default function Navbar() {
@@ -25,23 +16,31 @@ export default function Navbar() {
   const { isAuthenticated, user, isLoading, logout } = useAuth();
 
   const pathname = usePathname();
-  // const router = useRouter(); // Remover variable no utilizada
 
-  // Eliminar el useEffect que hacía fetch localmente
-  /*
+  const userMenuRef = useRef<HTMLDivElement>(null); // Ref for dropdown
+  const userProfilePictureButtonRef = useRef<HTMLButtonElement>(null); // <-- Renamed ref
+
+  // Click outside handler for user menu
   useEffect(() => {
-    // ... lógica de fetch eliminada ...
-  }, []);
-  */
-
-  // Función de logout ahora usa la función del contexto
-  const handleLogout = () => {
-    logout(); // Llama a la función logout del contexto
-    setIsUserMenuOpen(false);
-    setIsMenuOpen(false);
-    // La redirección la puede manejar el contexto o simplemente el estado cambia
-    // router.push('/'); // Opcional: redirigir si el contexto no lo hace
-  };
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        userMenuRef.current && 
+        !userMenuRef.current.contains(event.target as Node) &&
+        userProfilePictureButtonRef.current &&
+        !userProfilePictureButtonRef.current.contains(event.target as Node)
+      ) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
 
   // Enlaces de navegación - definidos una vez para reutilizar en escritorio y móvil
   const navigationLinks = [
@@ -57,96 +56,151 @@ export default function Navbar() {
       icon: <BarChart2 className="h-4 w-4 md:mr-2 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />,
       isActive: pathname.includes('/dashboard'),
     },
+    {
+      href: 'http://localhost:3004/api-docs/',
+      label: 'API Docs',
+      icon: <FileText className="h-4 w-4 md:mr-2 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />,
+      isActive: false,
+      isExternal: true,
+    },
   ];
 
-  return (
-    <header className="w-full bg-gradient-to-r from-blue-900 to-indigo-900 shadow-md sticky top-0 z-50">
-      {/* Versión de escritorio */}
-      <div className="max-w-6xl mx-auto px-4 lg:max-w-7xl xl:max-w-full xl:px-12 2xl:max-w-screen-2xl">
-        <nav className="flex items-center justify-between h-16 lg:h-20 xl:h-24">
-          {/* Logo siempre visible */}
-          <Link href="/" className="flex items-center">
-            <span className="font-bold text-2xl text-white lg:text-3xl xl:text-4xl">CODEX</span>
-          </Link>
+  // Re-añadir handleLogout
+  const handleLogout = () => {
+    logout(); 
+    setIsUserMenuOpen(false); // Asegurar que el menú se cierre
+    setIsMenuOpen(false);
+  };
 
-          {/* Navegación principal - visible en escritorio, oculta en móvil */}
-          <div className="hidden md:flex items-center justify-center flex-1 ml-6 lg:ml-10 xl:ml-16">
-            <div className="flex items-center space-x-4 lg:space-x-6 xl:space-x-8">
+  // Simplified classes for avatar button
+  const profilePictureButtonClasses = `flex items-center p-1 rounded-full hover:bg-blue-800/70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-900 focus:ring-white transition`; // <-- Renamed variable
+
+  return (
+    <header className="w-full bg-gradient-to-r from-blue-900 to-indigo-900 shadow-md fixed top-0 left-0 right-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="flex justify-between h-16 lg:h-20 xl:h-24">
+          {/* Logo y enlaces de navegación */}
+          <div className="flex">
+            {/* Logo */}
+            <div className="flex-shrink-0 flex items-center">
+              <Link
+                href="/"
+                className="text-white font-bold text-lg lg:text-xl xl:text-2xl flex items-center"
+              >
+                <QrCode className="mr-2 h-6 w-6 lg:h-7 lg:w-7 xl:h-8 xl:w-8" />
+                Codex
+              </Link>
+            </div>
+
+            {/* Enlaces de navegación - versión desktop */}
+            <div className="hidden md:ml-8 md:flex md:items-center md:space-x-2 lg:ml-10 lg:space-x-4 xl:ml-12 xl:space-x-6">
               {navigationLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 
-                    lg:px-5 lg:py-3 lg:text-base xl:px-6 xl:py-3 xl:text-lg
-                    ${
-                      link.isActive
-                        ? 'bg-white/15 text-white shadow-sm'
-                        : 'text-blue-100 hover:bg-white/10 hover:text-white'
-                    }`}
-                >
-                  <span className="mr-2 lg:mr-3">{link.icon}</span>
-                  {link.label}
-                </Link>
+                link.isExternal ? (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center px-4 py-2 text-sm font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white transition-all duration-200 
+                    lg:px-5 lg:py-3 lg:text-base xl:px-6 xl:py-3 xl:text-lg"
+                  >
+                    <span className="mr-2 lg:mr-3">{link.icon}</span>
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 
+                      lg:px-5 lg:py-3 lg:text-base xl:px-6 xl:py-3 xl:text-lg
+                      ${
+                        link.isActive
+                          ? 'bg-white/15 text-white shadow-sm'
+                          : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                      }`}
+                  >
+                    <span className="mr-2 lg:mr-3">{link.icon}</span>
+                    {link.label}
+                  </Link>
+                )
               ))}
             </div>
           </div>
 
-          {/* Sección de usuario */}
+          {/* Sección de usuario Modificada con lógica condicional */}
           <div className="flex items-center">
             {isLoading ? (
-              <div className="h-8 w-24 bg-blue-800/50 rounded animate-pulse lg:h-10 lg:w-32 xl:h-12 xl:w-40"></div>
+              <div className="h-8 w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12 bg-blue-800/50 rounded-full animate-pulse"></div>
             ) : isAuthenticated && user ? (
-              <div className="relative">
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 px-3 py-2 rounded-full bg-blue-800/50 border border-blue-700 hover:bg-blue-800/70 transition
-                  lg:px-4 lg:py-3 lg:space-x-3 xl:px-5 xl:py-3 xl:space-x-4"
-                >
-                  <div
-                    className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white
-                  lg:h-10 lg:w-10 xl:h-12 xl:w-12"
+              <div className="relative"> 
+                {/* --- Conditional rendering based on pathname --- */}
+                {pathname === '/profile' ? (
+                  // On /profile: Render BUTTON that toggles menu
+                  <button
+                    ref={userProfilePictureButtonRef} // Add ref
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className={profilePictureButtonClasses} 
+                    aria-label="Abrir menú de usuario"
                   >
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="font-medium text-white hidden sm:inline lg:text-lg xl:text-xl">
-                    {user.name}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-blue-200 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
-                </button>
+                    <ProfilePicture user={user} size="md" />
+                  </button>
+                ) : (
+                  // Outside /profile: Render LINK to profile
+                  <Link
+                    href="/profile"
+                    className={profilePictureButtonClasses} 
+                    aria-label="Ir al perfil"
+                  >
+                    <ProfilePicture user={user} size="md" />
+                  </Link>
+                )}
+                {/* --- End Conditional rendering --- */}
 
+                {/* User Dropdown Menu (Only renders when isUserMenuOpen is true) */}
                 {isUserMenuOpen && (
                   <div
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50
-                  lg:w-56 lg:mt-3 xl:w-64"
+                    ref={userMenuRef} // Add ref
+                    className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50"
                   >
-                    <Link
-                      href="/profile"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50
-                      lg:px-5 lg:py-3 lg:text-base xl:px-6 xl:py-4 xl:text-lg"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <User className="mr-3 h-4 w-4 text-gray-500 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
-                      Mi Perfil
-                    </Link>
-                    {user.role.toUpperCase() === 'ADMIN' && (
-                      <Link
-                        href="/admin"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50
-                        lg:px-5 lg:py-3 lg:text-base xl:px-6 xl:py-4 xl:text-lg"
-                        onClick={() => setIsUserMenuOpen(false)}
+                    {/* User Info Section */}
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <p className="text-sm font-medium text-gray-900 truncate">{user.firstName} {user.lastName || ''}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
+                    
+                    {/* Menu Items */}
+                    <div className="py-1">
+                      {/* Conditionally render "Mi Perfil" link */}
+                      {pathname !== '/profile' && (
+                        <Link
+                          href="/profile"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setIsUserMenuOpen(false)} // Close menu on click
+                        >
+                          <User className="mr-3 h-4 w-4 text-gray-500" />
+                          Mi Perfil
+                        </Link>
+                      )}
+                      {/* Admin Panel Link (conditional as before) ... */}
+                      {user.role.toUpperCase() === 'ADMIN' && (
+                        <Link
+                          href="/admin"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <Settings className="mr-3 h-4 w-4 text-gray-500" />
+                          Panel Admin
+                        </Link>
+                      )}
+                      {/* Logout Button ... */}
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
                       >
-                        <Settings className="mr-3 h-4 w-4 text-gray-500 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
-                        Panel Admin
-                      </Link>
-                    )}
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left
-                      lg:px-5 lg:py-3 lg:text-base xl:px-6 xl:py-4 xl:text-lg"
-                    >
-                      <LogOut className="mr-3 h-4 w-4 text-gray-500 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
-                      Cerrar Sesión
-                    </button>
+                        <LogOut className="mr-3 h-4 w-4 text-gray-500" />
+                        Cerrar Sesión
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -186,19 +240,33 @@ export default function Navbar() {
         <div className="md:hidden border-t border-blue-800 bg-gradient-to-b from-blue-900 to-indigo-900">
           <div className="py-2 space-y-1 px-4">
             {navigationLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center px-4 py-3 text-base font-medium rounded-md ${
-                  link.isActive
-                    ? 'bg-white/15 text-white'
-                    : 'text-blue-100 hover:bg-white/10 hover:text-white'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <span className="mr-3">{link.icon}</span>
-                {link.label}
-              </Link>
+              link.isExternal ? (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span className="mr-3">{link.icon}</span>
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center px-4 py-3 text-base font-medium rounded-md ${
+                    link.isActive
+                      ? 'bg-white/15 text-white'
+                      : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span className="mr-3">{link.icon}</span>
+                  {link.label}
+                </Link>
+              )
             ))}
 
             {/* Lógica condicional móvil basada en contexto */}
@@ -212,7 +280,7 @@ export default function Navbar() {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <User className="mr-3 h-5 w-5" />
-                  Mi Perfil ({user.name})
+                  Mi Perfil ({user.firstName})
                 </Link>
                 {user.role.toUpperCase() === 'ADMIN' && (
                   <Link
@@ -225,7 +293,7 @@ export default function Navbar() {
                   </Link>
                 )}
                 <button
-                  onClick={handleLogout}
+                  onClick={() => logout()}
                   className="w-full flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white text-left"
                 >
                   <LogOut className="mr-3 h-5 w-5" />

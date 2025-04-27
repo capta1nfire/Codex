@@ -100,5 +100,17 @@
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
+    overflow-x: hidden;
+  }
+  
+  html {
+    overflow-x: hidden;
+  }
+  
+  /* Ocultar scrollbar innecesario en páginas como login */
+  html.no-scroll-needed,
+  html.no-scroll-needed body {
+    overflow: hidden;
+    height: auto;
   }
 }

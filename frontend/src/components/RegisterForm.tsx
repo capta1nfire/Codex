@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function RegisterForm() {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -37,22 +38,27 @@ export default function RegisterForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ 
+            firstName, 
+            lastName: lastName || undefined,
+            email, 
+            password 
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
         if (response.status === 409) {
-          throw new Error('El correo electrónico ya está registrado');
+          throw new Error(data.message || 'El correo electrónico o nombre de usuario ya está en uso');
         }
-        throw new Error(data.error?.message || 'Error al registrar usuario');
+        throw new Error(data.message || data.error?.message || 'Error al registrar usuario');
       }
 
       if (data.success) {
         setSuccessMessage('¡Usuario creado con éxito! Redirigiendo a inicio de sesión...');
       } else {
-        throw new Error(data.error?.message || 'Respuesta inválida del servidor');
+        throw new Error(data.message || data.error?.message || 'Respuesta inválida del servidor');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -81,23 +87,44 @@ export default function RegisterForm() {
 
           {!successMessage && (
             <>
-              <form className="space-y-6" onSubmit={handleSubmit}>
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div>
                   <label
-                    htmlFor="name"
+                    htmlFor="firstName"
                     className="block text-sm font-medium text-gray-700 text-left"
                   >
-                    Nombre
+                    Nombre <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-1">
                     <input
-                      id="name"
-                      name="name"
+                      id="firstName"
+                      name="firstName"
                       type="text"
-                      autoComplete="name"
+                      autoComplete="given-name"
                       required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label
+                    htmlFor="lastName"
+                    className="block text-sm font-medium text-gray-700 text-left"
+                  >
+                    Apellido <span className="text-gray-500 text-xs">(Opcional)</span>
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="lastName"
+                      name="lastName"
+                      type="text"
+                      autoComplete="family-name"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
                       className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                       disabled={isLoading}
                     />
@@ -109,7 +136,7 @@ export default function RegisterForm() {
                     htmlFor="email"
                     className="block text-sm font-medium text-gray-700 text-left"
                   >
-                    Correo electrónico
+                    Correo electrónico <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-1">
                     <input
@@ -131,7 +158,7 @@ export default function RegisterForm() {
                     htmlFor="password"
                     className="block text-sm font-medium text-gray-700 text-left"
                   >
-                    Contraseña
+                    Contraseña <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-1">
                     <input
@@ -147,8 +174,7 @@ export default function RegisterForm() {
                     />
                   </div>
                   <p className="mt-1 text-xs text-gray-500 text-left">
-                    La contraseña debe tener al menos 8 caracteres, e incluir letras mayúsculas,
-                    minúsculas y números.
+                    Mínimo 8 caracteres, con mayúsculas, minúsculas y números.
                   </p>
                 </div>
 

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import { AuthProvider } from '@/context/AuthContext';
+import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,7 +22,34 @@ export default function RootLayout({
       <body className={`${inter.className} bg-gray-100`}>
         <AuthProvider>
           <Navbar />
-          <main className="pt-16 lg:pt-20 xl:pt-24">{children}</main>
+          <main className="pt-16 lg:pt-20 xl:pt-24">
+            {children}
+          </main>
+          <Toaster 
+            position="top-right" 
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+                fontSize: '14px',
+                padding: '16px',
+                borderRadius: '8px',
+              },
+              success: {
+                iconTheme: {
+                  primary: '#4ade80',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
         </AuthProvider>
       </body>
     </html>

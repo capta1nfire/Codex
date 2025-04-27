@@ -29,12 +29,8 @@ const jwtStrategy = new JwtStrategy(jwtOptions, async (payload: JwtPayload, done
 
     if (user && user.isActive) {
       // Usuario encontrado y activo
-      return done(null, {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      });
+      // Devolver el objeto usuario sanitizado (sin contraseña)
+      return done(null, userStore.sanitizeUser(user)); 
     } else {
       // Usuario no encontrado o inactivo
       return done(null, false);
@@ -53,12 +49,8 @@ const localStrategy = new LocalStrategy(localOptions, async (email, password, do
 
     if (user && user.isActive) {
       // Usuario autenticado y activo
-      return done(null, {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      });
+      // Devolver el objeto usuario sanitizado (sin contraseña)
+      return done(null, userStore.sanitizeUser(user)); 
     } else {
       // Credenciales inválidas o usuario inactivo
       return done(null, false, { message: 'Credenciales inválidas' });
@@ -83,12 +75,8 @@ const apiKeyStrategy = async (req: Request, _res: Response, next: NextFunction) 
 
     if (user && user.isActive) {
       // API key válida, usuario encontrado y activo
-      req.user = {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      };
+      // Asignar el usuario sanitizado a req.user
+      req.user = userStore.sanitizeUser(user); 
     }
 
     next();
@@ -156,7 +144,7 @@ export const authenticateJwt = (req: Request, res: Response, next: NextFunction)
       }
 
       if (!user) {
-        return next(new AppError('No autorizado', 401, ErrorCode.AUTHENTICATION_ERROR));
+        return next(new AppError('No autorizado', 401, ErrorCode.UNAUTHORIZED));
       }
 
       req.user = user;
@@ -169,13 +157,13 @@ export const authenticateJwt = (req: Request, res: Response, next: NextFunction)
 export const checkRole = (requiredRole: UserRole) => {
   return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
-      return next(new AppError('No autorizado', 401, ErrorCode.AUTHENTICATION_ERROR));
+      return next(new AppError('No autorizado', 401, ErrorCode.UNAUTHORIZED));
     }
 
     const userRole = (req.user as any).role;
 
     if (!authService.hasRole(userRole, requiredRole)) {
-      return next(new AppError('Acceso denegado', 403, ErrorCode.AUTHORIZATION_ERROR));
+      return next(new AppError('Acceso denegado', 403, ErrorCode.FORBIDDEN));
     }
 
     next();
