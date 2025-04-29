@@ -80,6 +80,34 @@ El sistema utiliza una arquitectura moderna:
 5.  **Caché Externo (Redis)**: Configurado en backend, pendiente de integración activa en lógica de servicio.
 6.  **Monitoreo (Prometheus/Grafana)**: Stack básico para recolección y visualización de métricas operacionales del backend.
 
+## 📁 Estructura del Proyecto
+
+La estructura de directorios principal es la siguiente:
+
+-   **`.github/`**: Contiene workflows de GitHub Actions (ej. CI/CD).
+-   **`backend/`**: Código fuente del servidor API Gateway (Node.js/Express).
+    -   `src/`: Código fuente principal (rutas, controladores, servicios, modelos, middleware, etc.).
+    -   `prisma/`: Esquema de la base de datos y migraciones.
+    -   `uploads/`: Directorio donde se guardan archivos subidos (ej. avatares). ***Nota:** No versionado por defecto.*
+    -   `README.md`: Documentación específica del backend.
+    -   `.env.example`: Archivo de ejemplo para variables de entorno del backend.
+-   **`frontend/`**: Código fuente de la aplicación web (Next.js/React).
+    -   `src/`: Código fuente principal (páginas, componentes, contexto, etc.).
+    -   `public/`: Archivos estáticos servidos directamente.
+    -   `README.md`: Documentación específica del frontend.
+    -   `.env.local.example`: Archivo de ejemplo para variables de entorno del frontend.
+-   **`rust_generator/`**: Código fuente del microservicio de generación de códigos (Rust/Axum).
+    -   `src/`: Código fuente principal.
+    -   `README.md`: Documentación específica del servicio Rust.
+-   **`scripts/`**: Scripts útiles para desarrollo o automatización (ej. seeding de base de datos).
+-   **`assets/`**: Imágenes u otros recursos utilizados en la documentación (como el logo).
+-   **`docker-compose.yml`**: Define los servicios de soporte (PostgreSQL, Redis, Prometheus, Grafana).
+-   **`prometheus.yml`**: Configuración para Prometheus.
+-   **`README.md`**: Este archivo. Documentación general del proyecto.
+-   **`CODEX.md`**: Documentación adicional sobre la filosofía y diseño de Codex.
+-   **`CHANGELOG.md`**: Historial de cambios del proyecto.
+-   Archivos de configuración (`.gitignore`, etc.).
+
 ## 🚦 Cómo Iniciar
 
 ### Requisitos previos
@@ -92,7 +120,7 @@ El sistema utiliza una arquitectura moderna:
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/capta1nfire/Codex.git # Reemplaza con tu URL si es diferente
+# git clone <URL_DEL_REPOSITORIO>
 cd Codex
 
 # 2. Instalar dependencias del frontend
@@ -113,9 +141,62 @@ cd ..
 
 ### Configuración
 
-1.  **Base de Datos, Prometheus, Grafana:**
-    *   Asegúrate de tener Docker corriendo.
+1.  **Servicios Docker (Base de Datos, Cache, Monitoreo):**
+    *   Asegúrate de tener Docker Desktop corriendo.
     *   En la carpeta raíz (`Codex/`), ejecuta:
         ```bash
         docker-compose up -d
         ```
+    *   Esto iniciará PostgreSQL, Redis, Prometheus y Grafana en segundo plano.
+
+2.  **Variables de Entorno:**
+    *   **Backend:** Ve a la carpeta `backend/`, copia `.env.example` a un nuevo archivo llamado `.env` y configura las variables necesarias, especialmente `DATABASE_URL` (que debe apuntar a la base de datos Docker recién iniciada) y `JWT_SECRET`.
+        ```bash
+        cd backend
+        cp .env.example .env
+        # Abre .env y edita las variables
+        cd ..
+        ```
+    *   **Frontend:** Ve a la carpeta `frontend/`, copia `.env.local.example` a `.env.local` y asegúrate de que `NEXT_PUBLIC_BACKEND_URL` apunte a la URL donde correrá tu backend (por defecto `http://localhost:3004`).
+        ```bash
+        cd frontend
+        cp .env.local.example .env.local
+        # Abre .env.local y edita las variables si es necesario
+        cd ..
+        ```
+
+3.  **Migración de Base de Datos:**
+    *   Una vez configurado el `.env` del backend y con los servicios Docker corriendo, aplica las migraciones de la base de datos usando Prisma:
+        ```bash
+        cd backend
+        npx prisma migrate dev
+        cd ..
+        ```
+    *   Esto creará las tablas necesarias en la base de datos `codex_db`.
+
+### Ejecución (Desarrollo)
+
+Abre terminales separadas para cada servicio:
+
+1.  **Backend (API Gateway):**
+    ```bash
+    cd backend
+    npm run dev
+    ```
+    *   El servidor backend escuchará por defecto en `http://localhost:3004`.
+
+2.  **Frontend (Aplicación Web):**
+    ```bash
+    cd frontend
+    npm run dev
+    ```
+    *   La aplicación web estará disponible en `http://localhost:3000`.
+
+3.  **Servicio de Generación (Rust):**
+    *   El backend Node.js intentará conectarse a este servicio (configurado por defecto en `http://localhost:3001`). Puedes ejecutarlo si necesitas la generación real de códigos o si modificas su código:
+    ```bash
+    cd rust_generator
+    cargo run
+    ```
+
+Ahora deberías tener todos los componentes necesarios corriendo para el desarrollo.

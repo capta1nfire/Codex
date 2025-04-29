@@ -73,7 +73,7 @@ export default function Navbar() {
   };
 
   // Simplified classes for avatar button
-  const profilePictureButtonClasses = `flex items-center p-1 rounded-full hover:bg-blue-800/70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-900 focus:ring-white transition`; // <-- Renamed variable
+  const profilePictureButtonClasses = `flex items-center p-1 rounded-full hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-900 focus:ring-white transition`;
 
   return (
     <header className="w-full bg-gradient-to-r from-blue-900 to-indigo-900 shadow-md fixed top-0 left-0 right-0 z-50">

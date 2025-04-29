@@ -31,7 +31,6 @@ interface DefaultAvatar {
 }
 
 export default function UserProfile() {
-  const [user, setUser] = useState<User | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
@@ -52,16 +51,15 @@ export default function UserProfile() {
   const { user: authUser, isAuthenticated, isLoading: authLoading, token: authToken, updateUser, logout } = useAuth();
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!isAuthenticated) {
-        router.push('/login');
-      } else {
-        setUser(authUser);
-        setFirstName(authUser?.firstName || '');
-        setLastName(authUser?.lastName || '');
-        setUsername(authUser?.username || '');
-      }
-      setIsLoading(false);
+    if (!authLoading && authUser) {
+       setFirstName(authUser.firstName || '');
+       setLastName(authUser.lastName || '');
+       setUsername(authUser.username || '');
+       setIsLoading(false);
+    } else if (!authLoading && !isAuthenticated) {
+       router.push('/login');
+    } else if (!authLoading) {
+       setIsLoading(false);
     }
   }, [authLoading, isAuthenticated, authUser, router]);
 
@@ -119,7 +117,7 @@ export default function UserProfile() {
     setError('');
     setIsLoading(true);
 
-    if (!authToken || !user) {
+    if (!authToken || !authUser) {
       logout(); // Should not happen if component rendered, but good practice
       return;
     }
@@ -133,7 +131,7 @@ export default function UserProfile() {
     let response: Response | null = null;
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
-      response = await fetch(`${backendUrl}/api/users/${user.id}`, {
+      response = await fetch(`${backendUrl}/api/users/${authUser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -151,7 +149,6 @@ export default function UserProfile() {
       }
 
       if (data.success && data.user) {
-        setUser(data.user);
         setFirstName(data.user.firstName || '');
         setLastName(data.user.lastName || '');
         setUsername(data.user.username || '');
@@ -279,13 +276,18 @@ export default function UserProfile() {
 
     let response: Response | null = null;
     try {
+      // Crear FormData para la subida
       const formData = new FormData();
+      // Asegurarse de que el nombre del campo coincida con el esperado por multer en el backend ('avatar')
       formData.append('avatar', file);
 
+      // Realizar la petición POST al endpoint correcto
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      // Cambiar la ruta a la definida en avatar.routes.ts
       response = await fetch(`${backendUrl}/api/avatars/upload`, {
         method: 'POST',
         headers: {
+          // Content-Type es establecido automáticamente por fetch al usar FormData
           Authorization: `Bearer ${authToken}`,
         },
         body: formData,
@@ -306,7 +308,6 @@ export default function UserProfile() {
           profilePictureType: data.user.avatarType
         };
 
-        setUser(updatedUserData);
         updateUser(updatedUserData);
         toast.success('Imagen de perfil actualizada correctamente');
       } else {
@@ -352,27 +353,15 @@ export default function UserProfile() {
       }
 
       if (data.success && data.user) {
-        // API confirmed success, now find the selected picture details from state
-        const selectedPic = defaultProfilePictures.find(pic => pic.type === type);
-
-        if (!selectedPic) {
-          console.error(`Could not find details for default picture type: ${type}`);
-          toast.error('Error al obtener detalles de la imagen seleccionada.');
-          setIsLoading(false);
-          return; // Stop execution if details aren't found
-        }
-
-        // Construct updated data using user info from API response 
-        // BUT profile picture info from the selected default option
+        // Directly use the user data returned from the backend API
+        // Map backend field names to frontend names
         const updatedUserData = {
-          ...data.user, // Base user info from API
-          profilePictureUrl: selectedPic.url, // Use the URL from state
-          // Ensure the type starts with "default-" so ProfilePicture component renders it
-          profilePictureType: `default-${selectedPic.type}` 
+            ...data.user,
+            profilePictureUrl: data.user.avatarUrl, 
+            profilePictureType: data.user.avatarType, 
         };
 
-        setUser(updatedUserData);
-        updateUser(updatedUserData);
+        updateUser(updatedUserData); // Update context with data from backend
         toast.success('Imagen de perfil actualizada correctamente');
       } else {
          throw new Error(data.error?.message || 'Error al establecer imagen de perfil predeterminada');
@@ -420,7 +409,6 @@ export default function UserProfile() {
           profilePictureType: 'initial'
         };
 
-        setUser(updatedUserData);
         updateUser(updatedUserData);
         toast.success('Imagen de perfil restablecida a iniciales');
       } else {
@@ -471,7 +459,7 @@ export default function UserProfile() {
     };
   }, [isProfilePictureMenuOpen]);
 
-  if (isLoading && !user) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center py-12 bg-gray-100">
         <p className="text-lg text-gray-600">Cargando perfil...</p>
@@ -479,7 +467,7 @@ export default function UserProfile() {
     );
   }
 
-  if (!user && !isLoading) {
+  if (!authUser && !authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center py-12 bg-gray-100">
         <div className="w-full max-w-md bg-white p-6 border border-red-300 rounded-lg shadow-md text-center">
@@ -515,7 +503,7 @@ export default function UserProfile() {
           {/* Sección de avatar */}
           <div className="flex flex-col items-center mb-6 relative">
             <div className="relative mb-3"> 
-              <ProfilePicture user={user} size="xl" />
+              <ProfilePicture user={authUser} size="xl" className="border border-border" />
               <button
                 ref={profilePictureButtonRef}
                 onClick={() => setIsProfilePictureMenuOpen(!isProfilePictureMenuOpen)}
@@ -655,7 +643,7 @@ export default function UserProfile() {
                 <Input
                   id="email-display"
                   type="email"
-                  value={user?.email || ''}
+                  value={authUser?.email || ''}
                   className="mt-1 bg-gray-100 cursor-not-allowed"
                   disabled
                 />
@@ -670,9 +658,9 @@ export default function UserProfile() {
                   variant="secondary"
                   onClick={() => {
                     setIsEditing(false);
-                    setFirstName(user?.firstName || '');
-                    setLastName(user?.lastName || '');
-                    setUsername(user?.username || '');
+                    setFirstName(authUser?.firstName || '');
+                    setLastName(authUser?.lastName || '');
+                    setUsername(authUser?.username || '');
                     setError('');
                   }}
                   disabled={isLoading}
@@ -685,29 +673,29 @@ export default function UserProfile() {
             <dl className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Nombre</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user?.firstName}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{authUser?.firstName}</dd>
               </div>
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Apellido</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user?.lastName || '-'}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{authUser?.lastName || '-'}</dd>
               </div>
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Nombre de usuario</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user?.username || '-'}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{authUser?.username || '-'}</dd>
               </div>
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Correo electrónico</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user?.email}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{authUser?.email}</dd>
               </div>
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Rol</dt>
-                <dd className="mt-1 text-sm text-gray-900 capitalize">{user?.role}</dd>
+                <dd className="mt-1 text-sm text-gray-900 capitalize">{authUser?.role}</dd>
               </div>
-              {user?.createdAt && (
+              {authUser?.createdAt && (
                 <div className="sm:col-span-1">
                   <dt className="text-sm font-medium text-gray-500">Fecha de registro</dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {new Date(user.createdAt).toLocaleDateString('es-ES', {
+                    {new Date(authUser.createdAt).toLocaleDateString('es-ES', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',

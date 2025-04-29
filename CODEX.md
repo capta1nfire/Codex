@@ -1,7 +1,7 @@
 # PILAR-CODE: Documento Base del Proyecto
 
-## Versión: v1.2  
-**Fecha de publicación:** 22 de abril de 2025  
+## Versión: v1.2.1 (Documento Vivo) 
+**Fecha de última revisión:** 2024-08-02
 **Estado:** Activo  
 **Tipo:** Documento vivo (sujeto a revisión continua)
 
@@ -58,35 +58,32 @@ Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, 
 
 ## 4. Arquitectura y Tecnologías
 
+(Nota: Para detalles de implementación específicos y estructura de cada componente, consultar los archivos `README.md` dentro de los directorios `frontend/`, `backend/`, y `rust_generator/`).
+
 ### 4.1 Frontend
-- Framework: Next.js
-- Estilos: Tailwind CSS
+- Framework: Next.js (con App Router)
+- Estilos: Tailwind CSS + Shadcn UI
 - Responsive Design: adaptación completa a móvil y escritorio
 - Accesibilidad: cumplimiento con WCAG, pruebas con AXE/WAVE
 
 ### 4.2 Backend
-- Lenguaje: Node.js + Rust
-- Servidor: Express o Fastify para Node.js, Axum para Rust
-- Modularidad: arquitectura basada en microservicios para:
-  - Generación de códigos (bwip-js, qrcode en Node.js, rxing en Rust)
-  - Autenticación (OAuth2, MFA)
-  - Gestor de usuarios y planes
-  - API externa
-  - Seguimiento de escaneos de códigos QR (analytics)
+- Lenguaje: Node.js (TypeScript) + Express
+- ORM: Prisma (conectado a PostgreSQL)
+- Autenticación: Passport.js (JWT, Local, API Key hasheada)
+- Modularidad: API Gateway que orquesta llamadas al servicio Rust y gestiona usuarios/auth.
+- Generación de Códigos: Delegada principalmente al servicio Rust (`rust_generator`).
 
-### 4.3 Componente Rust de Alto Rendimiento
-- Utiliza el framework Axum para APIs web de alto rendimiento
-- Integración con rxing para generación nativa de códigos
-- Sistema de caché con dashmap para resultados frecuentes
-- Tracing avanzado para monitoreo y diagnóstico
-- Arquitectura orientada a rendimiento para cargas intensivas
+### 4.3 Componente Rust de Alto Rendimiento (`rust_generator`)
+- Framework: Axum
+- Generación: `rxing`
+- Caché: `dashmap` (en memoria)
+- Tracing: `tracing`
 
-### 4.4 Infraestructura
-- Contenedores: Docker + Kubernetes
-- Cloud: AWS / GCP / Azure
-- CDN global para distribución de activos
-- Base de datos: PostgreSQL (estructura), Redis (caché), S3 (archivos)
-- Monitoreo: Datadog, Sentry, Prometheus para logging, trazabilidad y alertas
+### 4.4 Infraestructura (Desarrollo/Local)
+- Contenedores: Docker Compose (`docker-compose.yml`) para PostgreSQL, Redis, Prometheus, Grafana.
+- Base de datos: PostgreSQL (persistencia), Redis (caché externo, **configurado pero no activamente integrado**).
+- Monitoreo: Prometheus (recolección de métricas del backend Node.js), Grafana (visualización).
+- (Infraestructura de producción con K8s, Cloud, CDN, Sentry/Datadog es parte del roadmap futuro).
 
 ## 5. Interfaz y Experiencia de Usuario
 
@@ -160,20 +157,30 @@ Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, 
 - Tasa de adopción mensual > 15%
 
 ## 13. Roadmap de Desarrollo (actualizado)
-### Fase 1: MVP
+
+(Estado actual aproximado: **Finalizando Fase 1.5 / Iniciando Fase 2**)
+
+### Fase 1: MVP (Completada)
 - Interfaz básica con QR, EAN, Code128. PNG/SVG. Personalización mínima. Sin registro.
 
-### Fase 1.5: Pre‑Beta
-- **Pruebas de usabilidad** con benchmarks de Uniqode y Scanova.  
-- API básica y exportación EPS.  
+### Fase 1.5: Pre‑Beta (Mayormente Completada)
+- **Pruebas de usabilidad** con benchmarks de Uniqode y Scanova.
+- API básica y exportación EPS.
 - Primeros tests GS1 Digital Link.
+- **Implementado:** Base de datos PostgreSQL con Prisma.
+- **Implementado:** Autenticación (Registro/Login/API Keys).
+- **Implementado:** Dashboard básico de métricas/estado.
+- **Implementado:** Monitoreo con Prometheus/Grafana.
 
-### Fase 2: Beta
-- Registro/SSO.  
-- Más simbologías + GS1 Digital Link.  
-- Lote (CSV).  
-- Panel de analíticas básicas.  
+### Fase 2: Beta (En progreso / Próximos pasos)
+- Registro/SSO.
+- Más simbologías + GS1 Digital Link.
+- Lote (CSV).
+- Panel de analíticas básicas.
 - White‑label piloto.
+- **Pendiente:** Integración activa de Caché Redis.
+- **Pendiente:** Validación robusta de Inputs (Zod/Joi).
+- **Pendiente:** Mejoras de performance y seguridad (índices BD, alertas, etc.).
 
 ### Fase 3: Producción
 - API REST y GraphQL robusta.  
@@ -229,6 +236,7 @@ Para asegurar la mantenibilidad, escalabilidad y robustez del proyecto a largo p
 - **Comentarios con Propósito:** Priorizar comentarios que expliquen el *por qué* de decisiones complejas, no el *qué* hace el código.
 - **Uso de Etiquetas `TODO`/`FIXME`:** Marcar áreas que requieren atención futura y revisarlas periódicamente.
 - **Eliminación de Comentarios Obsoletos:** Al refactorizar o eliminar código, eliminar también los comentarios asociados. Evitar dejar grandes bloques de código comentado; usar Git para el historial.
+- **Documentación Estructural:** Mantener actualizados los archivos `README.md` de cada componente (raíz, backend, frontend, rust_generator) para reflejar la estructura y configuración actual (Revisión realizada: 2024-08-02).
 
 ### 17.4 Pruebas Automatizadas
 

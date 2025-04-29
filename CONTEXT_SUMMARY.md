@@ -1,6 +1,6 @@
 # Documento de Contexto del Proyecto "Codex"
 
-**Fecha de Actualización:** 2024-08-01
+**Fecha de Actualización:** 2024-08-02
 
 **Propósito:** Este documento sirve para re-contextualizar rápidamente al asistente IA sobre el estado actual y la historia reciente del proyecto Codex, una plataforma web para la generación de códigos de barras y QR.
 
@@ -16,7 +16,7 @@
     *   **Monitoreo:** Stack Prometheus + Grafana configurado vía Docker Compose para recolectar y visualizar métricas operacionales del backend Node.js.
 *   **Documentación Clave:**
     *   `CODEX.md`: Visión estratégica, arquitectura detallada, roadmap.
-    *   `README.md` (Raíz, `backend/`, `frontend/`, `rust_generator/`): Instrucciones de setup, ejecución y detalles específicos de cada componente. **Actualizados en sesión 2024-07-27**.
+    *   `README.md` (Raíz, `backend/`, `frontend/`, `rust_generator/`): Instrucciones de setup, ejecución y detalles específicos de cada componente. **Actualizados sistemáticamente en sesión 2024-08-02**.
     *   `CHANGELOG.md`: Historial de cambios versionado.
     *   `CONTEXT_SUMMARY.md`: Este mismo documento, resumen para re-contextualización rápida.
 *   **Calidad de Código:**
@@ -33,7 +33,7 @@
     3.  `cd rust_generator && cargo run`: Inicia el servicio Rust (Generador). Puerto por defecto: 3002.
     4.  `cd frontend && npm run dev`: Inicia el frontend Next.js. Puerto por defecto: 3000.
 *   **Acceso a Servicios:**
-    *   Frontend App: `http://localhost:3000` (o `3001`)
+    *   Frontend App: `http://localhost:3000`
     *   Backend API: `http://localhost:3004`
     *   Servicio Rust API: `http://localhost:3002`
     *   Grafana: `http://localhost:3030`
@@ -46,40 +46,38 @@
     *   `docker-compose.yml`: Define los servicios de infraestructura.
     *   `prometheus.yml`: Define los targets de scrapeo para Prometheus (actualmente `host.docker.internal:3004/metrics`).
 
-## 3. Hitos Recientes y Estado Funcional (Sesión: 2024-08-01)
+## 3. Hitos Recientes y Estado Funcional (Sesión: 2024-08-02)
 
-*   **Backend:**
-    *   Activado TS estricto (`strict`, `noImplicitAny`) y linters (ESLint, Prettier).
-    *   Configurado CI/CD con GitHub Actions (lint, test, build).
-    *   Expuesto métricas Prometheus (`/metrics`) e integrado gauge de salud de BD.
-    *   Añadido chequeo de estado de BD en `/health`.
-    *   Mejorada configuración de pruebas en modelos de usuario, implementando mocks de bcrypt y resolviendo errores de tipo en TypeScript.
-*   **Frontend:**
-    *   Refactorizado `Navbar` y `UserProfile` usando Context API para auth.
-    *   Añadida página de estado `/status` mostrando semáforo de salud de BD.
-    *   Mejorado `SystemStatus` para incluir estado de BD, Rust y backend.
-*   **UI y Rutas:**
-    *   Dashboard de métricas accesible en `/dashboard` con `SystemStatus` y `RustAnalyticsDisplay`.
-    *   Nueva UI de estado del sistema.
-*   **Estado General Actual:**
-    El proyecto está en fase de integración de Redis y alertas. La generación de códigos, autenticación, métricas y monitorización están completamente funcionales.
+*   **Investigación Persistencia Imagen Perfil:**
+    *   **Problema:** Imagen de perfil subida en `UserProfile` no persistía después de reiniciar el servidor backend (`npm run dev`).
+    *   **Diagnóstico Parcial:** Se identificó que el frontend llamaba a una ruta incorrecta (`/api/users/profile-picture`). Se corrigió para usar la ruta correcta `/api/avatars/upload`.
+    *   Se confirmó que el backend guarda las imágenes localmente en `backend/uploads/` (lo cual es persistente al correr con `npm run dev`) y que la lógica de `userStore.updateUser` parece correcta para actualizar `avatarUrl` y `avatarType` en la base de datos.
+    *   **Estado:** Investigación pausada. Pendiente verificar directamente en la BD PostgreSQL si la URL del avatar se actualiza correctamente *antes* de reiniciar el backend.
+*   **Mejora Documentación:**
+    *   Se realizó una revisión y actualización exhaustiva de los archivos `README.md` de la raíz, `backend/`, `frontend/` y `rust_generator/` para reflejar con precisión la estructura actual del proyecto, las funcionalidades, la configuración, la ejecución y los comandos útiles. El objetivo es mantenerlos como "documentos vivos".
+*   **Ajustes UI:**
+    *   Se igualó el efecto hover del avatar en `Navbar` al de los otros botones de navegación (`hover:bg-white/10`).
+    *   Se ajustó el borde de la imagen de perfil en `UserProfile` para usar `border-border`, coincidiendo con el estilo del botón "Editar" (`outline`).
+*   **Estado General Actual:** La funcionalidad principal (generación, auth, métricas) sigue operativa. La investigación del problema de persistencia de la imagen está pendiente de la verificación en la base de datos. La documentación ha sido significativamente mejorada.
 
 ## 4. Próximos Pasos y Planificación (Según Informe de Auditoría)
 
-1.  **Integrar validación Zod/Joi** en backend y frontend (Validación de inputs).
-2.  **Implementar caché Redis** en `barcodeService`.
-3.  **Definir índices compuestos** en Prisma/PostgreSQL.
-4.  **Configurar alertas** en Prometheus Alertmanager (Slack/Email).
-5.  **Integrar Sentry** (o Datadog) para captura de errores en producción.
-6.  **Generar documentación** OpenAPI/Swagger de la API.
+(Prioridades generales - podrían reordenarse según necesidad)
+1.  **Resolver problema persistencia imagen de perfil** (Verificar BD).
+2.  **Integrar validación Zod/Joi** en backend y frontend (Validación de inputs).
+3.  **Implementar caché Redis** en `barcodeService`.
+4.  **Definir índices compuestos** en Prisma/PostgreSQL.
+5.  **Configurar alertas** en Prometheus Alertmanager (Slack/Email).
+6.  **Integrar Sentry** (o Datadog) para captura de errores en producción.
+7.  **Generar documentación** OpenAPI/Swagger de la API.
 
 ## 5. Puntos Específicos a Recordar
 
-*   El backend ahora se ejecuta en desarrollo con `tsx watch src/index.ts`.
-*   El caché Redis está implementado en el backend.
-*   La lógica actual de autenticación frontend usa `window.location.href` para forzar refresco tras login.
-*   La dependencia `console-subscriber` en Rust está en `dev-dependencies`.
-*   Las métricas en Grafana provienen del backend Node.js; las analíticas detalladas de Rust se ven en el dashboard frontend (`/dashboard`).
+*   **Próxima Acción (Debug):** Verificar directamente en la BD PostgreSQL (usando `psql` u otra herramienta) si la columna `avatarUrl` del usuario se actualiza correctamente tras subir una imagen en `UserProfile`, *antes* de reiniciar el backend.
+*   **Documentación:** Los archivos `README.md` (raíz, backend, frontend, rust_generator) han sido actualizados y deben usarse como referencia principal para estructura y setup.
+*   El backend se ejecuta en desarrollo con `npm run dev` (usando `tsx`).
+*   La lógica actual de autenticación frontend usa `window.location.href` para forzar refresco tras login (podría mejorarse).
+*   Las métricas en Grafana provienen del backend Node.js; las analíticas detalladas de Rust se ven en el dashboard frontend (`/dashboard`) o en `rust_generator/analytics/performance`.
 
 ---
 

@@ -6,43 +6,59 @@ Este directorio contiene el API Gateway implementado en Node.js con Express, que
 
 ```
 backend/
+├── dist/                    # Código JavaScript transpilado (para producción)
+├── logs/                    # Logs de la aplicación (rotados, no versionados)
+├── node_modules/            # Dependencias (no versionado)
 ├── prisma/                  # Configuración y migraciones de Prisma ORM
-│   └── schema.prisma        # Definición del esquema de la base de datos
-│   └── seed.ts              # Script para poblar datos iniciales
+│   ├── schema.prisma        # Definición del esquema de la base de datos
+│   └── migrations/          # Directorio de migraciones generadas
+│   └── seed.ts              # Script opcional para poblar datos iniciales
 ├── src/                     # Código fuente TypeScript
-│   ├── controllers/         # Lógica de manejo de requests/responses
-│   │   └── auth.controller.ts # Controlador para autenticación
-│   ├── lib/                 # Librerías o instancias compartidas (Prisma, Redis)
-│   │   └── prisma.ts          # Instancia del cliente Prisma
-│   ├── middleware/          # Middleware personalizado (Errores, Auth)
-│   │   ├── errorHandler.ts    # Manejo centralizado de errores
-│   │   └── authMiddleware.ts  # Middleware de autenticación (Passport)
-│   ├── models/              # Definición de modelos y acceso a datos (Prisma)
-│   │   └── user.ts            # Modelo User y UserStore (ahora con Prisma)
-│   ├── routes/              # Definición de rutas de la API
-│   │   └── auth.routes.ts     # Rutas para autenticación
-│   ├── services/            # Lógica de negocio (Auth, Barcode)
-│   │   ├── auth.service.ts    # Servicio para lógica de autenticación
-│   │   └── barcodeService.ts  # Servicio para generación de códigos
-│   ├── utils/               # Utilidades (Errores, Logging, Métricas Prometheus)
-│   │   ├── errors.ts          # Sistema de errores tipificados
-│   │   ├── logger.ts          # Configuración de logging (Winston)
-│   │   └── cache.ts           # Módulo de caché en memoria (temporal)
-│   ├── __tests__/           # Directorios de pruebas (distribuidos)
-│   ├── config.ts            # Configuración principal de la app
-│   ├── server-config.ts     # Configuración del servidor HTTP/HTTPS
-│   ├── custom-types.d.ts    # Definiciones de tipos personalizados
-│   └── index.ts             # Punto de entrada principal de la aplicación
-├── certs/                   # Certificados SSL (si se usan)
-├── logs/                    # Logs de la aplicación (rotados)
-│   ├── combined.log         # Logs combinados
-│   └── error.log            # Solo logs de errores
-├── .env                     # Variables de entorno (¡NO incluir en Git!)
-├── .gitignore               # Archivos ignorados por Git
-├── jest.config.js           # Configuración de Jest para tests
-├── tsconfig.json            # Configuración de TypeScript
-├── package.json             # Dependencias y scripts
-└── package-lock.json        # Lockfile de dependencias
+│   ├── config.ts            # Carga y exporta variables de entorno y configuración.
+│   ├── index.ts             # Punto de entrada principal: Configura Express, middleware, rutas.
+│   ├── server-config.ts     # Configuración específica del servidor HTTP/HTTPS.
+│   ├── controllers/         # Lógica de manejo de peticiones HTTP.
+│   │   ├── auth.controller.ts
+│   │   ├── user.controller.ts 
+│   │   └── ... (otros)
+│   ├── lib/                 # Instancias compartidas o configuraciones de librerías.
+│   │   ├── prisma.ts          # Instancia global del cliente Prisma.
+│   │   └── redis.ts           # Instancia/Configuración del cliente Redis.
+│   ├── middleware/          # Funciones middleware reutilizables.
+│   │   ├── authMiddleware.ts  # Autenticación (Passport strategies, JWT).
+│   │   ├── errorMiddleware.ts # Manejo centralizado de errores.
+│   │   └── validationMiddleware.ts # Validación de request body/params (Zod).
+│   ├── models/              # Abstracción de datos y lógica de acceso (usando Prisma).
+│   │   └── user.ts            # User model/store (UserStore).
+│   ├── routes/              # Definición de los endpoints de la API.
+│   │   ├── index.ts           # Agrupa y exporta todas las rutas.
+│   │   ├── auth.routes.ts
+│   │   ├── user.routes.ts
+│   │   ├── avatar.routes.ts
+│   │   └── generator.routes.ts
+│   ├── schemas/             # Esquemas de validación de datos (Zod).
+│   │   ├── auth.schema.ts
+│   │   └── user.schema.ts
+│   ├── services/            # Lógica de negocio y comunicación entre componentes.
+│   │   ├── auth.service.ts
+│   │   ├── avatar.service.ts  # Lógica para guardar/gestionar avatares.
+│   │   └── generator.service.ts # Lógica para interactuar con el servicio Rust.
+│   ├── types/               # Definiciones de tipos TypeScript personalizadas.
+│   │   └── express.d.ts     # Extiende tipos de Express (ej. req.user).
+│   ├── utils/               # Funciones y clases de utilidad generales.
+│   │   ├── errors.ts          # Sistema de errores personalizados (AppError).
+│   │   ├── logger.ts          # Configuración del logger (Winston).
+│   │   └── metrics.ts         # Configuración y registro de métricas (prom-client).
+│   ├── __tests__/           # Tests unitarios y de integración (Jest).
+│   └── __mocks__/           # Mocks para tests.
+├── uploads/                 # Directorio para archivos subidos (ej. avatares, no versionado).
+├── .env.example             # Archivo de ejemplo para variables de entorno.
+├── .gitignore               # Archivos ignorados por Git.
+├── jest.config.cjs          # Configuración de Jest.
+├── eslint.config.js         # Configuración de ESLint.
+├── tsconfig.json            # Configuración de TypeScript.
+├── package.json             # Dependencias y scripts npm.
+└── README.md                # Este archivo.
 ```
 
 ## Características
@@ -122,18 +138,36 @@ CACHE_MAX_AGE=300
 
 ## Endpoints Principales
 
-- **GET /**: Bienvenida.
-- **GET /health**: Estado del sistema.
-- **GET /metrics**: Métricas en formato Prometheus.
-- **POST /api/auth/register**: Registrar usuario.
-- **POST /api/auth/login**: Iniciar sesión (devuelve JWT).
-- **POST /api/auth/refresh**: Refrescar JWT.
-- **GET /api/auth/me**: Obtener datos del usuario autenticado.
-- **POST /api/auth/api-key**: Generar/Regenerar API Key.
-- **POST /api/generate**: Generar código de barras.
-- **POST /api/generator**: Alias de `/api/generate`.
+La API expone los siguientes grupos principales de endpoints bajo el prefijo `/api`:
 
-(Consultar `src/routes/` y `src/index.ts` para detalles y rutas protegidas adicionales).
+- **`/auth`**: Autenticación y gestión de sesión.
+  - `POST /register`: Registrar un nuevo usuario.
+  - `POST /login`: Iniciar sesión (email/password), devuelve JWT.
+  - `POST /refresh`: Refrescar un token JWT (si está implementado).
+  - `GET /me`: Obtener datos del usuario actualmente autenticado (vía JWT).
+  - `POST /api-key`: Generar/Regenerar API Key para el usuario autenticado.
+
+- **`/users`**: Gestión de perfiles de usuario.
+  - `PUT /:id`: Actualizar el perfil del usuario (requiere autenticación y ser el mismo usuario o admin).
+  - `POST /profile-picture`: (Endpoint anterior, **AHORA OBSOLETO**, usar `/api/avatars/upload`).
+  - `PUT /profile-picture/default`: (Endpoint anterior, **AHORA OBSOLETO**, usar `/api/avatars/default/:type`).
+  - `DELETE /profile-picture`: (Endpoint anterior, **AHORA OBSOLETO**, usar `/api/avatars/reset`).
+
+- **`/avatars`**: Gestión de imágenes de perfil (avatares).
+  - `POST /upload`: Subir una nueva imagen de perfil personalizada (requiere autenticación).
+  - `POST /default/:type`: Establecer un avatar predeterminado (ej. 'Vector') para el usuario autenticado.
+  - `POST /reset`: Restablecer el avatar del usuario autenticado a sus iniciales.
+  - `GET /default-options`: Obtener la lista de avatares predeterminados disponibles.
+
+- **`/generate`**: Generación de códigos de barras y QR.
+  - `POST /`: Endpoint principal para generar un código (requiere API Key o JWT).
+
+- **Endpoints de Servicio/Monitoreo:**
+  - `GET /`: Mensaje de bienvenida de la API.
+  - `GET /health`: Estado de salud del servicio y dependencias.
+  - `GET /metrics`: Métricas en formato Prometheus.
+
+(Para detalles sobre parámetros, request body y respuestas específicas, consultar el código en `src/routes/` y los esquemas en `src/schemas/`).
 
 ## Próximos Pasos / Mejoras Pendientes (Resumen)
 
@@ -248,9 +282,6 @@ npm run test:integration
   - `https.test.ts` - Tests para SSL/HTTPS
   - `test-error-handling.test.ts` - Tests para manejo de errores
   - `setup.ts` - Configuración común para todos los tests
-- `middleware/__tests__/` - Tests específicos para middleware
-  - `errorHandler.test.ts` - Tests para middleware de manejo de errores
-- `utils/__tests__/` - Tests de utilidades y helpers
   - `errors.test.ts` - Tests para el sistema de errores
 
 ### Configuración
@@ -262,6 +293,24 @@ La configuración de Jest se encuentra en `jest.config.js`, con características
 - Configuración de tiempo de espera (timeout) para tests asíncronos
 - Mock de servicios externos como `fetch`
 - Setup global para todos los tests
+
+## Comandos Útiles
+
+Además de los comandos de ejecución (`npm run dev`, `npm start`, `npm run build`) y testing (`npm test`, etc.) definidos en `package.json`, los siguientes comandos pueden ser útiles durante el desarrollo:
+
+```bash
+# Abrir Prisma Studio (GUI para explorar la base de datos)
+npx prisma studio
+
+# Ejecutar el script de seeding (si prisma/seed.ts está configurado)
+npx prisma db seed
+
+# Aplicar migraciones pendientes
+npx prisma migrate deploy
+
+# Formatear el schema de Prisma
+npx prisma format
+```
 
 ## Instalación y Ejecución
 

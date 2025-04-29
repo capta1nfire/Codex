@@ -21,6 +21,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Frontend:** Mejorada retroalimentación en formulario de registro (mensaje de éxito, redirección retardada a login).
 - **Frontend:** Corregido flujo de login para actualizar estado visual en Navbar (mediante `window.location.href` y lógica existente en Navbar).
 - **Backend:** Mejorada configuración de pruebas en modelos de usuario, implementando mocks de bcrypt y resolviendo errores de tipo en TypeScript.
+- **UI:** Ajustado el efecto hover del botón de imagen de perfil en `Navbar` para coincidir con el estilo de los botones de navegación principales.
+- **UI:** Unificado el estilo del borde de la imagen de perfil en `UserProfile` para usar el mismo color que los botones `outline` (`border-border`).
 
 ### Corregido
 - **Backend:** Solucionado error crítico de arranque (`triggerUncaughtException`) al usar Node.js v22 con ESM, cambiando el script `dev` de `node --loader ts-node/esm` a `tsx watch src/index.ts`.
@@ -28,9 +30,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Backend:** Corregidas importaciones relativas sin extensión `.js` requeridas por ESM en `src/index.ts`, `src/utils/errors.ts`, `src/config.ts`.
 - **Calidad:** Resueltos todos los errores y advertencias iniciales de ESLint en el backend.
 - **Calidad:** Añadidas dependencias de ESLint (`eslint-plugin-import`, `eslint-plugin-prettier`) que faltaban en `backend/package.json` según `depcheck`.
+- **Frontend:** Corregida la URL utilizada para subir imágenes de perfil personalizadas, apuntando ahora a `/api/avatars/upload` en lugar de la ruta obsoleta `/api/users/profile-picture`, lo que soluciona parte del problema de persistencia de la imagen.
 
 ### Eliminado
 - **Calidad:** Eliminada función `sendSuccessResponse` no utilizada de `backend/src/utils/errors.ts` (detectada por `ts-prune`).
+
+### Docs
+- **READMEs:** Realizada una actualización exhaustiva y sistemática de los archivos `README.md` de la raíz, `backend`, `frontend` y `rust_generator` para mejorar la documentación sobre estructura, setup, ejecución y comandos útiles.
+- **Contexto:** Actualizado `CONTEXT_SUMMARY.md` para reflejar el estado actual de la depuración y las mejoras en la documentación.
 
 ## [1.3.0] - 2024-07-27
 

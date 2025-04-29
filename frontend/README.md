@@ -31,27 +31,34 @@ Frontend moderno para la plataforma Codex de generación de códigos de barras y
 ```
 frontend/
 ├── src/                      # Código fuente principal
-│   ├── components/           # Componentes reutilizables (Navbar, SystemStatus, UserProfile, etc.)
-│   │   └── ui/               # Componentes UI base (generados por Shadcn/CLI)
-│   ├── lib/                  # Utilidades (ej: utils.ts)
-│   └── app/                  # Rutas y layouts (App Router de Next.js)
-│       ├── layout.tsx        # Layout principal de la aplicación
-│       ├── page.tsx          # Página principal (generador de códigos)
-│       ├── dashboard/        # Sección de dashboard (métricas, etc.)
-│       │   └── ...
-│       ├── profile/          # Página de perfil de usuario
-│       │   └── ...
-│       ├── login/            # Página de inicio de sesión
-│       │   └── ...
-│       ├── register/         # Página de registro
-│       │   └── ...
-│       └── globals.css       # Estilos globales (importados en layout.tsx)
+│   ├── app/                  # Rutas y layouts (App Router de Next.js)
+│   │   ├── layout.tsx        # Layout principal de la aplicación
+│   │   ├── page.tsx          # Página principal (Generador de Códigos)
+│   │   ├── dashboard/        # Sección de Dashboard (métricas, etc.)
+│   │   ├── login/            # Página de Inicio de Sesión
+│   │   ├── profile/          # Página de Perfil de Usuario
+│   │   ├── register/         # Página de Registro
+│   │   ├── status/           # Página de Estado del Sistema
+│   │   └── globals.css       # Estilos globales (importados en layout.tsx)
+│   ├── components/           # Componentes React reutilizables
+│   │   ├── ui/               # Componentes base de Shadcn UI (Button, Input, etc.)
+│   │   ├── Navbar.tsx
+│   │   ├── ProfilePicture.tsx
+│   │   └── SystemStatus.tsx
+│   │   └── ... (otros componentes específicos)
+│   ├── context/              # Contextos React para gestión de estado global
+│   │   └── AuthContext.tsx   # Contexto para manejar autenticación y datos del usuario
+│   ├── lib/                  # Utilidades, hooks personalizados, etc.
+│   │   └── utils.ts          # Funciones de utilidad generales
 ├── public/                   # Archivos estáticos (imágenes, fuentes, etc.)
-├── next.config.mjs           # Configuración de Next.js (ahora .mjs)
-├── tailwind.config.ts        # Configuración de Tailwind CSS (ahora .ts)
-├── postcss.config.mjs        # Configuración de PostCSS (ahora .mjs)
+├── .env.local.example        # Archivo de ejemplo para variables de entorno
+├── components.json           # Configuración de Shadcn UI
+├── next.config.ts            # Configuración de Next.js
+├── tailwind.config.js        # Configuración de Tailwind CSS
+├── postcss.config.js         # Configuración de PostCSS
 ├── tsconfig.json             # Configuración de TypeScript
-└── package.json              # Dependencias y scripts
+├── package.json              # Dependencias y scripts
+└── README.md                 # Este archivo
 ```
 
 ## Tecnologías Utilizadas
@@ -65,40 +72,41 @@ frontend/
 
 ## Componentes Principales
 
-### Generador de Códigos
+### `AuthContext` (`src/context/AuthContext.tsx`)
 
-El componente principal para la generación de códigos de barras ubicado en `app/page.tsx`:
+- Gestiona el estado global de autenticación, los datos del usuario logueado y el token JWT.
+- Proporciona funciones para login, logout, registro y actualización de datos del usuario.
+- Envuelve la aplicación en `src/app/layout.tsx` para dar acceso al estado de autenticación en toda la app.
 
-- Formulario interactivo para ingresar datos y seleccionar tipo de código
-- Panel de opciones avanzadas (escala, corrección de errores)
-- Previsualización en tiempo real
-- Funcionalidad de descarga e impresión
+### Generador de Códigos (`src/app/page.tsx`)
 
-### Dashboard de Métricas
+- Interfaz principal para seleccionar tipo de código, ingresar datos y configurar opciones.
+- Muestra previsualización en tiempo real y permite descargar el SVG.
 
-Visualización de métricas del sistema ubicado en `app/dashboard/metrics/page.tsx`:
+### Dashboard de Métricas (`src/app/dashboard/...`)
 
-- Estadísticas generales del sistema
-- Detalles de rendimiento del caché
-- Visualización por tipo de código
-- Actualización automática cada 30 segundos
+- Visualiza métricas de rendimiento obtenidas del backend y del servicio Rust.
+- Incluye estadísticas de caché, tasa de aciertos, tiempos de respuesta, etc.
 
-### SystemStatus
+### Perfil de Usuario (`src/components/UserProfile.tsx`)
 
-Componente para monitorear el estado de los servicios:
+- Permite al usuario ver y editar su información de perfil (nombre, apellido, username).
+- Gestiona la subida y selección de imágenes de perfil (avatares).
+- Permite generar y visualizar la API Key.
 
-- Estado de servicios frontend, backend y Rust
-- Información detallada de cada servicio
-- Actualización automática
+### Estado del Sistema (`src/app/status/page.tsx` y `src/components/SystemStatus.tsx`)
 
-### Navbar
+- Muestra el estado de conectividad y salud del API Gateway y el servicio Rust.
 
-Barra de navegación mejorada con diseño optimizado:
+### `Navbar` (`src/components/Navbar.tsx`)
 
-- Enlaces principales horizontales junto al logo
-- Menú responsivo para dispositivos móviles
-- Alto contraste visual para mejor experiencia de usuario
-- Soporte para autenticación de usuarios
+- Barra de navegación principal.
+- Muestra enlaces diferentes según el estado de autenticación del usuario.
+- Incluye el menú desplegable del perfil de usuario.
+
+### `ProfilePicture` (`src/components/ui/ProfilePicture.tsx`)
+
+- Componente reutilizable para mostrar la imagen de perfil del usuario (avatar personalizado, predeterminado o iniciales).
 
 ## Configuración
 
@@ -112,17 +120,18 @@ NEXT_PUBLIC_RUST_SERVICE_URL=http://localhost:3002
 
 ## Instalación y Desarrollo
 
-```bash
-# Instalar dependencias
-npm install
+Consulta el [README principal](../README.md) para instrucciones detalladas sobre cómo instalar dependencias, configurar variables de entorno y ejecutar el frontend junto con el resto de componentes del sistema.
 
-# Iniciar servidor de desarrollo
+Los comandos básicos para el desarrollo del frontend (una vez instaladas las dependencias) son:
+
+```bash
+# Iniciar servidor de desarrollo (normalmente en http://localhost:3000)
 npm run dev
 
 # Compilar para producción
 npm run build
 
-# Iniciar servidor de producción
+# Iniciar servidor de producción (después de compilar)
 npm start
 ```
 

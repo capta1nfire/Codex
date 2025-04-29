@@ -73,21 +73,17 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ user, size = 'md', clas
         {initials}
       </span>
     );
-  } else if ((user.profilePictureType === 'image' || user.profilePictureType.startsWith('default')) && user.profilePictureUrl) {
+  } else if (user.profilePictureType !== 'initial' && user.profilePictureUrl) {
     const fullUrl = user.profilePictureUrl.startsWith('http')
       ? user.profilePictureUrl
       : `${backendUrl}${user.profilePictureUrl}`;
     profilePictureElement = (
       <img
-        className="object-cover w-full h-full !bg-transparent"
-        style={{ backgroundColor: 'transparent' }}
+        className="object-cover w-full h-full"
         src={fullUrl}
         alt={`Profile picture de ${user.firstName}`}
         onError={(e) => {
-          // Opcional: Manejar error de carga de imagen, mostrar iniciales?
-          console.error('Error loading profile picture:', e);
-          // Fallback a iniciales si la imagen falla
-          // e.currentTarget.outerHTML = `<span title="${user.firstName} ${user.lastName || ''}".trim() aria-label="Iniciales de ${user.firstName}">${initials}</span>`;
+          console.error('Error loading profile picture:', fullUrl, e);
         }}
       />
     );
@@ -97,8 +93,7 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ user, size = 'md', clas
 
   // Renderizar el contenedor con el contenido determinado
   return (
-    // Add !bg-transparent to the container div as a fallback override
-    <div className={cn(profilePictureVariants({ size }), '!bg-transparent', className)}>
+    <div className={cn(profilePictureVariants({ size }), className)}>
       {profilePictureElement}
     </div>
   );

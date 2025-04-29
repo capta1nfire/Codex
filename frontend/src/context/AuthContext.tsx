@@ -86,7 +86,17 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
       const data = await response.json();
       if (data.success && data.user) {
-        setUser(data.user);
+        // Map backend field names (avatarUrl/Type) to frontend names (profilePictureUrl/Type)
+        const frontendUser: User = {
+          ...data.user,
+          profilePictureUrl: data.user.avatarUrl,
+          profilePictureType: data.user.avatarType,
+        };
+        // Remove original backend fields if they exist to avoid confusion (optional but clean)
+        // delete frontendUser.avatarUrl; 
+        // delete frontendUser.avatarType;
+
+        setUser(frontendUser); // Set state with correctly named fields
         setIsAuthenticated(true);
         setToken(token);
       } else {
