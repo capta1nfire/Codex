@@ -71,7 +71,7 @@ backend/
 - **Manejo de Errores:** Sistema tipificado con `AppError` y manejo centralizado.
 - **Logging:** Estructurado con Winston (JSON a archivo, coloreado a consola).
 - **Métricas (Prometheus):** Endpoint `/metrics` expone métricas operacionales (duración/tasa HTTP, duración llamadas Rust) para Prometheus.
-- **Caché (Redis):** Cliente Redis configurado (`lib/redis.ts`), pendiente de integración activa en `barcodeService`.
+- **Caché (Redis):** Cliente Redis configurado (`lib/redis.ts`) e integrado activamente en `barcodeService` para cachear resultados de generación.
 - **Optimización:** Compresión de respuestas, Headers HTTP Cache-Control.
 - **Desarrollo:** TypeScript, Configuración basada en `.env`, Scripts npm para build/dev/test/seed.
 
@@ -81,12 +81,11 @@ backend/
   - El sistema está configurado para conectarse a un servidor **Redis** (definido por `REDIS_URL` en `.env`). La instancia del cliente está disponible en `lib/redis.ts`.
   - Actualmente, el `barcodeService.ts` **no utiliza Redis activamente** y llama directamente al servicio Rust en cada miss del caché interno de Rust.
   - El **servicio Rust** implementa su propio **caché interno en memoria** (con DashMap) y expone sus estadísticas detalladas en su endpoint `/analytics/performance`.
-  - **Mejora Pendiente:** Integrar el cliente Redis en `barcodeService.ts` para implementar una capa de caché compartida antes de llamar al servicio Rust.
-- **Métricas:**
-  - El endpoint `/metrics` expone métricas en formato **Prometheus** utilizando `prom-client`.
-  - Métricas incluidas: Duración y tasa de solicitudes HTTP (desglosadas por método, ruta, código), duración de las llamadas al servicio Rust (desglosadas por tipo de código), métricas estándar de proceso Node.js.
-  - Estas métricas están pensadas para ser recolectadas por un servidor Prometheus y visualizadas con Grafana (configurados en `docker-compose.yml` para desarrollo).
-  - Las métricas detalladas del _caché interno de Rust_ se consultan directamente desde el frontend a `/analytics/performance` (servicio Rust).
+  - **Métricas:**
+    - El endpoint `/metrics` expone métricas en formato **Prometheus** utilizando `prom-client`.
+    - Métricas incluidas: Duración y tasa de solicitudes HTTP (desglosadas por método, ruta, código), duración de las llamadas al servicio Rust (desglosadas por tipo de código), métricas estándar de proceso Node.js.
+    - Estas métricas están pensadas para ser recolectadas por un servidor Prometheus y visualizadas con Grafana (configurados en `docker-compose.yml` para desarrollo).
+    - Las métricas detalladas del _caché interno de Rust_ se consultan directamente desde el frontend a `/analytics/performance` (servicio Rust).
 
 ## Infraestructura de Testing
 

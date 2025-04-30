@@ -12,7 +12,7 @@
     *   **Backend (API Gateway):** Node.js, Express, TypeScript. Gestiona lógica de negocio, autenticación (Passport.js - JWT/API Keys), interacción con BD (Prisma), orquestación de llamadas al servicio Rust, exposición de métricas (Prometheus).
     *   **Servicio de Generación:** Rust, Axum. Servicio de alto rendimiento dedicado exclusivamente a generar los códigos SVG usando `rxing`, con caché interno (DashMap) y endpoints de estado/analíticas.
     *   **Base de Datos:** PostgreSQL (gestionada con Prisma ORM) para persistencia de usuarios, API Keys, etc.
-    *   **Caché Externo:** Redis configurado en el backend y disponible vía Docker Compose, pero **aún no integrado activamente** en la lógica de `barcodeService.ts`.
+    *   **Caché Externo:** Redis configurado en el backend, disponible vía Docker Compose, e **integrado activamente** en la lógica de `barcodeService.ts` para cachear resultados de generación de códigos.
     *   **Monitoreo:** Stack Prometheus + Grafana configurado vía Docker Compose para recolectar y visualizar métricas operacionales del backend Node.js.
 *   **Documentación Clave:**
     *   `CODEX.md`: Visión estratégica, arquitectura detallada, roadmap.
@@ -63,9 +63,9 @@
 ## 4. Próximos Pasos y Planificación (Según Informe de Auditoría)
 
 (Prioridades generales - podrían reordenarse según necesidad)
-1.  **Resolver problema persistencia imagen de perfil** (Verificar BD).
+1.  ~~Resolver problema persistencia imagen de perfil~~ (**Resuelto**).
 2.  **Integrar validación Zod/Joi** en backend y frontend (Validación de inputs).
-3.  **Implementar caché Redis** en `barcodeService`.
+3.  ~~Implementar caché Redis en `barcodeService`~~ (**Confirmado como Implementado**).
 4.  **Definir índices compuestos** en Prisma/PostgreSQL.
 5.  **Configurar alertas** en Prometheus Alertmanager (Slack/Email).
 6.  **Integrar Sentry** (o Datadog) para captura de errores en producción.

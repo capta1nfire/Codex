@@ -23,6 +23,7 @@ import {
   // Download, // Remove unused
   // Printer, // Remove unused
 } from 'lucide-react';
+import BarcodeDisplay from './BarcodeDisplay'; // Importamos el componente de display refactorizado
 
 // Interfaz para el error estructurado devuelto por el backend
 interface ErrorResponse {
@@ -655,12 +656,14 @@ export default function Home() {
                   ></div>
                   <p>Generando código...</p>
                 </div>
-              ) : svgContent ? (
-                <div
-                  className="max-w-full max-h-[400px] overflow-auto [&>svg]:w-full [&>svg]:h-auto"
-                  dangerouslySetInnerHTML={{ __html: svgContent }}
-                />
-              ) : (
+                            ) : svgContent ? (
+                              // Usar el componente BarcodeDisplay
+                             <BarcodeDisplay
+                                 svgContent={svgContent}
+                                 type={type}
+                                 data={data}
+                              />
+                           ) : (
                 <p className="text-gray-400">Aquí aparecerá la previsualización del código</p>
               )}
             </div>
