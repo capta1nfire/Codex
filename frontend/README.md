@@ -25,6 +25,8 @@ Frontend moderno para la plataforma Codex de generación de códigos de barras y
 - **Sistema de Monitoreo**: Componente para visualizar el estado de los servicios
 - **Interfaz Moderna**: Diseño atractivo con Tailwind CSS y componentes UI personalizados
 - **Navegación Mejorada**: Barra de navegación con alto contraste y disposición optimizada
+- **Corrección de Errores:** Solucionado problema crítico de visualización al cambiar tipos de código.
+- **Mejoras UI:** Añadidos botones de descarga/impresión, mejorada alineación visual.
 
 ## Estructura del Proyecto
 

@@ -9,21 +9,9 @@ import { useAuth } from '@/context/AuthContext';
 import { Upload, RefreshCw, Copy, Eye, EyeOff, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProfilePicture from './ui/ProfilePicture';
-
-interface User {
-  id: string;
-  firstName: string;
-  lastName?: string;
-  email: string;
-  role: string;
-  username?: string;
-  createdAt?: string;
-  lastLogin?: string;
-  avatarUrl?: string;
-  avatarType?: string;
-  profilePictureUrl?: string;
-  profilePictureType?: string;
-}
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { updateUserProfileSchema, UpdateProfileFormData } from '@/schemas/auth.schema';
 
 interface DefaultAvatar {
   type: string;
@@ -31,9 +19,6 @@ interface DefaultAvatar {
 }
 
 export default function UserProfile() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -50,20 +35,40 @@ export default function UserProfile() {
   const router = useRouter();
   const { user: authUser, isAuthenticated, isLoading: authLoading, token: authToken, updateUser, logout } = useAuth();
 
-  useEffect(() => {
-    if (!authLoading && authUser) {
-       setFirstName(authUser.firstName || '');
-       setLastName(authUser.lastName || '');
-       setUsername(authUser.username || '');
-       setIsLoading(false);
-    } else if (!authLoading && !isAuthenticated) {
-       router.push('/login');
-    } else if (!authLoading) {
-       setIsLoading(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isDirty, isValid },
+    reset,
+  } = useForm<UpdateProfileFormData>({
+    resolver: zodResolver(updateUserProfileSchema),
+    mode: 'onChange',
+    defaultValues: {
+      firstName: '', 
+      lastName: '', 
+      username: '', 
+      email: '',
+      password: '',
     }
-  }, [authLoading, isAuthenticated, authUser, router]);
+  });
 
-  // Cargar opciones de avatares predeterminados
+  useEffect(() => {
+    if (authUser) {
+      reset({
+        firstName: authUser.firstName || '',
+        lastName: authUser.lastName || '',
+        username: authUser.username || '',
+        email: authUser.email || '',
+        password: '',
+      });
+      setIsLoading(false);
+    } else if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    } else if (!authLoading) {
+      setIsLoading(false);
+    }
+  }, [reset, authUser, authLoading, isAuthenticated, router]);
+
   useEffect(() => {
     if (isAuthenticated && authToken) {
       fetchDefaultProfilePictures();
@@ -90,43 +95,41 @@ export default function UserProfile() {
     }
   };
 
-  // Helper function to handle API errors, including 401 for logout
   const handleApiError = (error: unknown, context: string) => {
     let errorMessage = 'Error desconocido';
     let statusCode: number | undefined = undefined;
 
     if (error instanceof Error) {
       errorMessage = error.message;
-      statusCode = (error as any).status; // Try to get status if added
+      statusCode = (error as any).status;
     }
 
-    // Check for 401 Unauthorized
     if (statusCode === 401 || errorMessage.toLowerCase().includes('token inválido') || errorMessage.toLowerCase().includes('unauthorized')) {
       toast.error('Tu sesión ha expirado. Por favor, inicia sesión de nuevo.');
-      logout(); // Logout and redirect
+      logout();
     } else {
-      // Handle other errors
       setError(errorMessage);
       toast.error(`Error ${context}: ${errorMessage}`);
-      console.error(`Error ${context}:`, { error }); // Use console.error in frontend
+      console.error(`Error ${context}:`, { error });
     }
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: UpdateProfileFormData) => {
     setError('');
     setIsLoading(true);
 
     if (!authToken || !authUser) {
-      logout(); // Should not happen if component rendered, but good practice
+      logout();
       return;
     }
 
-    const updateData = {
-      firstName,
-      lastName: lastName || null,
-      username: username.trim() === '' ? null : username.trim(),
-    };
+    const updateData: Partial<UpdateProfileFormData> = { ...data };
+    if (!updateData.password) {
+      delete updateData.password;
+    }
+    if (updateData.username === '' || updateData.username === null) {
+        updateData.username = null;
+    }
 
     let response: Response | null = null;
     try {
@@ -137,27 +140,24 @@ export default function UserProfile() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(updateData),
+        body: JSON.stringify(updateData), 
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        const error = new Error(data.error?.message || `Error ${response.status}`);
+        const error = new Error(responseData.error?.message || `Error ${response.status}`);
         (error as any).status = response.status; 
         throw error;
       }
 
-      if (data.success && data.user) {
-        setFirstName(data.user.firstName || '');
-        setLastName(data.user.lastName || '');
-        setUsername(data.user.username || '');
-        updateUser(data.user);
+      if (responseData.success && responseData.user) {
+        reset(responseData.user);
+        updateUser(responseData.user);
         setIsEditing(false);
         toast.success('Perfil actualizado correctamente');
       } else {
-        // Throw error for unexpected success=false or missing user
-        throw new Error(data.error?.message || 'Respuesta inválida del servidor al actualizar');
+        throw new Error(responseData.error?.message || 'Respuesta inválida del servidor al actualizar');
       }
     } catch (err) {
       handleApiError(err, 'actualizando perfil');
@@ -204,28 +204,21 @@ export default function UserProfile() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Simulating success on error for demo purposes - REMOVE THIS IN PRODUCTION
-        if (response.status === 401) { // Explicitly handle 401 here before simulation
+        if (response.status === 401) {
            const error = new Error(data.error?.message || `Error ${response.status}`);
            (error as any).status = response.status; 
            throw error;
         }
         console.error("Error en la respuesta real:", data); 
-        // const simulatedApiKey = "7a9bd3fe8db060004510a28315da8e031b113113f1e969d92a5fc5727a40eeeb";
-        // updateUser({ currentApiKey: simulatedApiKey }); 
-        // setShowApiGenerationSuccess(true);
-        // throw new Error('Simulación de error completada'); // Re-throw simulated error if needed
         const error = new Error(data.error?.message || `Error ${response.status}`);
         (error as any).status = response.status; 
         throw error;
-        // return; // Original return on error simulation
       }
 
       if (data.success && data.apiKey) {
         updateUser({ currentApiKey: data.apiKey });
         setShowApiGenerationSuccess(true);
         if (data.user) {
-          // Ensure context gets updated user data along with the new key state
           updateUser({ ...data.user, currentApiKey: data.apiKey }); 
         }
       } else {
@@ -234,32 +227,24 @@ export default function UserProfile() {
         );
       }
     } catch (err) {
-      // Remove error simulation logic from catch block
-      // console.error("Error en generateApiKey:", err);
-      // const simulatedApiKey = "7a9bd3fe8db060004510a28315da8e031b113113f1e969d92a5fc5727a40eeeb";
-      // updateUser({ currentApiKey: simulatedApiKey });
-      // setShowApiGenerationSuccess(true);
       handleApiError(err, 'generando API Key');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Función para abrir el selector de archivos
   const handleUploadClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
-  // Función para subir un avatar personalizado
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !authToken) return;
 
-    // Validar tipo y tamaño del archivo
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
       toast.error('El archivo debe ser una imagen (JPG o PNG)');
@@ -276,18 +261,13 @@ export default function UserProfile() {
 
     let response: Response | null = null;
     try {
-      // Crear FormData para la subida
       const formData = new FormData();
-      // Asegurarse de que el nombre del campo coincida con el esperado por multer en el backend ('avatar')
       formData.append('avatar', file);
 
-      // Realizar la petición POST al endpoint correcto
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
-      // Cambiar la ruta a la definida en avatar.routes.ts
       response = await fetch(`${backendUrl}/api/avatars/upload`, {
         method: 'POST',
         headers: {
-          // Content-Type es establecido automáticamente por fetch al usar FormData
           Authorization: `Bearer ${authToken}`,
         },
         body: formData,
@@ -323,7 +303,6 @@ export default function UserProfile() {
     }
   };
 
-  // Función para establecer un avatar predeterminado
   const setDefaultProfilePicture = async (type: string) => {
     if (!authToken) {
         logout();
@@ -353,15 +332,13 @@ export default function UserProfile() {
       }
 
       if (data.success && data.user) {
-        // Directly use the user data returned from the backend API
-        // Map backend field names to frontend names
         const updatedUserData = {
             ...data.user,
             profilePictureUrl: data.user.avatarUrl, 
             profilePictureType: data.user.avatarType, 
         };
 
-        updateUser(updatedUserData); // Update context with data from backend
+        updateUser(updatedUserData);
         toast.success('Imagen de perfil actualizada correctamente');
       } else {
          throw new Error(data.error?.message || 'Error al establecer imagen de perfil predeterminada');
@@ -373,7 +350,6 @@ export default function UserProfile() {
     }
   };
 
-  // Función para volver a la inicial del nombre
   const resetProfilePicture = async () => {
     if (!authToken) {
         logout();
@@ -421,7 +397,6 @@ export default function UserProfile() {
     }
   };
 
-  // --- Función para alternar visibilidad Y mostrar advertencia ---
   const toggleApiKeyVisibility = () => {
     const nextVisibility = !isApiKeyVisible;
     setIsApiKeyVisible(nextVisibility);
@@ -431,10 +406,8 @@ export default function UserProfile() {
 
   const currentApiKey = authUser?.currentApiKey;
 
-  // --- Effect for handling clicks outside the avatar menu ---
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Close if clicked outside menu AND outside button
       if (
         profilePictureMenuRef.current && 
         !profilePictureMenuRef.current.contains(event.target as Node) &&
@@ -445,47 +418,40 @@ export default function UserProfile() {
       }
     };
 
-    // Add listener if menu is open
     if (isProfilePictureMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     } else {
-      // Remove listener if menu is closed
       document.removeEventListener('mousedown', handleClickOutside);
     }
 
-    // Cleanup listener on component unmount or when menu closes
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isProfilePictureMenuOpen]);
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center py-12 bg-gray-100">
-        <p className="text-lg text-gray-600">Cargando perfil...</p>
-      </div>
-    );
+  const handleEditToggle = () => {
+    if (isEditing) {
+       reset({ 
+         firstName: authUser?.firstName || '',
+         lastName: authUser?.lastName || '',
+         username: authUser?.username || '',
+         email: authUser?.email || '', 
+         password: '', 
+       });
+    }
+    setIsEditing(!isEditing);
+  };
+
+  if (isLoading || authLoading) {
+    return <div>Cargando perfil...</div>;
   }
 
-  if (!authUser && !authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center py-12 bg-gray-100">
-        <div className="w-full max-w-md bg-white p-6 border border-red-300 rounded-lg shadow-md text-center">
-          <h2 className="text-xl font-semibold mb-4 text-red-800">Error al Cargar Perfil</h2>
-          <p className="text-red-700">
-            {error ||
-              'No se pudieron cargar los datos del usuario. Intenta iniciar sesión de nuevo.'}
-          </p>
-          <Button onClick={() => router.push('/login')} className="mt-6">
-            Ir a Inicio de Sesión
-          </Button>
-        </div>
-      </div>
-    );
+  if (!isAuthenticated || !authUser) {
+    return <div>No autenticado.</div>;
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100">
+    <div className="space-y-8 max-w-4xl mx-auto p-4 md:p-8">
       <div className="w-full max-w-3xl space-y-8">
         <h2 className="text-3xl font-bold text-center text-gray-900">Mi Perfil</h2>
 
@@ -500,7 +466,6 @@ export default function UserProfile() {
         )}
 
         <div className="bg-white p-6 border rounded-lg shadow-md">
-          {/* Sección de avatar */}
           <div className="flex flex-col items-center mb-6 relative">
             <div className="relative mb-3"> 
               <ProfilePicture user={authUser} size="xl" className="border border-border" />
@@ -515,7 +480,6 @@ export default function UserProfile() {
               </button>
             </div>
             
-            {/* Input oculto para cargar archivos */}
             <input
               type="file"
               ref={fileInputRef}
@@ -525,13 +489,11 @@ export default function UserProfile() {
               disabled={isLoading}
             />
             
-            {/* Menú desplegable para opciones de imagen de perfil */}
             {isProfilePictureMenuOpen && (
               <div 
                 ref={profilePictureMenuRef}
                 className="absolute top-full mt-2 bg-white border rounded-lg shadow-lg p-3 z-20 w-auto min-w-[12rem]">
                 <div className="text-sm font-medium text-gray-700 mb-2 pb-1 border-b">Imagen de perfil</div>
-                {/* Opciones de Subir y Resetear */}
                 <div className="space-y-1 mb-3">
                   <div>
                     <button 
@@ -554,7 +516,6 @@ export default function UserProfile() {
                     </button>
                   </div>
                 </div>
-                {/* Separador y sección de imágenes predeterminadas */}
                 <div className="text-xs font-medium text-gray-500 mb-2 pt-2 border-t">BarBots:</div>
                 <div className="grid grid-cols-3 gap-3 place-items-center">
                   {defaultProfilePictures.map((pic: DefaultAvatar) => (
@@ -584,7 +545,7 @@ export default function UserProfile() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setIsEditing(true)}
+                onClick={handleEditToggle}
                 disabled={isLoading}
               >
                 Editar
@@ -593,21 +554,33 @@ export default function UserProfile() {
           </div>
 
           {isEditing ? (
-            <form onSubmit={handleUpdate} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div>
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Correo electrónico
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  {...register('email')}
+                  disabled
+                  className="mt-1 bg-gray-100 cursor-not-allowed"
+                />
+              </div>
               <div>
                 <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
                   Nombre
                 </Label>
                 <Input
                   id="firstName"
-                  name="firstName"
                   type="text"
-                  required
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="mt-1"
-                  disabled={isLoading}
+                  {...register('firstName')}
+                  disabled={!isEditing}
+                  className={`mt-1 ${!isEditing ? 'bg-gray-100' : ''}`}
                 />
+                {errors.firstName && isEditing && (
+                  <p className="mt-1 text-xs text-red-600">{errors.firstName.message}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
@@ -615,54 +588,55 @@ export default function UserProfile() {
                 </Label>
                 <Input
                   id="lastName"
-                  name="lastName"
                   type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="mt-1"
-                  disabled={isLoading}
+                  {...register('lastName')}
+                  disabled={!isEditing}
+                  className={`mt-1 ${!isEditing ? 'bg-gray-100' : ''}`}
                 />
+                {errors.lastName && isEditing && (
+                  <p className="mt-1 text-xs text-red-600">{errors.lastName.message}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="username">Nombre de usuario</Label>
                 <Input 
                   id="username" 
-                  value={username} 
-                  onChange={(e) => setUsername(e.target.value)} 
-                  disabled={isLoading} 
-                  placeholder="(Opcional)" 
+                  type="text" 
+                  {...register('username')} 
+                  disabled={!isEditing}
+                  className={`mt-1 ${!isEditing ? 'bg-gray-100' : ''}`}
+                  placeholder="(Opcional)"
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  Solo letras, números, guion bajo (_) y guion medio (-). Mínimo 3 caracteres.
-                </p>
+                {errors.username && isEditing && (
+                  <p className="mt-1 text-xs text-red-600">{errors.username.message}</p>
+                )}
               </div>
               <div>
-                <Label htmlFor="email-display" className="text-sm font-medium text-gray-700">
-                  Correo electrónico
-                </Label>
-                <Input
-                  id="email-display"
-                  type="email"
-                  value={authUser?.email || ''}
-                  className="mt-1 bg-gray-100 cursor-not-allowed"
-                  disabled
+                <Label htmlFor="password">Nueva Contraseña (opcional)</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  {...register('password')} 
+                  disabled={!isEditing}
+                  className={`mt-1 ${!isEditing ? 'bg-gray-100' : ''}`}
+                  placeholder="Dejar vacío para no cambiar"
                 />
+                {errors.password && isEditing && (
+                  <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Mínimo 8 caracteres, con mayúsculas, minúsculas y números si se establece.
+                </p>
               </div>
 
               <div className="flex space-x-3 pt-2">
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading || !isDirty || !isValid}>
                   {isLoading ? 'Guardando...' : 'Guardar Cambios'}
                 </Button>
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setFirstName(authUser?.firstName || '');
-                    setLastName(authUser?.lastName || '');
-                    setUsername(authUser?.username || '');
-                    setError('');
-                  }}
+                  onClick={handleEditToggle}
                   disabled={isLoading}
                 >
                   Cancelar

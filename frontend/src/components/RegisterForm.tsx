@@ -1,19 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { registerSchemaFrontend, RegisterFormData } from '@/schemas/auth.schema';
 
 export default function RegisterForm() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [serverError, setServerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
   const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchemaFrontend),
+    mode: 'onBlur',
+  });
 
   useEffect(() => {
     if (successMessage) {
@@ -25,9 +34,8 @@ export default function RegisterForm() {
     }
   }, [successMessage, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const onSubmit = async (data: RegisterFormData) => {
+    setServerError('');
     setSuccessMessage('');
     setIsLoading(true);
 
@@ -38,30 +46,31 @@ export default function RegisterForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-            firstName, 
-            lastName: lastName || undefined,
-            email, 
-            password 
-        }),
+        body: JSON.stringify(data),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        if (response.status === 409) {
-          throw new Error(data.message || 'El correo electrónico o nombre de usuario ya está en uso');
-        }
-        throw new Error(data.message || data.error?.message || 'Error al registrar usuario');
+        throw new Error(
+          responseData.message || 
+          responseData.error?.message || 
+          'Error al registrar usuario'
+        );
       }
 
-      if (data.success) {
+      if (responseData.success) {
         setSuccessMessage('¡Usuario creado con éxito! Redirigiendo a inicio de sesión...');
+        reset();
       } else {
-        throw new Error(data.message || data.error?.message || 'Respuesta inválida del servidor');
+        throw new Error(
+          responseData.message || 
+          responseData.error?.message || 
+          'Respuesta inválida del servidor'
+        );
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      setServerError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setIsLoading(false);
     }
@@ -79,15 +88,15 @@ export default function RegisterForm() {
             </div>
           )}
 
-          {error && !successMessage && (
+          {serverError && !successMessage && (
             <div className="bg-red-50 border border-red-300 rounded-md p-4 mb-6 text-red-900">
-              <p>{error}</p>
+              <p>{serverError}</p>
             </div>
           )}
 
           {!successMessage && (
             <>
-              <form className="space-y-4" onSubmit={handleSubmit}>
+              <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
                 <div>
                   <label
                     htmlFor="firstName"
@@ -98,15 +107,15 @@ export default function RegisterForm() {
                   <div className="mt-1">
                     <input
                       id="firstName"
-                      name="firstName"
                       type="text"
                       autoComplete="given-name"
-                      required
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      {...register('firstName')}
+                      className={`appearance-none block w-full px-3 py-2 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm`}
                       disabled={isLoading}
                     />
+                    {errors.firstName && (
+                      <p className="mt-1 text-xs text-red-600 text-left">{errors.firstName.message}</p>
+                    )}
                   </div>
                 </div>
                 
@@ -120,14 +129,15 @@ export default function RegisterForm() {
                   <div className="mt-1">
                     <input
                       id="lastName"
-                      name="lastName"
                       type="text"
                       autoComplete="family-name"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      {...register('lastName')}
+                      className={`appearance-none block w-full px-3 py-2 border ${errors.lastName ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm`}
                       disabled={isLoading}
                     />
+                    {errors.lastName && (
+                      <p className="mt-1 text-xs text-red-600 text-left">{errors.lastName.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -141,15 +151,15 @@ export default function RegisterForm() {
                   <div className="mt-1">
                     <input
                       id="email"
-                      name="email"
                       type="email"
                       autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      {...register('email')}
+                      className={`appearance-none block w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm`}
                       disabled={isLoading}
                     />
+                    {errors.email && (
+                      <p className="mt-1 text-xs text-red-600 text-left">{errors.email.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -163,15 +173,15 @@ export default function RegisterForm() {
                   <div className="mt-1">
                     <input
                       id="password"
-                      name="password"
                       type="password"
                       autoComplete="new-password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      {...register('password')}
+                      className={`appearance-none block w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm`}
                       disabled={isLoading}
                     />
+                    {errors.password && (
+                      <p className="mt-1 text-xs text-red-600 text-left">{errors.password.message}</p>
+                    )}
                   </div>
                   <p className="mt-1 text-xs text-gray-500 text-left">
                     Mínimo 8 caracteres, con mayúsculas, minúsculas y números.
@@ -186,7 +196,7 @@ export default function RegisterForm() {
                         ? 'bg-blue-400 cursor-not-allowed'
                         : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                     }`}
-                    disabled={isLoading}
+                    disabled={isLoading || !successMessage && Object.keys(errors).length > 0 }
                   >
                     {isLoading ? 'Procesando...' : 'Registrarse'}
                   </button>
