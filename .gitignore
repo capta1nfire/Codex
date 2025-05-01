@@ -4,6 +4,7 @@ node_modules/
 # Logs
 logs/
 *.log
+backend/logs/
 
 # macOS
 .DS_Store
