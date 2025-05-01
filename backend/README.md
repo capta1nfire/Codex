@@ -74,12 +74,13 @@ backend/
 - **Caché (Redis):** Cliente Redis configurado (`lib/redis.ts`) e integrado activamente en `barcodeService` para cachear resultados de generación.
 - **Optimización:** Compresión de respuestas, Headers HTTP Cache-Control.
 - **Desarrollo:** TypeScript, Configuración basada en `.env`, Scripts npm para build/dev/test/seed.
+- **Mejora Continua:** Mejorada consistencia en generación de claves Redis en `barcodeService`.
 
 ## Sistema de Caché y Métricas
 
 - **Caché:**
   - El sistema está configurado para conectarse a un servidor **Redis** (definido por `REDIS_URL` en `.env`). La instancia del cliente está disponible en `lib/redis.ts`.
-  - Actualmente, el `barcodeService.ts` **no utiliza Redis activamente** y llama directamente al servicio Rust en cada miss del caché interno de Rust.
+  - Actualmente, el `barcodeService.ts` **utiliza activamente** Redis, con consistencia mejorada en la generación de claves.
   - El **servicio Rust** implementa su propio **caché interno en memoria** (con DashMap) y expone sus estadísticas detalladas en su endpoint `/analytics/performance`.
   - **Métricas:**
     - El endpoint `/metrics` expone métricas en formato **Prometheus** utilizando `prom-client`.

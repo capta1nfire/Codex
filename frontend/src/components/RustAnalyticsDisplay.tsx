@@ -113,12 +113,14 @@ export default function RustAnalyticsDisplay() {
           {analyticsData &&
             ` Última act: ${new Date(analyticsData.timestamp).toLocaleTimeString()}`}
         </CardDescription>
-        {error && !isLoading && <p className="mt-2 text-sm text-red-600">Error: {error}</p>}
+        {/* Usar text-destructive para error */}
+        {error && !isLoading && <p className="mt-2 text-sm text-destructive">Error: {error}</p>}
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <div className="flex justify-center items-center h-40">
-            <p className="text-gray-500 animate-pulse">Cargando análisis de rendimiento...</p>
+            {/* Usar text-muted-foreground para carga */}
+            <p className="text-muted-foreground animate-pulse">Cargando análisis de rendimiento...</p>
           </div>
         ) : !analyticsData ? (
           <></>
@@ -131,19 +133,23 @@ export default function RustAnalyticsDisplay() {
               </CardHeader>
               <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="font-medium text-gray-600">Peticiones Totales:</span>{' '}
+                  {/* Usar text-muted-foreground */}
+                  <span className="font-medium text-muted-foreground">Peticiones Totales:</span>{' '}
                   {analyticsData.overall.total_requests}
                 </div>
                 <div>
-                  <span className="font-medium text-gray-600">Cache Hit Rate:</span>{' '}
+                  {/* Usar text-muted-foreground */}
+                  <span className="font-medium text-muted-foreground">Cache Hit Rate:</span>{' '}
                   {formatPercentage(analyticsData.overall.cache_hit_rate_percent)}
                 </div>
                 <div>
-                  <span className="font-medium text-gray-600">Ø Duración Resp.:</span>{' '}
+                  {/* Usar text-muted-foreground */}
+                  <span className="font-medium text-muted-foreground">Ø Duración Resp.:</span>{' '}
                   {formatDuration(analyticsData.overall.avg_response_ms)}
                 </div>
                 <div>
-                  <span className="font-medium text-gray-600">Máx Duración Resp.:</span>{' '}
+                  {/* Usar text-muted-foreground */}
+                  <span className="font-medium text-muted-foreground">Máx Duración Resp.:</span>{' '}
                   {formatDuration(analyticsData.overall.max_response_ms)}
                 </div>
                 {/* Podríamos añadir más datos de 'overall' si los hubiera */}

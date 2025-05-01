@@ -5,6 +5,31 @@ Todos los cambios significativos en este proyecto serán documentados en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Implementación inicial de UI basada en roles (`USER`, `PREMIUM`, `ADMIN`) en el generador (`frontend/src/app/generator/page.tsx`).
+- Componentes extraídos: `BarcodeTypeSelector`, `GenerationOptions`.
+- Pestañas ("Apariencia", "Visualización", "Avanzado") para opciones de `ADMIN`.
+- Controles para opciones avanzadas (QR, Code128, EAN/UPC, PDF417, DataMatrix, Code39).
+- Tooltips y mensajes de error inline para opciones avanzadas.
+- Botón "Restablecer Opciones".
+- Documentación inicial de la estructura UI por perfil (`PROFILE_UI_STRUCTURE.md`).
+- Selector de roles temporal en `UserProfile.tsx` para pruebas (solo desarrollo).
+- Definición de paleta de colores (Qwen - Azul Cobalto) en `globals.css` y `tailwind.config.js`.
+
+### Changed
+- Refactorización de componentes UI para usar clases semánticas del tema (`bg-primary`, `text-muted-foreground`, etc.).
+- Aplicación del tema de colores a `GenerationOptions`, `page`, `UserProfile`, `dashboard/page`, `SystemStatus`, `RustAnalyticsDisplay`.
+- Aplicación del tema de colores a la documentación Swagger UI (`/api-docs`) vía `customCss`.
+
+### Fixed
+- Error 429 en `SystemStatus` (aumentado intervalo a 60s).
+- Errores linter CSS (`@custom-variant`).
+- Error `TypeError: Failed to fetch` en `page.tsx` (relacionado con inicio del backend).
+- Colores incorrectos en indicadores de estado del Dashboard (mapeo Tailwind, valor HSL `success`).
+- Error de referencia de esquema (`$ref`) en Swagger UI para `/api/auth/register`.
+
 ## [No publicado]
 
 ### Añadido
@@ -12,6 +37,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Calidad:** Configuración de ESLint y Prettier para el backend (`backend/`).
 - **Calidad:** Migración de configuración de ESLint del backend a formato "flat config" (`eslint.config.js`).
 - **Dev:** Añadida dependencia `tsx` al backend para ejecución en desarrollo.
+- **Frontend:** Añadidos botones de "Descargar SVG" e "Imprimir" a la previsualización del código.
+- **UI (Perfiles):** Implementada estructura inicial de UI basada en perfiles (Gratuito, Pro, Enterprise) en el generador, incluyendo controles avanzados condicionales.
 
 ### Mejorado
 - **Frontend:** Implementada carga inicial de QR por defecto al visitar la página.
@@ -23,6 +50,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Backend:** Mejorada configuración de pruebas en modelos de usuario, implementando mocks de bcrypt y resolviendo errores de tipo en TypeScript.
 - **UI:** Ajustado el efecto hover del botón de imagen de perfil en `Navbar` para coincidir con el estilo de los botones de navegación principales.
 - **UI:** Unificado el estilo del borde de la imagen de perfil en `UserProfile` para usar el mismo color que los botones `outline` (`border-border`).
+- **Backend:** Mejorada la consistencia de la generación de claves de caché Redis en `barcodeService.ts` (usando `options || null`).
+- **UI:** Alineado el ancho del selector "Tipo de Código" con el input "Datos a Codificar" en el frontend.
+- **UI:** Centrado el contenedor de la previsualización del código y los botones de acción en el frontend.
+- **Frontend:** Refactorizada la página del generador (`page.tsx`) extrayendo componentes (`BarcodeTypeSelector`, `GenerationOptions`).
 
 ### Corregido
 - **Backend:** Solucionado error crítico de arranque (`triggerUncaughtException`) al usar Node.js v22 con ESM, cambiando el script `dev` de `node --loader ts-node/esm` a `tsx watch src/index.ts`.
@@ -31,6 +62,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Calidad:** Resueltos todos los errores y advertencias iniciales de ESLint en el backend.
 - **Calidad:** Añadidas dependencias de ESLint (`eslint-plugin-import`, `eslint-plugin-prettier`) que faltaban en `backend/package.json` según `depcheck`.
 - **Frontend:** Corregida la URL utilizada para subir imágenes de perfil personalizadas, apuntando ahora a `/api/avatars/upload` en lugar de la ruta obsoleta `/api/users/profile-picture`, lo que soluciona parte del problema de persistencia de la imagen.
+- **Frontend:** Solucionado error que causaba una doble llamada a la API y mostraba un código incorrecto al cambiar el tipo (ej. de QR a Code 128), corrigiendo las dependencias del hook `useEffect` de carga inicial.
+- **Frontend:** Eliminada importación no utilizada (`useFormState`) y corregida desestructuración de `formState` en `page.tsx`.
+- **Accesibilidad:** Mitigadas (temporalmente revertido para `scale-slider`) advertencias sobre asociación `label`/`input` en controles del formulario frontend.
 
 ### Eliminado
 - **Calidad:** Eliminada función `sendSuccessResponse` no utilizada de `backend/src/utils/errors.ts` (detectada por `ts-prune`).

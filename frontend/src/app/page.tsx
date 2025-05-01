@@ -1,33 +1,17 @@
 'use client'; // Necesario para usar hooks como useState y manejar eventos
 
-import { useState, useCallback, useEffect } from 'react';
-import { Disclosure } from '@headlessui/react'; // Importamos Disclosure
-import { Input } from '@/components/ui/input'; // Descomentar/Añadir Input
-import { Label } from '@/components/ui/label'; // Importar Label
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'; // Importar Select
-import { Button } from '@/components/ui/button'; // Importar Button
-import { Slider } from '@/components/ui/slider'; // Añadir Slider
-import { Switch } from '@/components/ui/switch'; // Añadir Switch
-import {
-  // ChevronDown, // Remove unused
-  // ChevronUp, // Remove unused
-  // Info, // Remove unused
-  // AlertCircle, // Remove unused
-  // Copy, // Remove unused
-  Download, // Re-import Download
-  Printer, // Re-import Printer
-} from 'lucide-react';
-import BarcodeDisplay from './BarcodeDisplay'; // Importamos el componente de display refactorizado
-// Importar hook form y schema
-import { useForm, Controller } from 'react-hook-form';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import BarcodeDisplay from './BarcodeDisplay';
+import { generateFormSchema, GenerateFormData } from '@/schemas/generate.schema';
+import { useAuth } from '@/context/AuthContext';
+import { Download, Printer } from 'lucide-react';
+import BarcodeTypeSelector from '@/components/generator/BarcodeTypeSelector';
+import GenerationOptions from '@/components/generator/GenerationOptions';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { generateFormSchema, GenerateFormData } from '@/schemas/generate.schema'; // Importar el nuevo schema
 
 // Interfaz para el error estructurado devuelto por el backend
 interface ErrorResponse {
@@ -101,6 +85,8 @@ export default function Home() {
   const [svgContent, setSvgContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false); 
   const [serverError, setServerError] = useState<ErrorResponse | null>(null); // Renombrar error
+  const { user } = useAuth(); // Obtener usuario del contexto
+  const userRole = user?.role; // Obtener rol
 
   // --- react-hook-form Configuración ---
   const {
@@ -110,6 +96,7 @@ export default function Home() {
     watch, // Para observar cambios en los campos del formulario
     setValue, // Para actualizar campos programáticamente
     getValues, // Usar getValues
+    reset, // Obtener la función reset
     formState: { errors }, // Re-add formState errors
   } = useForm<GenerateFormData>({
     resolver: zodResolver(generateFormSchema),
@@ -120,10 +107,10 @@ export default function Home() {
   // Observar el tipo de código seleccionado para lógica condicional
   const selectedType = watch('barcode_type');
 
-  // --- Variables Derivadas (basadas en el tipo observado) ---
-  const is1DBarcode = selectedType ? !['qrcode', 'pdf417', 'datamatrix', 'aztec'].includes(selectedType) : false;
-  const isHeightRelevant = selectedType ? !['qrcode', 'datamatrix', 'aztec'].includes(selectedType) : false;
-  const isQrCode = selectedType === 'qrcode';
+  // --- Variables Derivadas (Se mueven a GenerationOptions.tsx) ---
+  // const is1DBarcode = selectedType ? !['qrcode', 'pdf417', 'datamatrix', 'aztec'].includes(selectedType) : false;
+  // const isHeightRelevant = selectedType ? !['qrcode', 'datamatrix', 'aztec'].includes(selectedType) : false;
+  // const isQrCode = selectedType === 'qrcode';
 
   // --- Handlers ---
   
@@ -140,11 +127,13 @@ export default function Home() {
       options: formData.options || {},
     };
     
-    if (!isHeightRelevant && payload.options.height !== undefined) delete payload.options.height;
-    if (!is1DBarcode && payload.options.includetext !== undefined) delete payload.options.includetext;
-    if (!isQrCode && payload.options.ecl !== undefined) delete payload.options.ecl;
-    if (payload.options.fgcolor === '') delete payload.options.fgcolor;
-    if (payload.options.bgcolor === '') delete payload.options.bgcolor;
+    // Determinar qué opciones enviar basado en el tipo (AHORA en el backend)
+    // Ya no necesitamos limpiar el payload aquí, el backend ignora opciones irrelevantes
+    // if (!isHeightRelevant && payload.options.height !== undefined) delete payload.options.height;
+    // if (!is1DBarcode && payload.options.includetext !== undefined) delete payload.options.includetext;
+    // if (!isQrCode && payload.options.ecl !== undefined) delete payload.options.ecl;
+    // if (payload.options.fgcolor === '') delete payload.options.fgcolor;
+    // if (payload.options.bgcolor === '') delete payload.options.bgcolor;
 
     console.log('[onSubmit] Preparando fetch con payload:', payload);
 
@@ -201,7 +190,7 @@ export default function Home() {
       setIsLoading(false);
       console.log('[onSubmit] Finalizado.');
     }
-  }, [is1DBarcode, isHeightRelevant, isQrCode]); 
+  }, []); 
 
   // Definir handleTypeChange DESPUÉS de onSubmit
   const handleTypeChange = useCallback(async (newType: string) => {
@@ -293,49 +282,16 @@ export default function Home() {
         {/* Columna de Configuración (Izquierda) */}
         <div className="md:col-span-1 space-y-6">
           
-          {/* Añadir div wrapper con estilo de tarjeta para los controles principales */}
-          <div className="bg-white p-6 border rounded-lg shadow-md space-y-4">
-            {/* 1. Selección de Tipo */}
-            <div>
-              <Label htmlFor="barcode-type" className="text-lg font-semibold mb-2 block">Tipo de Código</Label>
-              {/* Usar Controller para el Select */}
-              <Controller
-                name="barcode_type"
-                control={control}
-                render={({ field }) => (
-                  <Select 
-                    value={field.value}
-                    // onValueChange ahora solo llama a handleTypeChange
-                    onValueChange={handleTypeChange}
-                    disabled={isLoading}
-                  >
-                    <SelectTrigger id="barcode-type" className="w-full">
-                      <SelectValue placeholder="Selecciona un tipo..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* Lista de tipos */}
-                      <SelectItem value="qrcode">QR Code</SelectItem>
-                      <SelectItem value="code128">Code 128</SelectItem>
-                      <SelectItem value="pdf417">PDF417</SelectItem>
-                      <SelectItem value="datamatrix">Data Matrix</SelectItem>
-                      <SelectItem value="aztec">Aztec Code</SelectItem>
-                      <SelectItem value="ean13">EAN-13</SelectItem>
-                      <SelectItem value="ean8">EAN-8</SelectItem>
-                      <SelectItem value="upca">UPC-A</SelectItem>
-                      <SelectItem value="upce">UPC-E</SelectItem>
-                      <SelectItem value="code39">Code 39</SelectItem>
-                      <SelectItem value="code93">Code 93</SelectItem>
-                      <SelectItem value="codabar">Codabar</SelectItem>
-                      <SelectItem value="itf">ITF (Interleaved 2 of 5)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {/* Mostrar error para barcode_type */}
-              {errors.barcode_type && (
-                <p className="mt-1 text-sm text-red-600">{errors.barcode_type.message}</p>
-              )}
-            </div>
+          {/* Aplicar bg-card y border-border */}
+          <div className="bg-card p-6 border border-border rounded-lg shadow-md space-y-4">
+            {/* 1. Selección de Tipo (Usar componente) */}
+            <BarcodeTypeSelector
+              control={control}
+              isLoading={isLoading}
+              handleTypeChange={handleTypeChange}
+              userRole={userRole}
+              errors={errors}
+            />
 
             {/* 2. Input de Datos */}
             <div>
@@ -346,11 +302,12 @@ export default function Home() {
                 // Registrar con RHF
                 {...register('data')} 
                 disabled={isLoading}
-                className={`${errors.data ? 'border-red-500' : ''}`}
+                // Aplicar border-destructive en error
+                className={`${errors.data ? 'border-destructive' : ''}`}
               />
-               {/* Mostrar error para data */}
+               {/* Mostrar error para data usando text-destructive */}
               {errors.data && (
-                <p className="mt-1 text-sm text-red-600">{errors.data.message}</p>
+                <p className="mt-1 text-sm text-destructive">{errors.data.message}</p>
               )}
             </div>
           
@@ -363,9 +320,9 @@ export default function Home() {
               {isLoading ? 'Generando...' : 'Generar Código'}
             </Button>
            
-            {/* 4. Mensajes de Error del Servidor */}
+            {/* 4. Mensajes de Error del Servidor - Aplicar colores destructive */}
             {serverError && (
-              <div className="bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-md space-y-1">
+              <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md space-y-1">
                 <p className="font-medium">Error al generar:</p>
                 <p className="text-sm">{serverError.error}</p>
                 {serverError.suggestion && (
@@ -378,198 +335,16 @@ export default function Home() {
             )}
           </div> {/* Cerrar div wrapper de tarjeta */} 
            
-           {/* 5. Opciones de Personalización (Disclosure) - Queda fuera de la tarjeta anterior */}
-           <Disclosure 
-             as="div" 
-             defaultOpen 
-             className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
-           >
-            {() => (
-              <>
-                <Disclosure.Button className="flex justify-between w-full px-4 py-3 text-lg font-semibold text-left text-gray-900 bg-gray-50 hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75">
-                  <span>Opciones de Personalización</span>
-                </Disclosure.Button>
-                <Disclosure.Panel className="px-4 pt-4 pb-4 text-sm text-gray-500 space-y-6 border-t border-gray-200">
-                  {/* Opciones Comunes (Escala, Colores) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                    {/* Escala */}
-                    <div>
-                      <Label htmlFor="scale-slider">Escala ({watch('options.scale')})</Label>
-                      {/* Usar Controller para Slider */}
-                      <Controller
-                        name="options.scale"
-                        control={control}
-                        defaultValue={4} // Default value for the slider itself
-                        render={({ field }) => (
-                           <Slider
-                             id="scale-slider"
-                             min={1}
-                             max={10}
-                             step={1}
-                             value={[field.value ?? 4]} // Slider expects array
-                             onValueChange={(value) => field.onChange(value[0])} // Update RHF state
-                             disabled={isLoading}
-                             className="mt-2"
-                           />
-                        )}
-                      />
-                       {/* Mostrar error */}
-                       {errors.options?.scale && (
-                         <p className="mt-1 text-xs text-red-600">{errors.options.scale.message}</p>
-                       )}
-                    </div>
-                    {/* Color Frente */}
-                    <div>
-                       <Label htmlFor="fgcolor-input">Color Frente</Label>
-                       {/* Usar Controller para Input de color */}
-                       <Controller
-                         name="options.fgcolor"
-                         control={control}
-                         defaultValue="#000000"
-                         render={({ field }) => (
-                           <div className="flex items-center gap-2 mt-1">
-                              <Input 
-                                id="fgcolor-input" 
-                                type="text" 
-                                {...field} // Pasar props de field
-                                disabled={isLoading}
-                                placeholder="#000000"
-                                className={`flex-grow ${errors.options?.fgcolor ? 'border-red-500' : ''}`}
-                              />
-                              <Input 
-                                type="color" 
-                                value={field.value || '#000000'} // Controlar valor del color picker
-                                onChange={field.onChange} // Actualizar estado RHF
-                                className="w-10 h-10 p-0 border-none cursor-pointer"
-                                disabled={isLoading}
-                                aria-label="Seleccionar color de frente"
-                              />
-                           </div>
-                         )}
-                       />
-                       {errors.options?.fgcolor && (
-                         <p className="mt-1 text-xs text-red-600">{errors.options.fgcolor.message}</p>
-                       )}
-                    </div>
-                    {/* Color Fondo */}
-                     <div>
-                       <Label htmlFor="bgcolor-input">Color Fondo</Label>
-                       <Controller
-                         name="options.bgcolor"
-                         control={control}
-                         defaultValue="#FFFFFF"
-                         render={({ field }) => (
-                            <div className="flex items-center gap-2 mt-1">
-                              <Input 
-                                id="bgcolor-input" 
-                                type="text" 
-                                {...field}
-                                disabled={isLoading}
-                                placeholder="#FFFFFF"
-                                className={`flex-grow ${errors.options?.bgcolor ? 'border-red-500' : ''}`}
-                              />
-                               <Input 
-                                type="color" 
-                                value={field.value || '#FFFFFF'} 
-                                onChange={field.onChange}
-                                className="w-10 h-10 p-0 border-none cursor-pointer"
-                                disabled={isLoading}
-                                aria-label="Seleccionar color de fondo"
-                              />
-                            </div>
-                         )}
-                       />
-                       {errors.options?.bgcolor && (
-                         <p className="mt-1 text-xs text-red-600">{errors.options.bgcolor.message}</p>
-                       )}
-                    </div>
-                  </div>
-                  
-                  {/* Opciones Condicionales (Altura, Texto, ECL) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                    {/* Altura (si es relevante) */}
-                    {isHeightRelevant && (
-                      <div>
-                        <Label htmlFor="height-slider">Altura ({watch('options.height')}px)</Label>
-                        <Controller
-                          name="options.height"
-                          control={control}
-                          defaultValue={100}
-                          render={({ field }) => (
-                            <Slider
-                              id="height-slider"
-                              min={10}
-                              max={500}
-                              step={10}
-                              value={[field.value ?? 100]}
-                              onValueChange={(value) => field.onChange(value[0])}
-                              disabled={isLoading}
-                              className="mt-2"
-                            />
-                          )}
-                        />
-                        {errors.options?.height && (
-                           <p className="mt-1 text-xs text-red-600">{errors.options.height.message}</p>
-                         )}
-                      </div>
-                    )}
-                    {/* Incluir Texto (si es 1D) */}
-                    {is1DBarcode && (
-                       <div className="flex items-center space-x-2 pt-5"> {/* Ajustar padding si es necesario */}
-                          <Controller
-                            name="options.includetext"
-                            control={control}
-                            defaultValue={true}
-                            render={({ field }) => (
-                              <Switch
-                                id="show-text-switch"
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                disabled={isLoading}
-                              />
-                             )}
-                           />
-                         <Label htmlFor="show-text-switch">Mostrar Texto</Label>
-                            {/* No suele haber errores para un switch */}
-                       </div>
-                    )}
-                     {/* Nivel ECL (si es QR) */}
-                    {isQrCode && (
-                      <div>
-                         <Label htmlFor="ecl-select">Nivel Corrección QR</Label>
-                         <Controller
-                           name="options.ecl"
-                           control={control}
-                           defaultValue="M"
-                           render={({ field }) => (
-                             <Select 
-                               value={field.value}
-                               onValueChange={field.onChange}
-                               disabled={isLoading}
-                             >
-                               <SelectTrigger id="ecl-select" className="mt-1">
-                                 <SelectValue placeholder="Selecciona nivel..." />
-                               </SelectTrigger>
-                               <SelectContent>
-                                 <SelectItem value="L">L (Bajo)</SelectItem>
-                                 <SelectItem value="M">M (Medio)</SelectItem>
-                                 <SelectItem value="Q">Q (Alto)</SelectItem>
-                                 <SelectItem value="H">H (Máximo)</SelectItem>
-                               </SelectContent>
-                             </Select>
-                           )}
-                         />
-                         {errors.options?.ecl && (
-                           <p className="mt-1 text-xs text-red-600">{errors.options.ecl.message}</p>
-                         )}
-                      </div>
-                    )}
-                  </div>
-
-                </Disclosure.Panel>
-              </>
-            )}
-          </Disclosure>
+           {/* 5. Opciones de Personalización (Usar componente) */}
+           <GenerationOptions
+             control={control}
+             errors={errors}
+             watch={watch}
+             isLoading={isLoading}
+             userRole={userRole}
+             selectedType={selectedType}
+             reset={reset}
+           />
            
         </div> {/* Cerrar Columna Izquierda */} 
 
@@ -580,32 +355,35 @@ export default function Home() {
           <div className="flex flex-col items-center">
             {/* Lógica condicional para mostrar carga/error/svg/placeholder */}
             {isLoading ? (
-              <div className="flex items-center justify-center min-h-[200px] bg-gray-50 rounded border border-dashed border-gray-300 p-4 w-full max-w-md"> {/* Añadir w-full y max-width */}
-                <div className="text-center flex flex-col items-center text-gray-500">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3" role="status"></div>
+              // Aplicar bg-muted, border-border, text-muted-foreground y border-primary para spinner
+              <div className="flex items-center justify-center min-h-[200px] bg-muted rounded border border-dashed border-border p-4 w-full max-w-md">
+                <div className="text-center flex flex-col items-center text-muted-foreground">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-3" role="status"></div>
                   <p>Generando código...</p>
                 </div>
               </div>
             ) : serverError ? (
-              <div className="flex items-center justify-center min-h-[150px] bg-red-50 rounded border border-dashed border-red-300 p-4 text-red-700 w-full max-w-md"> {/* Añadir w-full y max-width */}
+              // Aplicar colores destructive
+              <div className="flex items-center justify-center min-h-[150px] bg-destructive/10 rounded border border-dashed border-destructive p-4 text-destructive w-full max-w-md">
                 <p className="text-center">Error al generar. Revisa las opciones y los datos.</p>
               </div>
             ) : svgContent ? (
               <BarcodeDisplay key={selectedType} svgContent={svgContent} type={selectedType} data={watch('data')} />
             ) : (
-               <div className="flex items-center justify-center min-h-[150px] bg-gray-50 rounded border border-dashed border-gray-300 p-4 w-full max-w-md"> {/* Añadir w-full y max-width */} 
-                  <p className="text-gray-400 text-center">La previsualización aparecerá aquí.</p>
+               // Aplicar bg-muted, border-border, text-muted-foreground
+               <div className="flex items-center justify-center min-h-[150px] bg-muted rounded border border-dashed border-border p-4 w-full max-w-md">
+                  <p className="text-muted-foreground text-center">La previsualización aparecerá aquí.</p>
                </div>
             )}
              
             {/* Acciones (Descargar, Imprimir) */}
             {svgContent && !isLoading && (
                <div className="mt-6 flex justify-center space-x-4">
-                  <Button variant="outline" onClick={handleDownload}>
+                  <Button variant="outline" onClick={handleDownload} disabled={!svgContent || isLoading}>
                     <Download className="mr-2 h-4 w-4" />
                     Descargar SVG
                   </Button>
-                  <Button variant="outline" onClick={handlePrint}>
+                  <Button variant="outline" onClick={handlePrint} disabled={!svgContent || isLoading}>
                     <Printer className="mr-2 h-4 w-4" />
                     Imprimir
                   </Button>

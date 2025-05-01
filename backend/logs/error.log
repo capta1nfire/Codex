@@ -1681,3 +1681,17 @@
 {"code":"ECONNREFUSED","level":"error","message":"[Redis] Client Error","service":"codex-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1139:18)\n    at afterConnectMultiple (node:net:1712:7)","timestamp":"2025-04-28 18:51:38"}
 {"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /favicon.ico","method":"GET","path":"/favicon.ico","service":"codex-backend","timestamp":"2025-04-28 19:46:06"}
 {"level":"error","message":"[401] UNAUTHORIZED: Token inválido o expirado","method":"POST","path":"/api/avatars/upload","service":"codex-backend","timestamp":"2025-04-28 19:51:42"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-04-28 23:23:12"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/generate","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-04-29 18:02:19"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/generate","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-04-29 18:02:19"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/generate","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-04-29 18:02:22"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/generate","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-04-29 18:15:04"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/generate","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-04-29 18:18:44"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/generate","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-04-29 18:19:30"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-04-29 18:35:16"}
+{"level":"error","message":"[401] UNAUTHORIZED: Credenciales inválidas","method":"POST","path":"/api/auth/login","service":"codex-backend","timestamp":"2025-04-29 18:35:36"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-04-29 21:32:09"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-04-29 22:53:12"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-04-30 20:56:55"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /static/favicon.ico","method":"GET","path":"/static/favicon.ico","service":"codex-backend","timestamp":"2025-04-30 21:51:37"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-04-30 21:58:14"}

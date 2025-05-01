@@ -27,6 +27,7 @@ Frontend moderno para la plataforma Codex de generación de códigos de barras y
 - **Navegación Mejorada**: Barra de navegación con alto contraste y disposición optimizada
 - **Corrección de Errores:** Solucionado problema crítico de visualización al cambiar tipos de código.
 - **Mejoras UI:** Añadidos botones de descarga/impresión, mejorada alineación visual.
+- **UI Adaptativa por Perfil:** Implementada interfaz del generador que muestra diferentes opciones según el perfil de usuario (Gratuito/Pro/Enterprise).
 
 ## Estructura del Proyecto
 

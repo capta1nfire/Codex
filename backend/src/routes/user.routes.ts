@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { userController } from '../controllers/user.controller.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
-import { validateBody } from '../middleware/validationMiddleware.js';
-import { updateUserSchema } from '../schemas/user.schema.js';
+import { validateBody, validateParams } from '../middleware/validationMiddleware.js';
+import { updateUserSchema, userIdParamsSchema } from '../schemas/user.schema.js';
 
 const router = Router();
 
@@ -56,9 +56,10 @@ const router = Router();
  */
 router.put(
   '/:id',
-  authMiddleware.authenticateJwt, // Asegura que el usuario esté logueado
-  validateBody(updateUserSchema), // Valida los datos del body
-  userController.updateUserProfile // Llama al controlador
+  authMiddleware.authenticateJwt, // 1. Autenticar
+  validateParams(userIdParamsSchema), // 2. Validar Parámetros (ID)
+  validateBody(updateUserSchema), // 3. Validar Body
+  userController.updateUserProfile // 4. Controlador
 );
 
 // TODO: Añadir otras rutas de usuario (GET /:id, DELETE /:id, GET /)

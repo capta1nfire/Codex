@@ -37,6 +37,41 @@ export const generateFormSchema = z.object({
 
       // Opciones específicas QR
       ecl: z.enum(validEclLevels, { invalid_type_error: 'Nivel ECL inválido' }).optional(),
+      qr_version: z.union([
+        z.number().int().min(1).max(40, 'Versión debe estar entre 1 y 40'),
+        z.literal('Auto')
+      ]).optional(),
+      qr_mask_pattern: z.union([
+        z.number().int().min(0).max(7, 'Máscara debe estar entre 0 y 7'),
+        z.literal('Auto')
+      ]).optional(),
+      eci_mode: z.string().optional(), // Asumimos string por ahora
+
+      // Opciones específicas Code 128
+      code128_codeset: z.enum(['Auto', 'A', 'B', 'C']).optional(),
+      code128_gs1: z.boolean().optional(),
+
+      // Opciones EAN/UPC
+      ean_upc_complement: z.string().regex(/^[0-9]{2}$|^[0-9]{5}$/, 'Complemento debe ser 2 o 5 dígitos').optional().or(z.literal('')),
+      ean_upc_hri_position: z.enum(['bottom', 'top', 'none']).optional(), // Asumiendo valores posibles
+      ean_upc_quiet_zone: z.number().int().min(0).optional(), // Asumiendo número de módulos
+
+      // Opciones PDF417
+      pdf417_columns: z.number().int().min(1).optional(),
+      pdf417_rows: z.number().int().min(3).optional(),
+      pdf417_security_level: z.number().int().min(0).max(8).optional(),
+      pdf417_compact: z.boolean().optional(),
+
+      // Opciones Data Matrix
+      datamatrix_shape: z.enum(['Auto', 'Square', 'Rectangle']).optional(),
+      datamatrix_symbol_size: z.string().optional(), // Podría ser un enum específico o string
+      datamatrix_encoding_mode: z.string().optional(), // Podría ser un enum
+
+      // Opciones Code 39
+      code39_ratio: z.number().min(2.0).max(3.0).optional(), // Usaremos number para slider/input
+      code39_check_digit: z.enum(['None', 'Mod43']).optional(),
+      code39_full_ascii: z.boolean().optional(),
+
     })
     .optional(),
 });

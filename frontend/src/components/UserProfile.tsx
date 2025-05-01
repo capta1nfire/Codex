@@ -12,6 +12,10 @@ import ProfilePicture from './ui/ProfilePicture';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateUserProfileSchema, UpdateProfileFormData } from '@/schemas/auth.schema';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// Assuming Role is part of the User type from AuthContext
+type UserRole = NonNullable<ReturnType<typeof useAuth>['user']>['role'];
 
 interface DefaultAvatar {
   type: string;
@@ -49,6 +53,10 @@ export default function UserProfile() {
       username: '', 
       email: '',
       password: '',
+      // --- TEMPORARY ROLE SWITCHER (FOR DEVELOPMENT ONLY) ---
+      // Add role to defaultValues if using Controller with form state
+      // role: authUser?.role || Role.USER, 
+      // --- END TEMPORARY ROLE SWITCHER ---
     }
   });
 
@@ -442,6 +450,54 @@ export default function UserProfile() {
     setIsEditing(!isEditing);
   };
 
+  // --- TEMPORARY ROLE SWITCHER (FOR DEVELOPMENT ONLY) ---
+  const handleRoleChange = async (newRole: UserRole) => {
+    if (!authUser || !authToken || newRole === authUser.role) {
+      return; // No change or not authenticated
+    }
+
+    setIsLoading(true);
+    setError('');
+    let response: Response | null = null;
+
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      response = await fetch(`${backendUrl}/api/users/${authUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ role: newRole }), // Send only the role
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        const error = new Error(responseData.error?.message || `Error ${response.status}`);
+        (error as any).status = response.status;
+        throw error;
+      }
+
+      if (responseData.success && responseData.user) {
+         updateUser(responseData.user); // Update context with the full user object returned
+         toast.success(`Rol actualizado a ${newRole} (Temporal)`);
+         // Optionally reset form if needed, though only role changed
+         // reset({ ...authUser, role: newRole }); // Reset form state if using Controller
+      } else {
+        throw new Error(responseData.error?.message || 'Respuesta inválida del servidor al actualizar rol');
+      }
+    } catch (err) {
+      // Revert optimistic update or handle error appropriately
+      toast.error(`Error al cambiar rol: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+      console.error("Error changing role:", err);
+      // Potentially revert select back to authUser.role if needed
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  // --- END TEMPORARY ROLE SWITCHER ---
+
   if (isLoading || authLoading) {
     return <div>Cargando perfil...</div>;
   }
@@ -453,11 +509,11 @@ export default function UserProfile() {
   return (
     <div className="space-y-8 max-w-4xl mx-auto p-4 md:p-8">
       <div className="w-full max-w-3xl space-y-8">
-        <h2 className="text-3xl font-bold text-center text-gray-900">Mi Perfil</h2>
+        <h2 className="text-3xl font-bold text-center">Mi Perfil</h2>
 
         {error && (
           <div
-            className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded-lg relative"
+            className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-lg relative"
             role="alert"
           >
             <strong className="font-bold">Error: </strong>
@@ -465,7 +521,7 @@ export default function UserProfile() {
           </div>
         )}
 
-        <div className="bg-white p-6 border rounded-lg shadow-md">
+        <div className="bg-card p-6 border border-border rounded-lg shadow-md">
           <div className="flex flex-col items-center mb-6 relative">
             <div className="relative mb-3"> 
               <ProfilePicture user={authUser} size="xl" className="border border-border" />
@@ -473,10 +529,10 @@ export default function UserProfile() {
                 ref={profilePictureButtonRef}
                 onClick={() => setIsProfilePictureMenuOpen(!isProfilePictureMenuOpen)}
                 disabled={isLoading}
-                className={`absolute bottom-1 right-1 p-2 bg-white rounded-full shadow-md border border-gray-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`absolute bottom-1 right-1 p-2 bg-card rounded-full shadow-md border border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed`}
                 aria-label="Cambiar imagen de perfil"
               >
-                <Pencil className="h-4 w-4 text-gray-600" />
+                <Pencil className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
             
@@ -492,13 +548,13 @@ export default function UserProfile() {
             {isProfilePictureMenuOpen && (
               <div 
                 ref={profilePictureMenuRef}
-                className="absolute top-full mt-2 bg-white border rounded-lg shadow-lg p-3 z-20 w-auto min-w-[12rem]">
-                <div className="text-sm font-medium text-gray-700 mb-2 pb-1 border-b">Imagen de perfil</div>
+                className="absolute top-full mt-2 bg-popover border border-border rounded-lg shadow-lg p-3 z-20 w-auto min-w-[12rem]">
+                <div className="text-sm font-medium text-popover-foreground mb-2 pb-1 border-b border-border">Imagen de perfil</div>
                 <div className="space-y-1 mb-3">
                   <div>
                     <button 
                       onClick={handleUploadClick}
-                      className="text-left px-3 py-2 hover:bg-gray-100 rounded-md flex items-center text-sm w-full disabled:opacity-50"
+                      className="text-left px-3 py-2 hover:bg-muted rounded-md flex items-center text-sm w-full disabled:opacity-50 text-popover-foreground"
                       disabled={isLoading}
                     >
                       <Upload className="h-4 w-4 mr-2" />
@@ -508,7 +564,7 @@ export default function UserProfile() {
                   <div>
                     <button 
                       onClick={resetProfilePicture}
-                      className="text-left px-3 py-2 hover:bg-gray-100 rounded-md flex items-center text-sm w-full disabled:opacity-50"
+                      className="text-left px-3 py-2 hover:bg-muted rounded-md flex items-center text-sm w-full disabled:opacity-50 text-popover-foreground"
                       disabled={isLoading}
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
@@ -516,13 +572,13 @@ export default function UserProfile() {
                     </button>
                   </div>
                 </div>
-                <div className="text-xs font-medium text-gray-500 mb-2 pt-2 border-t">BarBots:</div>
+                <div className="text-xs font-medium text-muted-foreground mb-2 pt-2 border-t border-border">BarBots:</div>
                 <div className="grid grid-cols-3 gap-3 place-items-center">
                   {defaultProfilePictures.map((pic: DefaultAvatar) => (
                     <div key={pic.type} className="flex justify-center">
                       <button 
                         onClick={() => setDefaultProfilePicture(pic.type)}
-                        className="p-1 hover:bg-gray-100 rounded-md flex flex-col items-center justify-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 w-16"
+                        className="p-1 hover:bg-muted rounded-md flex flex-col items-center justify-center focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 w-16"
                         disabled={isLoading}
                       >
                         <img 
@@ -530,7 +586,7 @@ export default function UserProfile() {
                           alt={pic.type} 
                           className="h-12 w-12 rounded-full mb-1"
                         />
-                        <span className="text-xs text-gray-600 truncate">{pic.type}</span>
+                        <span className="text-xs text-muted-foreground truncate">{pic.type}</span>
                       </button>
                     </div>
                   ))}
@@ -540,7 +596,7 @@ export default function UserProfile() {
           </div>
 
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold text-gray-800">Información Personal</h3>
+            <h3 className="text-xl font-semibold">Información Personal</h3>
             {!isEditing && (
               <Button
                 variant="outline"
@@ -556,7 +612,7 @@ export default function UserProfile() {
           {isEditing ? (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="email" className="text-sm font-medium">
                   Correo electrónico
                 </Label>
                 <Input
@@ -564,11 +620,11 @@ export default function UserProfile() {
                   type="email"
                   {...register('email')}
                   disabled
-                  className="mt-1 bg-gray-100 cursor-not-allowed"
+                  className="mt-1 bg-muted cursor-not-allowed"
                 />
               </div>
               <div>
-                <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="firstName" className="text-sm font-medium">
                   Nombre
                 </Label>
                 <Input
@@ -576,25 +632,25 @@ export default function UserProfile() {
                   type="text"
                   {...register('firstName')}
                   disabled={!isEditing}
-                  className={`mt-1 ${!isEditing ? 'bg-gray-100' : ''}`}
+                  className={`mt-1 ${!isEditing ? 'bg-muted' : ''}`}
                 />
                 {errors.firstName && isEditing && (
-                  <p className="mt-1 text-xs text-red-600">{errors.firstName.message}</p>
+                  <p className="mt-1 text-xs text-destructive">{errors.firstName.message}</p>
                 )}
               </div>
               <div>
-                <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-                  Apellido <span className="text-gray-500 text-xs">(Opcional)</span>
+                <Label htmlFor="lastName" className="text-sm font-medium">
+                  Apellido <span className="text-muted-foreground text-xs">(Opcional)</span>
                 </Label>
                 <Input
                   id="lastName"
                   type="text"
                   {...register('lastName')}
                   disabled={!isEditing}
-                  className={`mt-1 ${!isEditing ? 'bg-gray-100' : ''}`}
+                  className={`mt-1 ${!isEditing ? 'bg-muted' : ''}`}
                 />
                 {errors.lastName && isEditing && (
-                  <p className="mt-1 text-xs text-red-600">{errors.lastName.message}</p>
+                  <p className="mt-1 text-xs text-destructive">{errors.lastName.message}</p>
                 )}
               </div>
               <div>
@@ -604,11 +660,11 @@ export default function UserProfile() {
                   type="text" 
                   {...register('username')} 
                   disabled={!isEditing}
-                  className={`mt-1 ${!isEditing ? 'bg-gray-100' : ''}`}
+                  className={`mt-1 ${!isEditing ? 'bg-muted' : ''}`}
                   placeholder="(Opcional)"
                 />
                 {errors.username && isEditing && (
-                  <p className="mt-1 text-xs text-red-600">{errors.username.message}</p>
+                  <p className="mt-1 text-xs text-destructive">{errors.username.message}</p>
                 )}
               </div>
               <div>
@@ -618,13 +674,13 @@ export default function UserProfile() {
                   type="password" 
                   {...register('password')} 
                   disabled={!isEditing}
-                  className={`mt-1 ${!isEditing ? 'bg-gray-100' : ''}`}
+                  className={`mt-1 ${!isEditing ? 'bg-muted' : ''}`}
                   placeholder="Dejar vacío para no cambiar"
                 />
                 {errors.password && isEditing && (
-                  <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
+                  <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>
                 )}
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Mínimo 8 caracteres, con mayúsculas, minúsculas y números si se establece.
                 </p>
               </div>
@@ -646,29 +702,29 @@ export default function UserProfile() {
           ) : (
             <dl className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
               <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Nombre</dt>
-                <dd className="mt-1 text-sm text-gray-900">{authUser?.firstName}</dd>
+                <dt className="text-sm font-medium text-muted-foreground">Nombre</dt>
+                <dd className="mt-1 text-sm">{authUser?.firstName}</dd>
               </div>
               <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Apellido</dt>
-                <dd className="mt-1 text-sm text-gray-900">{authUser?.lastName || '-'}</dd>
+                <dt className="text-sm font-medium text-muted-foreground">Apellido</dt>
+                <dd className="mt-1 text-sm">{authUser?.lastName || '-'}</dd>
               </div>
               <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Nombre de usuario</dt>
-                <dd className="mt-1 text-sm text-gray-900">{authUser?.username || '-'}</dd>
+                <dt className="text-sm font-medium text-muted-foreground">Nombre de usuario</dt>
+                <dd className="mt-1 text-sm">{authUser?.username || '-'}</dd>
               </div>
               <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Correo electrónico</dt>
-                <dd className="mt-1 text-sm text-gray-900">{authUser?.email}</dd>
+                <dt className="text-sm font-medium text-muted-foreground">Correo electrónico</dt>
+                <dd className="mt-1 text-sm">{authUser?.email}</dd>
               </div>
               <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Rol</dt>
-                <dd className="mt-1 text-sm text-gray-900 capitalize">{authUser?.role}</dd>
+                <dt className="text-sm font-medium text-muted-foreground">Rol</dt>
+                <dd className="mt-1 text-sm capitalize">{authUser?.role}</dd>
               </div>
               {authUser?.createdAt && (
                 <div className="sm:col-span-1">
-                  <dt className="text-sm font-medium text-gray-500">Fecha de registro</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dt className="text-sm font-medium text-muted-foreground">Fecha de registro</dt>
+                  <dd className="mt-1 text-sm">
                     {new Date(authUser.createdAt).toLocaleDateString('es-ES', {
                       year: 'numeric',
                       month: 'long',
@@ -681,19 +737,19 @@ export default function UserProfile() {
           )}
         </div>
 
-        <div className="bg-white p-6 border rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">API Key</h3>
+        <div className="bg-card p-6 border border-border rounded-lg shadow-md">
+          <h3 className="text-xl font-semibold mb-4">API Key</h3>
 
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Tu API Key te permite interactuar con el servicio de forma programática.
             </p>
 
             {currentApiKey && (
               <div className="space-y-2">
-                <Label className="text-xs text-gray-500 font-medium">API Key generada:</Label>
-                <div className="flex items-center gap-2 bg-gray-100 p-3 rounded-md border border-gray-300">
-                  <code className="flex-1 text-sm break-all font-mono text-gray-800">
+                <Label className="text-xs text-muted-foreground font-medium">API Key generada:</Label>
+                <div className="flex items-center gap-2 bg-muted p-3 rounded-md border border-border">
+                  <code className="flex-1 text-sm break-all font-mono text-muted-foreground">
                     {isApiKeyVisible ? currentApiKey : '••••••••••••••••••••••••••••••••••••••••'}
                   </code>
                   <Button 
@@ -701,7 +757,7 @@ export default function UserProfile() {
                     size="icon"
                     onClick={toggleApiKeyVisibility}
                     aria-label={isApiKeyVisible ? "Ocultar API Key" : "Mostrar API Key"}
-                    className="flex-shrink-0 h-8 w-8 text-gray-500 hover:text-gray-700"
+                    className="flex-shrink-0 h-8 w-8 text-muted-foreground hover:text-foreground"
                   >
                     {isApiKeyVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
@@ -716,15 +772,15 @@ export default function UserProfile() {
                   </Button>
                 </div>
                 {showApiGenerationSuccess && (
-                  <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded mt-2">
-                    <p className="text-sm text-green-800">
+                  <div className="bg-success/10 border-l-4 border-success p-3 rounded mt-2">
+                    <p className="text-sm text-success">
                       <span className="font-bold">Éxito:</span> Nueva API key generada. Guárdala bien, no se mostrará de nuevo.
                     </p>
                   </div>
                 )}
                 {showApiKeyWarning && (
-                  <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded mt-2">
-                    <p className="text-sm text-red-800">
+                  <div className="bg-destructive/10 border-l-4 border-destructive p-3 rounded mt-2">
+                    <p className="text-sm text-destructive">
                       <span className="font-bold">¡Importante!</span> Esta API Key sólo se mostrará una vez. Guárdala en un lugar seguro.
                     </p>
                   </div>
@@ -739,11 +795,37 @@ export default function UserProfile() {
                   ? 'Regenerar API Key' 
                   : 'Generar nueva API Key'}
             </Button>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Nota: Al generar una nueva API Key, cualquier API Key anterior dejará de funcionar.
             </p>
           </div>
         </div>
+
+        {/* --- TEMPORARY ROLE SWITCHER (FOR DEVELOPMENT ONLY) --- */}
+        {process.env.NODE_ENV === 'development' && isEditing && authUser && (
+          <div className="space-y-2 border-t border-dashed border-destructive pt-4 mt-4">
+             <Label htmlFor="temp-role-select" className="text-destructive">Cambiar Rol (Temporal - Solo Desarrollo)</Label>
+             <Select
+               value={authUser.role}
+               onValueChange={(value) => handleRoleChange(value as UserRole)}
+               disabled={isLoading}
+             >
+               <SelectTrigger id="temp-role-select" className="w-full border-destructive">
+                 <SelectValue placeholder="Seleccionar Rol" />
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="USER">Usuario (USER)</SelectItem>
+                 <SelectItem value="PREMIUM">Premium (PREMIUM)</SelectItem>
+                 <SelectItem value="ADMIN">Administrador (ADMIN)</SelectItem>
+               </SelectContent>
+             </Select>
+             <p className="text-xs text-muted-foreground text-destructive">
+               Esto cambia tu rol directamente en la BD. Refresca la página principal después de cambiar si la UI no se actualiza automáticamente. ¡Eliminar antes de producción!
+             </p>
+          </div>
+        )}
+        {/* --- END TEMPORARY ROLE SWITCHER --- */}
+
       </div>
     </div>
   );

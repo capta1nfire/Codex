@@ -27,5 +27,12 @@ export const updateUserSchema = baseUserSchema
   })
   .partial(); // Hace todos los campos opcionales
 
+// Esquema para validar parámetros de ID (asumiendo UUID)
+export const userIdParamsSchema = z.object({
+  id: z.string().uuid({ message: 'El ID proporcionado no es un UUID válido' }),
+});
+
 export type CreateUserInput = z.infer<typeof createUserSchema>;
-export type UpdateUserInput = z.infer<typeof updateUserSchema>; 
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+// Exportar tipo para parámetros de ID
+export type UserIdParamsInput = z.infer<typeof userIdParamsSchema>; 

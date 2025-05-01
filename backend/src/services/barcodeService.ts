@@ -36,11 +36,11 @@ export const generateBarcode = async (
     `[BarcodeService] Tipo recibido: ${frontendBarcodeType}, convertido a: ${rustBarcodeType}`
   );
 
-  // Crear clave para caché Redis (puede ser la misma estructura JSON)
+  // Crear clave para caché Redis (consistente con lo enviado a Rust)
   const cacheKey = `barcode:${JSON.stringify({
     barcode_type: rustBarcodeType,
     data,
-    options: options || {},
+    options: options || null, // Usar null si options es falsy, igual que en requestBody
   })}`;
 
   // 1. Verificar caché Redis
@@ -129,7 +129,7 @@ export const generateBarcode = async (
       throw new AppError(
         'Respuesta inválida del servicio de generación',
         500,
-        ErrorCode.INTERNAL_ERROR
+        ErrorCode.INTERNAL_SERVER
       );
     }
 

@@ -2,7 +2,9 @@ import express from 'express';
 import multer from 'multer';
 import { avatarService, DEFAULT_AVATARS } from '../services/avatar.service.js';
 import { userStore } from '../models/user.js';
-import { authMiddleware } from '../middleware/auth.middleware.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
+import { validateParams } from '../middleware/validationMiddleware.js';
+import { avatarParamsSchema } from '../schemas/avatar.schema.js';
 import { AppError, ErrorCode } from '../utils/errors.js';
 
 const router = express.Router();
@@ -58,12 +60,17 @@ const upload = multer({
  */
 router.post(
   '/upload',
-  authMiddleware.authenticate,
+  authMiddleware.authenticateJwt,
   upload.single('avatar'),
   async (req, res, next) => {
     try {
-      if (!req.user || !req.user.id) {
+      if (!req.user) {
         throw new AppError('Usuario no autenticado', 401, ErrorCode.UNAUTHORIZED);
+      }
+      const userId = (req.user as any).id;
+
+      if (!userId) {
+        throw new AppError('ID de usuario no encontrado en la sesión', 401, ErrorCode.UNAUTHORIZED);
       }
 
       if (!req.file) {
@@ -71,7 +78,7 @@ router.post(
       }
 
       // Eliminar avatar anterior si existe
-      const user = await userStore.findById(req.user.id);
+      const user = await userStore.findById(userId);
       if (user?.avatarUrl) {
         await avatarService.deleteAvatar(user.avatarUrl);
       }
@@ -80,13 +87,13 @@ router.post(
       const avatarUrl = await avatarService.saveAvatar(req.file);
 
       // Actualizar usuario con la nueva URL de avatar
-      await userStore.updateUser(req.user.id, {
+      await userStore.updateUser(userId, {
         avatarUrl,
         avatarType: 'image',
       });
 
       // Obtener usuario actualizado para respuesta
-      const updatedUser = await userStore.findById(req.user.id);
+      const updatedUser = await userStore.findById(userId);
 
       res.json({
         success: true,
@@ -126,38 +133,35 @@ router.post(
  */
 router.post(
   '/default/:type',
-  authMiddleware.authenticate,
+  authMiddleware.authenticateJwt,
+  validateParams(avatarParamsSchema),
   async (req, res, next) => {
     try {
-      if (!req.user || !req.user.id) {
+      if (!req.user) {
         throw new AppError('Usuario no autenticado', 401, ErrorCode.UNAUTHORIZED);
+      }
+      const userId = (req.user as any).id;
+
+      if (!userId) {
+        throw new AppError('ID de usuario no encontrado en la sesión', 401, ErrorCode.UNAUTHORIZED);
       }
 
       const { type } = req.params;
       
-      // Validar tipo de avatar
-      if (!DEFAULT_AVATARS.includes(type)) {
-        throw new AppError(
-          `Tipo de avatar no válido. Opciones disponibles: ${DEFAULT_AVATARS.join(', ')}`,
-          400,
-          ErrorCode.BAD_REQUEST
-        );
-      }
-
       // Eliminar avatar personalizado anterior si existe
-      const user = await userStore.findById(req.user.id);
+      const user = await userStore.findById(userId);
       if (user?.avatarUrl && user.avatarType === 'image') {
         await avatarService.deleteAvatar(user.avatarUrl);
       }
 
       // Actualizar usuario con avatar predeterminado
-      await userStore.updateUser(req.user.id, {
+      await userStore.updateUser(userId, {
         avatarUrl: avatarService.getDefaultAvatarUrl(type),
         avatarType: type,
       });
 
       // Obtener usuario actualizado para respuesta
-      const updatedUser = await userStore.findById(req.user.id);
+      const updatedUser = await userStore.findById(userId);
 
       res.json({
         success: true,
@@ -186,26 +190,31 @@ router.post(
  *       500:
  *         description: Error del servidor
  */
-router.post('/reset', authMiddleware.authenticate, async (req, res, next) => {
+router.post('/reset', authMiddleware.authenticateJwt, async (req, res, next) => {
   try {
-    if (!req.user || !req.user.id) {
+    if (!req.user) {
       throw new AppError('Usuario no autenticado', 401, ErrorCode.UNAUTHORIZED);
+    }
+    const userId = (req.user as any).id;
+    
+    if (!userId) {
+      throw new AppError('ID de usuario no encontrado en la sesión', 401, ErrorCode.UNAUTHORIZED);
     }
 
     // Eliminar avatar personalizado anterior si existe
-    const user = await userStore.findById(req.user.id);
+    const user = await userStore.findById(userId);
     if (user?.avatarUrl && user.avatarType === 'image') {
       await avatarService.deleteAvatar(user.avatarUrl);
     }
 
     // Actualizar usuario para usar inicial
-    await userStore.updateUser(req.user.id, {
+    await userStore.updateUser(userId, {
       avatarUrl: null,
       avatarType: 'initial',
     });
 
     // Obtener usuario actualizado para respuesta
-    const updatedUser = await userStore.findById(req.user.id);
+    const updatedUser = await userStore.findById(userId);
 
     res.json({
       success: true,
@@ -227,7 +236,7 @@ router.post('/reset', authMiddleware.authenticate, async (req, res, next) => {
  *       200:
  *         description: Lista de opciones de avatares predeterminados
  */
-router.get('/default-options', (req, res) => {
+router.get('/default-options', (_req, res) => {
   res.json({
     success: true,
     avatarOptions: DEFAULT_AVATARS.map((type) => ({

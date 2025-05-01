@@ -1,5 +1,3 @@
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -46,48 +44,58 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
+    /* Paleta Qwen - Modo Claro */
+    --background: 210 13% 96%;
+    --foreground: 220 9% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 220 86.1% 57.8%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220 8.9% 46.1%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220 8.9% 46.1%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 224 71.4% 4.1%;
-    --radius: 0.5rem;
+    --card-foreground: 220 9% 15%;
+    --popover: 0 0% 100%; /* Asumir blanco o card */
+    --popover-foreground: 220 9% 15%; /* Asumir foreground */
+    --primary: 210 53% 36%;
+    --primary-foreground: 0 0% 100%; /* Blanco */
+    --secondary: 210 9% 45%;
+    --secondary-foreground: 0 0% 100%; /* Blanco */
+    --muted: 210 13% 92%; /* Gris muy claro, similar a fondo */
+    --muted-foreground: 210 9% 45%; /* Gris medio, similar a secundario */
+    --accent: 120 39% 41%;
+    --accent-foreground: 0 0% 100%; /* Blanco */
+    --destructive: 10 70% 56%;
+    --destructive-foreground: 0 0% 100%; /* Blanco */
+    --success: 150 53% 48%;
+    --success-foreground: 0 0% 100%;
+    --warning: 30 67% 52%; /* Añadir warning */
+    --warning-foreground: 220 9% 15%; /* Añadir warning-foreground (Texto oscuro) */
+    --border: 210 13% 88%;
+    --input: 210 13% 88%; /* Usar mismo que borde o ligeramente diferente */
+    --ring: 210 53% 36%; /* Usar primario para ring */
+    --radius: 0.5rem; /* Mantener radio */
   }
 
   .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 210 20% 98%;
-    --primary-foreground: 220 8.9% 46.1%;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 216 12.2% 83.9%;
+    /* Paleta Qwen - Modo Oscuro */
+    --background: 210 13% 10%;
+    --foreground: 210 13% 92%;
+    --card: 210 13% 15%;
+    --card-foreground: 210 13% 92%;
+    --popover: 210 13% 15%; /* Asumir card */
+    --popover-foreground: 210 13% 92%; /* Asumir foreground */
+    --primary: 210 53% 66%;
+    --primary-foreground: 220 9% 15%;
+    --secondary: 210 9% 25%;
+    --secondary-foreground: 210 13% 92%;
+    --muted: 210 9% 25%; /* Gris oscuro, similar a secundario */
+    --muted-foreground: 210 13% 65%; /* Gris más claro que foreground */
+    --accent: 120 39% 61%;
+    --accent-foreground: 220 9% 15%;
+    --destructive: 10 70% 66%;
+    --destructive-foreground: 220 9% 15%;
+    --success: 150 53% 58%;
+    --success-foreground: 220 9% 15%;
+    --warning: 30 67% 62%; /* Añadir warning */
+    --warning-foreground: 220 9% 15%; /* Añadir warning-foreground */
+    --border: 210 9% 30%;
+    --input: 210 9% 30%; /* Usar mismo que borde */
+    --ring: 210 53% 66%; /* Usar primario claro para ring */
   }
 }
 

@@ -63,7 +63,7 @@ export default function SystemStatus() {
     };
 
     fetchHealthData();
-    const interval = setInterval(fetchHealthData, 30000); // Actualizar cada 30 segundos
+    const interval = setInterval(fetchHealthData, 60000);
 
     return () => clearInterval(interval);
   }, []);
@@ -88,28 +88,28 @@ export default function SystemStatus() {
   const getStatusColor = (status: string): string => {
     switch (status.toLowerCase()) {
       case 'ok':
-        return 'bg-green-100 text-green-800 border-green-300';
+        return 'bg-success text-success-foreground';
       case 'degraded':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+        return 'bg-warning/10 text-warning border-warning';
       case 'error':
       case 'unavailable':
-        return 'bg-red-100 text-red-800 border-red-300';
+        return 'bg-destructive/10 text-destructive border-destructive';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-blue-600 animate-pulse">Cargando información del sistema...</div>
+        <div className="text-primary animate-pulse">Cargando información del sistema...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+      <div className="bg-destructive/10 border border-destructive rounded-lg p-4 text-destructive">
         <h3 className="font-bold">Error:</h3>
         <p>{error}</p>
       </div>
@@ -118,16 +118,16 @@ export default function SystemStatus() {
 
   if (!healthData) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-700">
+      <div className="bg-warning/10 border border-warning rounded-lg p-4 text-warning">
         <p>No hay datos disponibles sobre el estado del sistema.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border rounded-lg shadow-md p-6 w-full">
+    <div className="bg-card border border-border rounded-lg shadow-md p-6 w-full">
       <div className="mb-6 flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-800">Estado del Sistema</h2>
+        <h2 className="text-xl font-bold">Estado del Sistema</h2>
         <div
           className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(healthData.status)}`}
         >
@@ -140,34 +140,34 @@ export default function SystemStatus() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="border rounded-lg p-4">
-          <h3 className="font-bold text-lg mb-3 text-gray-700">Información del Sistema</h3>
+        <div className="border border-border rounded-lg p-4">
+          <h3 className="font-bold text-lg mb-3">Información del Sistema</h3>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-600">Tiempo activo:</span>
+              <span className="text-muted-foreground">Tiempo activo:</span>
               <span className="font-mono">{formatUptime(healthData.uptime)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Memoria Total:</span>
+              <span className="text-muted-foreground">Memoria Total:</span>
               <span className="font-mono">{healthData.memoryUsage.total}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Memoria Libre:</span>
+              <span className="text-muted-foreground">Memoria Libre:</span>
               <span className="font-mono">{healthData.memoryUsage.free}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Uso de Memoria (Proceso):</span>
+              <span className="text-muted-foreground">Uso de Memoria (Proceso):</span>
               <span className="font-mono">{healthData.memoryUsage.processUsage}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Última Actualización:</span>
+              <span className="text-muted-foreground">Última Actualización:</span>
               <span className="font-mono">{new Date(healthData.timestamp).toLocaleString()}</span>
             </div>
           </div>
         </div>
 
-        <div className="border rounded-lg p-4">
-          <h3 className="font-bold text-lg mb-3 text-gray-700">Estado de Servicios</h3>
+        <div className="border border-border rounded-lg p-4">
+          <h3 className="font-bold text-lg mb-3">Estado de Servicios</h3>
 
           {/* Backend Service */}
           <div className="mb-4 border-b pb-3">
@@ -181,11 +181,11 @@ export default function SystemStatus() {
             </div>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Tiempo activo:</span>
+                <span className="text-muted-foreground">Tiempo activo:</span>
                 <span className="font-mono">{formatUptime(healthData.uptime)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Uso de memoria:</span>
+                <span className="text-muted-foreground">Uso de memoria:</span>
                 <span className="font-mono">{healthData.memoryUsage.processUsage}</span>
               </div>
             </div>
@@ -203,9 +203,9 @@ export default function SystemStatus() {
                 </div>
               </div>
               {healthData.dependencies.rust_service.status === 'ok' ? (
-                <div className="text-sm text-gray-600">Servicio funcionando correctamente</div>
+                <div className="text-sm text-muted-foreground">Servicio funcionando correctamente</div>
               ) : (
-                <div className="text-sm text-red-600">
+                <div className="text-sm text-destructive">
                   {healthData.dependencies.rust_service.error || 'Error en el servicio'}
                 </div>
               )}
@@ -219,16 +219,16 @@ export default function SystemStatus() {
               <div
                 className={`px-2 py-0.5 rounded-full text-xs font-medium border ${
                   dbUp === null
-                    ? 'bg-gray-100 text-gray-800 border-gray-300'
+                    ? getStatusColor('unknown')
                     : dbUp
-                    ? 'bg-green-100 text-green-800 border-green-300'
-                    : 'bg-red-100 text-red-800 border-red-300'
+                    ? getStatusColor('ok')
+                    : getStatusColor('error')
                 }`}
               >
                 {dbUp === null ? 'Cargando...' : dbUp ? 'Operativa' : 'Caída'}
               </div>
             </div>
-            {dbError && <p className="text-red-600 text-sm">{dbError}</p>}
+            {dbError && <p className="text-destructive text-sm">{dbError}</p>}
           </div>
 
           {/* Frontend Service */}
@@ -241,15 +241,15 @@ export default function SystemStatus() {
                 OK
               </div>
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               Interfaz de usuario funcionando correctamente
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-6 text-xs text-gray-500 text-right">
-        Actualización automática cada 30 segundos
+      <div className="mt-6 text-xs text-muted-foreground text-right">
+        Actualización automática cada 60 segundos
       </div>
     </div>
   );

@@ -53,23 +53,37 @@
     *   **Diagnóstico Parcial:** Se identificó que el frontend llamaba a una ruta incorrecta (`/api/users/profile-picture`). Se corrigió para usar la ruta correcta `/api/avatars/upload`.
     *   Se confirmó que el backend guarda las imágenes localmente en `backend/uploads/` (lo cual es persistente al correr con `npm run dev`) y que la lógica de `userStore.updateUser` parece correcta para actualizar `avatarUrl` y `avatarType` en la base de datos.
     *   **Estado:** Investigación pausada. Pendiente verificar directamente en la BD PostgreSQL si la URL del avatar se actualiza correctamente *antes* de reiniciar el backend.
+*   **Correcciones Frontend (Generador):**
+    *   **Bug Crítico:** Solucionado error que causaba doble llamada a API y mostraba código incorrecto al cambiar tipo (ej. QR a Code 128) corrigiendo dependencias de `useEffect`.
+    *   **UI:** Añadidos botones "Descargar SVG" e "Imprimir".
+    *   **UI:** Mejorada alineación visual (ancho de select, centrado de previsualización y botones).
+    *   **Calidad:** Corregidas importaciones no usadas y errores de linter.
+*   **Mejora Backend (Caché):**
+    *   Mejorada consistencia en generación de claves de caché Redis en `barcodeService.ts`.
 *   **Mejora Documentación:**
     *   Se realizó una revisión y actualización exhaustiva de los archivos `README.md` de la raíz, `backend/`, `frontend/` y `rust_generator/` para reflejar con precisión la estructura actual del proyecto, las funcionalidades, la configuración, la ejecución y los comandos útiles. El objetivo es mantenerlos como "documentos vivos".
 *   **Ajustes UI:**
     *   Se igualó el efecto hover del avatar en `Navbar` al de los otros botones de navegación (`hover:bg-white/10`).
     *   Se ajustó el borde de la imagen de perfil en `UserProfile` para usar `border-border`, coincidiendo con el estilo del botón "Editar" (`outline`).
-*   **Estado General Actual:** La funcionalidad principal (generación, auth, métricas) sigue operativa. La investigación del problema de persistencia de la imagen está pendiente de la verificación en la base de datos. La documentación ha sido significativamente mejorada.
+*   **Implementación UI por Perfiles (Generador Frontend):**
+    *   Refactorizado `page.tsx` en componentes (`BarcodeTypeSelector`, `GenerationOptions`).
+    *   Implementado renderizado condicional de tipos de código y opciones de personalización (básicas, Pro, avanzadas con Tabs) según el rol del usuario (Gratuito, Pro, Enterprise).
+    *   Añadidos controles para opciones avanzadas (QR, Code128, EAN/UPC, PDF417, DataMatrix, Code39).
+    *   **Pendiente:** Refinamiento UI/UX, UI de generación en lote, adaptación backend/Rust para opciones avanzadas.
+*   **Estado General Actual:** La funcionalidad principal (generación, auth, métricas) sigue operativa. La investigación del problema de persistencia de la imagen está pendiente de la verificación en la base de datos. La documentación ha sido significativamente mejorada. El bug principal del generador frontend está resuelto. **La UI basada en perfiles está estructuralmente implementada en el frontend.**
 
 ## 4. Próximos Pasos y Planificación (Según Informe de Auditoría)
 
 (Prioridades generales - podrían reordenarse según necesidad)
 1.  ~~Resolver problema persistencia imagen de perfil~~ (**Resuelto**).
-2.  **Integrar validación Zod/Joi** en backend y frontend (Validación de inputs).
+2.  **Validación Zod/Joi** en backend y frontend:
+    *   **Estado:** Implementada en rutas backend principales (generate, auth, user update, avatar default) y formularios frontend (Generador, Login, Registro, Perfil) usando Zod y `react-hook-form`/`zodResolver`.
+    *   **Pendiente:** Revisión final y posibles ajustes/refinamientos.
 3.  ~~Implementar caché Redis en `barcodeService`~~ (**Confirmado como Implementado**).
 4.  **Definir índices compuestos** en Prisma/PostgreSQL.
 5.  **Configurar alertas** en Prometheus Alertmanager (Slack/Email).
-6.  **Integrar Sentry** (o Datadog) para captura de errores en producción.
-7.  **Generar documentación** OpenAPI/Swagger de la API.
+6.  **Integrar Sentry** (o Datadog) para captura de errores en producción (**Pendiente**).
+7.  ~~Generar documentación OpenAPI/Swagger de la API~~ (**Implementado** vía `swagger-jsdoc` en `/api-docs`).
 
 ## 5. Puntos Específicos a Recordar
 
@@ -78,6 +92,14 @@
 *   El backend se ejecuta en desarrollo con `npm run dev` (usando `tsx`).
 *   La lógica actual de autenticación frontend usa `window.location.href` para forzar refresco tras login (podría mejorarse).
 *   Las métricas en Grafana provienen del backend Node.js; las analíticas detalladas de Rust se ven en el dashboard frontend (`/dashboard`) o en `rust_generator/analytics/performance`.
+
+## 6. Nuevas Características y Actualizaciones
+
+- **UI por Perfiles:** Implementada en `feature/profile-based-ui`. `BarcodeTypeSelector` y `GenerationOptions` separados. Lógica condicional para roles `USER`, `PREMIUM`, `ADMIN`. Pestañas y controles avanzados para `ADMIN`. Selector de roles temporal para pruebas. Documentado en `PROFILE_UI_STRUCTURE.md`.
+- **Paleta de Colores:** Paleta Qwen (Azul Cobalto) seleccionada e implementada vía CSS vars/Tailwind. Componentes (`GenerationOptions`, `page`, `UserProfile`, `dashboard`, `SystemStatus`, `RustAnalyticsDisplay`) refactorizados para usar clases semánticas. Documentación Swagger UI (`/api-docs`) tematizada. Debug de colores (Tailwind config, HSL).
+- **Documentación API (Swagger):** Implementada en `/api-docs`. Se corrigió error de referencia de esquema (`$ref`) para `/api/auth/register`. Tematizada para coincidir con la paleta de colores.
+- **Persistencia Imagen Perfil:** Resuelto.
+- **Sentry/Datadog:** No implementado.
 
 ---
 

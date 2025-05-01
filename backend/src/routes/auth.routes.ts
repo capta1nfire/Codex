@@ -22,7 +22,7 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/RegisterInput'
+ *             $ref: '#/components/schemas/RegisterSchema'
  *     responses:
  *       201:
  *         description: Usuario registrado exitosamente.

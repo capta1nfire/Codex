@@ -172,14 +172,66 @@ const swaggerOptions = {
 const swaggerSpecification = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecification, {
   customCss: `
-    .swagger-ui .topbar { display: none }
-    .swagger-ui .info { margin: 30px 0 }
-    .swagger-ui .scheme-container { background: none; box-shadow: none; margin: 0 }
-    .swagger-ui .opblock-tag { font-size: 18px; margin: 0 0 10px 0; padding: 10px !important; }
-    .swagger-ui .opblock { margin: 0 0 15px 0; border-radius: 4px; }
-    .swagger-ui .opblock .opblock-summary { padding: 10px; }
-    .swagger-ui .opblock .opblock-summary-method { border-radius: 4px; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+    body.swagger-ui { 
+      font-family: var(--font-sans, sans-serif);
+      color: hsl(var(--foreground)); 
+      background-color: hsl(var(--background)); 
+    }
+    .swagger-ui .topbar { display: none; }
+    .swagger-ui .info .title { color: hsl(var(--foreground)); }
+    .swagger-ui .info a { color: hsl(var(--primary)); }
+    .swagger-ui .scheme-container { background: hsl(var(--card)); box-shadow: none; margin: 20px 0; padding: 15px; border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); }
+    .swagger-ui .opblock-tag { 
+      color: hsl(var(--primary)); 
+      font-size: 1.1em; 
+      font-weight: 600; 
+      margin: 0 0 15px 0; 
+      padding: 10px 0 !important; 
+      border-bottom: 2px solid hsl(var(--primary));
+    }
+    .swagger-ui .opblock { 
+      margin: 0 0 15px 0; 
+      border: 1px solid hsl(var(--border)); 
+      border-radius: var(--radius-lg); 
+      box-shadow: none; 
+      background: hsl(var(--card));
+    }
+    .swagger-ui .opblock .opblock-summary { padding: 10px; border-bottom: 1px solid hsl(var(--border)); }
+    .swagger-ui .opblock .opblock-summary-method { 
+      border-radius: var(--radius-md); 
+      font-weight: 600;
+      color: hsl(var(--primary-foreground));
+      min-width: 70px;
+      text-align: center;
+    }
+    /* Colores por método */
+    .swagger-ui .opblock .opblock-summary-get .opblock-summary-method { background: hsl(var(--primary)); } /* Azul */
+    .swagger-ui .opblock .opblock-summary-post .opblock-summary-method { background: hsl(var(--success)); } /* Verde */
+    .swagger-ui .opblock .opblock-summary-put .opblock-summary-method { background: hsl(var(--warning)); color: hsl(var(--warning-foreground)); } /* Naranja */
+    .swagger-ui .opblock .opblock-summary-delete .opblock-summary-method { background: hsl(var(--destructive)); } /* Rojo */
+    .swagger-ui .opblock .opblock-summary-patch .opblock-summary-method { background: hsl(var(--accent)); } /* Verde Esmeralda (Accent) */
+    .swagger-ui .opblock .opblock-summary-options .opblock-summary-method { background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground)); } /* Gris Azulado */
+    .swagger-ui .opblock .opblock-summary-head .opblock-summary-method { background: hsl(var(--muted-foreground)); color: hsl(var(--muted)); } /* Gris medio */
+    
+    .swagger-ui .opblock-description-wrapper p, .swagger-ui .parameter__description { color: hsl(var(--foreground)); }
+    .swagger-ui .response-col_status { color: hsl(var(--foreground)); }
+    .swagger-ui .parameter__name { color: hsl(var(--muted-foreground)); }
+    .swagger-ui .response-col_links { color: hsl(var(--primary)); }
+    .swagger-ui table thead th { color: hsl(var(--foreground)); border-bottom: 1px solid hsl(var(--border)); }
+    .swagger-ui .btn { 
+      border: 1px solid hsl(var(--border)); 
+      color: hsl(var(--foreground)); 
+      border-radius: var(--radius-md); 
+    }
+    .swagger-ui .btn:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+    .swagger-ui .btn.authorize { border-color: hsl(var(--accent)); color: hsl(var(--accent)); }
+    .swagger-ui .btn.authorize:hover { border-color: hsl(var(--accent)); background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+    .swagger-ui .btn.execute { border-color: hsl(var(--primary)); background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+    .swagger-ui .btn.execute:hover { opacity: 0.9; }
+    .swagger-ui .modal-ux-content .btn-decorator { color: hsl(var(--primary)); }
+    .swagger-ui .dialog-ux .modal-ux-header h3 { color: hsl(var(--foreground)); }
+    .swagger-ui select { border: 1px solid hsl(var(--border)); border-radius: var(--radius-md); background: hsl(var(--background)); color: hsl(var(--foreground)); }
+    .swagger-ui input[type=text], .swagger-ui input[type=password], .swagger-ui textarea { border: 1px solid hsl(var(--input)); border-radius: var(--radius-md); background: hsl(var(--input)); color: hsl(var(--foreground)); }
   `,
   customSiteTitle: "Codex API - Documentación",
   customfavIcon: "/static/favicon.ico"
