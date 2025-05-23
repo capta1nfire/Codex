@@ -17,7 +17,7 @@ interface User {
   firstName: string;
   lastName?: string;
   email: string;
-  username: string;
+  username?: string; // Make optional to match backend
   role: string;
   profilePictureUrl?: string;
   profilePictureType?: string;
@@ -85,13 +85,16 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       }
 
       const data = await response.json();
+      
       if (data.success && data.user) {
         // Map backend field names (avatarUrl/Type) to frontend names (profilePictureUrl/Type)
         const frontendUser: User = {
           ...data.user,
+          username: data.user.username,
           profilePictureUrl: data.user.avatarUrl,
           profilePictureType: data.user.avatarType,
         };
+        
         // Remove original backend fields if they exist to avoid confusion (optional but clean)
         // delete frontendUser.avatarUrl;
         // delete frontendUser.avatarType;
@@ -121,6 +124,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   // Verificar token al montar el proveedor
   useEffect(() => {
     const storedToken = localStorage.getItem('authToken');
+    
     if (storedToken) {
       void fetchUser(storedToken);
     } else {
@@ -155,11 +159,19 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('authToken', data.token);
 
         if (data.user) {
+          // Map backend field names to frontend names for consistency
+          const frontendUser: User = {
+            ...data.user,
+            username: data.user.username,
+            profilePictureUrl: data.user.avatarUrl,
+            profilePictureType: data.user.avatarType,
+          };
+          
           // Usuario vino en la respuesta del login
-          setUser(data.user);
+          setUser(frontendUser);
           setIsAuthenticated(true);
           setToken(data.token);
-          return { success: true, user: data.user }; // Devolver usuario aquí
+          return { success: true, user: frontendUser }; // Devolver usuario aquí
         } else {
           // Usuario NO vino en la respuesta, intentar obtenerlo con /me
           // fetchUser actualizará el estado internamente de forma asíncrona

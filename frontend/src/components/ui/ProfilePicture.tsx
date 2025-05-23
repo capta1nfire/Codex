@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import Image from 'next/image';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils'; // Assuming you have a utility for classnames
 
@@ -44,6 +45,14 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ user, size = 'md', clas
   // Renamed from Avatar
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
 
+  // Get initials - moved outside conditional
+  const initials = useMemo(() => {
+    if (!user) return '';
+    const first = user.firstName ? user.firstName[0] : '';
+    const last = user.lastName ? user.lastName[0] : '';
+    return `${first}${last}`.toUpperCase();
+  }, [user?.firstName, user?.lastName]);
+
   // Placeholder si no hay datos de usuario
   const placeholder = useMemo(
     () => (
@@ -74,12 +83,6 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ user, size = 'md', clas
   // Determinar qué mostrar basado en el tipo y URL
   let profilePictureElement: React.ReactNode; // Renamed from avatarElement
 
-  const initials = useMemo(() => {
-    const first = user.firstName ? user.firstName[0] : '';
-    const last = user.lastName ? user.lastName[0] : '';
-    return `${first}${last}`.toUpperCase();
-  }, [user.firstName, user.lastName]);
-
   // Lógica para determinar el contenido
   if (user.profilePictureType === 'initial' || !user.profilePictureType) {
     profilePictureElement = (
@@ -95,14 +98,33 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ user, size = 'md', clas
     const fullUrl = user.profilePictureUrl.startsWith('http')
       ? user.profilePictureUrl
       : `${backendUrl}${user.profilePictureUrl}`;
+
+    // Get size value for next/image
+    const sizeMap = {
+      xs: 24, // 6 * 4 = 24px
+      sm: 32, // 8 * 4 = 32px
+      md: 48, // 12 * 4 = 48px (responsive)
+      lg: 64, // 16 * 4 = 64px (responsive)
+      xl: 96, // 24 * 4 = 96px (responsive)
+    };
+
+    const imageSize = sizeMap[size] || 48;
+
     profilePictureElement = (
-      <img
+      <Image
         className="object-cover w-full h-full"
         src={fullUrl}
         alt={`Profile picture de ${user.firstName}`}
+        width={imageSize}
+        height={imageSize}
+        sizes={`${imageSize}px`}
+        priority={size === 'xl'} // Prioritize large profile images
+        quality={85}
         onError={(e) => {
           console.error('Error loading profile picture:', fullUrl, e);
         }}
+        // Enable optimization for external images
+        unoptimized={false}
       />
     );
   } else {

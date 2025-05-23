@@ -209,6 +209,109 @@ jobs:
           retention-days: 1
 
   # ===============================================
+  # PRUEBAS E2E
+  # ===============================================
+  test-e2e:
+    runs-on: ubuntu-latest
+    name: 🎭 E2E Tests
+    needs: [build]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: 📦 Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: 🗃️ Setup Database
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+
+      - name: 🎭 Install Playwright Browsers
+        working-directory: ./frontend
+        run: npx playwright install --with-deps
+
+      - name: 🚀 Start Backend Server
+        working-directory: ./backend
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret
+          API_KEY_SECRET: test-api-key-secret
+          PORT: 3004
+        run: |
+          npm run build
+          npm start &
+          sleep 10
+
+      - name: 🧪 Run E2E Tests
+        working-directory: ./frontend
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          BACKEND_URL: http://localhost:3004
+        run: npm run test:e2e
+
+      - name: 📤 Upload E2E Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: e2e-report
+          path: frontend/e2e-report/
+          retention-days: 7
+
+      - name: 📤 Upload E2E Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: e2e-results
+          path: |
+            frontend/e2e-results.json
+            frontend/e2e-results.xml
+          retention-days: 7
+
+  # ===============================================
   # SECURITY SCAN
   # ===============================================
   security:
@@ -235,7 +338,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     name: 🚀 Deploy
-    needs: [build, security]
+    needs: [build, test-e2e, security]
     
     steps:
       - name: 📥 Checkout

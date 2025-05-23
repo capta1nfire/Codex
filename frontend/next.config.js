@@ -1,14 +1,48 @@
-import { withSentryConfig } from '@sentry/nextjs';
-import type { NextConfig } from 'next';
+const { withSentryConfig } = require('@sentry/nextjs');
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   experimental: {
     serverComponentsHmrCache: false,
   },
+  
+  // Image optimization configuration
+  images: {
+    // Allow images from these domains
+    domains: [
+      'localhost',
+      '127.0.0.1',
+      'api.dicebear.com', // For default avatars if used
+    ],
+    // Additional remote patterns for more flexibility
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3004',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.dicebear.com',
+        pathname: '/**',
+      },
+    ],
+    // Enable modern image formats
+    formats: ['image/webp', 'image/avif'],
+    // Optimize images with these sizes
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Security: limit image sizes
+    minimumCacheTTL: 60,
+    // Enable image optimization
+    dangerouslyAllowSVG: false,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
+
   // Aquí puedes añadir otras configuraciones de Next.js que necesites
   // Ejemplo:
   // reactStrictMode: true,
@@ -49,4 +83,4 @@ const finalSentryOptions = {
 
 // Envolver la configuración de Next.js (que ya incluye withBundleAnalyzer)
 // con withSentryConfig y las opciones de Sentry consolidadas.
-export default withSentryConfig(withBundleAnalyzer(nextConfig), finalSentryOptions);
+module.exports = withSentryConfig(withBundleAnalyzer(nextConfig), finalSentryOptions);

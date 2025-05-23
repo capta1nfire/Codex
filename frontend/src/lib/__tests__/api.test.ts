@@ -28,6 +28,7 @@ describe('API Client', () => {
 
   describe('Authentication', () => {
     it('should include Authorization header when token exists', async () => {
+      localStorageMock.getItem.mockReturnValue('mock-token');
       const mockResponse = {
         ok: true,
         json: async () => ({ success: true, user: { id: '1' } }),
@@ -37,11 +38,34 @@ describe('API Client', () => {
 
       await api.get('/test');
 
+      expect(localStorageMock.getItem).toHaveBeenCalledWith('authToken');
       expect(fetch).toHaveBeenCalledWith(
         'http://localhost:3004/test',
         expect.objectContaining({
           headers: expect.objectContaining({
             Authorization: 'Bearer mock-token',
+          }),
+        })
+      );
+    });
+
+    it('should not include Authorization header when no token exists', async () => {
+      localStorageMock.getItem.mockReturnValue(null);
+      const mockResponse = {
+        ok: true,
+        json: async () => ({ success: true }),
+        headers: { get: () => 'application/json' },
+      };
+      (fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      await api.get('/test');
+
+      expect(localStorageMock.getItem).toHaveBeenCalledWith('authToken');
+      expect(fetch).toHaveBeenCalledWith(
+        'http://localhost:3004/test',
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            Authorization: expect.any(String),
           }),
         })
       );
