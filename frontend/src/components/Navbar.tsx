@@ -24,7 +24,7 @@ export default function Navbar() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        userMenuRef.current && 
+        userMenuRef.current &&
         !userMenuRef.current.contains(event.target as Node) &&
         userProfilePictureButtonRef.current &&
         !userProfilePictureButtonRef.current.contains(event.target as Node)
@@ -67,7 +67,7 @@ export default function Navbar() {
 
   // Re-añadir handleLogout
   const handleLogout = () => {
-    logout(); 
+    logout();
     setIsUserMenuOpen(false); // Asegurar que el menú se cierre
     setIsMenuOpen(false);
   };
@@ -94,7 +94,7 @@ export default function Navbar() {
 
             {/* Enlaces de navegación - versión desktop */}
             <div className="hidden md:ml-8 md:flex md:items-center md:space-x-2 lg:ml-10 lg:space-x-4 xl:ml-12 xl:space-x-6">
-              {navigationLinks.map((link) => (
+              {navigationLinks.map((link) =>
                 link.isExternal ? (
                   <a
                     key={link.href}
@@ -123,7 +123,7 @@ export default function Navbar() {
                     {link.label}
                   </Link>
                 )
-              ))}
+              )}
             </div>
           </div>
 
@@ -132,14 +132,14 @@ export default function Navbar() {
             {isLoading ? (
               <div className="h-8 w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12 bg-blue-800/50 rounded-full animate-pulse"></div>
             ) : isAuthenticated && user ? (
-              <div className="relative"> 
+              <div className="relative">
                 {/* --- Conditional rendering based on pathname --- */}
                 {pathname === '/profile' ? (
                   // On /profile: Render BUTTON that toggles menu
                   <button
                     ref={userProfilePictureButtonRef} // Add ref
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className={profilePictureButtonClasses} 
+                    className={profilePictureButtonClasses}
                     aria-label="Abrir menú de usuario"
                   >
                     <ProfilePicture user={user} size="md" />
@@ -148,7 +148,7 @@ export default function Navbar() {
                   // Outside /profile: Render LINK to profile
                   <Link
                     href="/profile"
-                    className={profilePictureButtonClasses} 
+                    className={profilePictureButtonClasses}
                     aria-label="Ir al perfil"
                   >
                     <ProfilePicture user={user} size="md" />
@@ -164,10 +164,12 @@ export default function Navbar() {
                   >
                     {/* User Info Section */}
                     <div className="px-4 py-3 border-b border-gray-200">
-                      <p className="text-sm font-medium text-gray-900 truncate">{user.firstName} {user.lastName || ''}</p>
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {user.firstName} {user.lastName || ''}
+                      </p>
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                     </div>
-                    
+
                     {/* Menu Items */}
                     <div className="py-1">
                       {/* Conditionally render "Mi Perfil" link */}
@@ -239,7 +241,7 @@ export default function Navbar() {
       {isMenuOpen && (
         <div className="md:hidden border-t border-blue-800 bg-gradient-to-b from-blue-900 to-indigo-900">
           <div className="py-2 space-y-1 px-4">
-            {navigationLinks.map((link) => (
+            {navigationLinks.map((link) =>
               link.isExternal ? (
                 <a
                   key={link.href}
@@ -267,7 +269,7 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               )
-            ))}
+            )}
 
             {/* Lógica condicional móvil basada en contexto */}
             {isLoading ? (

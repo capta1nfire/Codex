@@ -636,13 +636,13 @@ async fn generate_handler(Json(payload): Json<BarcodeRequest>) -> impl IntoRespo
     }.to_string();
 
     // Extraer las opciones o usar Default si no vienen
-    let options = payload.options.unwrap_or_default();
+    let actual_options = payload.options.unwrap_or_default();
 
-    // Crear la clave de caché usando la estructura de opciones clonada
+    // Crear la clave de caché usando la estructura de opciones clonada y procesada
     let cache_key = CacheKey {
         barcode_type: mapped_barcode_type.clone(),
         data: payload.data.clone(),
-        options: options.clone(),
+        options: actual_options.clone(), // Usar las 'actual_options' clonadas
     };
 
     // Acceder a la instancia de caché global de forma segura
@@ -657,19 +657,19 @@ async fn generate_handler(Json(payload): Json<BarcodeRequest>) -> impl IntoRespo
     }
 
     // Cache miss: Proceder a generar
-    info!(type=%cache_key.barcode_type, cache="miss", "Cache miss, proceeding to generate barcode");
+    info!(type=%cache_key.barcode_type, cache="miss", options=?actual_options, "Cache miss, proceeding to generate barcode");
 
     // --- Llamada a la función de generación desde lib.rs --- 
-    // Pasar todas las opciones extraídas de cache_key.options
-    let generation_result = rust_generator::generate_code( // Usar nombre del crate:: para llamar a la función de lib.rs
-        &cache_key.barcode_type, 
-        &cache_key.data, 
-        cache_key.options.scale,               // scale: u32
-        cache_key.options.ecl.as_deref(),      // _ecl: Option<&str>
-        cache_key.options.height,              // height: Option<u32>
-        cache_key.options.includetext,         // _includetext: Option<bool>
-        cache_key.options.fgcolor.as_deref(),  // fgcolor: Option<&str>
-        cache_key.options.bgcolor.as_deref(),  // bgcolor: Option<&str>
+    // Pasar todas las opciones extraídas de 'actual_options'
+    let generation_result = rust_generator::generate_code( 
+        &mapped_barcode_type, 
+        &payload.data, 
+        actual_options.scale,                  // Usar scale directamente de actual_options
+        actual_options.ecl.as_deref(),         
+        actual_options.height,                 
+        actual_options.includetext,            
+        actual_options.fgcolor.as_deref(),     
+        actual_options.bgcolor.as_deref(),     
     );
     // ---------------------------------------------------------
     
@@ -948,5 +948,198 @@ async fn performance_analytics_handler() -> impl IntoResponse {
                 None,
             )
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+    use axum::body::Body;
+    use axum::http::{Request, StatusCode};
+    use tower::ServiceExt; // for `app.oneshot()`
+
+    #[test]
+    fn test_cache_put_and_get() {
+        let cache = GenerationCache::new(10, 60);
+        let key = CacheKey {
+            barcode_type: "QR".to_string(),
+            data: "test_data".to_string(),
+            options: BarcodeRequestOptions {
+                ttl_seconds: Some(0u64),
+                bgcolor: None,
+                compact: None,
+                ecl: None,
+                fgcolor: None,
+                height: None,
+                includetext: None,
+                margin: None,
+                min_columns: None,
+                max_columns: None,
+                scale: 0,
+            },
+        };
+        let svg = "<svg>...</svg>".to_string();
+
+        cache.put(&key, svg.clone());
+        let result = cache.get(&key);
+        assert_eq!(result, Some(svg));
+    }
+
+    #[test]
+    fn test_cache_eviction() {
+        let cache = GenerationCache::new(1, 60);
+        let key1 = CacheKey {
+            barcode_type: "QR".to_string(),
+            data: "data1".to_string(),
+            options: BarcodeRequestOptions {
+                ttl_seconds: Some(0u64),
+                bgcolor: None,
+                compact: None,
+                ecl: None,
+                fgcolor: None,
+                height: None,
+                includetext: None,
+                margin: None,
+                min_columns: None,
+                max_columns: None,
+                scale: 0,
+            },
+        };
+        let key2 = CacheKey {
+            barcode_type: "QR".to_string(),
+            data: "data2".to_string(),
+            options: BarcodeRequestOptions {
+                ttl_seconds: Some(0u64),
+                bgcolor: None,
+                compact: None,
+                ecl: None,
+                fgcolor: None,
+                height: None,
+                includetext: None,
+                margin: None,
+                min_columns: None,
+                max_columns: None,
+                scale: 0,
+            },
+        };
+        let svg1 = "<svg>1</svg>".to_string();
+        let svg2 = "<svg>2</svg>".to_string();
+
+        cache.put(&key1, svg1);
+        cache.put(&key2, svg2.clone());
+
+        assert!(cache.get(&key1).is_none());
+        assert_eq!(cache.get(&key2), Some(svg2));
+    }
+
+    #[test]
+    fn test_cache_expiration() {
+        let cache = GenerationCache::new(10, 1);
+        let key = CacheKey {
+            barcode_type: "QR".to_string(),
+            data: "test_data".to_string(),
+            options: BarcodeRequestOptions {
+                ttl_seconds: Some(0u64),
+                bgcolor: None,
+                compact: None,
+                ecl: None,
+                fgcolor: None,
+                height: None,
+                includetext: None,
+                margin: None,
+                min_columns: None,
+                max_columns: None,
+                scale: 0,
+            },
+        };
+        let svg = "<svg>...</svg>".to_string();
+
+        cache.put(&key, svg);
+        std::thread::sleep(Duration::from_secs(2));
+        assert!(cache.get(&key).is_none());
+    }
+
+    #[test]
+    fn test_cache_insertion() {
+        let cache = GenerationCache::new(10, 60);
+        let key = CacheKey {
+            barcode_type: "QR".to_string(),
+            data: "test_data".to_string(),
+            options: BarcodeRequestOptions {
+                ttl_seconds: Some(60u64),
+                bgcolor: None,
+                compact: None,
+                ecl: None,
+                fgcolor: None,
+                height: None,
+                includetext: None,
+                margin: None,
+                min_columns: None,
+                max_columns: None,
+                scale: 0,
+            },
+        };
+        let svg = "<svg>...</svg>".to_string();
+
+        cache.put(&key, svg.clone());
+        assert_eq!(cache.get(&key), Some(svg));
+    }
+
+    #[tokio::test]
+    async fn test_integration_generate_and_cache() {
+        let app = Router::new()
+            .route("/generate", post(generate_handler))
+            .route("/cache/clear", post(clear_cache_handler));
+
+        // Clear cache before test
+        let _ = app.clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/cache/clear")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        // Test generating a barcode
+        let payload = serde_json::json!({
+            "barcode_type": "QR",
+            "data": "test_data",
+            "options": {
+                "ttl_seconds": 60
+            }
+        });
+
+        let response = app.clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/generate")
+                    .header("content-type", "application/json")
+                    .body(Body::from(payload.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        // Test cache hit
+        let response = app.clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/generate")
+                    .header("content-type", "application/json")
+                    .body(Body::from(payload.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
     }
 }

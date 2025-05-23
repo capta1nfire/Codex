@@ -28,8 +28,8 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginFormData) => {
     setServerError('');
 
-    const result = await login(data.email, data.password); 
-    
+    const result = await login(data.email, data.password);
+
     console.log('Resultado de login:', result);
 
     if (result.success) {
@@ -37,7 +37,7 @@ export default function LoginForm() {
         ? `¡Bienvenido ${result.user.username}!`
         : '¡Inicio de sesión exitoso!';
       toast.success(welcomeMessage);
-      
+
       setTimeout(() => {
         router.push('/');
       }, 300);
@@ -56,8 +56,8 @@ export default function LoginForm() {
             <span className="text-3xl font-bold text-blue-600">Codex</span>
           </div>
         </div>
-        
-        <h2 className="text-2xl font-normal text-center mb-8">Inicia sesión en Codex</h2> 
+
+        <h2 className="text-2xl font-normal text-center mb-8">Inicia sesión en Codex</h2>
 
         {serverError && (
           <div className="bg-red-50 border border-red-300 rounded-md p-3 mb-6 text-red-900 text-sm">
@@ -71,7 +71,7 @@ export default function LoginForm() {
               id="email"
               type="email"
               autoComplete="email"
-              {...register('email')} 
+              {...register('email')}
               className={`appearance-none block w-full px-3 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base`}
               placeholder="Correo electrónico"
               disabled={isLoading}
@@ -84,9 +84,9 @@ export default function LoginForm() {
           <div>
             <input
               id="password"
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              {...register('password')} 
+              {...register('password')}
               className={`appearance-none block w-full px-3 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base`}
               placeholder="Contraseña"
               disabled={isLoading}
@@ -109,16 +109,16 @@ export default function LoginForm() {
               Mostrar contraseña
             </label>
           </div>
-              
+
           <div className="pt-4">
             <div className="flex justify-between items-center">
               <Link
-                 href="/register"
-                 className="inline-block text-sm font-medium text-blue-600 hover:text-blue-800"
+                href="/register"
+                className="inline-block text-sm font-medium text-blue-600 hover:text-blue-800"
               >
-                 Crear cuenta
+                Crear cuenta
               </Link>
-              
+
               <button
                 type="submit"
                 className={`py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
@@ -131,23 +131,29 @@ export default function LoginForm() {
                 {isLoading ? 'Procesando...' : 'Iniciar sesión'}
               </button>
             </div>
-            
+
             <div className="mt-4 text-right">
-                <Link
-                  href="/forgot-password"
-                  className="inline-block text-sm font-medium text-blue-600 hover:text-blue-800"
-                >
-                  ¿Olvidaste tu contraseña?
-                </Link>
-             </div>
+              <Link
+                href="/forgot-password"
+                className="inline-block text-sm font-medium text-blue-600 hover:text-blue-800"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
           </div>
         </form>
       </div>
-      
+
       <div className="mt-6 flex space-x-6 text-sm text-gray-500">
-        <a href="#" className="hover:text-gray-700">Ayuda</a>
-        <a href="#" className="hover:text-gray-700">Privacidad</a>
-        <a href="#" className="hover:text-gray-700">Términos</a>
+        <a href="#" className="hover:text-gray-700">
+          Ayuda
+        </a>
+        <a href="#" className="hover:text-gray-700">
+          Privacidad
+        </a>
+        <a href="#" className="hover:text-gray-700">
+          Términos
+        </a>
       </div>
     </div>
   );

@@ -39,7 +39,6 @@ interface BarcodeTypeSelectorProps {
   control: Control<GenerateFormData>;
   isLoading: boolean;
   handleTypeChange: (newType: string) => void;
-  userRole: string | undefined; // "USER", "PREMIUM", "ADMIN" o undefined
   errors: FieldErrors<GenerateFormData>;
 }
 
@@ -47,12 +46,10 @@ export default function BarcodeTypeSelector({
   control,
   isLoading,
   handleTypeChange,
-  userRole,
   errors,
 }: BarcodeTypeSelectorProps) {
   // Determinar qué lista de tipos mostrar
-  const availableTypes =
-    userRole === 'USER' ? BASIC_BARCODE_TYPES : ALL_BARCODE_TYPES;
+  const availableTypes = ALL_BARCODE_TYPES; // Mostrar todos los tipos a todos los usuarios
 
   return (
     <div>
@@ -63,11 +60,7 @@ export default function BarcodeTypeSelector({
         name="barcode_type"
         control={control}
         render={({ field }) => (
-          <Select
-            value={field.value}
-            onValueChange={handleTypeChange}
-            disabled={isLoading}
-          >
+          <Select value={field.value} onValueChange={handleTypeChange} disabled={isLoading}>
             <SelectTrigger
               id="barcode-type"
               className={`w-full ${errors.barcode_type ? 'border-red-500' : ''}`}
@@ -86,10 +79,8 @@ export default function BarcodeTypeSelector({
         )}
       />
       {errors.barcode_type && (
-        <p className="mt-1 text-sm text-red-600">
-          {errors.barcode_type.message}
-        </p>
+        <p className="mt-1 text-sm text-red-600">{errors.barcode_type.message}</p>
       )}
     </div>
   );
-} 
+}

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import express from 'express';
 
 import { authController } from '../controllers/auth.controller.js';
 import { validateBody } from '../middleware/validationMiddleware.js';
@@ -6,6 +7,9 @@ import { loginSchema } from '../schemas/authSchemas.js';
 import { createUserSchema } from '../schemas/user.schema.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { UserRole } from '../models/user.js';
+import { authService } from '../services/auth.service.js';
+import { strictRateLimit, rateLimitMonitor } from '../middleware/rateLimitMiddleware.js';
+import { AppError, ErrorCode } from '../utils/errors.js';
 
 const router = Router();
 
@@ -13,44 +17,28 @@ const router = Router();
  * @openapi
  * /api/auth/register:
  *   post:
- *     tags:
- *       - Auth
- *     summary: Registrar un nuevo usuario
- *     description: Crea una nueva cuenta de usuario en el sistema.
+ *     tags: [Authentication]
+ *     summary: Registrar nuevo usuario
+ *     description: Crea una nueva cuenta de usuario
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/RegisterSchema'
+ *             $ref: '#/components/schemas/RegisterInput'
  *     responses:
  *       201:
  *         description: Usuario registrado exitosamente.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 user:
- *                   $ref: '#/components/schemas/UserOutput' # Definiremos UserOutput más adelante
- *                 token:
- *                   type: string
- *                   description: Token JWT para autenticación.
- *                 expiresIn:
- *                   type: integer
- *                   description: Tiempo de expiración del token en segundos.
- *                   example: 3600
  *       400:
  *         description: Error de validación en los datos de entrada.
  *       409:
- *         description: El correo electrónico ya está registrado.
+ *         description: El email ya está registrado.
+ *       429:
+ *         description: Demasiados intentos de registro
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/register', validateBody(createUserSchema), authController.register);
+router.post('/register', rateLimitMonitor, strictRateLimit, validateBody(createUserSchema), authController.register);
 
 /**
  * @openapi
@@ -90,10 +78,12 @@ router.post('/register', validateBody(createUserSchema), authController.register
  *         description: Error de validación en los datos de entrada.
  *       401:
  *         description: Credenciales inválidas.
+ *       429:
+ *         description: Demasiados intentos de login
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/login', validateBody(loginSchema), authController.login);
+router.post('/login', rateLimitMonitor, strictRateLimit, validateBody(loginSchema), authController.login);
 
 /**
  * @openapi

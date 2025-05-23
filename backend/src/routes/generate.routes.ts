@@ -5,6 +5,9 @@ import { generateSchema } from '../schemas/generateSchemas.js'; // Esquema Plura
 import { config } from '../config.js';
 import { generateBarcode } from '../services/barcodeService.js'; // Servicio
 import logger from '../utils/logger.js'; // Logger desde utils
+import { authMiddleware } from '../middleware/authMiddleware.js';
+import { generationRateLimit, rateLimitMonitor } from '../middleware/rateLimitMiddleware.js';
+import { AppError, ErrorCode } from '../utils/errors.js';
 
 const router = express.Router();
 
@@ -12,44 +15,53 @@ const router = express.Router();
  * @openapi
  * /api/generate:
  *   post:
- *     tags:
- *       - Generation
- *     summary: Generar código de barras o QR
- *     description: Genera un código de barras o QR en formato SVG según los parámetros proporcionados.
+ *     tags: [Generation]
+ *     summary: Genera un código de barras o QR
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/GenerateInput'
+ *             type: object
+ *             required:
+ *               - barcode_type
+ *               - data
+ *             properties:
+ *               barcode_type:
+ *                 type: string
+ *                 enum: [qrcode, code128, ean13, ean8, code39, datamatrix]
+ *               data:
+ *                 type: string
+ *               options:
+ *                 type: object
  *     responses:
  *       200:
- *         description: Código generado exitosamente.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 svgString:
- *                   type: string
- *                   format: svg
- *                   description: El código generado como string SVG.
+ *         description: Código generado exitosamente
  *       400:
- *         description: Error de validación en los datos de entrada o parámetros inválidos para el tipo de código.
+ *         description: Error en la solicitud
+ *       429:
+ *         description: Demasiadas solicitudes
  *       500:
- *         description: Error interno del servidor (ej. fallo al contactar servicio Rust).
- *       503:
- *         description: Servicio de generación no disponible.
+ *         description: Error del servidor
  */
 router.post(
   '/',
-  validateBody(generateSchema),
+  rateLimitMonitor,
+  generationRateLimit,
+  authMiddleware.optionalAuth, // Auth opcional para distinguir usuarios
   async (req: Request, res: Response, next: NextFunction) => {
-    const { barcode_type, data, options } = req.body;
     try {
+      const { barcode_type, data, options } = req.body;
+
+      // Validación básica
+      if (!barcode_type || !data) {
+        throw new AppError(
+          'Faltan parámetros requeridos: barcode_type y data',
+          400,
+          ErrorCode.BAD_REQUEST
+        );
+      }
+
       logger.info(`[Route:/] Solicitud recibida para tipo: ${barcode_type}`);
       const svgString = await generateBarcode(barcode_type, data, options);
       res.set('Cache-Control', `public, max-age=${config.CACHE_MAX_AGE}`);

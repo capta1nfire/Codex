@@ -87,18 +87,19 @@ router.post(
       const avatarUrl = await avatarService.saveAvatar(req.file);
 
       // Actualizar usuario con la nueva URL de avatar
-      await userStore.updateUser(userId, {
+      const updatedUser = await userStore.updateUser(userId, {
         avatarUrl,
         avatarType: 'image',
       });
 
-      // Obtener usuario actualizado para respuesta
-      const updatedUser = await userStore.findById(userId);
+      if (!updatedUser) {
+        throw new AppError('Error al actualizar usuario', 500, ErrorCode.INTERNAL_SERVER);
+      }
 
       res.json({
         success: true,
         message: 'Avatar actualizado correctamente',
-        user: updatedUser,
+        user: userStore.sanitizeUser(updatedUser),
       });
     } catch (error) {
       next(error);
@@ -148,25 +149,20 @@ router.post(
 
       const { type } = req.params;
       
-      // Eliminar avatar personalizado anterior si existe
-      const user = await userStore.findById(userId);
-      if (user?.avatarUrl && user.avatarType === 'image') {
-        await avatarService.deleteAvatar(user.avatarUrl);
-      }
-
       // Actualizar usuario con avatar predeterminado
-      await userStore.updateUser(userId, {
+      const updatedUser = await userStore.updateUser(userId, {
         avatarUrl: avatarService.getDefaultAvatarUrl(type),
         avatarType: type,
       });
 
-      // Obtener usuario actualizado para respuesta
-      const updatedUser = await userStore.findById(userId);
+      if (!updatedUser) {
+        throw new AppError('Error al actualizar usuario', 500, ErrorCode.INTERNAL_SERVER);
+      }
 
       res.json({
         success: true,
         message: 'Avatar predeterminado establecido correctamente',
-        user: updatedUser,
+        user: userStore.sanitizeUser(updatedUser),
       });
     } catch (error) {
       next(error);
@@ -208,18 +204,19 @@ router.post('/reset', authMiddleware.authenticateJwt, async (req, res, next) => 
     }
 
     // Actualizar usuario para usar inicial
-    await userStore.updateUser(userId, {
+    const updatedUser = await userStore.updateUser(userId, {
       avatarUrl: null,
       avatarType: 'initial',
     });
 
-    // Obtener usuario actualizado para respuesta
-    const updatedUser = await userStore.findById(userId);
+    if (!updatedUser) {
+      throw new AppError('Error al actualizar usuario', 500, ErrorCode.INTERNAL_SERVER);
+    }
 
     res.json({
       success: true,
       message: 'Avatar restablecido a inicial correctamente',
-      user: updatedUser,
+      user: userStore.sanitizeUser(updatedUser),
     });
   } catch (error) {
     next(error);

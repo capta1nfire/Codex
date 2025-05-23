@@ -12,7 +12,13 @@ import ProfilePicture from './ui/ProfilePicture';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateUserProfileSchema, UpdateProfileFormData } from '@/schemas/auth.schema';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // Assuming Role is part of the User type from AuthContext
 type UserRole = NonNullable<ReturnType<typeof useAuth>['user']>['role'];
@@ -31,13 +37,20 @@ export default function UserProfile() {
   const [showApiGenerationSuccess, setShowApiGenerationSuccess] = useState(false);
   const [defaultProfilePictures, setDefaultProfilePictures] = useState<DefaultAvatar[]>([]);
   const [isProfilePictureMenuOpen, setIsProfilePictureMenuOpen] = useState(false);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const profilePictureMenuRef = useRef<HTMLDivElement>(null);
   const profilePictureButtonRef = useRef<HTMLButtonElement>(null);
 
   const router = useRouter();
-  const { user: authUser, isAuthenticated, isLoading: authLoading, token: authToken, updateUser, logout } = useAuth();
+  const {
+    user: authUser,
+    isAuthenticated,
+    isLoading: authLoading,
+    token: authToken,
+    updateUser,
+    logout,
+  } = useAuth();
 
   const {
     register,
@@ -48,16 +61,16 @@ export default function UserProfile() {
     resolver: zodResolver(updateUserProfileSchema),
     mode: 'onChange',
     defaultValues: {
-      firstName: '', 
-      lastName: '', 
-      username: '', 
+      firstName: '',
+      lastName: '',
+      username: '',
       email: '',
       password: '',
       // --- TEMPORARY ROLE SWITCHER (FOR DEVELOPMENT ONLY) ---
       // Add role to defaultValues if using Controller with form state
-      // role: authUser?.role || Role.USER, 
+      // role: authUser?.role || Role.USER,
       // --- END TEMPORARY ROLE SWITCHER ---
-    }
+    },
   });
 
   useEffect(() => {
@@ -112,7 +125,11 @@ export default function UserProfile() {
       statusCode = (error as any).status;
     }
 
-    if (statusCode === 401 || errorMessage.toLowerCase().includes('token inválido') || errorMessage.toLowerCase().includes('unauthorized')) {
+    if (
+      statusCode === 401 ||
+      errorMessage.toLowerCase().includes('token inválido') ||
+      errorMessage.toLowerCase().includes('unauthorized')
+    ) {
       toast.error('Tu sesión ha expirado. Por favor, inicia sesión de nuevo.');
       logout();
     } else {
@@ -136,7 +153,7 @@ export default function UserProfile() {
       delete updateData.password;
     }
     if (updateData.username === '' || updateData.username === null) {
-        updateData.username = null;
+      updateData.username = null;
     }
 
     let response: Response | null = null;
@@ -148,14 +165,14 @@ export default function UserProfile() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(updateData), 
+        body: JSON.stringify(updateData),
       });
 
       const responseData = await response.json();
 
       if (!response.ok) {
         const error = new Error(responseData.error?.message || `Error ${response.status}`);
-        (error as any).status = response.status; 
+        (error as any).status = response.status;
         throw error;
       }
 
@@ -165,7 +182,9 @@ export default function UserProfile() {
         setIsEditing(false);
         toast.success('Perfil actualizado correctamente');
       } else {
-        throw new Error(responseData.error?.message || 'Respuesta inválida del servidor al actualizar');
+        throw new Error(
+          responseData.error?.message || 'Respuesta inválida del servidor al actualizar'
+        );
       }
     } catch (err) {
       handleApiError(err, 'actualizando perfil');
@@ -177,11 +196,12 @@ export default function UserProfile() {
   const handleCopyApiKey = () => {
     const currentApiKey = authUser?.currentApiKey;
     if (!currentApiKey) return;
-    navigator.clipboard.writeText(currentApiKey)
+    navigator.clipboard
+      .writeText(currentApiKey)
       .then(() => {
         toast.success('API Key copiada al portapapeles');
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Error al copiar API key:', err);
         toast.error('No se pudo copiar la API key');
       });
@@ -195,7 +215,7 @@ export default function UserProfile() {
     setShowApiGenerationSuccess(false);
 
     if (!authToken) {
-      logout(); 
+      logout();
       return;
     }
 
@@ -213,13 +233,13 @@ export default function UserProfile() {
 
       if (!response.ok) {
         if (response.status === 401) {
-           const error = new Error(data.error?.message || `Error ${response.status}`);
-           (error as any).status = response.status; 
-           throw error;
+          const error = new Error(data.error?.message || `Error ${response.status}`);
+          (error as any).status = response.status;
+          throw error;
         }
-        console.error("Error en la respuesta real:", data); 
+        console.error('Error en la respuesta real:', data);
         const error = new Error(data.error?.message || `Error ${response.status}`);
-        (error as any).status = response.status; 
+        (error as any).status = response.status;
         throw error;
       }
 
@@ -227,7 +247,7 @@ export default function UserProfile() {
         updateUser({ currentApiKey: data.apiKey });
         setShowApiGenerationSuccess(true);
         if (data.user) {
-          updateUser({ ...data.user, currentApiKey: data.apiKey }); 
+          updateUser({ ...data.user, currentApiKey: data.apiKey });
         }
       } else {
         throw new Error(
@@ -285,21 +305,26 @@ export default function UserProfile() {
 
       if (!response.ok) {
         const error = new Error(data.error?.message || `Error ${response.status}`);
-        (error as any).status = response.status; 
+        (error as any).status = response.status;
         throw error;
       }
 
-      if (data.success && data.user && data.user.avatarUrl !== undefined && data.user.avatarType !== undefined) {
+      if (
+        data.success &&
+        data.user &&
+        data.user.avatarUrl !== undefined &&
+        data.user.avatarType !== undefined
+      ) {
         const updatedUserData = {
           ...data.user,
           profilePictureUrl: data.user.avatarUrl,
-          profilePictureType: data.user.avatarType
+          profilePictureType: data.user.avatarType,
         };
 
         updateUser(updatedUserData);
         toast.success('Imagen de perfil actualizada correctamente');
       } else {
-         throw new Error(data.error?.message || 'Respuesta inválida del servidor al subir imagen');
+        throw new Error(data.error?.message || 'Respuesta inválida del servidor al subir imagen');
       }
     } catch (err) {
       handleApiError(err, 'subiendo imagen de perfil');
@@ -313,8 +338,8 @@ export default function UserProfile() {
 
   const setDefaultProfilePicture = async (type: string) => {
     if (!authToken) {
-        logout();
-        return;
+      logout();
+      return;
     }
 
     setIsLoading(true);
@@ -335,24 +360,26 @@ export default function UserProfile() {
 
       if (!response.ok) {
         const error = new Error(data.error?.message || `Error ${response.status}`);
-        (error as any).status = response.status; 
+        (error as any).status = response.status;
         throw error;
       }
 
       if (data.success && data.user) {
         const updatedUserData = {
-            ...data.user,
-            profilePictureUrl: data.user.avatarUrl, 
-            profilePictureType: data.user.avatarType, 
+          ...data.user,
+          profilePictureUrl: data.user.avatarUrl,
+          profilePictureType: data.user.avatarType,
         };
 
         updateUser(updatedUserData);
         toast.success('Imagen de perfil actualizada correctamente');
       } else {
-         throw new Error(data.error?.message || 'Error al establecer imagen de perfil predeterminada');
+        throw new Error(
+          data.error?.message || 'Error al establecer imagen de perfil predeterminada'
+        );
       }
     } catch (err) {
-       handleApiError(err, 'estableciendo imagen de perfil predeterminada');
+      handleApiError(err, 'estableciendo imagen de perfil predeterminada');
     } finally {
       setIsLoading(false);
     }
@@ -360,8 +387,8 @@ export default function UserProfile() {
 
   const resetProfilePicture = async () => {
     if (!authToken) {
-        logout();
-        return;
+      logout();
+      return;
     }
 
     setIsLoading(true);
@@ -382,7 +409,7 @@ export default function UserProfile() {
 
       if (!response.ok) {
         const error = new Error(data.error?.message || `Error ${response.status}`);
-        (error as any).status = response.status; 
+        (error as any).status = response.status;
         throw error;
       }
 
@@ -390,13 +417,13 @@ export default function UserProfile() {
         const updatedUserData = {
           ...data.user,
           profilePictureUrl: data.user.avatarUrl,
-          profilePictureType: 'initial'
+          profilePictureType: 'initial',
         };
 
         updateUser(updatedUserData);
         toast.success('Imagen de perfil restablecida a iniciales');
       } else {
-         throw new Error(data.error?.message || 'Error al restablecer imagen de perfil');
+        throw new Error(data.error?.message || 'Error al restablecer imagen de perfil');
       }
     } catch (err) {
       handleApiError(err, 'restableciendo imagen de perfil');
@@ -417,7 +444,7 @@ export default function UserProfile() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        profilePictureMenuRef.current && 
+        profilePictureMenuRef.current &&
         !profilePictureMenuRef.current.contains(event.target as Node) &&
         profilePictureButtonRef.current &&
         !profilePictureButtonRef.current.contains(event.target as Node)
@@ -439,13 +466,13 @@ export default function UserProfile() {
 
   const handleEditToggle = () => {
     if (isEditing) {
-       reset({ 
-         firstName: authUser?.firstName || '',
-         lastName: authUser?.lastName || '',
-         username: authUser?.username || '',
-         email: authUser?.email || '', 
-         password: '', 
-       });
+      reset({
+        firstName: authUser?.firstName || '',
+        lastName: authUser?.lastName || '',
+        username: authUser?.username || '',
+        email: authUser?.email || '',
+        password: '',
+      });
     }
     setIsEditing(!isEditing);
   };
@@ -480,17 +507,21 @@ export default function UserProfile() {
       }
 
       if (responseData.success && responseData.user) {
-         updateUser(responseData.user); // Update context with the full user object returned
-         toast.success(`Rol actualizado a ${newRole} (Temporal)`);
-         // Optionally reset form if needed, though only role changed
-         // reset({ ...authUser, role: newRole }); // Reset form state if using Controller
+        updateUser(responseData.user); // Update context with the full user object returned
+        toast.success(`Rol actualizado a ${newRole} (Temporal)`);
+        // Optionally reset form if needed, though only role changed
+        // reset({ ...authUser, role: newRole }); // Reset form state if using Controller
       } else {
-        throw new Error(responseData.error?.message || 'Respuesta inválida del servidor al actualizar rol');
+        throw new Error(
+          responseData.error?.message || 'Respuesta inválida del servidor al actualizar rol'
+        );
       }
     } catch (err) {
       // Revert optimistic update or handle error appropriately
-      toast.error(`Error al cambiar rol: ${err instanceof Error ? err.message : 'Error desconocido'}`);
-      console.error("Error changing role:", err);
+      toast.error(
+        `Error al cambiar rol: ${err instanceof Error ? err.message : 'Error desconocido'}`
+      );
+      console.error('Error changing role:', err);
       // Potentially revert select back to authUser.role if needed
     } finally {
       setIsLoading(false);
@@ -523,7 +554,7 @@ export default function UserProfile() {
 
         <div className="bg-card p-6 border border-border rounded-lg shadow-md">
           <div className="flex flex-col items-center mb-6 relative">
-            <div className="relative mb-3"> 
+            <div className="relative mb-3">
               <ProfilePicture user={authUser} size="xl" className="border border-border" />
               <button
                 ref={profilePictureButtonRef}
@@ -535,7 +566,7 @@ export default function UserProfile() {
                 <Pencil className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
-            
+
             <input
               type="file"
               ref={fileInputRef}
@@ -544,15 +575,18 @@ export default function UserProfile() {
               onChange={handleFileChange}
               disabled={isLoading}
             />
-            
+
             {isProfilePictureMenuOpen && (
-              <div 
+              <div
                 ref={profilePictureMenuRef}
-                className="absolute top-full mt-2 bg-popover border border-border rounded-lg shadow-lg p-3 z-20 w-auto min-w-[12rem]">
-                <div className="text-sm font-medium text-popover-foreground mb-2 pb-1 border-b border-border">Imagen de perfil</div>
+                className="absolute top-full mt-2 bg-popover border border-border rounded-lg shadow-lg p-3 z-20 w-auto min-w-[12rem]"
+              >
+                <div className="text-sm font-medium text-popover-foreground mb-2 pb-1 border-b border-border">
+                  Imagen de perfil
+                </div>
                 <div className="space-y-1 mb-3">
                   <div>
-                    <button 
+                    <button
                       onClick={handleUploadClick}
                       className="text-left px-3 py-2 hover:bg-muted rounded-md flex items-center text-sm w-full disabled:opacity-50 text-popover-foreground"
                       disabled={isLoading}
@@ -562,7 +596,7 @@ export default function UserProfile() {
                     </button>
                   </div>
                   <div>
-                    <button 
+                    <button
                       onClick={resetProfilePicture}
                       className="text-left px-3 py-2 hover:bg-muted rounded-md flex items-center text-sm w-full disabled:opacity-50 text-popover-foreground"
                       disabled={isLoading}
@@ -572,18 +606,20 @@ export default function UserProfile() {
                     </button>
                   </div>
                 </div>
-                <div className="text-xs font-medium text-muted-foreground mb-2 pt-2 border-t border-border">BarBots:</div>
+                <div className="text-xs font-medium text-muted-foreground mb-2 pt-2 border-t border-border">
+                  BarBots:
+                </div>
                 <div className="grid grid-cols-3 gap-3 place-items-center">
                   {defaultProfilePictures.map((pic: DefaultAvatar) => (
                     <div key={pic.type} className="flex justify-center">
-                      <button 
+                      <button
                         onClick={() => setDefaultProfilePicture(pic.type)}
                         className="p-1 hover:bg-muted rounded-md flex flex-col items-center justify-center focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 w-16"
                         disabled={isLoading}
                       >
-                        <img 
-                          src={`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004'}${pic.url}`} 
-                          alt={pic.type} 
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004'}${pic.url}`}
+                          alt={pic.type}
                           className="h-12 w-12 rounded-full mb-1"
                         />
                         <span className="text-xs text-muted-foreground truncate">{pic.type}</span>
@@ -598,12 +634,7 @@ export default function UserProfile() {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-semibold">Información Personal</h3>
             {!isEditing && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleEditToggle}
-                disabled={isLoading}
-              >
+              <Button variant="outline" size="sm" onClick={handleEditToggle} disabled={isLoading}>
                 Editar
               </Button>
             )}
@@ -655,10 +686,10 @@ export default function UserProfile() {
               </div>
               <div>
                 <Label htmlFor="username">Nombre de usuario</Label>
-                <Input 
-                  id="username" 
-                  type="text" 
-                  {...register('username')} 
+                <Input
+                  id="username"
+                  type="text"
+                  {...register('username')}
                   disabled={!isEditing}
                   className={`mt-1 ${!isEditing ? 'bg-muted' : ''}`}
                   placeholder="(Opcional)"
@@ -669,10 +700,10 @@ export default function UserProfile() {
               </div>
               <div>
                 <Label htmlFor="password">Nueva Contraseña (opcional)</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  {...register('password')} 
+                <Input
+                  id="password"
+                  type="password"
+                  {...register('password')}
                   disabled={!isEditing}
                   className={`mt-1 ${!isEditing ? 'bg-muted' : ''}`}
                   placeholder="Dejar vacío para no cambiar"
@@ -747,21 +778,23 @@ export default function UserProfile() {
 
             {currentApiKey && (
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground font-medium">API Key generada:</Label>
+                <Label className="text-xs text-muted-foreground font-medium">
+                  API Key generada:
+                </Label>
                 <div className="flex items-center gap-2 bg-muted p-3 rounded-md border border-border">
                   <code className="flex-1 text-sm break-all font-mono text-muted-foreground">
                     {isApiKeyVisible ? currentApiKey : '••••••••••••••••••••••••••••••••••••••••'}
                   </code>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="icon"
                     onClick={toggleApiKeyVisibility}
-                    aria-label={isApiKeyVisible ? "Ocultar API Key" : "Mostrar API Key"}
+                    aria-label={isApiKeyVisible ? 'Ocultar API Key' : 'Mostrar API Key'}
                     className="flex-shrink-0 h-8 w-8 text-muted-foreground hover:text-foreground"
                   >
                     {isApiKeyVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
-                  <Button 
+                  <Button
                     variant="outline"
                     size="icon"
                     onClick={handleCopyApiKey}
@@ -774,14 +807,16 @@ export default function UserProfile() {
                 {showApiGenerationSuccess && (
                   <div className="bg-success/10 border-l-4 border-success p-3 rounded mt-2">
                     <p className="text-sm text-success">
-                      <span className="font-bold">Éxito:</span> Nueva API key generada. Guárdala bien, no se mostrará de nuevo.
+                      <span className="font-bold">Éxito:</span> Nueva API key generada. Guárdala
+                      bien, no se mostrará de nuevo.
                     </p>
                   </div>
                 )}
                 {showApiKeyWarning && (
                   <div className="bg-destructive/10 border-l-4 border-destructive p-3 rounded mt-2">
                     <p className="text-sm text-destructive">
-                      <span className="font-bold">¡Importante!</span> Esta API Key sólo se mostrará una vez. Guárdala en un lugar seguro.
+                      <span className="font-bold">¡Importante!</span> Esta API Key sólo se mostrará
+                      una vez. Guárdala en un lugar seguro.
                     </p>
                   </div>
                 )}
@@ -789,10 +824,10 @@ export default function UserProfile() {
             )}
 
             <Button onClick={generateApiKey} disabled={isLoading}>
-              {isLoading 
-                ? 'Generando...' 
-                : currentApiKey 
-                  ? 'Regenerar API Key' 
+              {isLoading
+                ? 'Generando...'
+                : currentApiKey
+                  ? 'Regenerar API Key'
                   : 'Generar nueva API Key'}
             </Button>
             <p className="text-xs text-muted-foreground">
@@ -804,28 +839,30 @@ export default function UserProfile() {
         {/* --- TEMPORARY ROLE SWITCHER (FOR DEVELOPMENT ONLY) --- */}
         {process.env.NODE_ENV === 'development' && isEditing && authUser && (
           <div className="space-y-2 border-t border-dashed border-destructive pt-4 mt-4">
-             <Label htmlFor="temp-role-select" className="text-destructive">Cambiar Rol (Temporal - Solo Desarrollo)</Label>
-             <Select
-               value={authUser.role}
-               onValueChange={(value) => handleRoleChange(value as UserRole)}
-               disabled={isLoading}
-             >
-               <SelectTrigger id="temp-role-select" className="w-full border-destructive">
-                 <SelectValue placeholder="Seleccionar Rol" />
-               </SelectTrigger>
-               <SelectContent>
-                 <SelectItem value="USER">Usuario (USER)</SelectItem>
-                 <SelectItem value="PREMIUM">Premium (PREMIUM)</SelectItem>
-                 <SelectItem value="ADMIN">Administrador (ADMIN)</SelectItem>
-               </SelectContent>
-             </Select>
-             <p className="text-xs text-muted-foreground text-destructive">
-               Esto cambia tu rol directamente en la BD. Refresca la página principal después de cambiar si la UI no se actualiza automáticamente. ¡Eliminar antes de producción!
-             </p>
+            <Label htmlFor="temp-role-select" className="text-destructive">
+              Cambiar Rol (Temporal - Solo Desarrollo)
+            </Label>
+            <Select
+              value={authUser.role}
+              onValueChange={(value) => handleRoleChange(value as UserRole)}
+              disabled={isLoading}
+            >
+              <SelectTrigger id="temp-role-select" className="w-full border-destructive">
+                <SelectValue placeholder="Seleccionar Rol" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USER">Usuario (USER)</SelectItem>
+                <SelectItem value="PREMIUM">Premium (PREMIUM)</SelectItem>
+                <SelectItem value="ADMIN">Administrador (ADMIN)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground text-destructive">
+              Esto cambia tu rol directamente en la BD. Refresca la página principal después de
+              cambiar si la UI no se actualiza automáticamente. ¡Eliminar antes de producción!
+            </p>
           </div>
         )}
         {/* --- END TEMPORARY ROLE SWITCHER --- */}
-
       </div>
     </div>
   );

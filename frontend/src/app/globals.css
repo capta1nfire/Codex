@@ -57,14 +57,14 @@
     --secondary-foreground: 0 0% 100%; /* Blanco */
     --muted: 210 13% 92%; /* Gris muy claro, similar a fondo */
     --muted-foreground: 210 9% 45%; /* Gris medio, similar a secundario */
-    --accent: 120 39% 41%;
+    --accent: 155 100% 38%;
     --accent-foreground: 0 0% 100%; /* Blanco */
-    --destructive: 10 70% 56%;
+    --destructive: 10 70% 56%; /* Rojo Ladrillo */
     --destructive-foreground: 0 0% 100%; /* Blanco */
-    --success: 150 53% 48%;
-    --success-foreground: 0 0% 100%;
-    --warning: 30 67% 52%; /* Añadir warning */
-    --warning-foreground: 220 9% 15%; /* Añadir warning-foreground (Texto oscuro) */
+    --success: 120 70% 60%;
+    --success-foreground: 120 70% 15%; /* Texto oscuro */
+    --warning: 38 95% 51%; /* Naranja Ámbar */
+    --warning-foreground: 220 9% 15%; /* Texto oscuro */
     --border: 210 13% 88%;
     --input: 210 13% 88%; /* Usar mismo que borde o ligeramente diferente */
     --ring: 210 53% 36%; /* Usar primario para ring */
@@ -80,17 +80,17 @@
     --popover: 210 13% 15%; /* Asumir card */
     --popover-foreground: 210 13% 92%; /* Asumir foreground */
     --primary: 210 53% 66%;
-    --primary-foreground: 220 9% 15%;
+    --primary-foreground: 220 9% 15%; /* Texto oscuro */
     --secondary: 210 9% 25%;
     --secondary-foreground: 210 13% 92%;
     --muted: 210 9% 25%; /* Gris oscuro, similar a secundario */
     --muted-foreground: 210 13% 65%; /* Gris más claro que foreground */
-    --accent: 120 39% 61%;
-    --accent-foreground: 220 9% 15%;
+    --accent: 155 100% 70%;
+    --accent-foreground: 0 0% 10%; /* Texto oscuro */
     --destructive: 10 70% 66%;
     --destructive-foreground: 220 9% 15%;
-    --success: 150 53% 58%;
-    --success-foreground: 220 9% 15%;
+    --success: 120 70% 70%;
+    --success-foreground: 120 70% 15%; /* Texto oscuro */
     --warning: 30 67% 62%; /* Añadir warning */
     --warning-foreground: 220 9% 15%; /* Añadir warning-foreground */
     --border: 210 9% 30%;
@@ -110,11 +110,11 @@
       'calt' 1;
     overflow-x: hidden;
   }
-  
+
   html {
     overflow-x: hidden;
   }
-  
+
   /* Ocultar scrollbar innecesario en páginas como login */
   html.no-scroll-needed,
   html.no-scroll-needed body {

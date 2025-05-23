@@ -1,6 +1,17 @@
 global:
   scrape_interval: 15s # Cada cuánto Prometheus recolecta métricas.
 
+# Configuración de Alertmanager
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Reglas de alerta
+rule_files:
+  - "alert_rules.yml"
+
 scrape_configs:
   - job_name: 'codex-backend'
     # Asumiendo que tu backend Node.js corre en localhost:3001

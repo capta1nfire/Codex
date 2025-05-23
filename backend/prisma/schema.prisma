@@ -43,9 +43,12 @@ model User {
   avatarUrl String?  // URL a la imagen del avatar (opcional)
   avatarType String? @default("initial") // Tipo de avatar: "initial", "image", "default1", "default2", etc.
 
-  // Índices
-  @@index([apiKeyPrefix]) // Índice en el prefijo
-  @@index([apiKeyPrefix, isActive]) // Índice compuesto para búsqueda de API key
+  // Índices optimizados para performance
+  @@index([apiKeyPrefix]) // Índice simple para búsqueda rápida por prefijo
+  @@index([apiKeyPrefix, isActive]) // Índice compuesto para búsqueda de API key activa
+  @@index([email, isActive]) // Índice compuesto para login (email + estado)
   @@index([role, isActive]) // Índice compuesto para consultas por rol y estado
-  // @@index([apiKey]) // El índice en el hash único ya existe implícitamente por @unique
+  @@index([isActive, createdAt]) // Índice para consultas de usuarios activos ordenados por fecha
+  @@index([lastLogin]) // Índice para consultas de actividad de usuarios
+  @@index([username]) // Índice adicional para username (ya existe @unique pero esto optimiza búsquedas)
 }

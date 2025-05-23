@@ -53,9 +53,7 @@ export default function RegisterForm() {
 
       if (!response.ok) {
         throw new Error(
-          responseData.message || 
-          responseData.error?.message || 
-          'Error al registrar usuario'
+          responseData.message || responseData.error?.message || 'Error al registrar usuario'
         );
       }
 
@@ -64,9 +62,7 @@ export default function RegisterForm() {
         reset();
       } else {
         throw new Error(
-          responseData.message || 
-          responseData.error?.message || 
-          'Respuesta inválida del servidor'
+          responseData.message || responseData.error?.message || 'Respuesta inválida del servidor'
         );
       }
     } catch (err) {
@@ -114,11 +110,13 @@ export default function RegisterForm() {
                       disabled={isLoading}
                     />
                     {errors.firstName && (
-                      <p className="mt-1 text-xs text-red-600 text-left">{errors.firstName.message}</p>
+                      <p className="mt-1 text-xs text-red-600 text-left">
+                        {errors.firstName.message}
+                      </p>
                     )}
                   </div>
                 </div>
-                
+
                 <div>
                   <label
                     htmlFor="lastName"
@@ -136,7 +134,9 @@ export default function RegisterForm() {
                       disabled={isLoading}
                     />
                     {errors.lastName && (
-                      <p className="mt-1 text-xs text-red-600 text-left">{errors.lastName.message}</p>
+                      <p className="mt-1 text-xs text-red-600 text-left">
+                        {errors.lastName.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -180,7 +180,9 @@ export default function RegisterForm() {
                       disabled={isLoading}
                     />
                     {errors.password && (
-                      <p className="mt-1 text-xs text-red-600 text-left">{errors.password.message}</p>
+                      <p className="mt-1 text-xs text-red-600 text-left">
+                        {errors.password.message}
+                      </p>
                     )}
                   </div>
                   <p className="mt-1 text-xs text-gray-500 text-left">
@@ -196,7 +198,7 @@ export default function RegisterForm() {
                         ? 'bg-blue-400 cursor-not-allowed'
                         : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                     }`}
-                    disabled={isLoading || !successMessage && Object.keys(errors).length > 0 }
+                    disabled={isLoading || (!successMessage && Object.keys(errors).length > 0)}
                   >
                     {isLoading ? 'Procesando...' : 'Registrarse'}
                   </button>

@@ -35,12 +35,41 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+// Importar Prisma client para Sentry
+import prisma from './lib/prisma.js';
+// Importar Sentry con configuración básica
+import * as Sentry from "@sentry/node";
 
 // Obtener __dirname en ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Inicializar Sentry ANTES que todo lo demás que usa 'app' para los handlers
+// Asegúrate de configurar SENTRY_DSN y APP_VERSION en tus variables de entorno
+if (config.SENTRY_DSN) {
+  Sentry.init({
+    dsn: config.SENTRY_DSN,
+    tracesSampleRate: config.NODE_ENV === 'production' ? 0.1 : 1.0,
+    environment: config.NODE_ENV,
+    release: config.APP_VERSION,
+    // Configurar contexto global
+    beforeSend(event, hint) {
+      // Agregar contexto adicional para debugging
+      if (event.exception) {
+        logger.error('Excepción capturada por Sentry:', hint.originalException);
+      }
+      return event;
+    },
+  });
+  logger.info('Sentry SDK inicializado para el backend.');
+} else if (config.NODE_ENV !== 'test') {
+  logger.warn('SENTRY_DSN no está configurado. Sentry no será inicializado.');
+}
+
+// The request handler must be the first middleware on the app
+// Sentry configurado para captura manual de errores
 
 // --- Configuración de Middleware (Restaurada) ---
 // Aplicar middleware de seguridad - Configurar CORP para permitir imágenes cross-origin
@@ -243,8 +272,16 @@ app.use(notFoundHandler);
 // Manejador de errores global
 app.use(errorHandler);
 
-// Iniciar servidor HTTP o HTTPS según configuración
-startServer(app, config);
+// Iniciar servidor HTTP o HTTPS según configuración (ahora asíncrono)
+// Usar una IIFE async para poder usar await
+(async () => {
+  try {
+    await startServer(app, config); // Esperar a que el servidor inicie correctamente
+  } catch (error) {
+    logger.error("Fallo al iniciar el servidor desde index.ts: ", error);
+    process.exit(1);
+  }
+})();
 
 // Para testing (exportar app)
 export default app;

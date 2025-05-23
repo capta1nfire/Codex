@@ -52,9 +52,7 @@ export default function StatusPage() {
       </div>
 
       {/* Sección Servicio Rust */}
-      <div className="p-4 border rounded-lg shadow-sm">
-        {/* Más detalles si es necesario */}
-      </div>
+      <div className="p-4 border rounded-lg shadow-sm">{/* Más detalles si es necesario */}</div>
     </main>
   );
-} 
+}

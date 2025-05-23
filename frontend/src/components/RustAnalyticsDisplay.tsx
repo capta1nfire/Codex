@@ -120,7 +120,9 @@ export default function RustAnalyticsDisplay() {
         {isLoading ? (
           <div className="flex justify-center items-center h-40">
             {/* Usar text-muted-foreground para carga */}
-            <p className="text-muted-foreground animate-pulse">Cargando análisis de rendimiento...</p>
+            <p className="text-muted-foreground animate-pulse">
+              Cargando análisis de rendimiento...
+            </p>
           </div>
         ) : !analyticsData ? (
           <></>
@@ -134,7 +136,9 @@ export default function RustAnalyticsDisplay() {
               <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   {/* Usar text-muted-foreground */}
-                  <span className="font-medium text-muted-foreground">Peticiones Totales:</span>{' '}
+                  <span className="font-medium text-muted-foreground">
+                    Peticiones Totales:
+                  </span>{' '}
                   {analyticsData.overall.total_requests}
                 </div>
                 <div>
@@ -149,7 +153,9 @@ export default function RustAnalyticsDisplay() {
                 </div>
                 <div>
                   {/* Usar text-muted-foreground */}
-                  <span className="font-medium text-muted-foreground">Máx Duración Resp.:</span>{' '}
+                  <span className="font-medium text-muted-foreground">
+                    Máx Duración Resp.:
+                  </span>{' '}
                   {formatDuration(analyticsData.overall.max_response_ms)}
                 </div>
                 {/* Podríamos añadir más datos de 'overall' si los hubiera */}

@@ -5,30 +5,35 @@ const validEclLevels = ['L', 'M', 'Q', 'H'] as const;
 
 // Esquema Zod para validar los datos del formulario de generación
 export const generateFormSchema = z.object({
-  barcode_type: z.string().nonempty('Selecciona un tipo de código'),
-  data: z.string()
-    .nonempty('Introduce los datos a codificar')
+  barcode_type: z.string().nonempty('Por favor, selecciona un tipo de código'),
+  data: z
+    .string()
+    .nonempty('Por favor, introduce los datos a codificar')
     .max(1000, 'Los datos no pueden exceder los 1000 caracteres')
     .transform((str: string) => str.trim()),
   options: z
     .object({
       // Opciones comunes
-      scale: z.number({ invalid_type_error: 'La escala debe ser un número' })
+      scale: z
+        .number({ invalid_type_error: 'La escala debe ser un número' })
         .int()
         .min(1, 'La escala debe ser al menos 1')
         .max(10, 'La escala no puede ser mayor que 10')
         .optional(),
-      fgcolor: z.string()
+      fgcolor: z
+        .string()
         .regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido (ej. #FF0000)')
         .optional()
         .or(z.literal('')), // Permitir vacío para usar el default
-      bgcolor: z.string()
+      bgcolor: z
+        .string()
         .regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido (ej. #FFFFFF)')
         .optional()
         .or(z.literal('')), // Permitir vacío para usar el default
 
       // Opciones específicas 1D (ej. Code128)
-      height: z.number({ invalid_type_error: 'La altura debe ser un número' })
+      height: z
+        .number({ invalid_type_error: 'La altura debe ser un número' })
         .int()
         .min(10, 'La altura debe ser al menos 10')
         .max(500, 'La altura no puede ser mayor que 500')
@@ -37,14 +42,18 @@ export const generateFormSchema = z.object({
 
       // Opciones específicas QR
       ecl: z.enum(validEclLevels, { invalid_type_error: 'Nivel ECL inválido' }).optional(),
-      qr_version: z.union([
-        z.number().int().min(1).max(40, 'Versión debe estar entre 1 y 40'),
-        z.literal('Auto')
-      ]).optional(),
-      qr_mask_pattern: z.union([
-        z.number().int().min(0).max(7, 'Máscara debe estar entre 0 y 7'),
-        z.literal('Auto')
-      ]).optional(),
+      qr_version: z
+        .union([
+          z.number().int().min(1).max(40, 'Versión debe estar entre 1 y 40'),
+          z.literal('Auto'),
+        ])
+        .optional(),
+      qr_mask_pattern: z
+        .union([
+          z.number().int().min(0).max(7, 'Máscara debe estar entre 0 y 7'),
+          z.literal('Auto'),
+        ])
+        .optional(),
       eci_mode: z.string().optional(), // Asumimos string por ahora
 
       // Opciones específicas Code 128
@@ -52,7 +61,11 @@ export const generateFormSchema = z.object({
       code128_gs1: z.boolean().optional(),
 
       // Opciones EAN/UPC
-      ean_upc_complement: z.string().regex(/^[0-9]{2}$|^[0-9]{5}$/, 'Complemento debe ser 2 o 5 dígitos').optional().or(z.literal('')),
+      ean_upc_complement: z
+        .string()
+        .regex(/^[0-9]{2}$|^[0-9]{5}$/, 'Complemento debe ser 2 o 5 dígitos')
+        .optional()
+        .or(z.literal('')),
       ean_upc_hri_position: z.enum(['bottom', 'top', 'none']).optional(), // Asumiendo valores posibles
       ean_upc_quiet_zone: z.number().int().min(0).optional(), // Asumiendo número de módulos
 
@@ -71,10 +84,9 @@ export const generateFormSchema = z.object({
       code39_ratio: z.number().min(2.0).max(3.0).optional(), // Usaremos number para slider/input
       code39_check_digit: z.enum(['None', 'Mod43']).optional(),
       code39_full_ascii: z.boolean().optional(),
-
     })
     .optional(),
 });
 
 // Tipo inferido para usar en el formulario
-export type GenerateFormData = z.infer<typeof generateFormSchema>; 
+export type GenerateFormData = z.infer<typeof generateFormSchema>;

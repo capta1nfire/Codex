@@ -5,9 +5,11 @@ import * as https from 'https';
 import { Express } from 'express';
 
 import logger from './utils/logger.js';
+import prisma from './lib/prisma.js';
+import { redis } from './lib/redis.js';
 
 // Función para iniciar el servidor
-export const startServer = (
+export const startServer = async (
   app: Express,
   config: {
     SSL_ENABLED: boolean;
@@ -34,6 +36,21 @@ export const startServer = (
     RATE_LIMIT_MAX,
     RATE_LIMIT_WINDOW_MS,
   } = config;
+
+  // Verificar conexiones ANTES de iniciar el servidor HTTP/S
+  try {
+    logger.info('Estableciendo conexión con la base de datos...');
+    await prisma.$connect();
+    logger.info('Conexión a la base de datos establecida.');
+
+    logger.info('Verificando conexión con Redis...');
+    await redis.ping();
+    logger.info('Conexión a Redis verificada.');
+
+  } catch (error) {
+    logger.error('Error al conectar con servicios externos (DB/Redis): ', error);
+    process.exit(1);
+  }
 
   // Configurar servidor HTTP o HTTPS según la configuración
   if (SSL_ENABLED) {

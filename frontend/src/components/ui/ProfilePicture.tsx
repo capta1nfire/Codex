@@ -5,7 +5,8 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils'; // Assuming you have a utility for classnames
 
 // Definir los tipos para las props del componente
-interface ProfilePictureUser { // Renamed from AvatarUser
+interface ProfilePictureUser {
+  // Renamed from AvatarUser
   firstName: string;
   lastName?: string;
   profilePictureUrl?: string | null; // Renamed from avatarUrl
@@ -13,7 +14,8 @@ interface ProfilePictureUser { // Renamed from AvatarUser
 }
 
 // Interfaz para las props del componente principal
-interface ProfilePictureProps extends VariantProps<typeof profilePictureVariants> { // Renamed from AvatarProps
+interface ProfilePictureProps extends VariantProps<typeof profilePictureVariants> {
+  // Renamed from AvatarProps
   user: ProfilePictureUser | null;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'; // Keep original sizes or adjust if needed
   className?: string;
@@ -38,18 +40,32 @@ const profilePictureVariants = cva(
   }
 );
 
-const ProfilePicture: React.FC<ProfilePictureProps> = ({ user, size = 'md', className = '' }) => { // Renamed from Avatar
+const ProfilePicture: React.FC<ProfilePictureProps> = ({ user, size = 'md', className = '' }) => {
+  // Renamed from Avatar
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
 
   // Placeholder si no hay datos de usuario
-  const placeholder = useMemo(() => (
-    <span className={cn(profilePictureVariants({ size }), 'bg-gray-200', className)}
-          aria-label="Profile picture de usuario">
-      <svg className="absolute inset-0 w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" fillRule="evenodd" />
-      </svg>
-    </span>
-  ), [size, className]);
+  const placeholder = useMemo(
+    () => (
+      <span
+        className={cn(profilePictureVariants({ size }), 'bg-gray-200', className)}
+        aria-label="Profile picture de usuario"
+      >
+        <svg
+          className="absolute inset-0 w-full h-full text-gray-400"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+            clipRule="evenodd"
+            fillRule="evenodd"
+          />
+        </svg>
+      </span>
+    ),
+    [size, className]
+  );
 
   if (!user) {
     return placeholder;
@@ -67,9 +83,11 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ user, size = 'md', clas
   // Lógica para determinar el contenido
   if (user.profilePictureType === 'initial' || !user.profilePictureType) {
     profilePictureElement = (
-      <span title={`${user.firstName} ${user.lastName || ''}`.trim()}
-            aria-label={`Iniciales de ${user.firstName}`}
-            className="flex items-center justify-center w-full h-full bg-blue-100 text-blue-700">
+      <span
+        title={`${user.firstName} ${user.lastName || ''}`.trim()}
+        aria-label={`Iniciales de ${user.firstName}`}
+        className="flex items-center justify-center w-full h-full bg-blue-100 text-blue-700"
+      >
         {initials}
       </span>
     );
@@ -93,9 +111,7 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ user, size = 'md', clas
 
   // Renderizar el contenedor con el contenido determinado
   return (
-    <div className={cn(profilePictureVariants({ size }), className)}>
-      {profilePictureElement}
-    </div>
+    <div className={cn(profilePictureVariants({ size }), className)}>{profilePictureElement}</div>
   );
 };
 

@@ -41,6 +41,10 @@ interface Config {
   CACHE_MAX_AGE: number;
   // Configuración de Redis
   REDIS_URL: string;
+
+  // Configuración de Sentry (opcional)
+  SENTRY_DSN?: string;
+  APP_VERSION?: string;
 }
 
 // Crear y exportar la configuración
@@ -70,4 +74,8 @@ export const config: Config = {
 
   CACHE_MAX_AGE: parseInt(process.env.CACHE_MAX_AGE || '300', 10),
   REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379', // URL por defecto para Redis local
+
+  // Configuración de Sentry (opcional)
+  SENTRY_DSN: process.env.SENTRY_DSN,
+  APP_VERSION: process.env.APP_VERSION || '1.0.0', // Versión por defecto si no está en .env
 };

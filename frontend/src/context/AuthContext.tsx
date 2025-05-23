@@ -93,7 +93,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
           profilePictureType: data.user.avatarType,
         };
         // Remove original backend fields if they exist to avoid confusion (optional but clean)
-        // delete frontendUser.avatarUrl; 
+        // delete frontendUser.avatarUrl;
         // delete frontendUser.avatarType;
 
         setUser(frontendUser); // Set state with correctly named fields
@@ -146,7 +146,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       if (!response.ok) {
         return {
           success: false,
-          message: data.error?.message || 'Error de autenticación'
+          message: data.error?.message || 'Error de autenticación',
         };
       }
 
@@ -173,14 +173,15 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         // Caso: respuesta ok, pero success: false o sin token
         return {
           success: false,
-          message: data.error?.message || 'No se recibió token o datos válidos'
+          message: data.error?.message || 'No se recibió token o datos válidos',
         };
       }
     } catch (error) {
       console.error('Login error:', error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : 'Error desconocido durante el inicio de sesión'
+        message:
+          error instanceof Error ? error.message : 'Error desconocido durante el inicio de sesión',
       };
     } finally {
       setIsLoading(false);
@@ -198,7 +199,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   // Función para actualizar datos del usuario (modificada)
   const updateUser = (userData: Partial<User>) => {
-    setUser(prevUser => {
+    setUser((prevUser) => {
       if (!prevUser) return null; // No debería pasar si está autenticado, pero por seguridad
       // Fusionar datos previos con los nuevos
       return { ...prevUser, ...userData };

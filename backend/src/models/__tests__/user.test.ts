@@ -198,6 +198,7 @@ describe('UserStore', () => {
                     firstName: userData.firstName,
                     lastName: userData.lastName,
                     role: userData.role,
+                    username: expect.any(String),
                 },
             });
             expect(result).toEqual(newUser);

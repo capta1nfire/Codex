@@ -22,11 +22,9 @@ export default function RootLayout({
       <body className={`${inter.className} bg-gray-100`}>
         <AuthProvider>
           <Navbar />
-          <main className="pt-16 lg:pt-20 xl:pt-24">
-            {children}
-          </main>
-          <Toaster 
-            position="top-right" 
+          <main className="pt-16 lg:pt-20 xl:pt-24">{children}</main>
+          <Toaster
+            position="top-right"
             toastOptions={{
               duration: 3000,
               style: {

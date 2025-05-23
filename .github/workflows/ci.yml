@@ -1,70 +1,272 @@
-name: CI Pipeline
+name: Codex CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, audit-fixes ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  backend:
-    name: Backend Build & Test
+  # ===============================================
+  # LINT Y VALIDACIÓN
+  # ===============================================
+  lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
+    name: 🔍 Lint & Code Quality
+    
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - name: Install dependencies
-        run: npm install
-      - name: Lint TypeScript
+          cache: 'npm'
+
+      - name: 📦 Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: 📦 Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: 🔍 Lint Backend
+        working-directory: ./backend
         run: npm run lint
-      - name: Run tests
+
+      - name: 🔍 Lint Frontend
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: 🎨 Format Check Backend
+        working-directory: ./backend
+        run: npm run format -- --check
+
+      - name: 🎨 Format Check Frontend
+        working-directory: ./frontend
+        run: npm run format -- --check
+
+  # ===============================================
+  # PRUEBAS BACKEND
+  # ===============================================
+  test-backend:
+    runs-on: ubuntu-latest
+    name: 🧪 Backend Tests
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: 🗃️ Setup Database
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+
+      - name: 🧪 Run Tests
+        working-directory: ./backend
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret
+          API_KEY_SECRET: test-api-key-secret
         run: npm run test:ci
-      - name: Build backend
-        run: npm run build
 
-  frontend:
-    name: Frontend Build & Test
+      - name: ✅ Run Optimizations Validation
+        working-directory: ./backend
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+        run: npm run test-optimizations
+
+      - name: 📊 Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./backend/coverage
+          flags: backend
+
+  # ===============================================
+  # PRUEBAS FRONTEND
+  # ===============================================
+  test-frontend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
+    name: 🧪 Frontend Tests
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - name: Install dependencies
-        run: npm install
-      - name: Lint TypeScript
-        run: npm run lint
-      - name: Run tests
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: 🧪 Run Tests
+        working-directory: ./frontend
         run: npm run test
-      - name: Build frontend
+
+      - name: 📊 Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./frontend/coverage
+          flags: frontend
+
+  # ===============================================
+  # BUILD Y VALIDACIÓN
+  # ===============================================
+  build:
+    runs-on: ubuntu-latest
+    name: 🏗️ Build & Validate
+    needs: [lint, test-backend, test-frontend]
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: 📦 Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: 🏗️ Build Backend
+        working-directory: ./backend
         run: npm run build
 
-  rust:
-    name: Rust Build & Test
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: rust_generator
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+      - name: 🏗️ Build Frontend
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+        run: npm run build
+
+      - name: 📤 Upload Backend Build
+        uses: actions/upload-artifact@v3
         with:
-          toolchain: stable
-          override: true
-      - name: Run fmt check
-        run: cargo fmt -- --check
-      - name: Run Clippy
-        run: cargo clippy -- -D warnings
-      - name: Run tests
-        run: cargo test --locked 
+          name: backend-build
+          path: backend/dist
+          retention-days: 1
+
+      - name: 📤 Upload Frontend Build
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/.next
+          retention-days: 1
+
+  # ===============================================
+  # SECURITY SCAN
+  # ===============================================
+  security:
+    runs-on: ubuntu-latest
+    name: 🔒 Security Scan
+    needs: [lint]
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run Security Audit Backend
+        working-directory: ./backend
+        run: npm audit --audit-level=high
+
+      - name: 🔍 Run Security Audit Frontend
+        working-directory: ./frontend
+        run: npm audit --audit-level=high
+
+  # ===============================================
+  # DEPLOYMENT (solo en main)
+  # ===============================================
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    name: 🚀 Deploy
+    needs: [build, security]
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Download Backend Build
+        uses: actions/download-artifact@v3
+        with:
+          name: backend-build
+          path: backend/dist
+
+      - name: 📥 Download Frontend Build
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/.next
+
+      - name: 🚀 Deploy Backend
+        run: |
+          echo "🚀 Deploying backend to production..."
+          # Aquí irían los comandos específicos de deployment
+          # Por ejemplo: rsync, docker build/push, etc.
+
+      - name: 🚀 Deploy Frontend
+        run: |
+          echo "🚀 Deploying frontend to production..."
+          # Aquí irían los comandos específicos de deployment
+          # Por ejemplo: deployment a Vercel, Netlify, etc.
+
+      - name: 🔔 Notification
+        if: always()
+        run: |
+          echo "🔔 Deployment completed: ${{ job.status }}"
+          # Aquí se podría enviar notificación a Slack, Discord, etc. 

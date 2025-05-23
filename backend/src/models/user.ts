@@ -5,6 +5,7 @@ import { AppError, ErrorCode, HttpStatus } from '../utils/errors.js'; // Importa
 import { CreateUserInput } from '../schemas/user.schema.js'; // Remove UpdateUserInput
 import { Prisma } from '@prisma/client'; // Importar namespace Prisma
 import logger from '../utils/logger.js';
+import { apiKeyCache } from '../lib/apiKeyCache.js';
 
 // Usar la enumeración Role generada por Prisma
 export { PrismaRole as UserRole }; // <-- Add this value export
@@ -86,46 +87,94 @@ export class UserStore {
 
   /**
    * Busca un usuario por su apiKey (completa, comparando hash después de buscar por prefijo)
+   * Versión optimizada con caché Redis para evitar bcrypt.compare repetitivos
    * @param providedApiKey API Key proporcionada por el cliente
    * @returns El usuario encontrado o null si no existe o la clave no coincide
    */
   async findByApiKey(providedApiKey: string): Promise<User | null> {
-    // 1. Extraer prefijo (asumiendo formato prefijo.cuerpo o longitud fija)
-    // Usaremos longitud fija de 8 caracteres como prefijo, como en generateApiKey
+    // Validación básica
     if (typeof providedApiKey !== 'string' || providedApiKey.length < 8) {
       return null; // Clave inválida o demasiado corta
     }
-    const prefix = providedApiKey.substring(0, 8);
 
-    // 2. Buscar usuarios candidatos por prefijo
-    const candidates = await prisma.user.findMany({
-      where: {
-        apiKeyPrefix: prefix,
-        isActive: true, // Solo buscar usuarios activos
-      },
-    });
-
-    if (!candidates || candidates.length === 0) {
-      return null; // Ningún usuario con ese prefijo
-    }
-
-    // 3. Iterar y comparar hash
-    for (const candidate of candidates) {
-      if (candidate.apiKey) { // Asegurarse que el usuario tiene una apiKey hasheada
-        const match = await bcrypt.compare(providedApiKey, candidate.apiKey);
-        if (match) {
-          // 4. Coincidencia encontrada: Actualizar lastLogin y devolver usuario
-          // ¡Importante! No actualizar lastLogin aquí directamente, 
-          // ya que esta función es solo para *encontrar* al usuario.
-          // La actualización de lastLogin/apiUsage debe ocurrir en el middleware/controlador que la usa.
-          // Devolvemos el usuario encontrado.
-          return candidate; 
+    try {
+      // 1. Verificar caché primero
+      const cached = await apiKeyCache.get(providedApiKey);
+      if (cached) {
+        if (cached.valid && cached.userId) {
+          // Caché hit: API key válida, obtener usuario por ID
+          const user = await this.findById(cached.userId);
+          if (user && user.isActive) {
+            logger.debug(`API key cache hit for user ${cached.userId}`);
+            return user;
+          } else {
+            // Usuario ya no existe o está inactivo, invalidar caché
+            await apiKeyCache.delete(providedApiKey);
+          }
+        } else {
+          // Caché hit: API key inválida
+          logger.debug('API key cache hit: invalid key');
+          return null;
         }
       }
-    }
 
-    // 5. No se encontró coincidencia después de comparar
-    return null;
+      // 2. Caché miss: buscar por prefijo como antes
+      const prefix = providedApiKey.substring(0, 8);
+
+      const candidates = await prisma.user.findMany({
+        where: {
+          apiKeyPrefix: prefix,
+          isActive: true,
+        },
+        // Optimización: solo traer campos necesarios para la comparación
+        select: {
+          id: true,
+          apiKey: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          username: true,
+          role: true,
+          avatarUrl: true,
+          avatarType: true,
+          createdAt: true,
+          updatedAt: true,
+          lastLogin: true,
+          apiKeyPrefix: true,
+          apiUsage: true,
+          isActive: true,
+        }
+      });
+
+      if (!candidates || candidates.length === 0) {
+        // No hay candidatos, cachear como inválida
+        await apiKeyCache.set(providedApiKey, null, false);
+        return null;
+      }
+
+      // 3. Buscar coincidencia con bcrypt (optimizado con early return)
+      for (const candidate of candidates) {
+        if (candidate.apiKey) {
+          const match = await bcrypt.compare(providedApiKey, candidate.apiKey);
+          if (match) {
+            // Coincidencia encontrada: cachear como válida
+            await apiKeyCache.set(providedApiKey, candidate.id, true);
+            logger.debug(`API key validated for user ${candidate.id} (prefix: ${prefix})`);
+            return candidate as User;
+          }
+        }
+      }
+
+      // 4. No se encontró coincidencia: cachear como inválida
+      await apiKeyCache.set(providedApiKey, null, false);
+      logger.debug(`No API key match found for prefix: ${prefix}`);
+      return null;
+
+    } catch (error) {
+      logger.error('Error in findByApiKey:', error);
+      // En caso de error, no cachear y devolver null
+      return null;
+    }
   }
   
   /**
@@ -309,6 +358,9 @@ export class UserStore {
    * @returns Nueva API Key (sin hashear)
    */
   async generateApiKey(id: string): Promise<string> {
+    // Invalidar caché de API keys existentes para este usuario
+    await apiKeyCache.invalidateUserApiKeys(id);
+    
     // Generar API Key aleatoria 
     // Formato: prefijo (8 caracteres) + punto + cuerpo (24 caracteres)
     const prefix = Array.from({ length: 8 }, () =>
@@ -331,6 +383,7 @@ export class UserStore {
       },
     });
     
+    logger.info(`Generated new API key for user ${id} with prefix ${prefix}`);
     return apiKey;
   }
 

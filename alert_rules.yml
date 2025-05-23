@@ -1,0 +1,62 @@
+groups:
+  - name: codex_alerts
+    rules:
+      # Alerta por alta latencia en API
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, http_request_duration_microseconds) > 1000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta latencia en API de Codex"
+          description: "La latencia P95 de las requests HTTP es {{ $value }}ms, superior al límite de 1000ms"
+
+      # Alerta por tasa de errores alta
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tasa de errores alta en Codex"
+          description: "Tasa de errores 5xx es {{ $value | humanizePercentage }} en los últimos 5 minutos"
+
+      # Alerta por servicio caído
+      - alert: ServiceDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Servicio Codex caído"
+          description: "El servicio {{ $labels.job }} está inaccesible por más de 30 segundos"
+
+      # Alerta por uso alto de memoria
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 > 500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso alto de memoria en Codex"
+          description: "El uso de memoria es {{ $value }}MB, superior al límite de 500MB"
+
+      # Alerta por caché Redis desconectado
+      - alert: RedisDisconnected
+        expr: redis_connected_clients == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis desconectado"
+          description: "No hay clientes conectados a Redis por más de 1 minuto"
+
+      # Alerta por rate limiting excesivo
+      - alert: ExcessiveRateLimiting
+        expr: rate(http_requests_total{status="429"}[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rate limiting excesivo"
+          description: "Demasiadas requests siendo limitadas: {{ $value }} por segundo" 

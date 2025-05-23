@@ -70,7 +70,7 @@ const defaultFormValues: GenerateFormData = {
 };
 
 export default function Home() {
-  // --- Estados --- 
+  // --- Estados ---
   // Eliminar useStates para campos del formulario
   // const [data, setData] = useState<string>(getDefaultDataForType('qrcode'));
   // const [type, setType] = useState<string>('qrcode');
@@ -83,10 +83,10 @@ export default function Home() {
 
   // Mantener estados para UI y resultado
   const [svgContent, setSvgContent] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false); 
-  const [serverError, setServerError] = useState<ErrorResponse | null>(null); // Renombrar error
-  const { user } = useAuth(); // Obtener usuario del contexto
-  const userRole = user?.role; // Obtener rol
+  const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState<ErrorResponse | null>(null);
+  // const { user } = useAuth(); // Ya no necesitamos user directamente aquí si userRole no se usa
+  // const userRole = user?.role; // userRole ya no se pasa a los hijos relevantes
 
   // --- react-hook-form Configuración ---
   const {
@@ -113,10 +113,11 @@ export default function Home() {
   // const isQrCode = selectedType === 'qrcode';
 
   // --- Handlers ---
-  
+
   // Definir onSubmit PRIMERO porque handleTypeChange lo usa
   const onSubmit = useCallback(async (formData: GenerateFormData) => {
     console.log('[onSubmit] Datos validados recibidos:', formData);
+    console.log('[onSubmit] formData.options ANTES de construir payload:', formData.options);
     setServerError(null);
     setIsLoading(true);
     setSvgContent('');
@@ -126,7 +127,7 @@ export default function Home() {
       data: formData.data,
       options: formData.options || {},
     };
-    
+
     // Determinar qué opciones enviar basado en el tipo (AHORA en el backend)
     // Ya no necesitamos limpiar el payload aquí, el backend ignora opciones irrelevantes
     // if (!isHeightRelevant && payload.options.height !== undefined) delete payload.options.height;
@@ -152,28 +153,28 @@ export default function Home() {
       console.log('[onSubmit] Resultado JSON recibido:', result);
 
       if (!response.ok) {
-         let message = 'Error desconocido al generar el código.';
-         let code: string | undefined = undefined;
-         let suggestion: string | undefined = undefined;
- 
-         if (result && typeof result.error === 'object' && result.error !== null) {
-           message = result.error.message || message;
-           code = result.error.code;
-           suggestion = result.error.context?.suggestion;
-         } else if (result && result.error && typeof result.error === 'string') {
-           message = result.error;
-         } else if (result && result.message) {
-           message = result.message;
-         }
- 
-         console.error('[onSubmit] Error de backend:', { status: response.status, result });
-         setServerError({ 
-             success: false, 
-             error: message, 
-             suggestion, 
-             code 
-         });
-         setSvgContent('');
+        let message = 'Error desconocido al generar el código.';
+        let code: string | undefined = undefined;
+        let suggestion: string | undefined = undefined;
+
+        if (result && typeof result.error === 'object' && result.error !== null) {
+          message = result.error.message || message;
+          code = result.error.code;
+          suggestion = result.error.context?.suggestion;
+        } else if (result && result.error && typeof result.error === 'string') {
+          message = result.error;
+        } else if (result && result.message) {
+          message = result.message;
+        }
+
+        console.error('[onSubmit] Error de backend:', { status: response.status, result });
+        setServerError({
+          success: false,
+          error: message,
+          suggestion,
+          code,
+        });
+        setSvgContent('');
       } else {
         console.log('[onSubmit] Generación exitosa.');
         setSvgContent(result.svgString);
@@ -190,31 +191,36 @@ export default function Home() {
       setIsLoading(false);
       console.log('[onSubmit] Finalizado.');
     }
-  }, []); 
+  }, []);
 
   // Definir handleTypeChange DESPUÉS de onSubmit
-  const handleTypeChange = useCallback(async (newType: string) => {
-    const newData = getDefaultDataForType(newType);
-    // Actualizar tipo y datos
-    setValue('barcode_type', newType, { shouldValidate: true });
-    setValue('data', newData, { shouldValidate: true });
-    setServerError(null);
+  const handleTypeChange = useCallback(
+    async (newType: string) => {
+      const newData = getDefaultDataForType(newType);
+      // Actualizar tipo y datos
+      setValue('barcode_type', newType, { shouldValidate: true });
+      setValue('data', newData, { shouldValidate: true });
+      setServerError(null);
 
-    // Obtener TODOS los valores actuales del formulario DESPUÉS de actualizarlos
-    const currentFormValues = getValues();
+      // Obtener TODOS los valores actuales del formulario DESPUÉS de actualizarlos
+      const currentFormValues = getValues();
 
-    console.log(`[handleTypeChange] Tipo cambiado a ${newType}. Llamando a onSubmit con valores completos:`, currentFormValues);
-    // Llamar a onSubmit con el objeto completo
-    await onSubmit(currentFormValues);
+      console.log(
+        `[handleTypeChange] Tipo cambiado a ${newType}. Llamando a onSubmit con valores completos:`,
+        currentFormValues
+      );
+      // Llamar a onSubmit con el objeto completo
+      await onSubmit(currentFormValues);
 
-    // Quitar el objeto parcial anterior
-    // await onSubmit({ 
-    //   barcode_type: newType, 
-    //   data: newData, 
-    // });
+      // Quitar el objeto parcial anterior
+      // await onSubmit({
+      //   barcode_type: newType,
+      //   data: newData,
+      // });
+    },
+    [setValue, onSubmit, getValues]
+  ); // Añadir getValues a las dependencias
 
-  }, [setValue, onSubmit, getValues]); // Añadir getValues a las dependencias
-  
   // useEffect para generar al montar
   useEffect(() => {
     console.log('[useEffect] Montado. Llamando a onSubmit con valores por defecto.');
@@ -233,7 +239,7 @@ export default function Home() {
     const svgUrl = URL.createObjectURL(svgBlob);
     const downloadLink = document.createElement('a');
     const safeFilename = (selectedType || 'barcode').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    
+
     downloadLink.href = svgUrl;
     downloadLink.download = `${safeFilename}_${Date.now()}.svg`; // Add timestamp for uniqueness
     document.body.appendChild(downloadLink);
@@ -266,8 +272,12 @@ export default function Home() {
       printWindow.document.close(); // Important for some browsers
       console.log('[handlePrint] Diálogo de impresión abierto.');
     } else {
-      console.error('[handlePrint] No se pudo abrir la ventana de impresión. Verifica bloqueadores de pop-ups.');
-      alert('No se pudo abrir la ventana de impresión. Por favor, revisa si tu navegador está bloqueando las ventanas emergentes.');
+      console.error(
+        '[handlePrint] No se pudo abrir la ventana de impresión. Verifica bloqueadores de pop-ups.'
+      );
+      alert(
+        'No se pudo abrir la ventana de impresión. Por favor, revisa si tu navegador está bloqueando las ventanas emergentes.'
+      );
     }
   }, [svgContent]);
 
@@ -277,11 +287,12 @@ export default function Home() {
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center">CODEX</h1>
 
       {/* Cambiar a grid de 2 columnas en md */}
-      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-        
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12"
+      >
         {/* Columna de Configuración (Izquierda) */}
         <div className="md:col-span-1 space-y-6">
-          
           {/* Aplicar bg-card y border-border */}
           <div className="bg-card p-6 border border-border rounded-lg shadow-md space-y-4">
             {/* 1. Selección de Tipo (Usar componente) */}
@@ -289,65 +300,62 @@ export default function Home() {
               control={control}
               isLoading={isLoading}
               handleTypeChange={handleTypeChange}
-              userRole={userRole}
               errors={errors}
             />
 
             {/* 2. Input de Datos */}
             <div>
-              <Label htmlFor="data-input" className="text-lg font-semibold mb-2 block">Datos a Codificar</Label>
-              <Input 
+              <Label htmlFor="data-input" className="text-lg font-semibold mb-2 block">
+                Datos a Codificar
+              </Label>
+              <Input
                 id="data-input"
-                placeholder={getDefaultDataForType(selectedType || 'qrcode')} 
+                placeholder={getDefaultDataForType(selectedType || 'qrcode')}
                 // Registrar con RHF
-                {...register('data')} 
+                {...register('data')}
                 disabled={isLoading}
                 // Aplicar border-destructive en error
                 className={`${errors.data ? 'border-destructive' : ''}`}
               />
-               {/* Mostrar error para data usando text-destructive */}
+              {/* Mostrar error para data usando text-destructive */}
               {errors.data && (
                 <p className="mt-1 text-sm text-destructive">{errors.data.message}</p>
               )}
             </div>
-          
+
             {/* 3. Botón Generar */}
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading} 
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Generando...' : 'Generar Código'}
             </Button>
-           
+
             {/* 4. Mensajes de Error del Servidor - Aplicar colores destructive */}
             {serverError && (
               <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md space-y-1">
                 <p className="font-medium">Error al generar:</p>
                 <p className="text-sm">{serverError.error}</p>
                 {serverError.suggestion && (
-                  <p className="text-sm"><span className="font-medium">Sugerencia:</span> {serverError.suggestion}</p>
+                  <p className="text-sm">
+                    <span className="font-medium">Sugerencia:</span> {serverError.suggestion}
+                  </p>
                 )}
                 {serverError.code && (
                   <p className="text-xs font-mono">Código: {serverError.code}</p>
                 )}
               </div>
             )}
-          </div> {/* Cerrar div wrapper de tarjeta */} 
-           
-           {/* 5. Opciones de Personalización (Usar componente) */}
-           <GenerationOptions
-             control={control}
-             errors={errors}
-             watch={watch}
-             isLoading={isLoading}
-             userRole={userRole}
-             selectedType={selectedType}
-             reset={reset}
-           />
-           
-        </div> {/* Cerrar Columna Izquierda */} 
-
+          </div>{' '}
+          {/* Cerrar div wrapper de tarjeta */}
+          {/* 5. Opciones de Personalización (Usar componente) */}
+          <GenerationOptions
+            control={control}
+            errors={errors}
+            watch={watch}
+            isLoading={isLoading}
+            selectedType={selectedType}
+            reset={reset}
+          />
+        </div>{' '}
+        {/* Cerrar Columna Izquierda */}
         {/* Columna de Previsualización (Derecha) */}
         <div className="md:col-span-1">
           {/* Contenido de Previsualización */}
@@ -358,7 +366,10 @@ export default function Home() {
               // Aplicar bg-muted, border-border, text-muted-foreground y border-primary para spinner
               <div className="flex items-center justify-center min-h-[200px] bg-muted rounded border border-dashed border-border p-4 w-full max-w-md">
                 <div className="text-center flex flex-col items-center text-muted-foreground">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-3" role="status"></div>
+                  <div
+                    className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-3"
+                    role="status"
+                  ></div>
                   <p>Generando código...</p>
                 </div>
               </div>
@@ -368,29 +379,41 @@ export default function Home() {
                 <p className="text-center">Error al generar. Revisa las opciones y los datos.</p>
               </div>
             ) : svgContent ? (
-              <BarcodeDisplay key={selectedType} svgContent={svgContent} type={selectedType} data={watch('data')} />
+              <BarcodeDisplay
+                key={selectedType}
+                svgContent={svgContent}
+                type={selectedType}
+                data={watch('data')}
+              />
             ) : (
-               // Aplicar bg-muted, border-border, text-muted-foreground
-               <div className="flex items-center justify-center min-h-[150px] bg-muted rounded border border-dashed border-border p-4 w-full max-w-md">
-                  <p className="text-muted-foreground text-center">La previsualización aparecerá aquí.</p>
-               </div>
+              // Aplicar bg-muted, border-border, text-muted-foreground
+              <div className="flex items-center justify-center min-h-[150px] bg-muted rounded border border-dashed border-border p-4 w-full max-w-md">
+                <p className="text-muted-foreground text-center">
+                  La previsualización aparecerá aquí.
+                </p>
+              </div>
             )}
-             
+
             {/* Acciones (Descargar, Imprimir) */}
             {svgContent && !isLoading && (
-               <div className="mt-6 flex justify-center space-x-4">
-                  <Button variant="outline" onClick={handleDownload} disabled={!svgContent || isLoading}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Descargar SVG
-                  </Button>
-                  <Button variant="outline" onClick={handlePrint} disabled={!svgContent || isLoading}>
-                    <Printer className="mr-2 h-4 w-4" />
-                    Imprimir
-                  </Button>
-               </div>
+              <div className="mt-6 flex justify-center space-x-4">
+                <Button
+                  variant="outline"
+                  onClick={handleDownload}
+                  disabled={!svgContent || isLoading}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Descargar SVG
+                </Button>
+                <Button variant="outline" onClick={handlePrint} disabled={!svgContent || isLoading}>
+                  <Printer className="mr-2 h-4 w-4" />
+                  Imprimir
+                </Button>
+              </div>
             )}
           </div>
-        </div> {/* Cerrar Columna Derecha */} 
+        </div>{' '}
+        {/* Cerrar Columna Derecha */}
       </form>
     </main>
   );

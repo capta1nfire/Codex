@@ -203,7 +203,9 @@ export default function SystemStatus() {
                 </div>
               </div>
               {healthData.dependencies.rust_service.status === 'ok' ? (
-                <div className="text-sm text-muted-foreground">Servicio funcionando correctamente</div>
+                <div className="text-sm text-muted-foreground">
+                  Servicio funcionando correctamente
+                </div>
               ) : (
                 <div className="text-sm text-destructive">
                   {healthData.dependencies.rust_service.error || 'Error en el servicio'}
@@ -221,8 +223,8 @@ export default function SystemStatus() {
                   dbUp === null
                     ? getStatusColor('unknown')
                     : dbUp
-                    ? getStatusColor('ok')
-                    : getStatusColor('error')
+                      ? getStatusColor('ok')
+                      : getStatusColor('error')
                 }`}
               >
                 {dbUp === null ? 'Cargando...' : dbUp ? 'Operativa' : 'Caída'}

@@ -56,9 +56,23 @@ services:
     depends_on:
       - prometheus # Asegura que Prometheus inicie antes
 
+  # Servicio para Alertmanager (gestión de alertas)
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: codex_alertmanager
+    ports:
+      - "9093:9093" # Puerto de la UI de Alertmanager
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
 # Define los volúmenes para persistir los datos
 volumes:
   postgres_data:
   redis_data:
   prometheus_data: # Nuevo volumen para Prometheus
   grafana_data:    # Nuevo volumen para Grafana
+  alertmanager_data: # Nuevo volumen para Alertmanager

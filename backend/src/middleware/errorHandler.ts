@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import * as Sentry from '@sentry/node';
 
 import { JwtPayload } from '../services/auth.service.js';
 import { AppError, sendErrorResponse, NotFoundError, ErrorCode, formatError } from '../utils/errors.js';
@@ -24,6 +25,18 @@ export function errorHandler(
   // Evitar que Express continue si ya se ha enviado la respuesta
   if (res.headersSent) {
     return next(error);
+  }
+
+  // Capturar error en Sentry para errores críticos
+  if (!(error instanceof AppError) || error.statusCode >= 500) {
+    Sentry.captureException(error, {
+      tags: {
+        path: req.path,
+        method: req.method,
+        statusCode: error instanceof AppError ? error.statusCode : 500,
+      },
+      user: req.user ? { id: (req.user as any).id } : undefined,
+    });
   }
 
   if (error instanceof AppError) {
