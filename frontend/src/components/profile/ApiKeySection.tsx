@@ -4,8 +4,9 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RefreshCw, Copy, Eye, EyeOff } from 'lucide-react';
+import { RefreshCw, Copy, Eye, EyeOff, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useClipboard } from '@/hooks/useClipboard';
 
 interface ApiKeySectionProps {
   currentApiKey?: string;
@@ -21,19 +22,19 @@ export default function ApiKeySection({
   const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
   const [showApiKeyWarning, setShowApiKeyWarning] = useState(false);
   const [showApiGenerationSuccess, setShowApiGenerationSuccess] = useState(false);
+  
+  const { copy, copied, isSupported } = useClipboard();
 
-  const handleCopyApiKey = () => {
+  const handleCopyApiKey = async () => {
     if (!currentApiKey) return;
     
-    navigator.clipboard
-      .writeText(currentApiKey)
-      .then(() => {
-        toast.success('API Key copiada al portapapeles');
-      })
-      .catch((err) => {
-        console.error('Error al copiar API key:', err);
-        toast.error('No se pudo copiar la API key');
-      });
+    const success = await copy(currentApiKey);
+    
+    if (success) {
+      toast.success('API Key copiada al portapapeles');
+    } else {
+      toast.error('No se pudo copiar la API key. Intenta seleccionar y copiar manualmente.');
+    }
   };
 
   const toggleApiKeyVisibility = () => {
@@ -86,10 +87,26 @@ export default function ApiKeySection({
                   <button
                     type="button"
                     onClick={handleCopyApiKey}
-                    className="p-1 text-muted-foreground hover:text-foreground focus:outline-none"
-                    aria-label="Copiar API key"
+                    className={`p-1 transition-colors focus:outline-none ${
+                      copied 
+                        ? 'text-green-600 hover:text-green-700' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    aria-label={copied ? 'API key copiada' : 'Copiar API key'}
+                    disabled={!isSupported}
+                    title={
+                      !isSupported 
+                        ? 'Copiar no disponible en este navegador'
+                        : copied 
+                        ? 'API key copiada'
+                        : 'Copiar API key'
+                    }
                   >
-                    <Copy className="h-4 w-4" />
+                    {copied ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               )}
