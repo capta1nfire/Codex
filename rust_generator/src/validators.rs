@@ -14,6 +14,37 @@ pub struct BarcodeRequest {
     pub options: Option<BarcodeRequestOptions>,
 }
 
+// Estructura para batch processing
+#[derive(Deserialize, Debug)]
+pub struct BatchBarcodeRequest {
+    pub barcodes: Vec<SingleBarcodeRequest>,
+    #[serde(default)]
+    pub options: Option<BatchOptions>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct SingleBarcodeRequest {
+    pub id: Option<String>, // ID opcional para identificar el código en el resultado
+    pub barcode_type: String,
+    pub data: String,
+    #[serde(default)]
+    pub options: Option<BarcodeRequestOptions>,
+}
+
+#[derive(Deserialize, Debug, Default)]
+pub struct BatchOptions {
+    #[serde(default = "default_max_concurrent")]
+    pub max_concurrent: usize, // Máximo número de códigos a procesar simultáneamente
+    #[serde(default)]
+    pub fail_fast: bool, // Si true, detiene el procesamiento al primer error
+    #[serde(default)]
+    pub include_metadata: bool, // Si incluir metadatos de timing y caché
+}
+
+fn default_max_concurrent() -> usize {
+    10 // Valor por defecto para procesamiento concurrente
+}
+
 // Opciones extendidas para soportar más parámetros específicos por tipo
 #[derive(Debug, serde::Deserialize, Default, Clone, Hash, PartialEq, Eq)]
 pub struct BarcodeRequestOptions {
@@ -538,6 +569,80 @@ pub fn validate_barcode_request(request: &BarcodeRequest) -> Result<(), Validati
     let barcode_type = request.barcode_type.to_lowercase();
     let validator = get_validator(&barcode_type);
     validator.validate(request)
+}
+
+// Validación para batch processing
+pub fn validate_batch_request(request: &BatchBarcodeRequest) -> Result<(), ValidationError> {
+    // Validar que no esté vacío
+    if request.barcodes.is_empty() {
+        return Err(ValidationError {
+            code: "BATCH_EMPTY".to_string(),
+            message: "El batch no puede estar vacío".to_string(),
+            suggestion: Some("Proporcione al menos un código de barras para procesar".to_string()),
+        });
+    }
+
+    // Validar límite de tamaño del batch
+    const MAX_BATCH_SIZE: usize = 100;
+    if request.barcodes.len() > MAX_BATCH_SIZE {
+        return Err(ValidationError {
+            code: "BATCH_TOO_LARGE".to_string(),
+            message: format!("El batch excede el tamaño máximo permitido ({} > {})", 
+                           request.barcodes.len(), MAX_BATCH_SIZE),
+            suggestion: Some(format!("Divida el batch en grupos de máximo {} códigos", MAX_BATCH_SIZE)),
+        });
+    }
+
+    // Validar opciones de batch
+    if let Some(options) = &request.options {
+        if options.max_concurrent == 0 {
+            return Err(ValidationError {
+                code: "BATCH_INVALID_CONCURRENCY".to_string(),
+                message: "max_concurrent debe ser mayor a 0".to_string(),
+                suggestion: Some("Use un valor entre 1 y 20 para max_concurrent".to_string()),
+            });
+        }
+
+        if options.max_concurrent > 20 {
+            return Err(ValidationError {
+                code: "BATCH_CONCURRENCY_TOO_HIGH".to_string(),
+                message: "max_concurrent no puede ser mayor a 20".to_string(),
+                suggestion: Some("Use un valor entre 1 y 20 para evitar sobrecarga del servidor".to_string()),
+            });
+        }
+    }
+
+    // Validar cada código individual
+    for (index, barcode) in request.barcodes.iter().enumerate() {
+        // Convertir SingleBarcodeRequest a BarcodeRequest para reutilizar validación
+        let individual_request = BarcodeRequest {
+            barcode_type: barcode.barcode_type.clone(),
+            data: barcode.data.clone(),
+            options: barcode.options.clone(),
+        };
+
+        if let Err(mut error) = validate_barcode_request(&individual_request) {
+            // Agregar información del índice al error
+            error.message = format!("Error en código #{}: {}", index + 1, error.message);
+            return Err(error);
+        }
+    }
+
+    // Validar IDs únicos si están presentes
+    let mut seen_ids = std::collections::HashSet::new();
+    for (index, barcode) in request.barcodes.iter().enumerate() {
+        if let Some(id) = &barcode.id {
+            if !seen_ids.insert(id) {
+                return Err(ValidationError {
+                    code: "BATCH_DUPLICATE_ID".to_string(),
+                    message: format!("ID duplicado '{}' encontrado en posición #{}", id, index + 1),
+                    suggestion: Some("Asegúrese de que todos los IDs sean únicos o deje que se generen automáticamente".to_string()),
+                });
+            }
+        }
+    }
+
+    Ok(())
 }
 
 // ----------------- 8. Test Module -----------------

@@ -4,6 +4,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from 'react-hot-toast';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,8 +22,10 @@ export default function RootLayout({
     <html lang="es">
       <body className={`${inter.className} bg-gray-100`}>
         <AuthProvider>
-          <Navbar />
-          <main className="pt-16 lg:pt-20 xl:pt-24">{children}</main>
+          <ErrorBoundary>
+            <Navbar />
+            <main className="pt-16 lg:pt-20 xl:pt-24">{children}</main>
+          </ErrorBoundary>
           <Toaster
             position="top-right"
             toastOptions={{

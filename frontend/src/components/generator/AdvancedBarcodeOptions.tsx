@@ -2,7 +2,7 @@ import React from 'react';
 import { Control, Controller, FieldErrors, UseFormWatch, UseFormReset } from 'react-hook-form';
 import { GenerateFormData } from '@/schemas/generate.schema';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
+// import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils'; // Asegúrate que esta ruta sea correcta
+// import { cn } from '@/lib/utils'; // Asegúrate que esta ruta sea correcta
 
 interface AdvancedBarcodeOptionsProps {
   control: Control<GenerateFormData>;
@@ -27,10 +27,10 @@ interface AdvancedBarcodeOptionsProps {
 export default function AdvancedBarcodeOptions({
   control,
   errors,
-  watch,
+  // watch,
   isLoading,
   selectedType,
-  reset,
+  // reset,
 }: AdvancedBarcodeOptionsProps) {
   // Derivar estados como isQrCode aquí si es más limpio que pasarlos como props
   const isQrCode = selectedType === 'qr';

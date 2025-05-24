@@ -66,7 +66,7 @@ backend/
 - API Gateway con Express.
 - **Base de Datos:** Persistencia con **PostgreSQL** gestionada mediante **Prisma ORM**.
 - **Autenticación:** Sistema robusto con Passport (JWT, Local, API Key hasheada).
-- **Generación de Códigos:** Orquestación de llamadas a servicio externo en Rust.
+- **Generación de Códigos:** Orquestación de llamadas a microservicio Rust con cache DashMap avanzado.
 - **Seguridad:** Helmet, Rate Limiting, Validación (express-validator), XSS Clean, CORS seguro, HTTPS opcional.
 - **Manejo de Errores:** Sistema tipificado con `AppError` y manejo centralizado.
 - **Logging:** Estructurado con Winston (JSON a archivo, coloreado a consola).
@@ -81,7 +81,7 @@ backend/
 - **Caché:**
   - El sistema está configurado para conectarse a un servidor **Redis** (definido por `REDIS_URL` en `.env`). La instancia del cliente está disponible en `lib/redis.ts`.
   - Actualmente, el `barcodeService.ts` **utiliza activamente** Redis, con consistencia mejorada en la generación de claves.
-  - El **servicio Rust** implementa su propio **caché interno en memoria** (con DashMap) y expone sus estadísticas detalladas en su endpoint `/analytics/performance`.
+  - El **microservicio Rust** implementa su propio **caché inteligente DashMap** con TTL configurable, limpieza automática, y expone métricas avanzadas en `/analytics/performance`, `/status`, `/health`.
   - **Métricas:**
     - El endpoint `/metrics` expone métricas en formato **Prometheus** utilizando `prom-client`.
     - Métricas incluidas: Duración y tasa de solicitudes HTTP (desglosadas por método, ruta, código), duración de las llamadas al servicio Rust (desglosadas por tipo de código), métricas estándar de proceso Node.js.

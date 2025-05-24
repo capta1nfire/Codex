@@ -31,7 +31,10 @@ use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, Env
 
 // Imports locales
 mod validators;
-use validators::{validate_barcode_request, BarcodeRequest, BarcodeRequestOptions};
+use validators::{
+    validate_barcode_request, validate_batch_request, 
+    BarcodeRequest, BarcodeRequestOptions, BatchBarcodeRequest
+};
 
 // Estructura para la clave de caché (simplificada para usar BarcodeRequestOptions)
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -527,6 +530,44 @@ struct ErrorResponse {
     code: Option<String>,
 }
 
+// Estructuras para respuestas de batch processing
+#[derive(serde::Serialize)]
+struct BatchSuccessResponse {
+    success: bool,
+    results: Vec<BatchResult>,
+    summary: BatchSummary,
+}
+
+#[derive(serde::Serialize)]
+struct BatchResult {
+    id: String, // ID generado o proporcionado por el usuario
+    success: bool,
+    #[serde(rename = "svgString", skip_serializing_if = "Option::is_none")]
+    svg_string: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    metadata: Option<BatchResultMetadata>,
+}
+
+#[derive(serde::Serialize)]
+struct BatchResultMetadata {
+    generation_time_ms: u64,
+    from_cache: bool,
+    barcode_type: String,
+    data_size: usize,
+}
+
+#[derive(serde::Serialize)]
+struct BatchSummary {
+    total: usize,
+    successful: usize,
+    failed: usize,
+    total_time_ms: u64,
+    cache_hits: usize,
+    cache_misses: usize,
+}
+
 // Contador de solicitudes para métricas
 static REQUEST_COUNTER: AtomicU64 = AtomicU64::new(0);
 static ERROR_COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -558,6 +599,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(root_handler))
         .route("/generate", post(generate_handler))
+        .route("/batch", post(batch_generate_handler))
         .route("/status", get(status_handler))
         .route("/health", get(health_handler))
         .route("/cache/clear", post(clear_cache_handler))
@@ -746,6 +788,224 @@ fn handle_error(
         }),
     )
         .into_response()
+}
+
+// Handler para batch processing
+async fn batch_generate_handler(Json(payload): Json<BatchBarcodeRequest>) -> impl IntoResponse {
+    let batch_start_time = Instant::now();
+    
+    // Validar la solicitud batch
+    if let Err(validation_error) = validate_batch_request(&payload) {
+        error!("Batch validation error: {}", validation_error);
+        return handle_error(
+            validation_error.message,
+            StatusCode::BAD_REQUEST,
+            validation_error.suggestion,
+            Some(validation_error.code),
+        );
+    }
+
+    let batch_options = payload.options.unwrap_or_default();
+    let max_concurrent = batch_options.max_concurrent;
+    let fail_fast = batch_options.fail_fast;
+    let include_metadata = batch_options.include_metadata;
+
+    info!(
+        batch_size = payload.barcodes.len(),
+        max_concurrent = max_concurrent,
+        fail_fast = fail_fast,
+        "Processing batch request"
+    );
+
+    // Procesar códigos con concurrencia limitada usando semáforo
+    let semaphore = Arc::new(tokio::sync::Semaphore::new(max_concurrent));
+    let mut tasks = Vec::new();
+    let cache_instance = CACHE.get().expect("Cache no inicializado");
+
+    // Contadores para el resumen
+    let cache_hits = Arc::new(AtomicU64::new(0));
+    let cache_misses = Arc::new(AtomicU64::new(0));
+
+    for (index, barcode_request) in payload.barcodes.into_iter().enumerate() {
+        let permit = Arc::clone(&semaphore);
+        let cache_ref = cache_instance.clone();
+        let cache_hits_ref = Arc::clone(&cache_hits);
+        let cache_misses_ref = Arc::clone(&cache_misses);
+        
+        // Generar ID si no se proporciona
+        let id = barcode_request.id.unwrap_or_else(|| format!("batch_{}", index + 1));
+
+        let task = tokio::spawn(async move {
+            let _permit = permit.acquire().await.unwrap();
+            let start_time = Instant::now();
+
+            // Convertir a BarcodeRequest individual
+            let individual_request = BarcodeRequest {
+                barcode_type: barcode_request.barcode_type.clone(),
+                data: barcode_request.data.clone(),
+                options: barcode_request.options.clone(),
+            };
+
+            // Procesar el código individual reutilizando la lógica existente
+            let result = process_single_barcode(
+                individual_request,
+                &cache_ref,
+                &cache_hits_ref,
+                &cache_misses_ref,
+            ).await;
+
+            let generation_time = start_time.elapsed().as_millis() as u64;
+
+            // Construir resultado
+            match result {
+                Ok((svg_string, from_cache)) => BatchResult {
+                    id,
+                    success: true,
+                    svg_string: Some(svg_string),
+                    error: None,
+                    metadata: if include_metadata {
+                        Some(BatchResultMetadata {
+                            generation_time_ms: generation_time,
+                            from_cache,
+                            barcode_type: barcode_request.barcode_type,
+                            data_size: barcode_request.data.len(),
+                        })
+                    } else {
+                        None
+                    },
+                },
+                Err(error_msg) => BatchResult {
+                    id,
+                    success: false,
+                    svg_string: None,
+                    error: Some(error_msg),
+                    metadata: if include_metadata {
+                        Some(BatchResultMetadata {
+                            generation_time_ms: generation_time,
+                            from_cache: false,
+                            barcode_type: barcode_request.barcode_type,
+                            data_size: barcode_request.data.len(),
+                        })
+                    } else {
+                        None
+                    },
+                },
+            }
+        });
+
+        tasks.push(task);
+    }
+
+    // Esperar a que todas las tareas terminen
+    let mut results = Vec::new();
+    for task in tasks {
+        match task.await {
+            Ok(result) => {
+                // Si fail_fast está habilitado y encontramos error, detenemos
+                if fail_fast && !result.success {
+                    return handle_error(
+                        format!("Batch processing failed at item '{}': {}", 
+                               result.id, 
+                               result.error.as_ref().unwrap_or(&"Unknown error".to_string())),
+                        StatusCode::BAD_REQUEST,
+                        Some("Use fail_fast=false para procesar todos los elementos independientemente".to_string()),
+                        Some("BATCH_FAIL_FAST".to_string()),
+                    );
+                }
+                results.push(result);
+            },
+            Err(_) => {
+                return handle_error(
+                    "Error interno procesando batch".to_string(),
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    None,
+                    Some("BATCH_PROCESSING_ERROR".to_string()),
+                );
+            }
+        }
+    }
+
+    let total_time = batch_start_time.elapsed().as_millis() as u64;
+    let successful = results.iter().filter(|r| r.success).count();
+    let failed = results.len() - successful;
+
+    let summary = BatchSummary {
+        total: results.len(),
+        successful,
+        failed,
+        total_time_ms: total_time,
+        cache_hits: cache_hits.load(Ordering::Relaxed) as usize,
+        cache_misses: cache_misses.load(Ordering::Relaxed) as usize,
+    };
+
+    info!(
+        total = results.len(),
+        successful = successful,
+        failed = failed,
+        total_time_ms = total_time,
+        cache_hits = summary.cache_hits,
+        cache_misses = summary.cache_misses,
+        "Batch processing completed"
+    );
+
+    let response = BatchSuccessResponse {
+        success: true,
+        results,
+        summary,
+    };
+
+    (StatusCode::OK, Json(response)).into_response()
+}
+
+// Función auxiliar para procesar un código individual (reutiliza lógica de generate_handler)
+async fn process_single_barcode(
+    request: BarcodeRequest,
+    cache: &GenerationCache,
+    cache_hits: &Arc<AtomicU64>,
+    cache_misses: &Arc<AtomicU64>,
+) -> Result<(String, bool), String> {
+    // Mapear tipo de código
+    let mapped_barcode_type = match request.barcode_type.to_lowercase().as_str() {
+        "qr" => "qrcode",
+        other => other,
+    }.to_string();
+
+    let actual_options = request.options.unwrap_or_default();
+
+    let cache_key = CacheKey {
+        barcode_type: mapped_barcode_type.clone(),
+        data: request.data.clone(),
+        options: actual_options.clone(),
+    };
+
+    // Verificar caché
+    if let Some(cached_svg) = cache.get(&cache_key) {
+        cache_hits.fetch_add(1, Ordering::Relaxed);
+        return Ok((cached_svg, true));
+    }
+
+    cache_misses.fetch_add(1, Ordering::Relaxed);
+
+    // Generar código
+    let generation_result = rust_generator::generate_code(
+        &mapped_barcode_type,
+        &request.data,
+        actual_options.scale,
+        actual_options.ecl.as_deref(),
+        actual_options.height,
+        actual_options.includetext,
+        actual_options.fgcolor.as_deref(),
+        actual_options.bgcolor.as_deref(),
+    );
+
+    match generation_result {
+        Ok(svg_string) => {
+            // Guardar en caché
+            cache.put(&cache_key, svg_string.clone());
+            Ok((svg_string, false))
+        }
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 // Endpoint de estado del servicio con métricas en tiempo real

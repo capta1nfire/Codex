@@ -1,6 +1,6 @@
 import { FullConfig } from '@playwright/test';
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup(_config: FullConfig) {
   console.log('🚀 Starting E2E Test Setup...');
 
   // Wait for backend to be ready

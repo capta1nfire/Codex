@@ -3,14 +3,15 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { RefreshCw } from 'lucide-react';
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
+// } from '@/components/ui/table';
 
 // --- Interfaces ajustadas para coincidir con la respuesta real de Rust ---
 
@@ -50,12 +51,12 @@ const formatDuration = (ms: number | null | undefined): string => {
 };
 
 // Helper para formatear tamaño (maneja null)
-const formatSize = (bytes: number | null | undefined): string => {
-  if (bytes === null || bytes === undefined || isNaN(bytes)) return '-';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
+// const formatSize = (bytes: number | null | undefined): string => {
+//   if (bytes === null || bytes === undefined || isNaN(bytes)) return '-';
+//   if (bytes < 1024) return `${bytes} B`;
+//   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+//   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+// };
 
 // Helper para formatear porcentaje (maneja null/undefined)
 const formatPercentage = (rate: number | null | undefined): string => {
@@ -104,22 +105,25 @@ export default function RustAnalyticsDisplay() {
   }, [isLoading]);
 
   return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle>Análisis de Rendimiento (Servicio Rust)</CardTitle>
+    <Card className="h-fit">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <RefreshCw className="h-5 w-5" />
+          Análisis de Rendimiento (Servicio Rust)
+        </CardTitle>
         <CardDescription>
           Métricas de caché y rendimiento de generación de códigos. Actualizado cada 60s.
-          {/* Usar 'timestamp' en lugar de 'last_updated_at' */}
-          {analyticsData &&
-            ` Última act: ${new Date(analyticsData.timestamp).toLocaleTimeString()}`}
+          {analyticsData && (
+            <span className="block text-xs mt-1">
+              Última act: {new Date(analyticsData.timestamp).toLocaleTimeString()}
+            </span>
+          )}
         </CardDescription>
-        {/* Usar text-destructive para error */}
         {error && !isLoading && <p className="mt-2 text-sm text-destructive">Error: {error}</p>}
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex justify-center items-center h-40">
-            {/* Usar text-muted-foreground para carga */}
+          <div className="flex justify-center items-center h-32">
             <p className="text-muted-foreground animate-pulse">
               Cargando análisis de rendimiento...
             </p>
@@ -127,84 +131,91 @@ export default function RustAnalyticsDisplay() {
         ) : !analyticsData ? (
           <></>
         ) : (
-          <div className="space-y-6">
-            {/* Sección de Estadísticas Globales (usando 'overall') */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Estadísticas Globales (Overall)</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  {/* Usar text-muted-foreground */}
-                  <span className="font-medium text-muted-foreground">
-                    Peticiones Totales:
-                  </span>{' '}
+          <div className="space-y-3">
+            {/* Main Stats - Estilo CacheMetrics */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center p-2 bg-muted/50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">
                   {analyticsData.overall.total_requests}
                 </div>
-                <div>
-                  {/* Usar text-muted-foreground */}
-                  <span className="font-medium text-muted-foreground">Cache Hit Rate:</span>{' '}
+                <div className="text-xs text-muted-foreground">Peticiones Totales</div>
+                <div className="mt-1">
+                  <RefreshCw className="h-4 w-4 text-blue-600 mx-auto" />
+                </div>
+              </div>
+              
+              <div className="text-center p-2 bg-muted/50 rounded-lg">
+                <div className={`text-2xl font-bold ${analyticsData.overall.cache_hit_rate_percent >= 50 ? 'text-green-600' : 'text-yellow-600'}`}>
                   {formatPercentage(analyticsData.overall.cache_hit_rate_percent)}
                 </div>
-                <div>
-                  {/* Usar text-muted-foreground */}
-                  <span className="font-medium text-muted-foreground">Ø Duración Resp.:</span>{' '}
-                  {formatDuration(analyticsData.overall.avg_response_ms)}
+                <div className="text-xs text-muted-foreground">Tasa de Acierto</div>
+                <div className="mt-1">
+                  {analyticsData.overall.cache_hit_rate_percent >= 50 ? (
+                    <div className="w-2 h-2 bg-green-500 rounded-full mx-auto"></div>
+                  ) : (
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full mx-auto"></div>
+                  )}
                 </div>
-                <div>
-                  {/* Usar text-muted-foreground */}
-                  <span className="font-medium text-muted-foreground">
-                    Máx Duración Resp.:
-                  </span>{' '}
-                  {formatDuration(analyticsData.overall.max_response_ms)}
-                </div>
-                {/* Podríamos añadir más datos de 'overall' si los hubiera */}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            {/* Sección de Rendimiento por Tipo (usando 'by_barcode_type') */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Rendimiento por Tipo de Código</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead className="text-right">Hits</TableHead>
-                      <TableHead className="text-right">Misses</TableHead>
-                      <TableHead className="text-right">Hit Rate</TableHead>
-                      <TableHead className="text-right">Ø Dur. Hit</TableHead>
-                      <TableHead className="text-right">Ø Dur. Miss</TableHead>
-                      <TableHead className="text-right">Ø Tamaño</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {/* Usar 'by_barcode_type' y acceder a sus propiedades */}
-                    {Object.entries(analyticsData.by_barcode_type).map(([type, stats]) => (
-                      <TableRow key={type}>
-                        <TableCell className="font-medium">{type}</TableCell>
-                        <TableCell className="text-right">{stats.hit_count}</TableCell>
-                        <TableCell className="text-right">{stats.miss_count}</TableCell>
-                        <TableCell className="text-right">
-                          {formatPercentage(stats.cache_hit_rate_percent)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-xs">
-                          {formatDuration(stats.avg_cache_hit_ms)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-xs">
-                          {formatDuration(stats.avg_generation_ms)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-xs">
-                          {formatSize(stats.avg_data_size)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+            {/* Performance Stats compacto */}
+            <div className="pt-3 border-t">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium text-sm">Rendimiento</h4>
+                <RefreshCw className="h-4 w-4 text-muted-foreground" />
+              </div>
+              
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Respuesta Prom:</span>
+                  <span className="font-mono">{formatDuration(analyticsData.overall.avg_response_ms)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Respuesta Máx:</span>
+                  <span className="font-mono">{formatDuration(analyticsData.overall.max_response_ms)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Eficiencia Cache:</span>
+                  <span className="font-mono">{analyticsData.overall.cache_hit_rate_percent.toFixed(1)}%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Barcode Types compacto */}
+            <div className="pt-2 border-t">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium text-sm">Por Tipo</h4>
+                <div className="text-xs text-muted-foreground">
+                                      {Object.keys(analyticsData.by_barcode_type).length} tipos
+                </div>
+              </div>
+              
+              <div className="space-y-1 text-xs">
+                {Object.entries(analyticsData.by_barcode_type).slice(0, 3).map(([type, stats]) => (
+                  <div key={type} className="flex justify-between">
+                    <span className="text-muted-foreground font-mono">{type}:</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono">{stats.hit_count + stats.miss_count}</span>
+                      <span className={`font-mono ${stats.cache_hit_rate_percent >= 50 ? 'text-green-600' : 'text-yellow-600'}`}>
+                        {formatPercentage(stats.cache_hit_rate_percent)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Status Indicator compacto */}
+            <div className="pt-2 border-t">
+              <div className="flex items-center gap-2 text-xs">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-muted-foreground">Rust service analytics</span>
+                <span className="ml-auto font-mono text-muted-foreground">
+                  {new Date(analyticsData.timestamp).toLocaleTimeString()}
+                </span>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

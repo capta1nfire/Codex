@@ -5,9 +5,9 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 
 const nextConfig = {
-  experimental: {
-    serverComponentsHmrCache: false,
-  },
+  // Enable modern optimizations
+  reactStrictMode: true,
+  swcMinify: true,
   
   // Image optimization configuration
   images: {

@@ -15,7 +15,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Disclosure, Tab } from '@headlessui/react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+// import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { GenerateFormData } from '@/schemas/generate.schema';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
@@ -251,7 +251,7 @@ export default function GenerationOptions({
   };
 
   return (
-    <TooltipProvider>
+    <div>
       <Disclosure
         as="div"
         defaultOpen
@@ -314,6 +314,6 @@ export default function GenerationOptions({
           </>
         )}
       </Disclosure>
-    </TooltipProvider>
+    </div>
   );
 }

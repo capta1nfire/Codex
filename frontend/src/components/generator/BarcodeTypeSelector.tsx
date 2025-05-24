@@ -29,11 +29,11 @@ const ALL_BARCODE_TYPES = [
 ];
 
 // Lista limitada para usuarios gratuitos
-const BASIC_BARCODE_TYPES = [
-  { value: 'qrcode', label: 'QR Code' },
-  { value: 'code128', label: 'Code 128' },
-  { value: 'ean13', label: 'EAN-13' },
-];
+// const BASIC_BARCODE_TYPES = [
+//   { value: 'qrcode', label: 'QR Code' },
+//   { value: 'code128', label: 'Code 128' },
+//   { value: 'ean13', label: 'EAN-13' },
+// ];
 
 interface BarcodeTypeSelectorProps {
   control: Control<GenerateFormData>;

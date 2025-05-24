@@ -240,6 +240,186 @@ await prisma.\$disconnect();
 
 ---
 
+## ⚙️ **Errores de CI/CD**
+
+### **🔧 Error: Context Access Invalid para NEXT_PUBLIC_BACKEND_URL**
+
+#### **Síntomas**
+```
+Context access might be invalid: NEXT_PUBLIC_BACKEND_URL
+Error en línea 194: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+```
+
+#### **Causa Raíz**
+Las variables que empiezan con `NEXT_PUBLIC_` son **variables públicas** por naturaleza en Next.js y no deberían tratarse como secrets en GitHub Actions. Estas variables se incluyen en el bundle del frontend y son visibles para el cliente.
+
+#### **Solución Implementada** ✅
+
+**1. Problema Principal**: Uso incorrecto de `secrets.NEXT_PUBLIC_BACKEND_URL`
+
+**Antes (incorrecto)**:
+```yaml
+- name: 🏗️ Build Frontend
+  working-directory: ./frontend
+  env:
+    NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}  # ❌ Incorrecto
+  run: npm run build
+```
+
+**Después (correcto)**:
+```yaml
+env:
+  # Variables globales para CI/CD
+  NODE_VERSION: '18'
+  BACKEND_PORT: 3004
+  FRONTEND_PORT: 3000
+  CI_BACKEND_URL: http://localhost:3004
+
+# ...
+
+- name: 🏗️ Build Frontend
+  working-directory: ./frontend
+  env:
+    NEXT_PUBLIC_BACKEND_URL: ${{ env.CI_BACKEND_URL }}  # ✅ Correcto
+  run: npm run build
+```
+
+**2. Mejoras Adicionales**: Centralización de configuración en `.github/workflows/ci.yml`
+
+```yaml
+# ✅ Variables globales centralizadas
+env:
+  NODE_VERSION: '18'
+  BACKEND_PORT: 3004
+  FRONTEND_PORT: 3000
+  CI_BACKEND_URL: http://localhost:3004
+
+# ✅ Uso consistente en todos los jobs
+- name: 🟢 Setup Node.js
+  uses: actions/setup-node@v4
+  with:
+    node-version: ${{ env.NODE_VERSION }}  # Usa variable global
+    cache: 'npm'
+```
+
+#### **Archivos Modificados**
+- `.github/workflows/ci.yml`: Agregadas variables de entorno globales y corregida referencia incorrecta a secrets
+
+#### **Verificación**
+1. El pipeline de CI/CD debe ejecutarse sin warnings de "context access invalid"
+2. El build del frontend debe completarse exitosamente
+3. Las variables de entorno deben ser consistentes en todos los jobs
+
+#### **Prevención**
+- **Nunca usar `secrets.*` para variables `NEXT_PUBLIC_*`** - estas son públicas
+- **Centralizar configuración** en variables de entorno globales del workflow
+- **Documentar URLs** específicas para diferentes entornos (desarrollo, testing, producción)
+
+#### **Buenas Prácticas para Variables CI/CD**
+```yaml
+# ✅ Para variables públicas (accesibles en el cliente)
+env:
+  NEXT_PUBLIC_API_URL: http://localhost:3004
+  
+# ✅ Para secrets reales (tokens, passwords)
+env:
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  DATABASE_PASSWORD: ${{ secrets.DB_PASSWORD }}
+```
+
+---
+
+## 🎯 **Production Readiness Checker**
+
+### **🚀 Uso del Production Readiness Dashboard**
+
+#### **Propósito**
+Valida automáticamente si el sistema CODEX está listo para lanzamiento a producción mediante una serie de checks críticos.
+
+#### **Checks Implementados**
+1. **API Gateway Health** - Backend responde en < 200ms
+2. **Rust Microservice** - Servicio de generación responde en < 100ms
+3. **Database Connection** - PostgreSQL responde en < 50ms (verificado vía health endpoint)
+4. **Cache Performance** - Hit rate > 20% (desarrollo), > 50% (producción)
+5. **Load Capacity** - Sistema maneja 10+ requests simultáneas
+6. **Error Rate** - Tasa de errores < 5% para requests válidos
+
+#### **Interpretación de Resultados**
+- **✅ PASS**: Check aprobado, componente listo para producción
+- **⚠️ WARNING**: Funciona pero puede necesitar optimización
+- **❌ FAIL**: Issue crítico que debe resolverse antes del lanzamiento
+- **🔄 RUNNING**: Check en progreso
+- **⏸️ PENDING**: Check no ejecutado aún
+
+#### **Estados Generales**
+- **Sistema Listo para Producción**: Todos los checks críticos pasaron
+- **No Listo para Producción**: Hay issues críticos sin resolver
+- **Estado Desconocido**: No se han ejecutado los checks
+
+#### **Uso Recomendado**
+```bash
+# Acceder al dashboard
+http://localhost:3000/dashboard
+
+# Ejecutar validación completa antes de cada lanzamiento
+# Revisar warnings para optimizaciones futuras
+# Resolver todos los FAIL antes de salir a producción
+```
+
+#### **Troubleshooting Común**
+
+**Error: "La URL del servicio Rust no está configurada"**
+```bash
+# Verificar variable de entorno
+echo $NEXT_PUBLIC_RUST_SERVICE_URL
+
+# Debería ser: http://localhost:3002
+```
+
+**Error: "Connection timeout"**
+```bash
+# Verificar que todos los servicios estén ejecutándose
+# Backend: npm run dev (puerto 3004)
+# Rust: cargo run (puerto 3002)
+# Frontend: npm run dev (puerto 3000)
+```
+
+**Cache Hit Rate Bajo**
+```bash
+# Generar algunos códigos para poblar cache
+curl -X POST http://localhost:3002/generate \
+  -H "Content-Type: application/json" \
+  -d '{"barcode_type": "qr", "data": "test"}'
+
+# Ejecutar el mismo request varias veces para aumentar hit rate
+```
+
+#### **🔧 Ajustes de Thresholds v2.0**
+
+**Cambios implementados para mayor realismo en desarrollo:**
+
+**Database Connection**
+- **Antes**: Test directo a endpoint auth (fallaba por 401)
+- **Después**: Verifica vía `/health` endpoint que ya testea DB internamente
+- **Resultado**: Detección correcta de estado de BD
+
+**Cache Performance**  
+- **Antes**: Threshold agresivo > 70%
+- **Después**: Realista > 20% (desarrollo), > 50% (producción)
+- **Justificación**: Sistemas nuevos típicamente tienen cache hit rate bajo inicialmente
+
+**Error Rate**
+- **Antes**: Test con requests inválidos esperando errores (confuso)
+- **Después**: Solo requests válidos, threshold < 5%
+- **Justificación**: Error rate debe medir fallas del sistema, no validación de inputs
+
+**Cache Hit Rate (Ajuste Final)**
+- **Antes**: 0% cache = FAIL (demasiado estricto)
+- **Después**: 0% cache = WARNING (realista para sistemas nuevos)
+- **Justificación**: Sistemas recién iniciados naturalmente tienen cache vacío
+
+---
+
 ## 🔍 **Debugging Tips**
 
 ### **Logs del Backend**

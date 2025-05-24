@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import BarcodeDisplay from './BarcodeDisplay';
 import { generateFormSchema, GenerateFormData } from '@/schemas/generate.schema';
-import { useAuth } from '@/context/AuthContext';
+// import { useAuth } from '@/context/AuthContext';
 import { Download, Printer } from 'lucide-react';
 import BarcodeTypeSelector from '@/components/generator/BarcodeTypeSelector';
 import GenerationOptions from '@/components/generator/GenerationOptions';
