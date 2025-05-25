@@ -110,7 +110,7 @@ export default function RustAnalyticsDisplay() {
   }, [isLoading]);
 
   return (
-    <Card className="h-fit group/main hover:shadow-md hover:shadow-primary/5 transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
+    <Card className="h-full group/main hover:shadow-md hover:shadow-primary/5 transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-lg group-hover/main:text-primary transition-colors duration-200">
           <RefreshCw className="h-5 w-5 transition-transform duration-200 group-hover/main:scale-110" />
@@ -139,29 +139,23 @@ export default function RustAnalyticsDisplay() {
           <div className="space-y-3">
             {/* Main Stats - Más enfocado en métricas clave */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-3 bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-950/20 dark:to-slate-900/30 rounded-lg border border-slate-200/40 hover:border-slate-300/60 transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 group/requests">
-                <div className="text-2xl font-bold text-slate-700 dark:text-slate-300 group-hover/requests:text-slate-800 dark:group-hover/requests:text-slate-200 transition-all duration-200 group-hover/requests:scale-105">
+              <div className="text-center p-3 bg-gradient-to-br from-slate-50/30 to-slate-100/30 dark:from-slate-950/10 dark:to-slate-900/20 rounded-lg border border-border/30 hover:border-border/50 transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 group/requests">
+                <div className="text-2xl font-bold text-foreground group-hover/requests:text-foreground transition-all duration-200 group-hover/requests:scale-105">
                   {analyticsData.overall.total_requests}
                 </div>
-                <div className="text-xs text-slate-600/60 dark:text-slate-400/60 mb-2 transition-colors duration-200 group-hover/requests:text-slate-700 dark:group-hover/requests:text-slate-300">Peticiones Totales</div>
+                <div className="text-xs text-muted-foreground/70 mb-2">Peticiones Totales</div>
                 <div className="flex justify-center">
-                  <RefreshCw className="h-4 w-4 text-slate-600 dark:text-slate-400 transition-transform duration-200 group-hover/requests:scale-110" />
+                  <RefreshCw className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover/requests:scale-110" />
                 </div>
               </div>
               
-              <div className="text-center p-3 bg-gradient-to-br from-blue-50/50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/30 rounded-lg border border-blue-200/40 hover:border-blue-300/60 transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 group/cache">
-                <div className={`text-2xl font-bold transition-all duration-200 group-hover/cache:scale-105 ${analyticsData.overall.cache_hit_rate_percent >= 70 ? 'text-green-600' : analyticsData.overall.cache_hit_rate_percent >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+              <div className="text-center p-3 bg-gradient-to-br from-slate-50/30 to-slate-100/30 dark:from-slate-950/10 dark:to-slate-900/20 rounded-lg border border-border/30 hover:border-border/50 transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 group/cache">
+                <div className="text-2xl font-bold text-foreground transition-all duration-200 group-hover/cache:scale-105">
                   {formatPercentage(analyticsData.overall.cache_hit_rate_percent)}
                 </div>
-                <div className="text-xs text-blue-600/60 dark:text-blue-400/60 mb-2 transition-colors duration-200 group-hover/cache:text-blue-700 dark:group-hover/cache:text-blue-300">Eficiencia Cache</div>
+                <div className="text-xs text-muted-foreground/70 mb-2">Eficiencia Cache</div>
                 <div className="flex justify-center">
-                  {analyticsData.overall.cache_hit_rate_percent >= 70 ? (
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse transition-transform duration-200 group-hover/cache:scale-125"></div>
-                  ) : analyticsData.overall.cache_hit_rate_percent >= 50 ? (
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse transition-transform duration-200 group-hover/cache:scale-125"></div>
-                  ) : (
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse transition-transform duration-200 group-hover/cache:scale-125"></div>
-                  )}
+                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse transition-transform duration-200 group-hover/cache:scale-125"></div>
                 </div>
               </div>
             </div>
@@ -206,17 +200,17 @@ export default function RustAnalyticsDisplay() {
                   <div key={type} className="flex justify-between p-1 rounded transition-colors duration-200 group-hover/distribution:bg-muted/20">
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full transition-transform duration-200 group-hover/distribution:scale-125 ${
-                        index === 0 ? 'bg-blue-500 animate-pulse' :
-                        index === 1 ? 'bg-emerald-500 animate-pulse' :
-                        'bg-amber-500 animate-pulse'
+                        index === 0 ? 'bg-slate-400 animate-pulse' :
+                        index === 1 ? 'bg-slate-500 animate-pulse' :
+                        'bg-slate-600 animate-pulse'
                       }`}></div>
                       <span className="text-muted-foreground font-mono transition-colors duration-200 group-hover/distribution:text-foreground/80">{type}:</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-mono transition-colors duration-200 group-hover/distribution:text-primary">{stats.hit_count + stats.miss_count} req</span>
-                      <span className="font-mono text-green-600 transition-colors duration-200 group-hover/distribution:text-green-700">{stats.hit_count}</span>
+                      <span className="font-mono text-muted-foreground transition-colors duration-200 group-hover/distribution:text-foreground/80">{stats.hit_count}</span>
                       <span className="text-muted-foreground transition-colors duration-200 group-hover/distribution:text-foreground/60">/</span>
-                      <span className="font-mono text-red-600 transition-colors duration-200 group-hover/distribution:text-red-700">{stats.miss_count}</span>
+                      <span className="font-mono text-muted-foreground transition-colors duration-200 group-hover/distribution:text-foreground/80">{stats.miss_count}</span>
                     </div>
                   </div>
                 ))}
@@ -226,7 +220,7 @@ export default function RustAnalyticsDisplay() {
             {/* Status Indicator compacto */}
             <div className="p-2 rounded-lg bg-gradient-to-br from-card/50 to-card/80 hover:from-card/80 hover:to-card/100 border border-border/40 hover:border-border/60 transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 group/status">
               <div className="flex items-center gap-2 text-xs">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse transition-transform duration-200 group-hover/status:scale-125"></div>
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse transition-transform duration-200 group-hover/status:scale-125"></div>
                 <span className="text-muted-foreground transition-colors duration-200 group-hover/status:text-foreground/70">Rust service analytics</span>
                 {isMounted && analyticsData && (
                   <span className="ml-auto font-mono text-muted-foreground transition-colors duration-200 group-hover/status:text-primary">

@@ -176,6 +176,11 @@ cd rust_generator && cargo run  # Puerto 3002 (CORRECTED)
 - ✅ **ENTERPRISE**: Validación post-acción y health checks automáticos
 - ✅ **ENTERPRISE**: Nuevos endpoints de status y health-check forzado
 - ✅ **ENTERPRISE**: Frontend con feedback visual en tiempo real de acciones
+- ✅ **DASHBOARD**: Implementado layout de 3 columnas con altura forzada igual
+- ✅ **DASHBOARD**: Sistema de modo avanzado con configuración de servicios
+- ✅ **DASHBOARD**: Cache clearing integrado en CacheMetricsPanel
+- ✅ **DASHBOARD**: Esquema de colores neutral (no corporativo)
+- ✅ **DOCKER**: Corregida configuración AlertManager webhook
 
 ### **🎯 Próximos Pasos Autorizados** (según CODEX.md)
 - [ ] Integración activa de Redis Cache
@@ -183,6 +188,44 @@ cd rust_generator && cargo run  # Puerto 3002 (CORRECTED)
 - [ ] Mejoras de performance (índices BD, alertas)
 - [ ] Más simbologías + GS1 Digital Link
 - [ ] Panel de analíticas básicas
+
+### **📊 Dashboard - Partes Críticas Implementadas**
+
+#### **Layout de 3 Columnas con Altura Forzada**
+```typescript
+// frontend/src/app/dashboard/page.tsx - ESTRUCTURA CRÍTICA
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+  <div className="h-full"><SystemStatus isAdvancedMode={isAdvancedMode} /></div>
+  <div className="h-full"><CacheMetricsPanel isAdvancedMode={isAdvancedMode} /></div>
+  <div className="h-full"><RustAnalyticsDisplay /></div>
+</div>
+```
+
+#### **Sistema de Modo Avanzado**
+- **Estado centralizado**: `isAdvancedMode` en dashboard principal
+- **Props drilling controlado**: Solo a componentes que necesitan funcionalidad avanzada
+- **Controla**: Botones configuración, acciones destructivas, control servicios
+
+#### **Cache Clearing Integration**
+```typescript
+// CacheMetricsPanel.tsx - ENDPOINT CRÍTICO
+const handleClearCache = async () => {
+  await fetch(`${rustUrl}/cache/clear`, { method: 'POST' });
+  setTimeout(() => fetchCacheStats(), 1000); // Refresco automático
+};
+```
+
+#### **Configuración de Altura Forzada**
+- **SystemStatus**: `w-full h-full` (removido max-w-4xl mx-auto)  
+- **CacheMetricsPanel**: `h-full` en todos los estados (loading, normal, sin datos)
+- **RustAnalyticsDisplay**: `h-full` en Card raíz
+- **Grid**: `items-stretch` garantiza altura igual entre columnas
+
+#### **Variables de Entorno Críticas**
+```bash
+NEXT_PUBLIC_BACKEND_URL=http://localhost:3004    # Health checks + control servicios
+NEXT_PUBLIC_RUST_SERVICE_URL=http://localhost:3002  # Cache clearing + analytics
+```
 
 ---
 
@@ -474,6 +517,35 @@ POST /api/services/{service}/{action} # Acciones con detalles mejorados
 3. **Database no inicia**: Auto-creación vía docker-compose
 4. **Procesos zombies**: Limpieza inteligente con SIGTERM → SIGKILL
 5. **Feedback user**: Estados visuales inmediatos en dashboard
+6. **🛡️ DATABASE PROTECTION**: Stop/restart bloqueados para estabilidad del sistema
+
+#### **🛡️ PROTECCIÓN DE BASE DE DATOS** (CRÍTICO - NUEVA IMPLEMENTACIÓN)
+
+**PROBLEMA RESUELTO**: Al detener el backend también se detenía la base de datos, causando inestabilidad del sistema.
+
+**CAMBIOS IMPLEMENTADOS**:
+1. **Backend API Protection**:
+   - ✅ `POST /api/services/database/stop` → Bloqueado con mensaje informativo
+   - ✅ `POST /api/services/database/restart` → Bloqueado para evitar downtime 
+   - ✅ `POST /api/services/database/start` → Permitido (solo inicia si está detenida)
+
+2. **Frontend UI Protection**:
+   - ✅ Botones Stop/Restart de Database **ocultos** en `SystemStatus.tsx`
+   - ✅ Solo se muestra botón **Start** para Database
+   - ✅ Otros servicios (Backend/Rust) mantienen todos los botones
+
+3. **Arquitectura Mantenida**:
+   - ✅ Database (Docker) independiente del Backend (Node.js)
+   - ✅ Base de datos persiste cuando backend se detiene/reinicia
+   - ✅ Integridad del sistema preservada
+
+**ARCHIVOS MODIFICADOS**:
+```
+backend/src/index.ts              # API endpoints protegidos
+frontend/src/components/SystemStatus.tsx # UI con botones filtrados
+```
+
+**FILOSOFÍA**: "La base de datos es infraestructura crítica que debe permanecer estable."
 
 ## 🧹 **BUENAS PRÁCTICAS PARA AGENTES IA** (CHECKLIST DE RIGOR)
 

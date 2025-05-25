@@ -69,6 +69,18 @@
     --input: 210 13% 88%; /* Usar mismo que borde o ligeramente diferente */
     --ring: 210 53% 36%; /* Usar primario para ring */
     --radius: 0.5rem; /* Mantener radio */
+
+    /* ✅ CODEX Design System v2.0 - Corporate Blue Tokens */
+    --corporate-blue-50: 210 53% 95%;
+    --corporate-blue-100: 210 53% 90%;
+    --corporate-blue-200: 210 53% 80%;
+    --corporate-blue-300: 210 53% 70%;
+    --corporate-blue-400: 210 53% 60%;
+    --corporate-blue-500: 210 53% 50%;
+    --corporate-blue-600: 210 53% 40%;
+    --corporate-blue-700: 210 53% 30%;
+    --corporate-blue-800: 210 53% 20%;
+    --corporate-blue-950: 210 53% 10%;
   }
 
   .dark {
@@ -96,6 +108,18 @@
     --border: 210 9% 30%;
     --input: 210 9% 30%; /* Usar mismo que borde */
     --ring: 210 53% 66%; /* Usar primario claro para ring */
+
+    /* ✅ CODEX Design System v2.0 - Corporate Blue Tokens Dark Mode */
+    --corporate-blue-50: 210 53% 10%;
+    --corporate-blue-100: 210 53% 15%;
+    --corporate-blue-200: 210 53% 25%;
+    --corporate-blue-300: 210 53% 35%;
+    --corporate-blue-400: 210 53% 45%;
+    --corporate-blue-500: 210 53% 55%;
+    --corporate-blue-600: 210 53% 65%;
+    --corporate-blue-700: 210 53% 75%;
+    --corporate-blue-800: 210 53% 85%;
+    --corporate-blue-950: 210 53% 95%;
   }
 }
 

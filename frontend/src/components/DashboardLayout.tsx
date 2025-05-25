@@ -6,6 +6,7 @@ interface GridArea {
   component: React.ComponentType<any>;
   gridArea: string;
   className?: string;
+  props?: any;
   span?: {
     mobile?: number;
     tablet?: number;
@@ -81,7 +82,7 @@ export default function DashboardLayout({ areas, className = '' }: DashboardLayo
             `}
             
             >
-              <Component />
+              <Component {...(area.props || {})} />
             </div>
         );
       })}

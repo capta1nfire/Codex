@@ -28,24 +28,11 @@ receivers:
   webhook_configs:
   - url: 'http://127.0.0.1:5001/critical'
     send_resolved: true
-    title: 'CRÍTICO: {{ .GroupLabels.alertname }}'
-    text: |
-      {{ range .Alerts }}
-      Alerta: {{ .Annotations.summary }}
-      Descripción: {{ .Annotations.description }}
-      Severidad: {{ .Labels.severity }}
-      {{ end }}
 
 - name: 'warning-alerts'
   webhook_configs:
   - url: 'http://127.0.0.1:5001/warning'
     send_resolved: true
-    title: 'ADVERTENCIA: {{ .GroupLabels.alertname }}'
-    text: |
-      {{ range .Alerts }}
-      Alerta: {{ .Annotations.summary }}
-      Descripción: {{ .Annotations.description }}
-      {{ end }}
 
 # Configuración de inhibición (evitar spam)
 inhibit_rules:

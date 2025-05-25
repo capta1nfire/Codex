@@ -57,6 +57,19 @@ module.exports = {
           DEFAULT: 'hsl(var(--warning))',
           foreground: 'hsl(var(--warning-foreground))',
         },
+        // ✅ CODEX Design System v2.0 - Corporate Blue Palette
+        'corporate-blue': {
+          50: 'hsl(var(--corporate-blue-50))',
+          100: 'hsl(var(--corporate-blue-100))',
+          200: 'hsl(var(--corporate-blue-200))',
+          300: 'hsl(var(--corporate-blue-300))',
+          400: 'hsl(var(--corporate-blue-400))',
+          500: 'hsl(var(--corporate-blue-500))',
+          600: 'hsl(var(--corporate-blue-600))',
+          700: 'hsl(var(--corporate-blue-700))',
+          800: 'hsl(var(--corporate-blue-800))',
+          950: 'hsl(var(--corporate-blue-950))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

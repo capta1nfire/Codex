@@ -40,7 +40,7 @@ import { fileURLToPath } from 'url';
 // Importar Sentry con configuración básica
 import * as Sentry from "@sentry/node";
 // Importar funciones de control de servicios
-import { startDatabaseService, stopDatabaseService, startRustService, stopRustService, restartBackendService, getServiceStatus } from './services/serviceControl.js';
+import { startDatabaseService, startRustService, stopRustService, restartBackendService, getServiceStatus } from './services/serviceControl.js';
 
 // Obtener __dirname en ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -170,6 +170,7 @@ app.post('/api/services/:service/start', async (req: Request, res: Response) => 
     let result;
     switch (service.toLowerCase()) {
       case 'database':
+        // Only allow starting database if it's stopped, never stop it
         result = await startDatabaseService();
         break;
       case 'backend':
@@ -215,7 +216,7 @@ app.post('/api/services/:service/stop', async (req: Request, res: Response) => {
     let result;
     switch (service.toLowerCase()) {
       case 'database':
-        result = await stopDatabaseService();
+        result = { message: 'Database stop not supported (would affect system stability). Use Docker commands directly if needed.' };
         break;
       case 'backend':
         result = { message: 'Backend stop not supported (would stop current process)' };
@@ -260,8 +261,7 @@ app.post('/api/services/:service/restart', async (req: Request, res: Response) =
     let result;
     switch (service.toLowerCase()) {
       case 'database':
-        await stopDatabaseService();
-        result = await startDatabaseService();
+        result = { message: 'Database restart not supported via API (would affect system stability). Database should remain running for system integrity.' };
         break;
       case 'backend':
         result = await restartBackendService();
