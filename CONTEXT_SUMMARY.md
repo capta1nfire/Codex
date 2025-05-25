@@ -167,6 +167,9 @@ cd rust_generator && cargo run  # Puerto 3002 (CORRECTED)
 - ✅ **CRÍTICO**: Resueltos conflictos de puertos (3001 vs 3004)
 - ✅ **CRÍTICO**: Creada fuente única de verdad en CODEX.md
 - ✅ **CRÍTICO**: Scripts de desarrollo funcionando al 100%
+- ✅ **NUEVO**: Enhanced dev.sh v1.2.0 con auto-cleanup de procesos duplicados
+- ✅ **NUEVO**: Solucionado problema recurrente de Rust Generator puerto ocupado
+- ✅ **NUEVO**: Integrado sistema inteligente de limpieza por puerto y nombre de proceso
 
 ### **🎯 Próximos Pasos Autorizados** (según CODEX.md)
 - [ ] Integración activa de Redis Cache
@@ -249,6 +252,41 @@ import { rateLimitMiddleware } from '@/middleware/rateLimitMiddleware';
 2. **DRY (Don't Repeat Yourself)**: Evitar duplicación en código y docs
 3. **YAGNI (You Aren't Gonna Need It)**: No sobre-ingeniería
 4. **Documentation as Code**: Docs viven con el código
+
+### **🎨 FILOSOFÍA DE DISEÑO: "CLEAN GLOBAL PRODUCTIVITY"**
+
+> **📋 REGLA DE ORO**: Antes de realizar **CUALQUIER** cambio visual, consultar `docs/CODEX_DESIGN_SYSTEM.md`
+
+#### **🌍 Principios de Diseño Global**
+- **Neutralidad cultural**: Evitar sesgos visuales regionales
+- **Profesionalismo**: Balance sofisticación/simplicidad  
+- **Escalabilidad**: Decisiones que funcionen a largo plazo
+- **Coherencia**: Una interfaz, un lenguaje visual
+
+#### **🚫 PROHIBIDO - Crear elementos visuales sin consultar:**
+- ❌ Nuevos colores o variantes no documentadas
+- ❌ Componentes UI desde cero sin revisar el sistema
+- ❌ Cambios tipográficos arbitrarios
+- ❌ Espaciados o shadows inventados
+- ❌ Iconografía que no sea Lucide React
+
+#### **✅ OBLIGATORIO - Siempre seguir:**
+- ✅ **Tokens de diseño**: Usar variables CSS definidas (--primary, --spacing-*, etc.)
+- ✅ **Componentes modulares**: Reutilizar Button, Input, Card con sus variants
+- ✅ **Paleta "Qwen Professional"**: Mantener neutralidad cultural
+- ✅ **Consistencia visual**: Cada pixel debe alinearse con el sistema
+- ✅ **Iconografía Lucide**: Única fuente autorizada, tamaños estandarizados
+
+#### **🔧 FLUJO DE TRABAJO VISUAL OBLIGATORIO**
+```
+1. 📖 Consultar docs/CODEX_DESIGN_SYSTEM.md
+2. 🔍 Buscar componente/token existente
+3. 🎯 Usar variant apropiada
+4. ⚠️  Si no existe → Proponer extensión del sistema
+5. 🚫 NUNCA crear soluciones ad-hoc
+```
+
+> **🎯 PARA NUEVOS AGENTES**: Si no has leído el Design System, **STOP**. Ve primero a `docs/CODEX_DESIGN_SYSTEM.md` antes de tocar cualquier componente visual. La consistencia visual es **sagrada** en CODEX.
 
 ### **🚀 Objetivos de Calidad**
 - **Build**: 100% exitoso siempre
@@ -374,10 +412,15 @@ Redis:       6379  # Cache
 npm run dev
 ```
 
-**🎯 Estado de Scripts (Post-Fix v1.1.1):**
-- `./dev.sh`: ✅ Inicia 3/3 servidores + monitoreo + logs
+**🎯 Estado de Scripts (Post-Fix v1.2.0):**
+- `./dev.sh`: ✅ Inicia 3/3 servidores + monitoreo + logs + **AUTO-CLEANUP** (ENHANCED)
 - `./dev-start.sh`: ⚠️ Inicia 2-3/3 servidores (ocasionales fallos)
 - `npm run dev`: ⚠️ Inicia 1-2/3 servidores (conflictos concurrently)
+
+### **🚀 NUEVA CARACTERÍSTICA v1.2.0**: Auto-cleanup de procesos duplicados
+```bash
+# ✨ AUTOMÁTICO: El script ahora limpia procesos anteriores antes de iniciar
+./dev.sh  # Mata procesos en puertos 3000,3002,3004 + rust_generator + next/tsx duplicados
 ```
 
 ## 🧹 **BUENAS PRÁCTICAS PARA AGENTES IA** (CHECKLIST DE RIGOR)
@@ -427,6 +470,15 @@ npm run dev
 - [ ] ✅ **Scripts de desarrollo**: Probar `./dev.sh` o comando principal
 - [ ] ✅ **URLs de desarrollo**: Verificar que servicios arrancan en puertos correctos
 - [ ] ✅ **Documentación actualizada**: Revisar que info en docs coincide con realidad
+
+#### **💾 7. GUARDADO EN REPOSITORIO REMOTO**
+- [ ] ✅ **Verificar git status**: `git status` - revisar archivos modificados
+- [ ] ✅ **Agregar cambios**: `git add .` - stagear archivos modificados
+- [ ] ✅ **Commit descriptivo**: `git commit -m "descripción clara de cambios"`
+- [ ] ✅ **Push al remoto**: `git push` - salvaguardar trabajo en repositorio
+- [ ] ✅ **Verificar push exitoso**: Confirmar que no hubo conflictos
+
+> **🚨 IMPORTANTE**: Solo ejecutar paso 7 si pasos 1-6 están completamente exitosos y NO hay errores de linters, builds o tests.
 
 ### **🚨 SITUACIONES QUE REQUIEREN ESTE CHECKLIST**
 

@@ -2,7 +2,7 @@
 
 # 🚀 Codex Project - Enhanced Development Server Manager
 # Autor: Codex Team
-# Versión: 1.1.1 (Fixed zsh compatibility)
+# Versión: 1.2.0 (Auto-cleanup de procesos duplicados)
 
 # Colores para output
 RED='\033[0;31m'
@@ -23,7 +23,7 @@ echo " ██║     ██║   ██║██║  ██║██╔══╝
 echo " ╚██████╗╚██████╔╝██████╔╝███████╗██╔╝ ██╗"
 echo "  ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝"
 echo -e "${NC}"
-echo -e "${WHITE}🚀 Development Server Manager v1.1.0${NC}"
+echo -e "${WHITE}🚀 Development Server Manager v1.2.0${NC}"
 echo -e "${CYAN}=================================================${NC}"
 
 # Variables
@@ -32,6 +32,97 @@ LOG_DIR="logs"
 
 # Crear directorio de logs si no existe
 mkdir -p $LOG_DIR
+
+# Función de limpieza previa (NUEVA)
+cleanup_previous_processes() {
+    echo -e "${YELLOW}🧹 Limpiando procesos anteriores...${NC}"
+    
+    local killed_any=false
+    
+    # Buscar y matar procesos en puertos específicos
+    echo -e "${BLUE}🔍 Buscando procesos en puertos 3000, 3002, 3004...${NC}"
+    
+    # Puerto 3000 (Frontend)
+    local port_3000_pids=$(lsof -ti :3000 2>/dev/null)
+    if [ ! -z "$port_3000_pids" ]; then
+        echo -e "${CYAN}   • Matando procesos en puerto 3000: $port_3000_pids${NC}"
+        kill -TERM $port_3000_pids 2>/dev/null
+        killed_any=true
+    fi
+    
+    # Puerto 3002 (Rust)
+    local port_3002_pids=$(lsof -ti :3002 2>/dev/null)
+    if [ ! -z "$port_3002_pids" ]; then
+        echo -e "${CYAN}   • Matando procesos en puerto 3002: $port_3002_pids${NC}"
+        kill -TERM $port_3002_pids 2>/dev/null
+        killed_any=true
+    fi
+    
+    # Puerto 3004 (Backend)
+    local port_3004_pids=$(lsof -ti :3004 2>/dev/null)
+    if [ ! -z "$port_3004_pids" ]; then
+        echo -e "${CYAN}   • Matando procesos en puerto 3004: $port_3004_pids${NC}"
+        kill -TERM $port_3004_pids 2>/dev/null
+        killed_any=true
+    fi
+    
+    # Buscar procesos por nombre específico
+    echo -e "${BLUE}🔍 Buscando procesos CODEX por nombre...${NC}"
+    
+    # Procesos rust_generator
+    local rust_pids=$(pgrep -f "rust_generator" 2>/dev/null)
+    if [ ! -z "$rust_pids" ]; then
+        echo -e "${CYAN}   • Matando rust_generator: $rust_pids${NC}"
+        kill -TERM $rust_pids 2>/dev/null
+        killed_any=true
+    fi
+    
+    # Procesos next-server que contengan "Codex Project"
+    local next_pids=$(pgrep -f "Codex.*Project.*next" 2>/dev/null)
+    if [ ! -z "$next_pids" ]; then
+        echo -e "${CYAN}   • Matando next-server (CODEX): $next_pids${NC}"
+        kill -TERM $next_pids 2>/dev/null
+        killed_any=true
+    fi
+    
+    # Procesos node que contengan "tsx watch" para backend
+    local backend_pids=$(pgrep -f "tsx.*watch.*src" 2>/dev/null)
+    if [ ! -z "$backend_pids" ]; then
+        echo -e "${CYAN}   • Matando backend tsx: $backend_pids${NC}"
+        kill -TERM $backend_pids 2>/dev/null
+        killed_any=true
+    fi
+    
+    if [ "$killed_any" = true ]; then
+        echo -e "${YELLOW}   ⏳ Esperando 3 segundos para que terminen gracefully...${NC}"
+        sleep 3
+        
+        # Verificar y forzar si es necesario
+        echo -e "${BLUE}🔍 Verificando procesos restantes...${NC}"
+        
+        # Forzar puertos si siguen ocupados
+        for port in 3000 3002 3004; do
+            local remaining_pids=$(lsof -ti :$port 2>/dev/null)
+            if [ ! -z "$remaining_pids" ]; then
+                echo -e "${RED}   💀 Forzando procesos en puerto $port: $remaining_pids${NC}"
+                kill -KILL $remaining_pids 2>/dev/null
+            fi
+        done
+        
+        # Forzar procesos por nombre si siguen activos
+        local remaining_rust=$(pgrep -f "rust_generator" 2>/dev/null)
+        if [ ! -z "$remaining_rust" ]; then
+            echo -e "${RED}   💀 Forzando rust_generator: $remaining_rust${NC}"
+            kill -KILL $remaining_rust 2>/dev/null
+        fi
+        
+        echo -e "${GREEN}   ✅ Limpieza completada${NC}"
+    else
+        echo -e "${GREEN}   ✅ No se encontraron procesos anteriores${NC}"
+    fi
+    
+    echo ""
+}
 
 # Función de limpieza
 cleanup() {
@@ -150,6 +241,9 @@ start_server() {
 
 # Función principal
 main() {
+    # NUEVA: Limpieza automática de procesos anteriores
+    cleanup_previous_processes
+    
     # Verificaciones
     check_dependencies
     check_structure

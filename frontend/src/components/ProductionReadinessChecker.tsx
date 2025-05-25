@@ -15,7 +15,8 @@ import {
   Zap,
   Database,
   Server,
-  Globe
+  Globe,
+  Shield
 } from 'lucide-react';
 
 interface ReadinessCheck {
@@ -305,45 +306,45 @@ export default function ProductionReadinessChecker() {
   const getStatusBadge = (status: ReadinessCheck['status']) => {
     switch (status) {
       case 'pass':
-        return <Badge className="bg-green-100 text-green-800">PASS</Badge>;
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 transition-all duration-200 hover:bg-green-200 dark:hover:bg-green-900/50">PASS</Badge>;
       case 'fail':
-        return <Badge className="bg-red-100 text-red-800">FAIL</Badge>;
+        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 transition-all duration-200 hover:bg-red-200 dark:hover:bg-red-900/50">FAIL</Badge>;
       case 'warning':
-        return <Badge className="bg-yellow-100 text-yellow-800">WARNING</Badge>;
+        return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 transition-all duration-200 hover:bg-amber-200 dark:hover:bg-amber-900/50">WARNING</Badge>;
       case 'running':
-        return <Badge className="bg-blue-100 text-blue-800">RUNNING</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 transition-all duration-200 hover:bg-blue-200 dark:hover:bg-blue-900/50">RUNNING</Badge>;
       default:
-        return <Badge variant="outline">PENDING</Badge>;
+        return <Badge variant="outline" className="transition-all duration-200 hover:bg-muted/50">PENDING</Badge>;
     }
   };
 
   const getOverallStatusCard = () => {
     if (overallStatus === 'ready') {
       return (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertTitle className="text-green-800">✅ Sistema Listo para Producción</AlertTitle>
-          <AlertDescription className="text-green-700">
+        <Alert className="border-green-200/60 bg-gradient-to-r from-green-50/50 to-emerald-50/30 dark:from-green-950/30 dark:to-emerald-950/20 hover:from-green-50/70 hover:to-emerald-50/50 dark:hover:from-green-950/50 dark:hover:to-emerald-950/40 transition-all duration-200 hover:shadow-md hover:shadow-green-500/10 hover:border-green-300/70 hover:-translate-y-0.5 group/alert">
+          <Shield className="h-4 w-4 text-green-600 transition-transform duration-200 group-hover/alert:scale-110" />
+          <AlertTitle className="text-green-800 dark:text-green-200 font-semibold transition-colors duration-200 group-hover/alert:text-green-900 dark:group-hover/alert:text-green-100">Sistema Listo para Producción</AlertTitle>
+          <AlertDescription className="text-green-700 dark:text-green-300 transition-colors duration-200 group-hover/alert:text-green-800 dark:group-hover/alert:text-green-200">
             Todos los checks críticos han pasado. El sistema está preparado para manejar tráfico de producción.
           </AlertDescription>
         </Alert>
       );
     } else if (overallStatus === 'not-ready') {
       return (
-        <Alert className="border-red-200 bg-red-50">
-          <XCircle className="h-4 w-4 text-red-600" />
-          <AlertTitle className="text-red-800">❌ No Listo para Producción</AlertTitle>
-          <AlertDescription className="text-red-700">
+        <Alert className="border-red-200/60 bg-gradient-to-r from-red-50/50 to-rose-50/30 dark:from-red-950/30 dark:to-rose-950/20 hover:from-red-50/70 hover:to-rose-50/50 dark:hover:from-red-950/50 dark:hover:to-rose-950/40 transition-all duration-200 hover:shadow-md hover:shadow-red-500/10 hover:border-red-300/70 hover:-translate-y-0.5 group/alert">
+          <XCircle className="h-4 w-4 text-red-600 transition-transform duration-200 group-hover/alert:scale-110" />
+          <AlertTitle className="text-red-800 dark:text-red-200 font-semibold transition-colors duration-200 group-hover/alert:text-red-900 dark:group-hover/alert:text-red-100">❌ No Listo para Producción</AlertTitle>
+          <AlertDescription className="text-red-700 dark:text-red-300 transition-colors duration-200 group-hover/alert:text-red-800 dark:group-hover/alert:text-red-200">
             Hay issues críticos que deben resolverse antes del lanzamiento. Revisa los checks que fallaron.
           </AlertDescription>
         </Alert>
       );
     } else {
       return (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Estado Desconocido</AlertTitle>
-          <AlertDescription>
+        <Alert className="border-border/60 bg-gradient-to-r from-muted/30 to-muted/60 dark:from-muted/20 dark:to-muted/40 hover:from-muted/50 hover:to-muted/80 dark:hover:from-muted/40 dark:hover:to-muted/60 transition-all duration-200 hover:shadow-md hover:border-border hover:-translate-y-0.5 group/alert">
+          <AlertTriangle className="h-4 w-4 transition-transform duration-200 group-hover/alert:scale-110 group-hover/alert:text-primary" />
+          <AlertTitle className="font-semibold transition-colors duration-200 group-hover/alert:text-primary">Estado Desconocido</AlertTitle>
+          <AlertDescription className="transition-colors duration-200 group-hover/alert:text-foreground/80">
             Ejecuta los checks de preparación para evaluar si el sistema está listo para producción.
           </AlertDescription>
         </Alert>
@@ -352,16 +353,16 @@ export default function ProductionReadinessChecker() {
   };
 
   return (
-    <Card className="h-fit">
+    <Card className="h-fit group/main hover:shadow-md hover:shadow-primary/5 transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Play className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-lg group-hover/main:text-primary transition-colors duration-200">
+          <Play className="h-5 w-5 transition-transform duration-200 group-hover/main:scale-110" />
           Production Readiness Checker
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="transition-colors duration-200 group-hover/main:text-foreground/70">
           Validación automática de preparación para lanzamiento a producción
           {lastRun && (
-            <span className="block text-xs mt-1">
+            <span className="block text-xs mt-1 text-muted-foreground/80 transition-colors duration-200 group-hover/main:text-muted-foreground">
               Última ejecución: {lastRun.toLocaleTimeString('es-ES')}
             </span>
           )}
@@ -372,21 +373,26 @@ export default function ProductionReadinessChecker() {
           <Button 
             onClick={runAllChecks} 
             disabled={isRunning || !!(cooldownUntil && new Date() < cooldownUntil)}
-            className="flex items-center gap-2"
+            variant={!isRunning && !(cooldownUntil && new Date() < cooldownUntil) ? "default" : "secondary"}
+            className={`flex items-center gap-2 transition-all duration-200 ease-in-out ${
+              !isRunning && !(cooldownUntil && new Date() < cooldownUntil)
+                ? 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-2 border-blue-400 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-1 group/action'
+                : ''
+            }`}
           >
             {isRunning ? (
               <>
-                <RefreshCw className="h-4 w-4 animate-spin" />
+                <RefreshCw className="h-4 w-4 animate-spin transition-transform duration-200" />
                 Ejecutando Checks...
               </>
             ) : cooldownUntil && new Date() < cooldownUntil ? (
               <>
-                <RefreshCw className="h-4 w-4" />
+                <RefreshCw className="h-4 w-4 transition-transform duration-200" />
                 Cooldown ({Math.ceil((cooldownUntil.getTime() - new Date().getTime()) / 1000)}s)
               </>
             ) : (
               <>
-                <Play className="h-4 w-4" />
+                <Play className="h-4 w-4 transition-transform duration-200 group-hover/action:scale-110" />
                 Ejecutar Validación
               </>
             )}
@@ -395,8 +401,8 @@ export default function ProductionReadinessChecker() {
 
         {rateLimitMessage && (
           <div className="mb-6">
-            <div className="p-3 border border-yellow-200 bg-yellow-50 rounded-lg">
-              <p className="text-sm text-yellow-800">{rateLimitMessage}</p>
+            <div className="p-3 border border-amber-200/60 bg-gradient-to-r from-amber-50/50 to-yellow-50/30 dark:from-amber-950/30 dark:to-yellow-950/20 hover:from-amber-50/70 hover:to-yellow-50/50 dark:hover:from-amber-950/50 dark:hover:to-yellow-950/40 rounded-lg transition-all duration-200 hover:shadow-md hover:shadow-amber-500/10 hover:border-amber-300/70 hover:-translate-y-0.5 group/warning">
+              <p className="text-sm text-amber-800 dark:text-amber-200 transition-colors duration-200 group-hover/warning:text-amber-900 dark:group-hover/warning:text-amber-100">⏱️ {rateLimitMessage}</p>
             </div>
           </div>
         )}
@@ -413,34 +419,40 @@ export default function ProductionReadinessChecker() {
             return (
               <div 
                 key={check.name}
-                className="p-4 border rounded-lg bg-card/50 hover:bg-card transition-colors"
+                className="p-4 border rounded-lg bg-gradient-to-br from-card/50 to-card/80 hover:from-card/80 hover:to-card/100 border-border/40 hover:border-border/60 transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 group/check"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <IconComponent className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div className="p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-all duration-200 group-hover/check:scale-105">
+                    <IconComponent className="h-5 w-5 text-muted-foreground transition-all duration-200 group-hover/check:scale-110 group-hover/check:text-primary" />
+                  </div>
                   <div className="flex items-center gap-2">
-                    {getStatusIcon(check.status)}
-                    {getStatusBadge(check.status)}
+                    <div className="transition-transform duration-200 group-hover/check:scale-105">
+                      {getStatusIcon(check.status)}
+                    </div>
+                    <div className="transition-transform duration-200 group-hover/check:scale-105">
+                      {getStatusBadge(check.status)}
+                    </div>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <h4 className="font-medium text-sm leading-tight">{check.name}</h4>
-                  <p className="text-xs text-muted-foreground leading-tight">{check.description}</p>
+                  <h4 className="font-medium text-sm leading-tight group-hover/check:text-primary transition-colors duration-200">{check.name}</h4>
+                  <p className="text-xs text-muted-foreground leading-tight transition-colors duration-200 group-hover/check:text-foreground/70">{check.description}</p>
                   
                   {check.actualValue && (
-                    <div className="text-lg font-mono font-semibold text-primary">
+                    <div className="text-lg font-mono font-semibold text-primary group-hover/check:text-primary/80 transition-colors duration-200">
                       {check.actualValue}
                     </div>
                   )}
                   
                   {check.threshold && (
-                    <p className="text-xs text-muted-foreground border-t pt-2">
+                    <p className="text-xs text-muted-foreground border-t border-border/30 pt-2 transition-colors duration-200 group-hover/check:text-muted-foreground/80 group-hover/check:border-border/50">
                       Target: {check.threshold}
                     </p>
                   )}
                   
                   {check.details && (
-                    <p className="text-xs text-muted-foreground italic">
+                    <p className="text-xs text-muted-foreground/80 italic transition-colors duration-200 group-hover/check:text-muted-foreground">
                       {check.details}
                     </p>
                   )}

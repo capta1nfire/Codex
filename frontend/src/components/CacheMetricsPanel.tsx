@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, TrendingUp, TrendingDown, Zap } from 'lucide-react';
+import { RefreshCw, TrendingUp, TrendingDown, Zap, BarChart3 } from 'lucide-react';
 import axios from 'axios';
 
 interface CacheStats {
@@ -75,16 +75,34 @@ export default function CacheMetricsPanel() {
 
   if (isLoading) {
     return (
-      <Card className="h-fit">
+      <Card className="h-fit group hover:shadow-md transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
         <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <RefreshCw className="h-5 w-5 animate-spin" />
+          <CardTitle className="flex items-center gap-2 text-lg group-hover:text-primary transition-colors duration-200">
+            <RefreshCw className="h-5 w-5 animate-pulse transition-transform duration-200 group-hover:scale-110" />
             Métricas de Cache
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-40">
-            <div className="text-muted-foreground text-sm">Cargando métricas...</div>
+          <div className="flex justify-center items-center h-32">
+            <p className="text-muted-foreground animate-pulse">Cargando métricas...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <Card className="h-fit group hover:shadow-md transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg group-hover:text-primary transition-colors duration-200">
+            <RefreshCw className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+            Métricas de Cache
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">
+            <p className="text-sm">No hay datos de cache disponibles</p>
           </div>
         </CardContent>
       </Card>
@@ -92,79 +110,109 @@ export default function CacheMetricsPanel() {
   }
 
   return (
-    <Card className="h-fit">
+    <Card className="h-fit group hover:shadow-md transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Zap className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-lg group-hover:text-primary transition-colors duration-200">
+          <RefreshCw className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
           Métricas de Cache
         </CardTitle>
-        <CardDescription>
-          Performance de caché Rust
+        <CardDescription className="transition-colors duration-200 group-hover:text-foreground/70">
+          Rendimiento y eficiencia del sistema de caché
           {lastUpdate && (
-            <span className="block text-xs mt-1">
-              Actualizado: {lastUpdate.toLocaleTimeString()}
+            <span className="block text-xs mt-1 text-muted-foreground/80 transition-colors duration-200 group-hover:text-muted-foreground">
+              Última act: {lastUpdate.toLocaleTimeString()}
             </span>
           )}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {stats && (
-          <div className="space-y-3">
-            {/* Main Stats - Más compacto */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-2 bg-muted/50 rounded-lg">
-                <div className={`text-2xl font-bold ${getHitRateColor(stats.hitRate)}`}>
-                  {stats.hitRate.toFixed(1)}%
-                </div>
-                <div className="text-xs text-muted-foreground">Tasa de Acierto</div>
-                <div className="mt-1">{getHitRateBadge(stats.hitRate)}</div>
+        <div className="space-y-4">
+          {/* Main Stats - Enhanced with corporate blue theme and animations */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Hit Rate - Primary Metric */}
+            <div className="text-center p-3 bg-gradient-to-br from-blue-50/50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/30 rounded-lg border border-blue-200/40 hover:border-blue-300/60 transition-all duration-200 group/hit">
+              <div className={`text-2xl font-bold transition-colors duration-200 ${getHitRateColor(stats.hitRate)} group-hover/hit:scale-105 transform transition-transform`}>
+                {stats.hitRate.toFixed(1)}%
               </div>
-              
-              <div className="text-center p-2 bg-muted/50 rounded-lg">
-                <div className="text-2xl font-bold">
-                  {stats.avgResponseTime?.toFixed(1) || 0}ms
-                </div>
-                <div className="text-xs text-muted-foreground">Respuesta Prom</div>
-                <div className="mt-1">
-                  {stats.avgResponseTime < 50 ? (
-                    <TrendingUp className="h-4 w-4 text-green-600 mx-auto" />
-                  ) : (
-                    <TrendingDown className="h-4 w-4 text-yellow-600 mx-auto" />
-                  )}
+              <div className="text-xs text-blue-600/60 dark:text-blue-400/60 mb-2">Hit Rate</div>
+              <div className="flex justify-center items-center gap-2">
+                {stats.hitRate >= 50 ? (
+                  <TrendingUp className="h-4 w-4 text-emerald-600 transition-transform duration-200 group-hover/hit:scale-110" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-600 transition-transform duration-200 group-hover/hit:scale-110" />
+                )}
+                <div className="transition-transform duration-200 group-hover/hit:scale-105">
+                  {getHitRateBadge(stats.hitRate)}
                 </div>
               </div>
             </div>
 
-            {/* Requests Counter y Top Types combinados para ahorrar espacio */}
-            <div className="pt-3 border-t">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-sm">Stats Rápidas</h4>
-                <span className="text-lg font-semibold">{stats.totalRequests}</span>
+            {/* Total Requests */}
+            <div className="text-center p-3 bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-950/20 dark:to-slate-900/30 rounded-lg border border-slate-200/40 hover:border-slate-300/60 transition-all duration-200 group/requests">
+              <div className="text-2xl font-bold text-slate-700 dark:text-slate-300 group-hover/requests:text-slate-800 dark:group-hover/requests:text-slate-200 transition-colors duration-200 group-hover/requests:scale-105 transform transition-transform">
+                {stats.totalRequests.toLocaleString()}
               </div>
+              <div className="text-xs text-slate-600/60 dark:text-slate-400/60 mb-2">Total Requests</div>
+              <div className="flex justify-center">
+                <BarChart3 className="h-4 w-4 text-slate-600 dark:text-slate-400 transition-transform duration-200 group-hover/requests:scale-110" />
+              </div>
+            </div>
+          </div>
+
+          {/* Response Time Card */}
+          <div className="p-3 rounded-lg bg-gradient-to-r from-emerald-50/30 to-green-50/20 dark:from-emerald-950/30 dark:to-green-950/20 border border-emerald-200/50 hover:border-emerald-300/50 transition-all duration-200 hover:shadow-sm group/response">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-emerald-600 transition-transform duration-200 group-hover/response:scale-110" />
+                <span className="text-sm font-medium">Tiempo de Respuesta Promedio</span>
+              </div>
+              <div className="text-lg font-mono font-bold text-emerald-700 dark:text-emerald-300 group-hover/response:text-emerald-800 dark:group-hover/response:text-emerald-200 transition-colors duration-200">
+                {stats.avgResponseTime.toFixed(1)}ms
+              </div>
+            </div>
+          </div>
+
+          {/* Top Types Section - Enhanced */}
+          {stats.topTypes.length > 0 && (
+            <div className="pt-3 border-t border-border/50">
+              <h4 className="text-sm font-medium text-foreground/90 flex items-center gap-2 mb-3">
+                <TrendingUp className="h-4 w-4" />
+                Tipos Más Populares
+              </h4>
               
-              <div className="space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Peticiones Totales:</span>
-                  <span className="font-mono">{stats.totalRequests}</span>
-                </div>
-                {stats.topTypes.slice(0, 2).map((type) => (
-                  <div key={type.type} className="flex justify-between">
-                    <span className="text-muted-foreground">{type.type}:</span>
-                    <span className="font-mono">{type.hitRate.toFixed(0)}%</span>
+              <div className="space-y-2">
+                {stats.topTypes.map((type, index) => (
+                  <div 
+                    key={type.type}
+                    className="p-2.5 rounded-lg bg-gradient-to-r from-muted/30 to-muted/60 dark:from-muted/20 dark:to-muted/40 border border-border/40 hover:border-border/60 transition-all duration-200 hover:shadow-sm group/type"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          index === 0 ? 'bg-blue-500' :
+                          index === 1 ? 'bg-emerald-500' :
+                          'bg-amber-500'
+                        } transition-all duration-200 group-hover/type:scale-125`}></div>
+                        <span className="text-sm font-medium capitalize">{type.type}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground">
+                          {type.requests} req
+                        </span>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs transition-all duration-200 group-hover/type:scale-105 ${getHitRateColor(type.hitRate)}`}
+                        >
+                          {type.hitRate.toFixed(1)}%
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Cache Status Indicator compacto */}
-            <div className="pt-2 border-t">
-              <div className="flex items-center gap-2 text-xs">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-muted-foreground">Cache activo</span>
-              </div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
     </Card>
   );

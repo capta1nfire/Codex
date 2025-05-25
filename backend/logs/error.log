@@ -1763,3 +1763,27 @@
 {"code":"ECONNREFUSED","level":"error","message":"[Redis] Client Error","service":"codex-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1139:18)\n    at afterConnectMultiple (node:net:1712:7)","timestamp":"2025-05-23 18:07:06"}
 {"code":"ECONNREFUSED","level":"error","message":"[Redis] Client Error","service":"codex-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1139:18)\n    at afterConnectMultiple (node:net:1712:7)","timestamp":"2025-05-23 18:07:07"}
 {"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/auth/validate","method":"GET","path":"/api/auth/validate","service":"codex-backend","timestamp":"2025-05-23 18:09:10"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-05-24 13:00:00"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-05-24 13:00:00"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-05-24 14:08:35"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-05-24 14:08:35"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-05-24 16:11:03"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-05-24 16:11:03"}
+{"error":"Servicio Rust devolvió error 404","level":"error","message":"[BarcodeService] Error desde servicio Rust: Status 404","service":"codex-backend","suggestion":"Verifica los logs del servicio Rust.","timestamp":"2025-05-24 16:11:06"}
+{"level":"error","message":"[Route:/] Error: Servicio Rust devolvió error 404","service":"codex-backend","timestamp":"2025-05-24 16:11:06"}
+{"details":{"suggestion":"Verifica los logs del servicio Rust."},"level":"error","message":"[404] SERVICE_UNAVAILABLE: Servicio Rust devolvió error 404","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-05-24 16:11:06"}
+{"error":"Servicio Rust devolvió error 404","level":"error","message":"[BarcodeService] Error desde servicio Rust: Status 404","service":"codex-backend","suggestion":"Verifica los logs del servicio Rust.","timestamp":"2025-05-24 16:11:06"}
+{"level":"error","message":"[Route:/] Error: Servicio Rust devolvió error 404","service":"codex-backend","timestamp":"2025-05-24 16:11:06"}
+{"details":{"suggestion":"Verifica los logs del servicio Rust."},"level":"error","message":"[404] SERVICE_UNAVAILABLE: Servicio Rust devolvió error 404","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-05-24 16:11:06"}
+{"error":"Servicio Rust devolvió error 404","level":"error","message":"[BarcodeService] Error desde servicio Rust: Status 404","service":"codex-backend","suggestion":"Verifica los logs del servicio Rust.","timestamp":"2025-05-24 16:11:16"}
+{"level":"error","message":"[Route:/] Error: Servicio Rust devolvió error 404","service":"codex-backend","timestamp":"2025-05-24 16:11:16"}
+{"details":{"suggestion":"Verifica los logs del servicio Rust."},"level":"error","message":"[404] SERVICE_UNAVAILABLE: Servicio Rust devolvió error 404","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-05-24 16:11:16"}
+{"error":"Servicio Rust devolvió error 404","level":"error","message":"[BarcodeService] Error desde servicio Rust: Status 404","service":"codex-backend","suggestion":"Verifica los logs del servicio Rust.","timestamp":"2025-05-24 16:11:16"}
+{"level":"error","message":"[Route:/] Error: Servicio Rust devolvió error 404","service":"codex-backend","timestamp":"2025-05-24 16:11:16"}
+{"details":{"suggestion":"Verifica los logs del servicio Rust."},"level":"error","message":"[404] SERVICE_UNAVAILABLE: Servicio Rust devolvió error 404","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-05-24 16:11:16"}
+{"error":"Servicio Rust devolvió error 404","level":"error","message":"[BarcodeService] Error desde servicio Rust: Status 404","service":"codex-backend","suggestion":"Verifica los logs del servicio Rust.","timestamp":"2025-05-24 16:11:20"}
+{"level":"error","message":"[Route:/] Error: Servicio Rust devolvió error 404","service":"codex-backend","timestamp":"2025-05-24 16:11:20"}
+{"details":{"suggestion":"Verifica los logs del servicio Rust."},"level":"error","message":"[404] SERVICE_UNAVAILABLE: Servicio Rust devolvió error 404","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-05-24 16:11:20"}
+{"error":"Servicio Rust devolvió error 404","level":"error","message":"[BarcodeService] Error desde servicio Rust: Status 404","service":"codex-backend","suggestion":"Verifica los logs del servicio Rust.","timestamp":"2025-05-24 16:11:20"}
+{"level":"error","message":"[Route:/] Error: Servicio Rust devolvió error 404","service":"codex-backend","timestamp":"2025-05-24 16:11:20"}
+{"details":{"suggestion":"Verifica los logs del servicio Rust."},"level":"error","message":"[404] SERVICE_UNAVAILABLE: Servicio Rust devolvió error 404","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-05-24 16:11:20"}

@@ -105,16 +105,16 @@ export default function RustAnalyticsDisplay() {
   }, [isLoading]);
 
   return (
-    <Card className="h-fit">
+    <Card className="h-fit group/main hover:shadow-md hover:shadow-primary/5 transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <RefreshCw className="h-5 w-5" />
-          Análisis de Rendimiento (Servicio Rust)
+        <CardTitle className="flex items-center gap-2 text-lg group-hover/main:text-primary transition-colors duration-200">
+          <RefreshCw className="h-5 w-5 transition-transform duration-200 group-hover/main:scale-110" />
+          Métricas de Performance
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="transition-colors duration-200 group-hover/main:text-foreground/70">
           Métricas de caché y rendimiento de generación de códigos. Actualizado cada 60s.
           {analyticsData && (
-            <span className="block text-xs mt-1">
+            <span className="block text-xs mt-1 transition-colors duration-200 group-hover/main:text-muted-foreground">
               Última act: {new Date(analyticsData.timestamp).toLocaleTimeString()}
             </span>
           )}
@@ -132,7 +132,7 @@ export default function RustAnalyticsDisplay() {
           <></>
         ) : (
           <div className="space-y-3">
-            {/* Main Stats - Estilo CacheMetrics */}
+            {/* Main Stats - Más enfocado en métricas clave */}
             <div className="grid grid-cols-2 gap-3">
               <div className="text-center p-2 bg-muted/50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">
@@ -145,61 +145,66 @@ export default function RustAnalyticsDisplay() {
               </div>
               
               <div className="text-center p-2 bg-muted/50 rounded-lg">
-                <div className={`text-2xl font-bold ${analyticsData.overall.cache_hit_rate_percent >= 50 ? 'text-green-600' : 'text-yellow-600'}`}>
+                <div className={`text-2xl font-bold ${analyticsData.overall.cache_hit_rate_percent >= 70 ? 'text-green-600' : analyticsData.overall.cache_hit_rate_percent >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
                   {formatPercentage(analyticsData.overall.cache_hit_rate_percent)}
                 </div>
-                <div className="text-xs text-muted-foreground">Tasa de Acierto</div>
+                <div className="text-xs text-muted-foreground">Eficiencia Cache</div>
                 <div className="mt-1">
-                  {analyticsData.overall.cache_hit_rate_percent >= 50 ? (
+                  {analyticsData.overall.cache_hit_rate_percent >= 70 ? (
                     <div className="w-2 h-2 bg-green-500 rounded-full mx-auto"></div>
-                  ) : (
+                  ) : analyticsData.overall.cache_hit_rate_percent >= 50 ? (
                     <div className="w-2 h-2 bg-yellow-500 rounded-full mx-auto"></div>
+                  ) : (
+                    <div className="w-2 h-2 bg-red-500 rounded-full mx-auto"></div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Performance Stats compacto */}
+            {/* Performance Stats consolidado */}
             <div className="pt-3 border-t">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-sm">Rendimiento</h4>
+                <h4 className="font-medium text-sm">Métricas de Rendimiento</h4>
                 <RefreshCw className="h-4 w-4 text-muted-foreground" />
               </div>
               
               <div className="space-y-1 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Respuesta Prom:</span>
+                  <span className="text-muted-foreground">Respuesta Promedio:</span>
                   <span className="font-mono">{formatDuration(analyticsData.overall.avg_response_ms)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Respuesta Máx:</span>
+                  <span className="text-muted-foreground">Respuesta Máxima:</span>
                   <span className="font-mono">{formatDuration(analyticsData.overall.max_response_ms)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Eficiencia Cache:</span>
-                  <span className="font-mono">{analyticsData.overall.cache_hit_rate_percent.toFixed(1)}%</span>
+                  <span className="text-muted-foreground">Tipos Activos:</span>
+                  <span className="font-mono">{Object.keys(analyticsData.by_barcode_type).length} códigos</span>
                 </div>
               </div>
             </div>
 
-            {/* Barcode Types compacto */}
+            {/* Top Types - Solo cantidad de requests, sin duplicar hit rates */}
             <div className="pt-2 border-t">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-sm">Por Tipo</h4>
+                <h4 className="font-medium text-sm">Distribución por Tipo</h4>
                 <div className="text-xs text-muted-foreground">
-                                      {Object.keys(analyticsData.by_barcode_type).length} tipos
+                  Top 3 más usados
                 </div>
               </div>
               
               <div className="space-y-1 text-xs">
-                {Object.entries(analyticsData.by_barcode_type).slice(0, 3).map(([type, stats]) => (
+                {Object.entries(analyticsData.by_barcode_type)
+                  .sort(([,a], [,b]) => (b.hit_count + b.miss_count) - (a.hit_count + a.miss_count))
+                  .slice(0, 3)
+                  .map(([type, stats]) => (
                   <div key={type} className="flex justify-between">
                     <span className="text-muted-foreground font-mono">{type}:</span>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono">{stats.hit_count + stats.miss_count}</span>
-                      <span className={`font-mono ${stats.cache_hit_rate_percent >= 50 ? 'text-green-600' : 'text-yellow-600'}`}>
-                        {formatPercentage(stats.cache_hit_rate_percent)}
-                      </span>
+                      <span className="font-mono">{stats.hit_count + stats.miss_count} req</span>
+                      <span className="font-mono text-green-600">{stats.hit_count}</span>
+                      <span className="text-muted-foreground">/</span>
+                      <span className="font-mono text-red-600">{stats.miss_count}</span>
                     </div>
                   </div>
                 ))}

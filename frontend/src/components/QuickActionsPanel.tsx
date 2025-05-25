@@ -1,82 +1,25 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { 
   Zap, 
-  // Download, 
   RefreshCw, 
-  Settings, 
   ExternalLink,
   FileText,
-  BarChart3,
-  Shield
+  Shield,
+  Sparkles
 } from 'lucide-react';
-import axios from 'axios';
-
-interface QuickStats {
-  uptime: string;
-  totalRequests: number;
-  hitRate: number;
-}
 
 export default function QuickActionsPanel() {
-  const [stats, setStats] = useState<QuickStats | null>(null);
-
-  useEffect(() => {
-    const fetchQuickStats = async () => {
-      try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
-        const rustUrl = process.env.NEXT_PUBLIC_RUST_SERVICE_URL || 'http://localhost:3002';
-
-        // Fetch backend health for uptime
-        const healthResponse = await axios.get(`${backendUrl}/health`);
-        
-        // Fetch Rust analytics for cache metrics
-        const analyticsResponse = await axios.get(`${rustUrl}/analytics/performance`);
-
-        // Format uptime
-        const uptimeSeconds = healthResponse.data.uptime || 0;
-        const formatUptime = (seconds: number): string => {
-          const days = Math.floor(seconds / (24 * 60 * 60));
-          const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
-          const minutes = Math.floor((seconds % (60 * 60)) / 60);
-          
-          if (days > 0) return `${days}d ${hours}h`;
-          if (hours > 0) return `${hours}h ${minutes}m`;
-          return `${minutes}m`;
-        };
-
-        setStats({
-          uptime: formatUptime(uptimeSeconds),
-          totalRequests: analyticsResponse.data.overall?.total_requests || 0,
-          hitRate: analyticsResponse.data.overall?.cache_hit_rate_percent || 0
-        });
-      } catch (error) {
-        console.error('Error fetching quick stats:', error);
-        // Set fallback values if APIs are unavailable
-        setStats({
-          uptime: 'N/A',
-          totalRequests: 0,
-          hitRate: 0
-        });
-      }
-    };
-
-    fetchQuickStats();
-    const interval = setInterval(fetchQuickStats, 30000); // Update every 30s
-    
-    return () => clearInterval(interval);
-  }, []);
-
   const actions = [
     {
       title: 'Generar Código',
       description: 'QR o Barcode rápido',
       icon: Zap,
       href: '/',
-      variant: 'default' as const
+      variant: 'default' as const,
+      isPrimary: true
     },
     {
       title: 'API Docs',
@@ -108,7 +51,7 @@ export default function QuickActionsPanel() {
         try {
           const rustUrl = process.env.NEXT_PUBLIC_RUST_SERVICE_URL || 'http://localhost:3002';
           await fetch(`${rustUrl}/cache/clear`, { method: 'POST' });
-          // Show success notification
+          // Show success notification with enhanced feedback
           alert('✅ Cache limpiado exitosamente');
         } catch (error) {
           alert('❌ Error al limpiar cache');
@@ -122,14 +65,14 @@ export default function QuickActionsPanel() {
   };
 
   return (
-    <Card className="h-fit">
+    <Card className="h-fit group hover:shadow-md transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Settings className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-lg group-hover:text-primary transition-colors duration-200">
+          <Sparkles className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
           Acciones Rápidas
         </CardTitle>
-        <CardDescription>
-          Controles frecuentes y enlaces útiles
+        <CardDescription className="transition-colors duration-200 group-hover:text-foreground/70">
+          Herramientas y controles del sistema
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -137,6 +80,11 @@ export default function QuickActionsPanel() {
           {actions.map((action) => {
             const IconComponent = action.icon;
             
+            // Enhanced styling for primary actions - "Hero Moments"
+            const cardClasses = action.isPrimary 
+              ? "p-4 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-600/20 dark:from-blue-400/10 dark:to-blue-500/20 border-2 border-blue-200/50 hover:border-blue-300/70 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/20 group/action"
+              : "p-3 rounded-lg bg-gradient-to-r from-muted/30 to-muted/60 dark:from-muted/20 dark:to-muted/40 border border-border/40 hover:border-border/60 transition-all duration-200 hover:shadow-sm group/action";
+
             if (action.href) {
               return (
                 <a
@@ -146,73 +94,68 @@ export default function QuickActionsPanel() {
                   rel={action.external ? 'noopener noreferrer' : undefined}
                   className="block"
                 >
-                  <Button 
-                    variant={action.variant}
-                    className="w-full justify-start h-auto p-3"
-                  >
+                  <div className={cardClasses}>
                     <div className="flex items-center gap-3 w-full">
-                      <IconComponent className="h-4 w-4 shrink-0" />
-                      <div className="text-left flex-1">
-                        <div className="font-medium text-sm">{action.title}</div>
-                        <div className="text-xs text-muted-foreground">{action.description}</div>
+                      <div className={`${action.isPrimary ? 'p-2 rounded-lg bg-blue-500/20 dark:bg-blue-400/20' : ''}`}>
+                        <IconComponent className={`transition-all duration-200 group-hover/action:scale-110 ${
+                          action.isPrimary 
+                            ? 'h-5 w-5 text-blue-600 dark:text-blue-400' 
+                            : 'h-4 w-4 shrink-0'
+                        }`} />
                       </div>
-                      {action.external && <ExternalLink className="h-3 w-3 shrink-0" />}
+                      <div className="text-left flex-1">
+                        <div className={`font-medium transition-colors duration-200 ${
+                          action.isPrimary 
+                            ? 'text-blue-700 dark:text-blue-300 group-hover/action:text-blue-800 dark:group-hover/action:text-blue-200' 
+                            : 'text-sm'
+                        }`}>
+                          {action.title}
+                        </div>
+                        <div className={`text-muted-foreground ${action.isPrimary ? 'text-sm' : 'text-xs'}`}>
+                          {action.description}
+                        </div>
+                      </div>
+                      {action.external && (
+                        <ExternalLink className="h-3 w-3 text-muted-foreground/60 group-hover/action:text-muted-foreground transition-colors duration-200" />
+                      )}
                     </div>
-                  </Button>
+                  </div>
                 </a>
               );
             }
 
             return (
-              <Button
+              <button
                 key={action.title}
-                variant={action.variant}
                 onClick={() => action.action && handleAction(action.action)}
-                className="w-full justify-start h-auto p-3"
+                className="w-full text-left"
               >
-                <div className="flex items-center gap-3 w-full">
-                  <IconComponent className="h-4 w-4 shrink-0" />
-                  <div className="text-left flex-1">
-                    <div className="font-medium text-sm">{action.title}</div>
-                    <div className="text-xs text-muted-foreground">{action.description}</div>
+                <div className={cardClasses}>
+                  <div className="flex items-center gap-3 w-full">
+                    <div className={`${action.isPrimary ? 'p-2 rounded-lg bg-blue-500/20 dark:bg-blue-400/20' : ''}`}>
+                      <IconComponent className={`transition-all duration-200 group-hover/action:scale-110 ${
+                        action.isPrimary 
+                          ? 'h-5 w-5 text-blue-600 dark:text-blue-400' 
+                          : 'h-4 w-4 shrink-0'
+                      }`} />
+                    </div>
+                    <div className="text-left flex-1">
+                      <div className={`font-medium transition-colors duration-200 ${
+                        action.isPrimary 
+                          ? 'text-blue-700 dark:text-blue-300 group-hover/action:text-blue-800 dark:group-hover/action:text-blue-200' 
+                          : 'text-sm'
+                      }`}>
+                        {action.title}
+                      </div>
+                      <div className={`text-muted-foreground ${action.isPrimary ? 'text-sm' : 'text-xs'}`}>
+                        {action.description}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </Button>
+              </button>
             );
           })}
-        </div>
-
-        {/* Quick Stats */}
-        <div className="mt-6 pt-4 border-t">
-          <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Stats Rápidas
-          </h4>
-          {stats ? (
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Tiempo Activo:</span>
-                <span className="font-mono">{stats.uptime}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Peticiones Totales:</span>
-                <span className="font-mono">{stats.totalRequests}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Tasa de Acierto:</span>
-                <span className={`font-mono ${stats.hitRate >= 50 ? 'text-green-600' : stats.hitRate >= 20 ? 'text-yellow-600' : 'text-red-600'}`}>
-                  {stats.hitRate.toFixed(1)}%
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Cargando stats...</span>
-                <RefreshCw className="h-3 w-3 animate-spin" />
-              </div>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

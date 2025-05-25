@@ -94,6 +94,18 @@ Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, 
 - Plantillas: integración futura con Canva o Figma
 - Multilingüe: interfaz disponible inicialmente en inglés y español, con plan de expansión a francés, alemán, etc. mediante DeepL
 
+### 5.1 Design System
+**Documento maestro:** [`docs/CODEX_DESIGN_SYSTEM.md`](docs/CODEX_DESIGN_SYSTEM.md)
+
+La interfaz sigue el **CODEX Design System** que establece:
+- **Filosofía**: "Clean Global Productivity" - interfaces neutrales culturalmente
+- **Paleta**: "Qwen Professional" con azules confiables y colores semánticos universales  
+- **Componentes**: Sistema modular con tokens reutilizables (buttons, inputs, cards, forms)
+- **Internacionalización**: Soporte RTL, validación cultural por región, tipografía multi-idioma
+- **Interacciones**: Micro-animaciones, glassmorphism selectivo, feedback visual consistente
+
+El sistema garantiza **coherencia visual** en toda la plataforma y **escalabilidad** para nuevos componentes.
+
 ## 6. Seguridad y Normativas
 
 - Autenticación segura (OAuth2, MFA)
