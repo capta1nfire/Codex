@@ -6,6 +6,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import SystemAlerts from '@/components/SystemAlerts';
+import SuperAdminLayout from '@/components/admin/SuperAdminLayout';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,7 +26,9 @@ export default function RootLayout({
         <AuthProvider>
           <ErrorBoundary>
             <Navbar />
-            <main className="pt-16 lg:pt-20 xl:pt-24">{children}</main>
+            <SuperAdminLayout>
+              <main className="pt-16 lg:pt-20 xl:pt-24">{children}</main>
+            </SuperAdminLayout>
             
             <SystemAlerts />
           </ErrorBoundary>

@@ -4,12 +4,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import BarcodeDisplay from './BarcodeDisplay';
 import { generateFormSchema, GenerateFormData } from '@/schemas/generate.schema';
 // import { useAuth } from '@/context/AuthContext';
-import { Download, Printer } from 'lucide-react';
+import { Download, Printer, QrCode, Settings, Palette } from 'lucide-react';
 import BarcodeTypeSelector from '@/components/generator/BarcodeTypeSelector';
 import GenerationOptions from '@/components/generator/GenerationOptions';
+
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -71,17 +74,6 @@ const defaultFormValues: GenerateFormData = {
 
 export default function Home() {
   // --- Estados ---
-  // Eliminar useStates para campos del formulario
-  // const [data, setData] = useState<string>(getDefaultDataForType('qrcode'));
-  // const [type, setType] = useState<string>('qrcode');
-  // const [scale, setScale] = useState<number>(4);
-  // const [foregroundColor, setForegroundColor] = useState<string>('#000000');
-  // const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
-  // const [showText, setShowText] = useState<boolean>(true);
-  // const [height, setHeight] = useState<number>(100);
-  // const [qrEcl, setQrEcl] = useState<string>('M');
-
-  // Mantener estados para UI y resultado
   const [svgContent, setSvgContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<ErrorResponse | null>(null);
@@ -283,138 +275,212 @@ export default function Home() {
 
   // --- Renderizado ---
   return (
-    <main className="container mx-auto px-4 py-8 md:py-12">
-      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center">CODEX</h1>
-
-      {/* Cambiar a grid de 2 columnas en md */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12"
-      >
-        {/* Columna de Configuración (Izquierda) */}
-        <div className="md:col-span-1 space-y-6">
-          {/* Aplicar bg-card y border-border */}
-          <div className="bg-card p-6 border border-border rounded-lg shadow-md space-y-4">
-            {/* 1. Selección de Tipo (Usar componente) */}
-            <BarcodeTypeSelector
-              control={control}
-              isLoading={isLoading}
-              handleTypeChange={handleTypeChange}
-              errors={errors}
-            />
-
-            {/* 2. Input de Datos */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-slate-50/20 to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      {/* Header consistente con otras páginas */}
+      <div className="bg-gradient-to-r from-blue-50/50 via-slate-50/50 to-blue-50/50 dark:from-blue-950/20 dark:via-slate-950/20 dark:to-blue-950/20 border-b border-blue-200/30 dark:border-blue-800/30 px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-2">
             <div>
-              <Label htmlFor="data-input" className="text-lg font-semibold mb-2 block">
-                Datos a Codificar
-              </Label>
-              <Input
-                id="data-input"
-                placeholder={getDefaultDataForType(selectedType || 'qrcode')}
-                // Registrar con RHF
-                {...register('data')}
-                disabled={isLoading}
-                // Aplicar border-destructive en error
-                className={`${errors.data ? 'border-destructive' : ''}`}
-              />
-              {/* Mostrar error para data usando text-destructive */}
-              {errors.data && (
-                <p className="mt-1 text-sm text-destructive">{errors.data.message}</p>
-              )}
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
+                <QrCode className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+                CODEX
+              </h1>
+              <p className="text-sm text-blue-600/70 dark:text-blue-400/70 mt-1 font-medium">
+                Generador avanzado de códigos de barras y QR
+              </p>
             </div>
-
-            {/* 3. Botón Generar */}
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Generando...' : 'Generar Código'}
-            </Button>
-
-            {/* 4. Mensajes de Error del Servidor - Aplicar colores destructive */}
-            {serverError && (
-              <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md space-y-1">
-                <p className="font-medium">Error al generar:</p>
-                <p className="text-sm">{serverError.error}</p>
-                {serverError.suggestion && (
-                  <p className="text-sm">
-                    <span className="font-medium">Sugerencia:</span> {serverError.suggestion}
-                  </p>
-                )}
-                {serverError.code && (
-                  <p className="text-xs font-mono">Código: {serverError.code}</p>
-                )}
-              </div>
-            )}
-          </div>{' '}
-          {/* Cerrar div wrapper de tarjeta */}
-          {/* 5. Opciones de Personalización (Usar componente) */}
-          <GenerationOptions
-            control={control}
-            errors={errors}
-            watch={watch}
-            isLoading={isLoading}
-            selectedType={selectedType}
-            reset={reset}
-          />
-        </div>{' '}
-        {/* Cerrar Columna Izquierda */}
-        {/* Columna de Previsualización (Derecha) */}
-        <div className="md:col-span-1">
-          {/* Contenido de Previsualización */}
-          {/* Añadir clases para centrar el contenido verticalmente */}
-          <div className="flex flex-col items-center">
-            {/* Lógica condicional para mostrar carga/error/svg/placeholder */}
-            {isLoading ? (
-              // Aplicar bg-muted, border-border, text-muted-foreground y border-primary para spinner
-              <div className="flex items-center justify-center min-h-[200px] bg-muted rounded border border-dashed border-border p-4 w-full max-w-md">
-                <div className="text-center flex flex-col items-center text-muted-foreground">
-                  <div
-                    className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-3"
-                    role="status"
-                  ></div>
-                  <p>Generando código...</p>
-                </div>
-              </div>
-            ) : serverError ? (
-              // Aplicar colores destructive
-              <div className="flex items-center justify-center min-h-[150px] bg-destructive/10 rounded border border-dashed border-destructive p-4 text-destructive w-full max-w-md">
-                <p className="text-center">Error al generar. Revisa las opciones y los datos.</p>
-              </div>
-            ) : svgContent ? (
-              <BarcodeDisplay
-                key={selectedType}
-                svgContent={svgContent}
-                type={selectedType}
-                data={watch('data')}
-              />
-            ) : (
-              // Aplicar bg-muted, border-border, text-muted-foreground
-              <div className="flex items-center justify-center min-h-[150px] bg-muted rounded border border-dashed border-border p-4 w-full max-w-md">
-                <p className="text-muted-foreground text-center">
-                  La previsualización aparecerá aquí.
-                </p>
-              </div>
-            )}
-
-            {/* Acciones (Descargar, Imprimir) */}
-            {svgContent && !isLoading && (
-              <div className="mt-6 flex justify-center space-x-4">
-                <Button
-                  variant="outline"
-                  onClick={handleDownload}
-                  disabled={!svgContent || isLoading}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Descargar SVG
-                </Button>
-                <Button variant="outline" onClick={handlePrint} disabled={!svgContent || isLoading}>
-                  <Printer className="mr-2 h-4 w-4" />
-                  Imprimir
-                </Button>
-              </div>
-            )}
           </div>
-        </div>{' '}
-        {/* Cerrar Columna Derecha */}
-      </form>
-    </main>
+        </div>
+      </div>
+
+      {/* Contenido principal */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+        >
+          {/* Columna de Configuración (Izquierda) */}
+          <div className="space-y-6">
+            {/* Card de Configuración Principal */}
+            <Card className="shadow-lg shadow-blue-500/10 border-border/50 bg-card/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Settings className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  Configuración del Código
+                </CardTitle>
+                <CardDescription>
+                  Selecciona el tipo de código y los datos a codificar
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* 1. Selección de Tipo */}
+                <BarcodeTypeSelector
+                  control={control}
+                  isLoading={isLoading}
+                  handleTypeChange={handleTypeChange}
+                  errors={errors}
+                />
+
+                {/* 2. Input de Datos */}
+                <div className="space-y-2">
+                  <Label htmlFor="data-input" className="text-base font-semibold">
+                    Datos a Codificar
+                  </Label>
+                  <Input
+                    id="data-input"
+                    placeholder={getDefaultDataForType(selectedType || 'qrcode')}
+                    {...register('data')}
+                    disabled={isLoading}
+                    className={`h-11 ${errors.data ? 'border-destructive' : ''}`}
+                  />
+                  {errors.data && (
+                    <p className="text-sm text-destructive">{errors.data.message}</p>
+                  )}
+                </div>
+
+                {/* 3. Botón Generar */}
+                <Button 
+                  type="submit" 
+                  className="w-full h-11 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Generando...
+                    </div>
+                  ) : (
+                    <>
+                      <QrCode className="mr-2 h-4 w-4" />
+                      Generar Código
+                    </>
+                  )}
+                </Button>
+
+                {/* 4. Mensajes de Error del Servidor */}
+                {serverError && (
+                  <Card className="border-destructive/50 bg-destructive/5">
+                    <CardContent className="pt-6">
+                      <div className="space-y-2">
+                        <p className="font-semibold text-destructive">Error al generar:</p>
+                        <p className="text-sm text-destructive">{serverError.error}</p>
+                        {serverError.suggestion && (
+                          <p className="text-sm text-destructive">
+                            <span className="font-medium">Sugerencia:</span> {serverError.suggestion}
+                          </p>
+                        )}
+                        {serverError.code && (
+                          <p className="text-xs font-mono text-destructive/70">
+                            Código: {serverError.code}
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Card de Opciones de Personalización */}
+            <Card className="shadow-lg shadow-blue-500/10 border-border/50 bg-card/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Palette className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  Opciones de Personalización
+                </CardTitle>
+                <CardDescription>
+                  Ajusta la apariencia y características del código generado
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GenerationOptions
+                  control={control}
+                  errors={errors}
+                  watch={watch}
+                  isLoading={isLoading}
+                  selectedType={selectedType}
+                  reset={reset}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Columna de Previsualización (Derecha) */}
+          <div className="space-y-6">
+            <Card className="shadow-lg shadow-blue-500/10 border-border/50 bg-card/80 backdrop-blur-sm h-fit sticky top-6">
+              <CardHeader>
+                <CardTitle className="text-xl">Previsualización</CardTitle>
+                <CardDescription>
+                  Vista previa del código generado
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-center">
+                  {/* Lógica condicional para mostrar carga/error/svg/placeholder */}
+                  {isLoading ? (
+                    <div className="flex items-center justify-center min-h-[200px] bg-muted/50 rounded-lg border border-dashed border-border p-8 w-full">
+                      <div className="text-center flex flex-col items-center text-muted-foreground">
+                        <div
+                          className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-3"
+                          role="status"
+                        ></div>
+                        <p className="font-medium">Generando código...</p>
+                      </div>
+                    </div>
+                  ) : serverError ? (
+                    <div className="flex items-center justify-center min-h-[200px] bg-destructive/5 rounded-lg border border-dashed border-destructive/50 p-8 text-destructive w-full">
+                      <p className="text-center font-medium">
+                        Error al generar. Revisa las opciones y los datos.
+                      </p>
+                    </div>
+                  ) : svgContent ? (
+                    <div className="w-full">
+                      <BarcodeDisplay
+                        key={selectedType}
+                        svgContent={svgContent}
+                        type={selectedType}
+                        data={watch('data')}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center min-h-[200px] bg-muted/50 rounded-lg border border-dashed border-border p-8 w-full">
+                      <div className="text-center text-muted-foreground">
+                        <QrCode className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p className="font-medium">La previsualización aparecerá aquí</p>
+                        <p className="text-sm mt-1">Configura y genera tu código</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Acciones (Descargar, Imprimir) */}
+                  {svgContent && !isLoading && (
+                    <div className="mt-6 flex flex-col sm:flex-row gap-3 w-full">
+                      <Button
+                        variant="outline"
+                        onClick={handleDownload}
+                        disabled={!svgContent || isLoading}
+                        className="flex-1 border-border/50 hover:border-border hover:bg-card hover:shadow-md transition-all duration-200"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Descargar SVG
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={handlePrint} 
+                        disabled={!svgContent || isLoading}
+                        className="flex-1 border-border/50 hover:border-border hover:bg-card hover:shadow-md transition-all duration-200"
+                      >
+                        <Printer className="mr-2 h-4 w-4" />
+                        Imprimir
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </form>
+      </main>
+    </div>
   );
 }

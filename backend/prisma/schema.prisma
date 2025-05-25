@@ -17,9 +17,11 @@ datasource db {
 
 // Definición de la enumeración para roles
 enum Role {
-  USER
-  ADMIN
-  PREMIUM
+  USER       // Usuario básico - funciones estándar de generación
+  PREMIUM    // Usuario premium - funciones avanzadas de generación  
+  ADVANCED   // Usuario avanzado - funciones expertas de generación
+  WEBADMIN   // Administrador del sitio web - gestión técnica completa
+  SUPERADMIN // Super administrador - gestión completa y delegación de administradores
 }
 
 // Definición del modelo de Usuario

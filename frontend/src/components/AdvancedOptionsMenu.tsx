@@ -2,8 +2,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, Settings, X, Shield, FileText, ExternalLink } from 'lucide-react';
+import { Menu, Settings, X, Shield, FileText, ExternalLink, Crown, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { usePermissions } from '@/hooks/useAuth';
+import RoleGuard, { WebAdminOnly, PremiumOnly, SuperAdminOnly } from '@/components/auth/RoleGuard';
 
 interface AdvancedOptionsMenuProps {
   isAdvancedMode: boolean;
@@ -19,6 +21,7 @@ const AdvancedOptionsMenu: React.FC<AdvancedOptionsMenuProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const { permissions, user, userRole } = usePermissions();
 
   // ✅ Cerrar menú al hacer clic fuera (siguiendo patrones UX)
   useEffect(() => {
@@ -144,93 +147,115 @@ const AdvancedOptionsMenu: React.FC<AdvancedOptionsMenuProps> = ({
 
           {/* ✅ Contenido del menú */}
           <div className="p-4">
-            {/* ✅ Opciones Avanzadas Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="font-medium text-sm text-foreground">
-                  Opciones Avanzadas
+            {/* ✅ Opciones Avanzadas Toggle - Solo Premium/Advanced */}
+            <PremiumOnly>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="font-medium text-sm text-foreground flex items-center gap-2">
+                    Opciones Avanzadas
+                    <Crown className="h-3 w-3 text-purple-500" />
+                  </div>
                 </div>
+
+                {/* ✅ Toggle Switch - Corporate Styling */}
+                <button
+                  onClick={handleAdvancedToggle}
+                  className={cn(
+                    // Base toggle switch
+                    "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full",
+                    "border-2 border-transparent transition-colors duration-200 ease-in-out",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-corporate-blue-500 focus-visible:ring-offset-2",
+                    
+                    // Estados del toggle
+                    isAdvancedMode 
+                      ? "bg-corporate-blue-500 hover:bg-corporate-blue-600" 
+                      : "bg-muted hover:bg-muted/80"
+                  )}
+                  role="switch"
+                  aria-checked={isAdvancedMode}
+                  aria-labelledby="advanced-options-label"
+                >
+                  <span
+                    className={cn(
+                      // Base slider
+                      "pointer-events-none inline-block h-5 w-5 rounded-full bg-background shadow-lg",
+                      "ring-0 transition-transform duration-200 ease-in-out",
+                      
+                      // Posición del slider
+                      isAdvancedMode ? "translate-x-5" : "translate-x-0"
+                    )}
+                  />
+                </button>
               </div>
 
-              {/* ✅ Toggle Switch - Corporate Styling */}
-              <button
-                onClick={handleAdvancedToggle}
-                className={cn(
-                  // Base toggle switch
-                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full",
-                  "border-2 border-transparent transition-colors duration-200 ease-in-out",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-corporate-blue-500 focus-visible:ring-offset-2",
-                  
-                  // Estados del toggle
-                  isAdvancedMode 
-                    ? "bg-corporate-blue-500 hover:bg-corporate-blue-600" 
-                    : "bg-muted hover:bg-muted/80"
+              {/* ✅ Estado visual del modo actual */}
+              <div className={cn(
+                "mt-3 p-2 rounded-md text-xs border transition-all duration-200",
+                isAdvancedMode 
+                  ? "bg-corporate-blue-50 border-corporate-blue-200 text-corporate-blue-700"
+                  : "bg-muted/50 border-border/50 text-muted-foreground"
+              )}>
+                {isAdvancedMode ? (
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-corporate-blue-500 rounded-full"></div>
+                    Opciones avanzadas activadas
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                    Modo estándar
+                  </div>
                 )}
-                role="switch"
-                aria-checked={isAdvancedMode}
-                aria-labelledby="advanced-options-label"
-              >
-                <span
-                  className={cn(
-                    // Base slider
-                    "pointer-events-none inline-block h-5 w-5 rounded-full bg-background shadow-lg",
-                    "ring-0 transition-transform duration-200 ease-in-out",
-                    
-                    // Posición del slider
-                    isAdvancedMode ? "translate-x-5" : "translate-x-0"
-                  )}
-                />
-              </button>
-            </div>
-
-            {/* ✅ Estado visual del modo actual */}
-            <div className={cn(
-              "mt-3 p-2 rounded-md text-xs border transition-all duration-200",
-              isAdvancedMode 
-                ? "bg-corporate-blue-50 border-corporate-blue-200 text-corporate-blue-700"
-                : "bg-muted/50 border-border/50 text-muted-foreground"
-            )}>
-              {isAdvancedMode ? (
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-corporate-blue-500 rounded-full"></div>
-                  Opciones avanzadas activadas
-                </div>
-              ) : (
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-                  Modo estándar
-                </div>
-              )}
-            </div>
+              </div>
+            </PremiumOnly>
 
             {/* ✅ Divisor */}
             <div className="border-t border-border/30 my-4"></div>
 
-            {/* ✅ Navegación a Production Readiness */}
-            <Link
-              href="/production-readiness"
-              onClick={() => setIsOpen(false)}
-              className={cn(
-                "flex items-center gap-3 w-full p-3 rounded-lg mb-3",
-                "border border-border/50 bg-card/30",
-                "hover:border-corporate-blue-300 hover:bg-corporate-blue-50/50",
-                "hover:shadow-md hover:shadow-corporate-blue-500/10",
-                "transition-all duration-200 hover:-translate-y-0.5",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-corporate-blue-500 focus-visible:ring-offset-2"
-              )}
-            >
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-corporate-blue-100 text-corporate-blue-600">
-                <Shield className="h-4 w-4" />
-              </div>
-              <div className="flex-1">
-                <div className="font-medium text-sm text-foreground">
-                  Production Readiness
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Validar preparación para producción
+            {/* ✅ Rol del usuario */}
+            {user && (
+              <div className="mb-4 p-2 rounded-lg bg-muted/30 border border-border/30">
+                <div className="flex items-center gap-2">
+                  {userRole === 'SUPERADMIN' && <Crown className="h-4 w-4 text-red-600" />}
+                  {userRole === 'WEBADMIN' && <Crown className="h-4 w-4 text-orange-600" />}
+                  {userRole === 'ADVANCED' && <Crown className="h-4 w-4 text-amber-600" />}
+                  {userRole === 'PREMIUM' && <Crown className="h-4 w-4 text-purple-600" />}
+                  {userRole === 'USER' && <Users className="h-4 w-4 text-blue-600" />}
+                  <span className="text-xs font-medium text-foreground">
+                    {user.firstName} ({userRole})
+                  </span>
                 </div>
               </div>
-            </Link>
+            )}
+
+            {/* ✅ Navegación a Production Readiness - Solo Premium/Admin */}
+            <PremiumOnly>
+              <Link
+                href="/production-readiness"
+                onClick={() => setIsOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 w-full p-3 rounded-lg mb-3",
+                  "border border-border/50 bg-card/30",
+                  "hover:border-corporate-blue-300 hover:bg-corporate-blue-50/50",
+                  "hover:shadow-md hover:shadow-corporate-blue-500/10",
+                  "transition-all duration-200 hover:-translate-y-0.5",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-corporate-blue-500 focus-visible:ring-offset-2"
+                )}
+              >
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-corporate-blue-100 text-corporate-blue-600">
+                  <Shield className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-sm text-foreground">
+                    Production Readiness
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Validar preparación para producción
+                  </div>
+                </div>
+                <Crown className="h-3 w-3 text-purple-500" />
+              </Link>
+            </PremiumOnly>
 
             {/* ✅ API Docs */}
             <a
@@ -239,7 +264,7 @@ const AdvancedOptionsMenu: React.FC<AdvancedOptionsMenuProps> = ({
               rel="noopener noreferrer"
               onClick={() => setIsOpen(false)}
               className={cn(
-                "flex items-center gap-3 w-full p-3 rounded-lg",
+                "flex items-center gap-3 w-full p-3 rounded-lg mb-3",
                 "border border-border/50 bg-card/30",
                 "hover:border-corporate-blue-300 hover:bg-corporate-blue-50/50",
                 "hover:shadow-md hover:shadow-corporate-blue-500/10",
@@ -260,6 +285,72 @@ const AdvancedOptionsMenu: React.FC<AdvancedOptionsMenuProps> = ({
               </div>
               <ExternalLink className="h-3 w-3 text-muted-foreground/60" />
             </a>
+
+            {/* ✅ Opciones de WebAdmin */}
+            <WebAdminOnly>
+              <div className="border-t border-border/30 my-4"></div>
+              
+              <div className="mb-3 p-2 rounded-lg bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/50 dark:border-amber-800/50">
+                <div className="flex items-center gap-2">
+                  <Crown className="h-4 w-4 text-amber-600" />
+                  <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                    Panel WebAdmin
+                  </span>
+                </div>
+              </div>
+
+              <Link
+                href="/webadmin/users"
+                onClick={() => setIsOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 w-full p-3 rounded-lg mb-2",
+                  "border border-amber-200/50 bg-amber-50/30",
+                  "hover:border-amber-300 hover:bg-amber-100/50",
+                  "hover:shadow-md hover:shadow-amber-500/10",
+                  "transition-all duration-200 hover:-translate-y-0.5",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+                )}
+              >
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-100 text-amber-600">
+                  <Users className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-sm text-foreground">
+                    Gestión de Usuarios
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Gestión técnica de usuarios
+                  </div>
+                </div>
+                <Crown className="h-3 w-3 text-amber-500" />
+              </Link>
+
+              <Link
+                href="/webadmin/dashboard"
+                onClick={() => setIsOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 w-full p-3 rounded-lg",
+                  "border border-amber-200/50 bg-amber-50/30",
+                  "hover:border-amber-300 hover:bg-amber-100/50",
+                  "hover:shadow-md hover:shadow-amber-500/10",
+                  "transition-all duration-200 hover:-translate-y-0.5",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+                )}
+              >
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-100 text-amber-600">
+                  <Settings className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-sm text-foreground">
+                    Configuración Sistema
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Ajustes globales del sistema
+                  </div>
+                </div>
+                <Crown className="h-3 w-3 text-amber-500" />
+              </Link>
+            </WebAdminOnly>
           </div>
         </div>
       )}

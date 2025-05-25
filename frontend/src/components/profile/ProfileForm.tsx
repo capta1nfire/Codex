@@ -91,15 +91,15 @@ export default function ProfileForm({
   }, [isEditing, user, reset, setValue]);
 
   return (
-    <div className="bg-card p-6 border border-border rounded-lg shadow-md">
+    <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold">Información Personal</h3>
         <Button
           type="button"
           onClick={onEditToggle}
-          variant="outline"
+          variant={isEditing ? "destructive" : "outline"}
           size="sm"
           disabled={isLoading}
+          className="ml-auto"
         >
           <Pencil className="h-4 w-4 mr-2" />
           {isEditing ? 'Cancelar' : 'Editar'}
@@ -187,13 +187,20 @@ export default function ProfileForm({
 
         {/* Save Button */}
         {isEditing && (
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-6 border-t border-border/30">
             <Button
               type="submit"
               disabled={isLoading || !isDirty || !isValid}
-              className="min-w-[100px]"
+              className="min-w-[120px] bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5"
             >
-              {isLoading ? 'Guardando...' : 'Guardar cambios'}
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Guardando...
+                </div>
+              ) : (
+                'Guardar cambios'
+              )}
             </Button>
           </div>
         )}
