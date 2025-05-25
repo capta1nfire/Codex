@@ -2,7 +2,7 @@
 
 # 🚀 Codex Project - Enhanced Development Server Manager
 # Autor: Codex Team
-# Versión: 1.2.0 (Auto-cleanup de procesos duplicados)
+# Versión: 1.3.0 (Environment validation + Auto-cleanup)
 
 # Colores para output
 RED='\033[0;31m'
@@ -23,7 +23,7 @@ echo " ██║     ██║   ██║██║  ██║██╔══╝
 echo " ╚██████╗╚██████╔╝██████╔╝███████╗██╔╝ ██╗"
 echo "  ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝"
 echo -e "${NC}"
-echo -e "${WHITE}🚀 Development Server Manager v1.2.0${NC}"
+echo -e "${WHITE}🚀 Development Server Manager v1.3.0${NC}"
 echo -e "${CYAN}=================================================${NC}"
 
 # Variables
@@ -32,6 +32,66 @@ LOG_DIR="logs"
 
 # Crear directorio de logs si no existe
 mkdir -p $LOG_DIR
+
+# Función de validación del entorno (NUEVA)
+validate_environment() {
+    echo -e "${BLUE}🔍 Validando entorno de desarrollo...${NC}"
+    
+    local issues=0
+    
+    # Verificar múltiples instancias de PostgreSQL
+    local brew_pg=$(brew services list 2>/dev/null | grep postgresql | grep started | wc -l | tr -d ' ')
+    local docker_pg=$(docker ps 2>/dev/null | grep postgres | wc -l | tr -d ' ')
+    
+    if [ "$brew_pg" -gt 0 ] && [ "$docker_pg" -gt 0 ]; then
+        echo -e "${RED}   ❌ CRITICAL: Multiple PostgreSQL instances detected!${NC}"
+        echo -e "${YELLOW}   💡 Fix: brew services stop postgresql@14${NC}"
+        issues=$((issues + 1))
+    elif [ "$brew_pg" -gt 0 ] && [ "$docker_pg" -eq 0 ]; then
+        echo -e "${YELLOW}   ⚠️  WARNING: Using local PostgreSQL, project expects Docker${NC}"
+        echo -e "${YELLOW}   💡 Starting Docker infrastructure...${NC}"
+        docker-compose up -d > /dev/null 2>&1
+        sleep 5
+    elif [ "$docker_pg" -eq 0 ]; then
+        echo -e "${YELLOW}   ⚠️  No PostgreSQL running, starting Docker infrastructure...${NC}"
+        docker-compose up -d > /dev/null 2>&1
+        sleep 5
+    fi
+    
+    # Verificar conectividad a la BD Docker
+    if docker exec codex_postgres psql -U codex_user -d codex_db -c "SELECT 1;" > /dev/null 2>&1; then
+        echo -e "${GREEN}   ✅ Docker database accessible${NC}"
+    else
+        echo -e "${RED}   ❌ Cannot connect to Docker database${NC}"
+        echo -e "${YELLOW}   💡 Trying to start Docker services...${NC}"
+        docker-compose up -d > /dev/null 2>&1
+        sleep 10
+        
+        if docker exec codex_postgres psql -U codex_user -d codex_db -c "SELECT 1;" > /dev/null 2>&1; then
+            echo -e "${GREEN}   ✅ Docker database now accessible${NC}"
+        else
+            echo -e "${RED}   ❌ CRITICAL: Still cannot connect to database${NC}"
+            issues=$((issues + 1))
+        fi
+    fi
+    
+    # Verificar archivos de configuración
+    if [ ! -f "backend/.env" ]; then
+        echo -e "${RED}   ❌ backend/.env missing${NC}"
+        echo -e "${YELLOW}   💡 Copying from example...${NC}"
+        cp backend/.env.example backend/.env 2>/dev/null || issues=$((issues + 1))
+    fi
+    
+    if [ $issues -gt 0 ]; then
+        echo -e "${RED}❌ Found $issues critical issue(s)${NC}"
+        echo -e "${YELLOW}Please fix the issues above and run the script again${NC}"
+        exit 1
+    else
+        echo -e "${GREEN}✅ Environment validation passed${NC}"
+    fi
+    
+    echo ""
+}
 
 # Función de limpieza previa (NUEVA)
 cleanup_previous_processes() {
@@ -241,6 +301,9 @@ start_server() {
 
 # Función principal
 main() {
+    # NUEVA: Validación del entorno antes de todo
+    validate_environment
+    
     # NUEVA: Limpieza automática de procesos anteriores
     cleanup_previous_processes
     

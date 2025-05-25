@@ -15,7 +15,7 @@ use std::time::{Duration, Instant};
 use axum::{
     extract::Json,
     http::{
-        header::{self, HeaderValue},
+        header::{self, HeaderValue, HeaderName},
         StatusCode,
     },
     response::{IntoResponse, Response},
@@ -594,7 +594,12 @@ async fn main() {
             "http://192.168.1.36:3001".parse::<HeaderValue>().unwrap(),
         ])
         .allow_methods(Any) // Permite cualquier método
-        .allow_headers([header::CONTENT_TYPE]); // Solo permitir Content-Type (más seguro)
+        .allow_headers([
+            header::CONTENT_TYPE,
+            header::CACHE_CONTROL,
+            header::PRAGMA,
+            HeaderName::from_static("x-requested-with")
+        ]); // Permitir headers adicionales para health checks
 
     let app = Router::new()
         .route("/", get(root_handler))

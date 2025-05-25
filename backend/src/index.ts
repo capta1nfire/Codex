@@ -24,7 +24,7 @@ import { authRoutes } from './routes/auth.routes.js';
 import { avatarRoutes } from './routes/avatar.routes.js';
 import { baseRoutes } from './routes/base.routes.js';
 import { generateRoutes } from './routes/generate.routes.js';
-import { healthRoutes } from './routes/health.routes.js';
+import healthRoutes from './routes/health.js';  // ✅ Sistema robusto
 import { metricsRoutes } from './routes/metrics.routes.js';
 import { userRoutes } from './routes/user.routes.js';
 import { startServer } from './server-config.js'; // <--- Descomentar esta línea
@@ -36,9 +36,11 @@ import swaggerUi from 'swagger-ui-express';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 // Importar Prisma client para Sentry
-import prisma from './lib/prisma.js';
+// import prisma from './lib/prisma.js';  // ✅ Comentado: no usado en index.ts
 // Importar Sentry con configuración básica
 import * as Sentry from "@sentry/node";
+// Importar funciones de control de servicios
+import { startDatabaseService, stopDatabaseService, startRustService, stopRustService, restartBackendService, getServiceStatus } from './services/serviceControl.js';
 
 // Obtener __dirname en ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -83,7 +85,13 @@ app.use(
     origin: config.ALLOWED_ORIGINS,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: [
+      'Content-Type', 
+      'Authorization', 
+      'Cache-Control', 
+      'Pragma',
+      'X-Requested-With'
+    ],
   })
 );
 
@@ -97,7 +105,12 @@ app.use(express.json({ limit: config.MAX_REQUEST_SIZE }));
 app.use('/static', express.static(path.join(__dirname, '../static')));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Aplicar límites de tasa DESPUÉS de estáticos y CORS
+// --- ENDPOINTS PÚBLICOS (ANTES DEL RATE LIMITER) ---
+// Rutas de salud (ping, etc.) - Estas NO deben estar sujetas al rate limit
+app.use('/health', healthRoutes);
+app.use('/metrics', metricsRoutes);
+
+// Aplicar límites de tasa DESPUÉS de estáticos, CORS y health checks
 const limiter = rateLimit({
   windowMs: config.RATE_LIMIT_WINDOW_MS,
   max: config.RATE_LIMIT_MAX,
@@ -144,13 +157,265 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// --- ENDPOINTS PÚBLICOS ---
-// Rutas de salud (ping, etc.)
-app.use('/health', healthRoutes);
-app.use('/metrics', metricsRoutes);
-
 // --- Rutas de la API ---
 app.use('/', baseRoutes);
+
+// ✅ Service Control Endpoints (Protected)
+app.post('/api/services/:service/start', async (req: Request, res: Response) => {
+  const { service } = req.params;
+  
+  try {
+    console.log(`🔧 Starting service: ${service}`);
+    
+    let result;
+    switch (service.toLowerCase()) {
+      case 'database':
+        result = await startDatabaseService();
+        break;
+      case 'backend':
+        result = await restartBackendService();
+        break;
+      case 'rust':
+      case 'rust_generator':
+        result = await startRustService();
+        break;
+      default:
+        return res.status(400).json({ 
+          error: 'Invalid service name',
+          validServices: ['database', 'backend', 'rust'] 
+        });
+    }
+    
+    res.json({
+      service,
+      action: 'start',
+      status: 'success',
+      message: result.message,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error: any) {
+    console.error(`❌ Failed to start ${service}:`, error);
+    res.status(500).json({
+      service,
+      action: 'start', 
+      status: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+app.post('/api/services/:service/stop', async (req: Request, res: Response) => {
+  const { service } = req.params;
+  
+  try {
+    console.log(`🛑 Stopping service: ${service}`);
+    
+    let result;
+    switch (service.toLowerCase()) {
+      case 'database':
+        result = await stopDatabaseService();
+        break;
+      case 'backend':
+        result = { message: 'Backend stop not supported (would stop current process)' };
+        break;
+      case 'rust':
+      case 'rust_generator':
+        result = await stopRustService();
+        break;
+      default:
+        return res.status(400).json({ 
+          error: 'Invalid service name',
+          validServices: ['database', 'backend', 'rust'] 
+        });
+    }
+    
+    res.json({
+      service,
+      action: 'stop',
+      status: 'success',
+      message: result.message,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error: any) {
+    console.error(`❌ Failed to stop ${service}:`, error);
+    res.status(500).json({
+      service,
+      action: 'stop',
+      status: 'error', 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+app.post('/api/services/:service/restart', async (req: Request, res: Response) => {
+  const { service } = req.params;
+  
+  try {
+    console.log(`🔄 Restarting service: ${service}`);
+    
+    let result;
+    switch (service.toLowerCase()) {
+      case 'database':
+        await stopDatabaseService();
+        result = await startDatabaseService();
+        break;
+      case 'backend':
+        result = await restartBackendService();
+        break;
+      case 'rust':
+      case 'rust_generator':
+        await stopRustService();
+        result = await startRustService();
+        break;
+      default:
+        return res.status(400).json({ 
+          error: 'Invalid service name',
+          validServices: ['database', 'backend', 'rust'] 
+        });
+    }
+    
+    res.json({
+      service,
+      action: 'restart',
+      status: 'success',
+      message: result.message,
+      details: result.details,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error: any) {
+    console.error(`❌ Failed to restart ${service}:`, error);
+    res.status(500).json({
+      service,
+      action: 'restart',
+      status: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// ✅ Enhanced Service Status Endpoint
+app.get('/api/services/status', async (_req: Request, res: Response) => {
+  try {
+    console.log('🔍 Getting all services status...');
+    
+    const services = ['database', 'backend', 'rust'];
+    const statusResults = await Promise.allSettled(
+      services.map(service => getServiceStatus(service))
+    );
+    
+    const servicesStatus = services.map((service, index) => {
+      const result = statusResults[index];
+      if (result.status === 'fulfilled') {
+        return {
+          service,
+          ...result.value
+        };
+      } else {
+        return {
+          service,
+          success: false,
+          message: `Failed to check ${service} status`,
+          error: result.reason?.message || 'Unknown error'
+        };
+      }
+    });
+    
+    const overallHealthy = servicesStatus.every(s => s.success && (s as any).details?.status === 'running');
+    
+    res.json({
+      overall: overallHealthy ? 'healthy' : 'degraded',
+      services: servicesStatus,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error: any) {
+    console.error('❌ Failed to get services status:', error);
+    res.status(500).json({
+      overall: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// ✅ Individual Service Status Endpoint
+app.get('/api/services/:service/status', async (req: Request, res: Response) => {
+  const { service } = req.params;
+  
+  try {
+    console.log(`🔍 Getting ${service} status...`);
+    
+    const result = await getServiceStatus(service);
+    
+    res.json({
+      service,
+      ...result,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error: any) {
+    console.error(`❌ Failed to get ${service} status:`, error);
+    res.status(500).json({
+      service,
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// ✅ Force Health Check Endpoint
+app.post('/api/services/health-check', async (_req: Request, res: Response) => {
+  try {
+    console.log('🏥 Forcing health check of all services...');
+    
+    const healthChecks = {
+      database: false,
+      backend: true, // Always true since we're responding
+      rust: false
+    };
+    
+    // Check database
+    try {
+      const dbResult = await getServiceStatus('database');
+      healthChecks.database = dbResult.success && dbResult.details?.status === 'running';
+    } catch (error) {
+      console.error('Database health check failed:', error);
+    }
+    
+    // Check Rust service
+    try {
+      const rustResult = await getServiceStatus('rust');
+      healthChecks.rust = rustResult.success && rustResult.details?.healthy;
+    } catch (error) {
+      console.error('Rust service health check failed:', error);
+    }
+    
+    const overallHealthy = Object.values(healthChecks).every(Boolean);
+    
+    res.json({
+      overall: overallHealthy ? 'healthy' : 'degraded',
+      checks: healthChecks,
+      message: overallHealthy ? 'All services are healthy' : 'Some services are not responding',
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error: any) {
+    console.error('❌ Failed to perform health check:', error);
+    res.status(500).json({
+      overall: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/generate', generateRoutes);
 app.use('/api/avatars', avatarRoutes);

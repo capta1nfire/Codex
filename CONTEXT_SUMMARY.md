@@ -170,6 +170,12 @@ cd rust_generator && cargo run  # Puerto 3002 (CORRECTED)
 - ✅ **NUEVO**: Enhanced dev.sh v1.2.0 con auto-cleanup de procesos duplicados
 - ✅ **NUEVO**: Solucionado problema recurrente de Rust Generator puerto ocupado
 - ✅ **NUEVO**: Integrado sistema inteligente de limpieza por puerto y nombre de proceso
+- ✅ **ENTERPRISE**: Sistema de control de servicios completamente renovado
+- ✅ **ENTERPRISE**: Backend restart real con detección de PM2/systemd
+- ✅ **ENTERPRISE**: Control robusto de Rust service con process management
+- ✅ **ENTERPRISE**: Validación post-acción y health checks automáticos
+- ✅ **ENTERPRISE**: Nuevos endpoints de status y health-check forzado
+- ✅ **ENTERPRISE**: Frontend con feedback visual en tiempo real de acciones
 
 ### **🎯 Próximos Pasos Autorizados** (según CODEX.md)
 - [ ] Integración activa de Redis Cache
@@ -423,6 +429,52 @@ npm run dev
 ./dev.sh  # Mata procesos en puertos 3000,3002,3004 + rust_generator + next/tsx duplicados
 ```
 
+### **🏗️ ENTERPRISE SERVICE CONTROL v2.0** (IMPLEMENTADO HOY)
+
+#### **🔧 Backend Mejorado - Control Robusto de Servicios**
+```typescript
+// ✅ NUEVO: Control de Database con health checks reales
+- startDatabaseService(): Creación automática vía docker-compose
+- stopDatabaseService(): Verificación de parada exitosa  
+- Validación con pg_isready y timeouts configurables
+
+// ✅ NUEVO: Control de Rust Service con process management
+- spawn() controlado con detached: false para mejor control
+- Cleanup inteligente por puerto y nombre de proceso
+- Health checks automáticos post-inicio (http://localhost:3002/health)
+- Manejo de procesos zombies y limpieza de puerto 3002
+
+// ✅ NUEVO: Backend restart REAL
+- Development: process.exit(0) para tsx/nodemon restart
+- Production: Detección automática PM2/systemd con restart real
+- Fallback manual con instrucciones claras
+```
+
+#### **🌐 Nuevos Endpoints Enterprise**
+```bash
+GET  /api/services/status           # Estado de todos los servicios
+GET  /api/services/{service}/status # Estado de servicio individual  
+POST /api/services/health-check     # Health check forzado completo
+POST /api/services/{service}/{action} # Acciones con detalles mejorados
+```
+
+#### **📱 Frontend Dashboard Mejorado**
+```typescript
+// ✅ NUEVO: Estados visuales en tiempo real
+- Botones con loading/success/error states
+- Colores dinámicos (azul=loading, verde=success, rojo=error)
+- Timeouts diferentes por tipo de servicio
+- Botón "Check completo" para health check forzado
+- Feedback específico para restart de backend (3s timeout)
+```
+
+#### **🎯 Casos de Uso Solucionados**
+1. **Rust service colgado**: Cleanup automático de puerto + process
+2. **Backend restart**: Restart real en desarrollo y producción  
+3. **Database no inicia**: Auto-creación vía docker-compose
+4. **Procesos zombies**: Limpieza inteligente con SIGTERM → SIGKILL
+5. **Feedback user**: Estados visuales inmediatos en dashboard
+
 ## 🧹 **BUENAS PRÁCTICAS PARA AGENTES IA** (CHECKLIST DE RIGOR)
 
 > **📋 REFERENCIA RÁPIDA**: Use esta sección como shortcut para mantener orden y estructura después de cambios importantes.
@@ -512,5 +564,99 @@ npm run dev
 3. **Commit early, commit often** - Guardar progreso frecuentemente
 4. **Clean up temporarily** - Eliminar rastros de trabajo temporal
 5. **Verify before finishing** - Asegurar que todo funciona antes de terminar
+
+## 🚨 **TROUBLESHOOTING COMÚN**
+
+### **❌ Error: "User 'codex_user' was denied access"**
+
+**CAUSA**: Múltiples instancias de PostgreSQL corriendo (local + Docker)
+
+**SÍNTOMAS**:
+```
+Error: P1010: User `codex_user` was denied access on the database `codex_db.public`
+```
+
+**SOLUCIÓN**:
+```bash
+# 1. Detener PostgreSQL local
+brew services stop postgresql@14
+
+# 2. Verificar que Docker PostgreSQL esté corriendo
+docker ps | grep postgres
+
+# 3. Si no está corriendo, iniciar infraestructura
+docker-compose up -d
+
+# 4. Verificar conectividad
+docker exec codex_postgres psql -U codex_user -d codex_db -c "SELECT 1;"
+
+# 5. Ejecutar migraciones si es necesario
+cd backend && npx prisma migrate deploy
+```
+
+**PREVENCIÓN**: Usar `./dev.sh` que ahora valida automáticamente el entorno
+
+### **🛡️ SISTEMA DE OBSERVABILIDAD ROBUSTO** (NUEVO - CRÍTICO)
+
+**PROBLEMA RESUELTO**: Dashboard se caía completamente cuando fallaban servicios, dejando al usuario sin información crítica.
+
+#### **✅ SOLUCIÓN IMPLEMENTADA:**
+
+1. **Health Checks Robustos** (`/health`, `/health/db`, `/health/quick`):
+   - ✅ NUNCA fallan completamente - siempre responden con información útil
+   - ✅ Detectan problemas específicos (DB, Redis, Rust service)
+   - ✅ Timeouts y graceful degradation
+   - ✅ Información detallada de errores
+
+2. **Sistema de Alertas Proactivo** (`useSystemAlerts`):
+   - ✅ Monitoreo cada 15 segundos
+   - ✅ Notificaciones del navegador para errores críticos
+   - ✅ Alertas persistentes vs. temporales
+   - ✅ Detección de cambios de estado del sistema
+
+3. **Dashboard que NUNCA se cae** (`SystemStatus.tsx`):
+   - ✅ Graceful degradation cuando servicios fallan
+   - ✅ Siempre muestra información útil
+   - ✅ Estados visuales claros (operativo/degradado/caído)
+   - ✅ Información de errores específicos
+
+4. **Alertas Siempre Visibles** (`SystemAlerts.tsx`):
+   - ✅ Indicador de estado en tiempo real (esquina superior derecha)
+   - ✅ Alertas categorizadas (error/warning/info)
+   - ✅ Auto-dismiss para alertas no críticas
+   - ✅ Contador de alertas críticas
+
+#### **🎯 ARCHIVOS CLAVE:**
+```
+frontend/src/components/SystemStatus.tsx     # Dashboard robusto
+frontend/src/components/SystemAlerts.tsx     # Alertas siempre visibles
+frontend/src/hooks/useSystemAlerts.ts        # Lógica de alertas
+backend/src/routes/health.ts                 # Health checks robustos
+frontend/src/app/layout.tsx                  # Integración global
+```
+
+#### **🚨 GARANTÍAS:**
+- ✅ **NUNCA** más dashboards que se caen completamente
+- ✅ **SIEMPRE** información del estado del sistema visible
+- ✅ **ALERTAS PROACTIVAS** antes de que problemas se agraven
+- ✅ **DEGRADACIÓN GRACEFUL** cuando servicios fallan
+- ✅ **INFORMACIÓN DETALLADA** de qué exactamente está fallando
+
+### **🔧 Validación Automática del Entorno**
+
+El script `./dev.sh` ahora incluye validación automática que detecta:
+- ✅ Conflictos de múltiples PostgreSQL
+- ✅ Problemas de conectividad de BD
+- ✅ Archivos de configuración faltantes
+- ✅ Servicios Docker requeridos
+
+**Uso**:
+```bash
+# Validación manual del entorno
+./scripts/validate-environment.sh
+
+# Inicio automático con validación
+./dev.sh
+```
 
 ---

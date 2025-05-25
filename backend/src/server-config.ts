@@ -49,7 +49,8 @@ export const startServer = async (
 
   } catch (error) {
     logger.error('Error al conectar con servicios externos (DB/Redis): ', error);
-    process.exit(1);
+    logger.warn('⚠️ Continuando sin DB/Redis - Solo funciones básicas disponibles');
+    // No exit here - allow server to start for service control
   }
 
   // Configurar servidor HTTP o HTTPS según la configuración

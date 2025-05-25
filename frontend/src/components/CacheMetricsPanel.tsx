@@ -21,6 +21,11 @@ export default function CacheMetricsPanel() {
   const [stats, setStats] = useState<CacheStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchCacheStats = async () => {
@@ -118,7 +123,7 @@ export default function CacheMetricsPanel() {
         </CardTitle>
         <CardDescription className="transition-colors duration-200 group-hover:text-foreground/70">
           Rendimiento y eficiencia del sistema de caché
-          {lastUpdate && (
+          {isMounted && lastUpdate && (
             <span className="block text-xs mt-1 text-muted-foreground/80 transition-colors duration-200 group-hover:text-muted-foreground">
               Última act: {lastUpdate.toLocaleTimeString()}
             </span>

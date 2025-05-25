@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import SystemAlerts from '@/components/SystemAlerts';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,6 +26,8 @@ export default function RootLayout({
           <ErrorBoundary>
             <Navbar />
             <main className="pt-16 lg:pt-20 xl:pt-24">{children}</main>
+            
+            <SystemAlerts />
           </ErrorBoundary>
           <Toaster
             position="top-right"
@@ -36,6 +39,7 @@ export default function RootLayout({
                 fontSize: '14px',
                 padding: '16px',
                 borderRadius: '8px',
+                marginTop: '120px',
               },
               success: {
                 iconTheme: {
