@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Controller, Control, FieldErrors, UseFormWatch, UseFormReset } from 'react-hook-form';
 import {
   Select,
@@ -14,12 +14,23 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Disclosure, Tab } from '@headlessui/react';
-// import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { GenerateFormData } from '@/schemas/generate.schema';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 import dynamic from 'next/dynamic';
+import { 
+  Palette, 
+  Monitor, 
+  Settings2, 
+  RotateCcw, 
+  ChevronDown,
+  ChevronRight,
+  Zap,
+  Sliders,
+  Eye
+} from 'lucide-react';
 
 // Importar dinámicamente AdvancedBarcodeOptions
 const AdvancedBarcodeOptions = dynamic(() => import('./AdvancedBarcodeOptions'), {
@@ -28,7 +39,7 @@ const AdvancedBarcodeOptions = dynamic(() => import('./AdvancedBarcodeOptions'),
   ssr: false, // Generalmente bueno para componentes del lado del cliente con mucha interactividad
 });
 
-// Copiar/Importar los valores por defecto (o pasar como prop)
+// Valores por defecto
 const defaultFormValues: Partial<GenerateFormData> = {
   options: {
     scale: 4,
@@ -62,7 +73,9 @@ export default function GenerationOptions({
   selectedType,
   reset,
 }: GenerationOptionsProps) {
-  // Calculate conditional visibility based on selectedType
+  const [expandedSection, setExpandedSection] = useState<string>('appearance');
+  
+  // Calculate conditional visibility
   const is1DBarcode = selectedType
     ? !['qrcode', 'pdf417', 'datamatrix', 'aztec'].includes(selectedType)
     : false;
@@ -71,249 +84,353 @@ export default function GenerationOptions({
     : false;
   const isQrCode = selectedType === 'qrcode';
 
-  // Define content for different sections
-  const appearanceOptions = (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-      {/* Scale */}
-      <div>
-        <Label htmlFor="scale-slider">Escala ({watch('options.scale')})</Label>
-        <Controller
-          name="options.scale"
-          control={control}
-          defaultValue={4}
-          render={({ field }) => (
-            <Slider
-              id="scale-slider"
-              min={1}
-              max={10}
-              step={1}
-              value={[field.value ?? 4]}
-              onValueChange={(value) => field.onChange(value[0])}
-              disabled={isLoading}
-              className="mt-2"
-            />
-          )}
-        />
-        {errors.options?.scale && (
-          <p className="mt-1 text-xs text-red-600">{errors.options.scale.message}</p>
-        )}
-      </div>
-      {/* Colors */}
-      <div>
-        <Label htmlFor="fgcolor-input">Color Frente</Label>
-        <Controller
-          name="options.fgcolor"
-          control={control}
-          defaultValue="#000000"
-          render={({ field }) => (
-            <div className="flex items-center gap-2 mt-1">
-              <Input
-                id="fgcolor-input"
-                type="text"
-                {...field}
-                disabled={isLoading}
-                placeholder="#000000"
-                className={`flex-grow ${errors.options?.fgcolor ? 'border-red-500' : ''}`}
-              />
-              <Input
-                type="color"
-                value={field.value || '#000000'}
-                onChange={field.onChange}
-                className="w-10 h-10 p-0 border-none cursor-pointer"
-                disabled={isLoading}
-                aria-label="Seleccionar color de frente"
-              />
-            </div>
-          )}
-        />
-        {errors.options?.fgcolor && (
-          <p className="mt-1 text-xs text-red-600">{errors.options.fgcolor.message}</p>
-        )}
-      </div>
-      <div>
-        <Label htmlFor="bgcolor-input">Color Fondo</Label>
-        <Controller
-          name="options.bgcolor"
-          control={control}
-          defaultValue="#FFFFFF"
-          render={({ field }) => (
-            <div className="flex items-center gap-2 mt-1">
-              <Input
-                id="bgcolor-input"
-                type="text"
-                {...field}
-                disabled={isLoading}
-                placeholder="#FFFFFF"
-                className={`flex-grow ${errors.options?.bgcolor ? 'border-red-500' : ''}`}
-              />
-              <Input
-                type="color"
-                value={field.value || '#FFFFFF'}
-                onChange={field.onChange}
-                className="w-10 h-10 p-0 border-none cursor-pointer"
-                disabled={isLoading}
-                aria-label="Seleccionar color de fondo"
-              />
-            </div>
-          )}
-        />
-        {errors.options?.bgcolor && (
-          <p className="mt-1 text-xs text-red-600">{errors.options.bgcolor.message}</p>
-        )}
-      </div>
-    </div>
-  );
-
-  const displayOptions = (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-      {/* Height (if relevant) */}
-      {isHeightRelevant && (
-        <div>
-          <Label htmlFor="height-slider">Altura ({watch('options.height')}px)</Label>
-          <Controller
-            name="options.height"
-            control={control}
-            defaultValue={100}
-            render={({ field }) => (
-              <Slider
-                id="height-slider"
-                min={10}
-                max={500}
-                step={10}
-                value={[field.value ?? 100]}
-                onValueChange={(value) => field.onChange(value[0])}
-                disabled={isLoading}
-                className="mt-2"
-              />
-            )}
-          />
-          {errors.options?.height && (
-            <p className="mt-1 text-xs text-red-600">{errors.options.height.message}</p>
-          )}
-        </div>
-      )}
-      {/* Include Text (if 1D) */}
-      {is1DBarcode && (
-        <div className="flex items-center space-x-2 pt-5">
-          <Controller
-            name="options.includetext"
-            control={control}
-            defaultValue={true}
-            render={({ field }) => (
-              <Switch
-                id="show-text-switch"
-                checked={field.value}
-                onCheckedChange={field.onChange}
-                disabled={isLoading}
-              />
-            )}
-          />
-          <Label htmlFor="show-text-switch">Mostrar Texto</Label>
-        </div>
-      )}
-      {/* ECL Level (if QR) */}
-      {isQrCode && (
-        <div>
-          <Label htmlFor="ecl-select">Nivel Corrección QR</Label>
-          <Controller
-            name="options.ecl"
-            control={control}
-            defaultValue="M"
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                <SelectTrigger id="ecl-select" className="mt-1">
-                  <SelectValue placeholder="Selecciona nivel..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="L">L (Bajo)</SelectItem>
-                  <SelectItem value="M">M (Medio)</SelectItem>
-                  <SelectItem value="Q">Q (Alto)</SelectItem>
-                  <SelectItem value="H">H (Máximo)</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.options?.ecl && (
-            <p className="mt-1 text-xs text-red-600">{errors.options.ecl.message}</p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-
   const handleResetOptions = () => {
-    // Resetea solo el campo 'options' a sus valores por defecto
     reset(
       { ...watch(), options: defaultFormValues.options },
       { keepDefaultValues: false, keepValues: false }
     );
-    toast.success('Opciones restablecidas');
+    toast.success('Opciones restablecidas', {
+      icon: '✨',
+      style: {
+        background: '#f0f9ff',
+        color: '#0369a1',
+        border: '1px solid #0284c7',
+      },
+    });
   };
 
-  return (
-    <div>
-      <Disclosure
-        as="div"
-        defaultOpen
-        className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
+  const SectionCard = ({ 
+    id, 
+    title, 
+    subtitle, 
+    icon: Icon, 
+    children, 
+    isOpen, 
+    badgeText 
+  }: {
+    id: string;
+    title: string;
+    subtitle: string;
+    icon: any;
+    children: React.ReactNode;
+    isOpen: boolean;
+    badgeText?: string;
+  }) => (
+    <Card className={cn(
+      "transition-all duration-200 hover:shadow-md",
+      isOpen ? "border-blue-200 dark:border-blue-700 bg-blue-50/30 dark:bg-blue-950/20" : "hover:border-slate-300 dark:hover:border-slate-600"
+    )}>
+      <CardHeader 
+        className="pb-3 cursor-pointer"
+        onClick={() => setExpandedSection(isOpen ? '' : id)}
       >
-        {() => (
-          <>
-            <Disclosure.Button className="flex justify-between w-full px-4 py-3 text-lg font-semibold text-left text-gray-900 bg-gray-50 hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75">
-              <span>Opciones de Personalización</span>
-            </Disclosure.Button>
-            <Disclosure.Panel className="px-4 pt-4 pb-4 text-sm text-gray-500 space-y-6 border-t border-gray-200">
-              {/* MOSTRAR SIEMPRE LA VISTA DE PESTAÑAS */}
-              <Tab.Group>
-                <Tab.List className="flex space-x-1 rounded-lg bg-muted p-1 mb-4">
-                  {['Apariencia', 'Visualización', 'Avanzado'].map((category) => (
-                    <Tab
-                      key={category}
-                      className={({ selected }) =>
-                        cn(
-                          'w-full rounded-md py-2 px-3 text-sm font-medium leading-5',
-                          'ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                          selected
-                            ? 'bg-primary text-primary-foreground shadow'
-                            : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
-                        )
-                      }
-                    >
-                      {category}
-                    </Tab>
-                  ))}
-                </Tab.List>
-                <Tab.Panels className="mt-2 space-y-6">
-                  <Tab.Panel className="space-y-6">{appearanceOptions}</Tab.Panel>
-                  <Tab.Panel className="space-y-6">{displayOptions}</Tab.Panel>
-                  <Tab.Panel className="space-y-6">
-                    <AdvancedBarcodeOptions
-                      control={control}
-                      errors={errors}
-                      watch={watch}
-                      isLoading={isLoading}
-                      selectedType={selectedType}
-                      reset={reset}
-                    />
-                  </Tab.Panel>
-                </Tab.Panels>
-              </Tab.Group>
-
-              <div className="pt-4 border-t border-gray-200 flex justify-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleResetOptions}
-                  disabled={isLoading}
-                >
-                  Restablecer Opciones
-                </Button>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "p-2 rounded-lg transition-colors duration-200",
+              isOpen 
+                ? "bg-blue-100 dark:bg-blue-900/30" 
+                : "bg-slate-100 dark:bg-slate-800"
+            )}>
+              <Icon className={cn(
+                "h-4 w-4 transition-colors duration-200",
+                isOpen 
+                  ? "text-blue-600 dark:text-blue-400" 
+                  : "text-slate-600 dark:text-slate-400"
+              )} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base">{title}</CardTitle>
+                {badgeText && (
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                    {badgeText}
+                  </Badge>
+                )}
               </div>
-            </Disclosure.Panel>
-          </>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{subtitle}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {isOpen ? (
+              <ChevronDown className="h-4 w-4 text-slate-400 transition-transform duration-200" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-slate-400 transition-transform duration-200" />
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      
+      {isOpen && (
+        <CardContent className="pt-0 animate-in slide-in-from-top-2 duration-200">
+          {children}
+        </CardContent>
+      )}
+    </Card>
+  );
+
+  const ColorInput = ({ 
+    name, 
+    label, 
+    defaultValue 
+  }: { 
+    name: 'options.fgcolor' | 'options.bgcolor'; 
+    label: string; 
+    defaultValue: string;
+  }) => (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium">{label}</Label>
+      <Controller
+        name={name}
+        control={control}
+        defaultValue={defaultValue}
+        render={({ field }) => (
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Input
+                type="text"
+                {...field}
+                disabled={isLoading}
+                placeholder={defaultValue}
+                className={cn(
+                  "h-9 pr-12 transition-all duration-200 focus:scale-[1.01]",
+                  errors.options?.[name.split('.')[1] as keyof typeof errors.options] 
+                    ? 'border-destructive' 
+                    : 'focus:border-blue-500'
+                )}
+              />
+              <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                <Input
+                  type="color"
+                  value={field.value || defaultValue}
+                  onChange={field.onChange}
+                  className="w-7 h-7 p-0 border-0 rounded cursor-pointer"
+                  disabled={isLoading}
+                  aria-label={`Seleccionar ${label.toLowerCase()}`}
+                />
+              </div>
+            </div>
+            <div 
+              className="w-9 h-9 rounded border-2 border-slate-200 dark:border-slate-700"
+              style={{ backgroundColor: field.value || defaultValue }}
+            />
+          </div>
         )}
-      </Disclosure>
+      />
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* Appearance Section */}
+      <SectionCard
+        id="appearance"
+        title="Apariencia"
+        subtitle="Colores y escala visual"
+        icon={Palette}
+        isOpen={expandedSection === 'appearance'}
+        badgeText="Esencial"
+      >
+        <div className="space-y-6">
+          {/* Scale Slider */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">Escala</Label>
+              <Badge variant="outline" className="text-xs">
+                {watch('options.scale')}x
+              </Badge>
+            </div>
+            <Controller
+              name="options.scale"
+              control={control}
+              defaultValue={4}
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <Slider
+                    min={1}
+                    max={10}
+                    step={1}
+                    value={[field.value ?? 4]}
+                    onValueChange={(value) => field.onChange(value[0])}
+                    disabled={isLoading}
+                    className="transition-all duration-200 hover:scale-[1.01]"
+                  />
+                  <div className="flex justify-between text-xs text-slate-500">
+                    <span>Pequeño (1x)</span>
+                    <span>Grande (10x)</span>
+                  </div>
+                </div>
+              )}
+            />
+          </div>
+
+          {/* Color Inputs */}
+          <div className="grid grid-cols-2 gap-4">
+            <ColorInput 
+              name="options.fgcolor" 
+              label="Color Principal" 
+              defaultValue="#000000" 
+            />
+            <ColorInput 
+              name="options.bgcolor" 
+              label="Color Fondo" 
+              defaultValue="#FFFFFF" 
+            />
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Display Section */}
+      <SectionCard
+        id="display"
+        title="Visualización"
+        subtitle="Opciones de formato y presentación"
+        icon={Eye}
+        isOpen={expandedSection === 'display'}
+        badgeText={`${selectedType?.toUpperCase()}`}
+      >
+        <div className="space-y-6">
+          {/* Height (if relevant) */}
+          {isHeightRelevant && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Altura</Label>
+                <Badge variant="outline" className="text-xs">
+                  {watch('options.height')}px
+                </Badge>
+              </div>
+              <Controller
+                name="options.height"
+                control={control}
+                defaultValue={100}
+                render={({ field }) => (
+                  <div className="space-y-2">
+                    <Slider
+                      min={10}
+                      max={500}
+                      step={10}
+                      value={[field.value ?? 100]}
+                      onValueChange={(value) => field.onChange(value[0])}
+                      disabled={isLoading}
+                      className="transition-all duration-200 hover:scale-[1.01]"
+                    />
+                    <div className="flex justify-between text-xs text-slate-500">
+                      <span>Bajo (10px)</span>
+                      <span>Alto (500px)</span>
+                    </div>
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* Include Text (if 1D) */}
+          {is1DBarcode && (
+            <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+              <div>
+                <Label className="text-sm font-medium">Mostrar Texto</Label>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                  Incluir texto legible debajo del código
+                </p>
+              </div>
+              <Controller
+                name="options.includetext"
+                control={control}
+                defaultValue={true}
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isLoading}
+                  />
+                )}
+              />
+            </div>
+          )}
+
+          {/* ECL Level (if QR) */}
+          {isQrCode && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Nivel de Corrección de Errores</Label>
+              <Controller
+                name="options.ecl"
+                control={control}
+                defaultValue="M"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                    <SelectTrigger className="h-9 transition-all duration-200 focus:scale-[1.01]">
+                      <SelectValue placeholder="Selecciona nivel..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="L">
+                        <div className="flex items-center justify-between w-full">
+                          <span>L - Bajo</span>
+                          <Badge variant="secondary" className="ml-2 text-xs">~7%</Badge>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="M">
+                        <div className="flex items-center justify-between w-full">
+                          <span>M - Medio</span>
+                          <Badge variant="secondary" className="ml-2 text-xs">~15%</Badge>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Q">
+                        <div className="flex items-center justify-between w-full">
+                          <span>Q - Alto</span>
+                          <Badge variant="secondary" className="ml-2 text-xs">~25%</Badge>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="H">
+                        <div className="flex items-center justify-between w-full">
+                          <span>H - Máximo</span>
+                          <Badge variant="secondary" className="ml-2 text-xs">~30%</Badge>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Mayor corrección permite recuperar el código aunque esté parcialmente dañado
+              </p>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* Advanced Section */}
+      <SectionCard
+        id="advanced"
+        title="Opciones Avanzadas"
+        subtitle="Configuración específica del formato"
+        icon={Settings2}
+        isOpen={expandedSection === 'advanced'}
+        badgeText="Experto"
+      >
+        <AdvancedBarcodeOptions
+          control={control}
+          errors={errors}
+          watch={watch}
+          isLoading={isLoading}
+          selectedType={selectedType}
+          reset={reset}
+        />
+      </SectionCard>
+
+      {/* Reset Button */}
+      <div className="pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleResetOptions}
+          disabled={isLoading}
+          className="w-full h-9 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200 hover:scale-[1.01]"
+        >
+          <RotateCcw className="h-3 w-3 mr-2" />
+          Restablecer a Valores por Defecto
+        </Button>
+      </div>
     </div>
   );
 }
