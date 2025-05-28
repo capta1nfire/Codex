@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -18,12 +19,12 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 
 // Lista de avatares predeterminados con nombres de robot
 export const DEFAULT_AVATARS = [
-  'Vector',  // Antes default1
-  'Cygnus',  // Antes default2
-  'Apex',    // Antes default3
-  'Rivet',   // Antes default4
-  'Socket',  // Antes default5
-  'Bolt',    // Antes default6
+  'Vector', // Antes default1
+  'Cygnus', // Antes default2
+  'Apex', // Antes default3
+  'Rivet', // Antes default4
+  'Socket', // Antes default5
+  'Bolt', // Antes default6
 ];
 
 export class AvatarService {
@@ -96,4 +97,4 @@ export class AvatarService {
   }
 }
 
-export const avatarService = new AvatarService(); 
+export const avatarService = new AvatarService();

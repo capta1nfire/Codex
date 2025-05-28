@@ -562,6 +562,34 @@ export default function Navbar() {
                         </Link>
                       )}
                       
+                      {/* Security Section */}
+                      {pathname !== '/security' && (
+                        <Link
+                          href="/security"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className={cn(
+                            "flex items-center gap-3 w-full p-3 rounded-lg mb-2 mx-2",
+                            "border border-corporate-blue-200/50 bg-corporate-blue-50/30",
+                            "hover:border-corporate-blue-300 hover:bg-corporate-blue-100/50",
+                            "hover:shadow-md hover:shadow-corporate-blue-500/10",
+                            "transition-all duration-200 hover:-translate-y-0.5",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-corporate-blue-500 focus-visible:ring-offset-2"
+                          )}
+                        >
+                          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-corporate-blue-100 text-corporate-blue-600">
+                            <Shield className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-sm text-gray-900">
+                              Security Center
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Gestionar seguridad y privacidad
+                            </div>
+                          </div>
+                        </Link>
+                      )}
+                      
                       {/* Divider */}
                       <div className="border-t border-gray-200 my-1"></div>
                       
@@ -692,6 +720,14 @@ export default function Navbar() {
                       <RoleBadge role={userRole} variant="mobile" />
                     </div>
                   )}
+                </Link>
+                <Link
+                  href="/security"
+                  className="flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Shield className="mr-3 h-5 w-5" />
+                  Security Center
                 </Link>
                 {(user.role.toUpperCase() === 'WEBADMIN' || user.role.toUpperCase() === 'SUPERADMIN') && (
                   <Link

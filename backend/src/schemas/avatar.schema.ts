@@ -2,14 +2,7 @@ import { z } from 'zod';
 
 // Obtener los tipos válidos directamente (o mantenerlos sincronizados manualmente)
 // Idealmente, esta lista debería provenir de una única fuente de verdad
-const validAvatarTypes = [
-  'Vector',
-  'Cygnus',
-  'Apex',
-  'Rivet',
-  'Socket',
-  'Bolt',
-] as const; // 'as const' para inferir tipos literales
+const validAvatarTypes = ['Vector', 'Cygnus', 'Apex', 'Rivet', 'Socket', 'Bolt'] as const; // 'as const' para inferir tipos literales
 
 /**
  * @openapi
@@ -37,4 +30,4 @@ export const avatarParamsSchema = z.object({
   }),
 });
 
-export type AvatarParamsInput = z.infer<typeof avatarParamsSchema>; 
+export type AvatarParamsInput = z.infer<typeof avatarParamsSchema>;

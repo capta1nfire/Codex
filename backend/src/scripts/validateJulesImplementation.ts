@@ -4,10 +4,11 @@
  * Script de validación para verificar implementación de mejoras del reporte de Jules
  */
 
-import { fileURLToPath } from 'url';
-import path from 'path';
-import fs from 'fs';
 import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 import logger from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,7 +24,12 @@ interface ValidationResult {
 
 const results: ValidationResult[] = [];
 
-function addResult(category: string, name: string, status: 'PASS' | 'FAIL' | 'WARNING', details: string) {
+function addResult(
+  category: string,
+  name: string,
+  status: 'PASS' | 'FAIL' | 'WARNING',
+  details: string
+) {
   results.push({ category, name, status, details });
 }
 
@@ -65,9 +71,19 @@ async function validateImplementation() {
 
   // Verificar eliminación de fetch redundante
   if (!checkFileContains('backend/src/routes/avatar.routes.ts', 'findById(userId)')) {
-    addResult('Performance', 'Redundant Fetch Fix', 'PASS', 'Fetch redundante eliminado de avatar routes');
+    addResult(
+      'Performance',
+      'Redundant Fetch Fix',
+      'PASS',
+      'Fetch redundante eliminado de avatar routes'
+    );
   } else {
-    addResult('Performance', 'Redundant Fetch Fix', 'WARNING', 'Posible fetch redundante aún presente');
+    addResult(
+      'Performance',
+      'Redundant Fetch Fix',
+      'WARNING',
+      'Posible fetch redundante aún presente'
+    );
   }
 
   // ===============================================
@@ -76,7 +92,12 @@ async function validateImplementation() {
   console.log('🛡️ VALIDANDO RATE LIMITING AVANZADO...\n');
 
   if (checkFileExists('backend/src/middleware/rateLimitMiddleware.ts')) {
-    addResult('Security', 'Rate Limiting Middleware', 'PASS', 'Middleware de rate limiting implementado');
+    addResult(
+      'Security',
+      'Rate Limiting Middleware',
+      'PASS',
+      'Middleware de rate limiting implementado'
+    );
   } else {
     addResult('Security', 'Rate Limiting Middleware', 'FAIL', 'Middleware no encontrado');
   }
@@ -111,16 +132,36 @@ async function validateImplementation() {
 
   // Backend dependencies
   if (checkFileContains('backend/package.json', 'rate-limit-redis')) {
-    addResult('Dependencies', 'Backend Dependencies', 'PASS', 'Dependencias del backend actualizadas');
+    addResult(
+      'Dependencies',
+      'Backend Dependencies',
+      'PASS',
+      'Dependencias del backend actualizadas'
+    );
   } else {
-    addResult('Dependencies', 'Backend Dependencies', 'WARNING', 'Algunas dependencias podrían faltar');
+    addResult(
+      'Dependencies',
+      'Backend Dependencies',
+      'WARNING',
+      'Algunas dependencias podrían faltar'
+    );
   }
 
   // Frontend dependencies
   if (checkFileContains('frontend/package.json', '"react": "^18')) {
-    addResult('Dependencies', 'Frontend Dependencies', 'PASS', 'React downgraded a versión estable 18.x');
+    addResult(
+      'Dependencies',
+      'Frontend Dependencies',
+      'PASS',
+      'React downgraded a versión estable 18.x'
+    );
   } else {
-    addResult('Dependencies', 'Frontend Dependencies', 'WARNING', 'React podría estar en versión inestable');
+    addResult(
+      'Dependencies',
+      'Frontend Dependencies',
+      'WARNING',
+      'React podría estar en versión inestable'
+    );
   }
 
   // ===============================================
@@ -134,13 +175,19 @@ async function validateImplementation() {
     addResult('Monitoring', 'Prometheus Config', 'FAIL', 'Configuración de Prometheus incompleta');
   }
 
-  if (checkFileExists('alert_rules.yml') && checkFileContains('alert_rules.yml', 'HighAPILatency')) {
+  if (
+    checkFileExists('alert_rules.yml') &&
+    checkFileContains('alert_rules.yml', 'HighAPILatency')
+  ) {
     addResult('Monitoring', 'Alert Rules', 'PASS', 'Reglas de alerta configuradas');
   } else {
     addResult('Monitoring', 'Alert Rules', 'FAIL', 'Reglas de alerta no encontradas');
   }
 
-  if (checkFileExists('docker-compose.yml') && checkFileContains('docker-compose.yml', 'alertmanager')) {
+  if (
+    checkFileExists('docker-compose.yml') &&
+    checkFileContains('docker-compose.yml', 'alertmanager')
+  ) {
     addResult('Monitoring', 'Alertmanager', 'PASS', 'Alertmanager configurado en Docker Compose');
   } else {
     addResult('Monitoring', 'Alertmanager', 'FAIL', 'Alertmanager no configurado');
@@ -185,14 +232,14 @@ async function validateImplementation() {
   console.log('\n📋 RESUMEN DE VALIDACIÓN');
   console.log('==================================================\n');
 
-  const categories = [...new Set(results.map(r => r.category))];
-  
+  const categories = [...new Set(results.map((r) => r.category))];
+
   for (const category of categories) {
     console.log(`\n🏷️  ${category.toUpperCase()}`);
     console.log('─────────────────────────────────────────────────');
-    
-    const categoryResults = results.filter(r => r.category === category);
-    
+
+    const categoryResults = results.filter((r) => r.category === category);
+
     for (const result of categoryResults) {
       const icon = result.status === 'PASS' ? '✅' : result.status === 'WARNING' ? '⚠️' : '❌';
       console.log(`${icon} ${result.name}: ${result.details}`);
@@ -200,16 +247,16 @@ async function validateImplementation() {
   }
 
   // Estadísticas finales
-  const passed = results.filter(r => r.status === 'PASS').length;
-  const warnings = results.filter(r => r.status === 'WARNING').length;
-  const failed = results.filter(r => r.status === 'FAIL').length;
+  const passed = results.filter((r) => r.status === 'PASS').length;
+  const warnings = results.filter((r) => r.status === 'WARNING').length;
+  const failed = results.filter((r) => r.status === 'FAIL').length;
   const total = results.length;
 
   console.log('\n📊 ESTADÍSTICAS FINALES');
   console.log('==================================================');
-  console.log(`✅ Exitosas: ${passed}/${total} (${Math.round(passed/total*100)}%)`);
-  console.log(`⚠️  Advertencias: ${warnings}/${total} (${Math.round(warnings/total*100)}%)`);
-  console.log(`❌ Fallidas: ${failed}/${total} (${Math.round(failed/total*100)}%)`);
+  console.log(`✅ Exitosas: ${passed}/${total} (${Math.round((passed / total) * 100)}%)`);
+  console.log(`⚠️  Advertencias: ${warnings}/${total} (${Math.round((warnings / total) * 100)}%)`);
+  console.log(`❌ Fallidas: ${failed}/${total} (${Math.round((failed / total) * 100)}%)`);
 
   // Determinar estado general
   if (failed === 0 && warnings <= 2) {
@@ -225,7 +272,7 @@ async function validateImplementation() {
 
   console.log('\n==================================================');
   console.log('📝 Para más detalles, revisa cada categoría arriba.');
-  
+
   return { passed, warnings, failed, total };
 }
 
@@ -239,4 +286,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       logger.error('Error durante la validación:', error);
       process.exit(1);
     });
-} 
+}

@@ -4,7 +4,7 @@ export { useAuth } from '@/context/AuthContext';
 // Hook personalizado para verificación de roles y permisos
 import { useAuth as useAuthContext } from '@/context/AuthContext';
 
-export type UserRole = 'USER' | 'PREMIUM' | 'ADVANCED' | 'WEBADMIN' | 'SUPERADMIN';
+export type UserRole = 'STARTER' | 'PRO' | 'ENTERPRISE' | 'ADMIN' | 'SUPERADMIN';
 
 export interface RolePermissions {
   // Permisos para usuarios clientes (generación de códigos)
@@ -14,7 +14,7 @@ export interface RolePermissions {
   canAccessPremiumFeatures: boolean;
   canAccessExpertFeatures: boolean;
   
-  // Permisos para administración del sitio web (WEBADMIN y SUPERADMIN)
+  // Permisos para administración del sitio web (ADMIN y SUPERADMIN)
   canAccessWebAdminPanel: boolean;
   canViewSystemMetrics: boolean;
   canManageUsers: boolean;
@@ -33,24 +33,37 @@ export function usePermissions() {
   const hasRole = (requiredRole: UserRole): boolean => {
     if (!isAuthenticated || !user) return false;
     
-    const userRole = user.role.toUpperCase();
+    // Mapeo de roles antiguos a nuevos para compatibilidad
+    const mapOldToNewRole = (role: string): UserRole => {
+      const upperRole = role.toUpperCase();
+      switch (upperRole) {
+        case 'USER': return 'STARTER';
+        case 'PREMIUM': return 'ENTERPRISE';
+        case 'ADVANCED': return 'PRO';
+        case 'WEBADMIN': return 'ADMIN';
+        case 'SUPERADMIN': return 'SUPERADMIN';
+        default: return 'STARTER';
+      }
+    };
+    
+    const userRole = mapOldToNewRole(user.role);
     
     // SUPERADMIN tiene acceso absoluto a todo
     if (userRole === 'SUPERADMIN') return true;
     
-    // WEBADMIN tiene acceso a todo excepto funciones de SUPERADMIN
-    if (userRole === 'WEBADMIN' && requiredRole !== 'SUPERADMIN') return true;
+    // ADMIN tiene acceso a todo excepto funciones de SUPERADMIN
+    if (userRole === 'ADMIN' && requiredRole !== 'SUPERADMIN') return true;
     
     // Verificación exacta de roles
     if (userRole === requiredRole) return true;
     
     // Jerarquía de roles para usuarios clientes:
-    if (requiredRole === 'USER') {
-      return ['USER', 'PREMIUM', 'ADVANCED'].includes(userRole);
+    if (requiredRole === 'STARTER') {
+      return ['STARTER', 'PRO', 'ENTERPRISE'].includes(userRole);
     }
     
-    if (requiredRole === 'PREMIUM') {
-      return ['PREMIUM', 'ADVANCED'].includes(userRole);
+    if (requiredRole === 'PRO') {
+      return ['PRO', 'ENTERPRISE'].includes(userRole);
     }
     
     return false;
@@ -64,31 +77,31 @@ export function usePermissions() {
     switch (role) {
       case 'SUPERADMIN':
         return 'Super Admin';
-      case 'WEBADMIN':
+      case 'ADMIN':
         return 'Admin';
-      case 'ADVANCED':
+      case 'ENTERPRISE':
         return 'Enterprise';
-      case 'PREMIUM':
-        return 'PRO';
-      case 'USER':
-        return 'Freemium';
+      case 'PRO':
+        return 'Pro';
+      case 'STARTER':
+        return 'Starter';
       default:
-        return 'Freemium';
+        return 'Starter';
     }
   };
 
   const getRoleColor = (role: UserRole): string => {
     switch (role) {
       case 'SUPERADMIN':
-        return 'text-red-600 dark:text-red-400';
-      case 'WEBADMIN':
-        return 'text-orange-600 dark:text-orange-400';
-      case 'ADVANCED':
-        return 'text-amber-600 dark:text-amber-400';
-      case 'PREMIUM':
-        return 'text-purple-600 dark:text-purple-400';
-      case 'USER':
-        return 'text-blue-600 dark:text-blue-400';
+        return 'text-yellow-600 dark:text-yellow-400'; // Dorado para corona
+      case 'ADMIN':
+        return 'text-blue-600 dark:text-blue-400'; // Azul corporativo
+      case 'ENTERPRISE':
+        return 'text-slate-800 dark:text-slate-300'; // Negro/Platino premium
+      case 'PRO':
+        return 'text-purple-600 dark:text-purple-400'; // Púrpura profesional
+      case 'STARTER':
+        return 'text-green-600 dark:text-green-400'; // Verde crecimiento
       default:
         return 'text-gray-600 dark:text-gray-400';
     }
@@ -96,18 +109,18 @@ export function usePermissions() {
 
   const permissions: RolePermissions = {
     // Permisos para usuarios clientes (generación de códigos)
-    canGenerateCodes: hasAnyRole(['USER', 'PREMIUM', 'ADVANCED']),
-    canAccessUserDashboard: hasAnyRole(['USER', 'PREMIUM', 'ADVANCED']),
-    canAccessAdvancedOptions: hasAnyRole(['PREMIUM', 'ADVANCED']),
-    canAccessPremiumFeatures: hasAnyRole(['PREMIUM', 'ADVANCED']),
-    canAccessExpertFeatures: hasRole('ADVANCED'),
+    canGenerateCodes: hasAnyRole(['STARTER', 'PRO', 'ENTERPRISE']),
+    canAccessUserDashboard: hasAnyRole(['STARTER', 'PRO', 'ENTERPRISE']),
+    canAccessAdvancedOptions: hasAnyRole(['PRO', 'ENTERPRISE']),
+    canAccessPremiumFeatures: hasAnyRole(['PRO', 'ENTERPRISE']),
+    canAccessExpertFeatures: hasRole('ENTERPRISE'),
     
-    // Permisos para administración del sitio web (WEBADMIN y SUPERADMIN)
-    canAccessWebAdminPanel: hasAnyRole(['WEBADMIN', 'SUPERADMIN']),
-    canViewSystemMetrics: hasAnyRole(['WEBADMIN', 'SUPERADMIN']),
-    canManageUsers: hasAnyRole(['WEBADMIN', 'SUPERADMIN']),
-    canModifySystemSettings: hasAnyRole(['WEBADMIN', 'SUPERADMIN']),
-    canViewServerLogs: hasAnyRole(['WEBADMIN', 'SUPERADMIN']),
+    // Permisos para administración del sitio web (ADMIN y SUPERADMIN)
+    canAccessWebAdminPanel: hasAnyRole(['ADMIN', 'SUPERADMIN']),
+    canViewSystemMetrics: hasAnyRole(['ADMIN', 'SUPERADMIN']),
+    canManageUsers: hasAnyRole(['ADMIN', 'SUPERADMIN']),
+    canModifySystemSettings: hasAnyRole(['ADMIN', 'SUPERADMIN']),
+    canViewServerLogs: hasAnyRole(['ADMIN', 'SUPERADMIN']),
     
     // Permisos exclusivos de SUPERADMIN
     canManageAdministrators: hasRole('SUPERADMIN'),
@@ -115,19 +128,39 @@ export function usePermissions() {
     canModifyGlobalSettings: hasRole('SUPERADMIN'),
   };
 
+  // Mapear rol del usuario para compatibilidad
+  const mapOldToNewRole = (role: string): UserRole => {
+    const upperRole = role.toUpperCase();
+    switch (upperRole) {
+      case 'USER': return 'STARTER';
+      case 'PREMIUM': return 'ENTERPRISE';
+      case 'ADVANCED': return 'PRO';
+      case 'WEBADMIN': return 'ADMIN';
+      case 'SUPERADMIN': return 'SUPERADMIN';
+      default: return 'STARTER';
+    }
+  };
+
+  const currentUserRole = user ? mapOldToNewRole(user.role) : null;
+
   return {
     user,
     isAuthenticated,
     hasRole,
     hasAnyRole,
     permissions,
-    userRole: user?.role?.toUpperCase() as UserRole || null,
+    userRole: currentUserRole,
     getRoleName,
     getRoleColor,
     isSuperAdmin: hasRole('SUPERADMIN'),
-    isWebAdmin: hasRole('WEBADMIN'),
-    isAdvanced: hasRole('ADVANCED'),
-    isPremium: hasRole('PREMIUM'),
-    isUser: hasRole('USER'),
+    isAdmin: hasRole('ADMIN'),
+    isEnterprise: hasRole('ENTERPRISE'),
+    isPro: hasRole('PRO'),
+    isStarter: hasRole('STARTER'),
+    // Mantener compatibilidad con nombres antiguos (deprecated)
+    isWebAdmin: hasRole('ADMIN'),
+    isAdvanced: hasRole('PRO'),
+    isPremium: hasRole('ENTERPRISE'),
+    isUser: hasRole('STARTER'),
   };
 } 

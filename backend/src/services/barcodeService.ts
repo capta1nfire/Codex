@@ -269,7 +269,7 @@ export const generateBarcodesBatch = async (
         error: `Servicio Rust devolvió error ${rustResponse.status}`,
         suggestion: 'Verifica los logs del servicio Rust.',
       };
-      
+
       try {
         const rustErrorData = await rustResponse.json();
         errorBody = {
@@ -291,10 +291,10 @@ export const generateBarcodesBatch = async (
 
     // Procesar respuesta exitosa
     const rustResult = await rustResponse.json();
-    
+
     if (rustResult.success && Array.isArray(rustResult.results)) {
       const totalTime = Date.now() - startTime;
-      
+
       logger.info(`[BarcodeService] Batch processing completado en ${totalTime}ms`, {
         total: rustResult.summary.total,
         successful: rustResult.summary.successful,
@@ -327,7 +327,7 @@ export const generateBarcodesBatch = async (
     if (error instanceof AppError) {
       throw error;
     }
-    
+
     logger.error('[BarcodeService] Error durante batch processing:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
     throw new AppError(

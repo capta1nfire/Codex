@@ -56,6 +56,14 @@ const baseUserSchemaFrontend = z.object({
     )
     .optional()
     .nullable(), // Permitir nullable como en el backend
+  phone: z
+    .string()
+    .regex(
+      /^[+]?[1-9][\d]{0,15}$/,
+      'Formato de teléfono inválido. Use formato internacional (+123456789) o nacional'
+    )
+    .optional()
+    .or(z.literal('')), // Permitir string vacío
   // No incluimos role, isActive, apiKey ya que probablemente no se editan desde este formulario
 });
 

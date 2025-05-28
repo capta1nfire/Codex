@@ -36,21 +36,28 @@ import { z } from 'zod';
  */
 export const registerSchema = z.object({
   email: z.string().email('Formato de email inválido'),
-  password: z.string()
+  password: z
+    .string()
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .regex(/[a-z]/, 'La contraseña debe tener al menos una letra minúscula')
     .regex(/[A-Z]/, 'La contraseña debe tener al menos una letra mayúscula')
     .regex(/[0-9]/, 'La contraseña debe tener al menos un número'),
-  firstName: z.string()
+  firstName: z
+    .string()
     .min(2, 'El nombre debe tener al menos 2 caracteres')
-    .transform(str => str.trim()),
-  lastName: z.string()
+    .transform((str) => str.trim()),
+  lastName: z
+    .string()
     .optional()
-    .transform(str => str ? str.trim() : undefined),
-  username: z.string()
+    .transform((str) => (str ? str.trim() : undefined)),
+  username: z
+    .string()
     .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')
-    .regex(/^[a-zA-Z0-9_-]+$/, 'El nombre de usuario solo puede contener letras, números, guiones bajos (_) y guiones medios (-)')
-    .transform(str => str.trim().toLowerCase()), // Guardar en minúsculas para consistencia
+    .regex(
+      /^[a-zA-Z0-9_-]+$/,
+      'El nombre de usuario solo puede contener letras, números, guiones bajos (_) y guiones medios (-)'
+    )
+    .transform((str) => str.trim().toLowerCase()), // Guardar en minúsculas para consistencia
 });
 
 /**
@@ -75,4 +82,4 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   email: z.string().email('Formato de email inválido'),
   password: z.string().min(1, 'La contraseña es obligatoria'),
-}); 
+});

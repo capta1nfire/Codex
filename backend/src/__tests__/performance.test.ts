@@ -1,7 +1,7 @@
+import { jest } from '@jest/globals';
 import compression from 'compression';
 import express from 'express';
 import request from 'supertest';
-import { jest } from '@jest/globals';
 
 // Definir tipos para mocks y caché
 interface MockRustResponse {

@@ -22,6 +22,7 @@ interface User {
   profilePictureUrl?: string;
   profilePictureType?: string;
   currentApiKey?: string; // Campo para la API Key actual (NO es el hash del backend)
+  apiUsage?: number; // Campo para el uso de API - Fase 2C
   createdAt?: string;
   updatedAt?: string;
   lastLogin?: string;

@@ -32,6 +32,7 @@ model User {
   firstName String    // <--- Vuelve a ser obligatorio
   lastName  String? // Apellido (opcional)
   username  String?  @unique // Identificador único elegido por el usuario (opcional)
+  phone     String?  // Número de teléfono del usuario (opcional)
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

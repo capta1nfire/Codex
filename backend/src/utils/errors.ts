@@ -28,7 +28,7 @@ export enum ErrorCode {
   INTERNAL_SERVER = 'INTERNAL_SERVER',
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-  RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED'
+  RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
 }
 
 // Clase base para todos los errores de la aplicación
@@ -37,12 +37,7 @@ export class AppError extends Error {
   code?: ErrorCode;
   details?: unknown;
 
-  constructor(
-    message: string,
-    statusCode: number = 500,
-    code?: ErrorCode,
-    details?: unknown
-  ) {
+  constructor(message: string, statusCode: number = 500, code?: ErrorCode, details?: unknown) {
     super(message);
     this.name = 'AppError';
     this.statusCode = statusCode;
@@ -126,7 +121,9 @@ export function sendErrorResponse(res: Response, error: AppError | Error): Respo
 }
 
 // Función para convertir un error genérico en una respuesta de error estandarizada
-export const formatError = (error: Error | AppError): {
+export const formatError = (
+  error: Error | AppError
+): {
   success: false;
   error: {
     message: string;

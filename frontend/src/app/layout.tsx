@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import SystemAlerts from '@/components/SystemAlerts';
 import SuperAdminLayout from '@/components/admin/SuperAdminLayout';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,42 +24,44 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${inter.className} bg-gray-100`}>
-        <AuthProvider>
-          <ErrorBoundary>
-            <Navbar />
-            <SuperAdminLayout>
-              <main className="pt-16 lg:pt-20 xl:pt-24">{children}</main>
-            </SuperAdminLayout>
-            
-            <SystemAlerts />
-          </ErrorBoundary>
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-                fontSize: '14px',
-                padding: '16px',
-                borderRadius: '8px',
-                marginTop: '120px',
-              },
-              success: {
-                iconTheme: {
-                  primary: '#4ade80',
-                  secondary: '#fff',
+        <TooltipProvider>
+          <AuthProvider>
+            <ErrorBoundary>
+              <Navbar />
+              <SuperAdminLayout>
+                <main className="pt-16 lg:pt-20 xl:pt-24">{children}</main>
+              </SuperAdminLayout>
+              
+              <SystemAlerts />
+            </ErrorBoundary>
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
+                  fontSize: '14px',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  marginTop: '120px',
                 },
-              },
-              error: {
-                iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#fff',
+                success: {
+                  iconTheme: {
+                    primary: '#4ade80',
+                    secondary: '#fff',
+                  },
                 },
-              },
-            }}
-          />
-        </AuthProvider>
+                error: {
+                  iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#fff',
+                  },
+                },
+              }}
+            />
+          </AuthProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

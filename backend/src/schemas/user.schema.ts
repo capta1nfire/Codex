@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { Role } from '@prisma/client';
+import { z } from 'zod';
 
 // Esquema base con campos comunes
 const baseUserSchema = z.object({
@@ -7,7 +7,16 @@ const baseUserSchema = z.object({
   firstName: z.string().min(1, 'El nombre es obligatorio'),
   lastName: z.string().optional(),
   // Username ahora opcional Y nullable (para permitir borrar y regenerar)
-  username: z.string().min(3, 'El nombre de usuario debe tener al menos 3 caracteres').optional().nullable(), 
+  username: z
+    .string()
+    .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')
+    .optional()
+    .nullable(),
+  phone: z
+    .string()
+    .regex(/^[+]?[1-9][\d]{0,15}$/, 'Formato de teléfono inválido')
+    .optional()
+    .or(z.literal('')), // Permitir string vacío
   role: z.nativeEnum(Role).optional(),
   isActive: z.boolean().optional(),
 });
@@ -17,7 +26,7 @@ export const createUserSchema = baseUserSchema
   .omit({ username: true }) // Omitimos username aquí, ya que se genera automáticamente
   .extend({
     password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
-});
+  });
 
 // Esquema para la actualización de usuarios (username opcional/nullable)
 export const updateUserSchema = baseUserSchema
@@ -35,4 +44,4 @@ export const userIdParamsSchema = z.object({
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 // Exportar tipo para parámetros de ID
-export type UserIdParamsInput = z.infer<typeof userIdParamsSchema>; 
+export type UserIdParamsInput = z.infer<typeof userIdParamsSchema>;

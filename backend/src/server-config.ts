@@ -4,9 +4,9 @@ import * as https from 'https';
 
 import { Express } from 'express';
 
-import logger from './utils/logger.js';
 import prisma from './lib/prisma.js';
 import { redis } from './lib/redis.js';
+import logger from './utils/logger.js';
 
 // Función para iniciar el servidor
 export const startServer = async (
@@ -46,7 +46,6 @@ export const startServer = async (
     logger.info('Verificando conexión con Redis...');
     await redis.ping();
     logger.info('Conexión a Redis verificada.');
-
   } catch (error) {
     logger.error('Error al conectar con servicios externos (DB/Redis): ', error);
     logger.warn('⚠️ Continuando sin DB/Redis - Solo funciones básicas disponibles');

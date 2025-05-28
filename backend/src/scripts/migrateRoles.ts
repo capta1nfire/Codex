@@ -17,7 +17,7 @@ async function migrateRoles() {
 
     if (Array.isArray(adminUsers) && adminUsers.length > 0) {
       console.log('📝 Actualizando usuarios ADMIN a WEBADMIN...');
-      
+
       // Actualizar usuarios con rol ADMIN a WEBADMIN
       const updateResult = await prisma.$executeRaw`
         UPDATE "User" 
@@ -40,7 +40,6 @@ async function migrateRoles() {
     console.log('🎯 Usuarios con rol WEBADMIN después de la migración:', webAdminUsers);
 
     console.log('✅ Migración de roles completada exitosamente');
-
   } catch (error) {
     console.error('❌ Error durante la migración de roles:', error);
     throw error;
@@ -60,4 +59,4 @@ migrateRoles()
     process.exit(1);
   });
 
-export { migrateRoles }; 
+export { migrateRoles };

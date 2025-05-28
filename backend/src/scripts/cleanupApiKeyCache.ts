@@ -11,21 +11,21 @@ import logger from '../utils/logger.js';
 async function cleanupCache() {
   try {
     logger.info('🧹 Iniciando limpieza de caché de API Keys...');
-    
+
     // Obtener estadísticas antes de la limpieza
     const statsBefore = await apiKeyCache.getStats();
     logger.info(`📊 Estadísticas antes de limpieza:`, statsBefore);
-    
+
     // Ejecutar limpieza
     await apiKeyCache.cleanup();
-    
+
     // Obtener estadísticas después de la limpieza
     const statsAfter = await apiKeyCache.getStats();
     logger.info(`📊 Estadísticas después de limpieza:`, statsAfter);
-    
+
     const cleaned = statsBefore.totalEntries - statsAfter.totalEntries;
     logger.info(`✅ Limpieza completada. Entradas eliminadas: ${cleaned}`);
-    
+
     process.exit(0);
   } catch (error) {
     logger.error('❌ Error durante la limpieza del caché:', error);
@@ -36,4 +36,4 @@ async function cleanupCache() {
 // Ejecutar si es llamado directamente
 if (import.meta.url === `file://${process.argv[1]}`) {
   cleanupCache();
-} 
+}

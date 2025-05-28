@@ -1,8 +1,8 @@
+import { jest } from '@jest/globals';
 import express, { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 // import passport from 'passport';
 import request from 'supertest';
-import { jest } from '@jest/globals';
 
 import { config } from '../config.js';
 import { UserRole } from '../models/user.js';

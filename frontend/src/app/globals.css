@@ -163,3 +163,379 @@
   -webkit-line-clamp: 2;
   line-clamp: 2;
 }
+
+/* ✅ CODEX Design System v2.0 - Plan & Limits Section Custom Styles */
+@layer components {
+  /* Hero Moments - Microinteracciones suaves */
+  .hero-button {
+    @apply transform transition-all duration-300 ease-out;
+    @apply hover:scale-105 active:scale-95;
+  }
+
+  /* Easing personalizado para sofisticación corporativa */
+  .ease-subtle {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ease-smooth {
+    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  /* Escalas suaves para micro-interacciones */
+  .scale-102 {
+    transform: scale(1.02);
+  }
+
+  /* Progress bar con colores corporativos */
+  .progress-normal [data-state="complete"] {
+    @apply bg-gradient-to-r from-blue-500 to-blue-600;
+  }
+
+  .progress-caution [data-state="complete"] {
+    @apply bg-orange-500;
+  }
+
+  .progress-warning [data-state="complete"] {
+    @apply bg-amber-500;
+  }
+
+  /* Gradientes corporativos para Hero Moments */
+  .gradient-corporate {
+    background: linear-gradient(135deg, 
+      hsl(var(--corporate-blue-500)) 0%, 
+      hsl(var(--corporate-blue-600)) 100%);
+  }
+
+  .gradient-corporate-light {
+    background: linear-gradient(135deg, 
+      hsl(var(--corporate-blue-50)) 0%, 
+      hsl(var(--corporate-blue-100)) 100%);
+  }
+
+  /* Sombras sofisticadas para cards */
+  .shadow-corporate {
+    box-shadow: 
+      0 1px 3px 0 hsl(var(--corporate-blue-500) / 0.1),
+      0 1px 2px 0 hsl(var(--corporate-blue-500) / 0.06);
+  }
+
+  .shadow-corporate-md {
+    box-shadow: 
+      0 4px 6px -1px hsl(var(--corporate-blue-500) / 0.1),
+      0 2px 4px -1px hsl(var(--corporate-blue-500) / 0.06);
+  }
+
+  .shadow-corporate-lg {
+    box-shadow: 
+      0 10px 15px -3px hsl(var(--corporate-blue-500) / 0.1),
+      0 4px 6px -2px hsl(var(--corporate-blue-500) / 0.05);
+  }
+
+  /* ✅ CODEX Design System v2.0 - Advanced Avatar Editor Styles */
+  .avatar-glow {
+    box-shadow: 
+      0 0 20px 0 hsl(var(--corporate-blue-500) / 0.25),
+      0 0 40px 0 hsl(var(--corporate-blue-500) / 0.15);
+  }
+
+  .avatar-ring-animated {
+    background: conic-gradient(
+      from 0deg,
+      hsl(var(--corporate-blue-500)),
+      hsl(var(--corporate-blue-600)),
+      hsl(var(--corporate-blue-500))
+    );
+  }
+
+  .avatar-backdrop {
+    backdrop-filter: blur(12px) saturate(1.5);
+    background: rgba(255, 255, 255, 0.85);
+  }
+
+  .dark .avatar-backdrop {
+    background: rgba(0, 0, 0, 0.85);
+  }
+
+  /* Spinning animation for gradient ring */
+  @keyframes spin-slow {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+  }
+
+  /* Filter preview hover effects */
+  .filter-preview:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Enhanced range slider for crop controls */
+  
+  /* ✅ CODEX Design System v2.0 - Security Section Styles */
+  .hero-card {
+    background: linear-gradient(135deg, 
+      hsl(var(--corporate-blue-50)) 0%, 
+      hsl(var(--corporate-blue-100)) 100%);
+    border: 2px solid hsl(var(--corporate-blue-300));
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    position: relative;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hero-card:hover {
+    border-color: hsl(var(--corporate-blue-400));
+    box-shadow: 
+      0 10px 25px -3px hsl(var(--corporate-blue-500) / 0.15),
+      0 4px 6px -2px hsl(var(--corporate-blue-500) / 0.05);
+    transform: translateY(-2px);
+  }
+
+  .dark .hero-card {
+    background: linear-gradient(135deg, 
+      hsl(var(--corporate-blue-950)) 0%, 
+      hsl(var(--corporate-blue-900)) 100%);
+    border-color: hsl(var(--corporate-blue-700));
+  }
+
+  .dark .hero-card:hover {
+    border-color: hsl(var(--corporate-blue-600));
+  }
+
+  /* Security status indicators */
+  .security-status-enabled {
+    background: linear-gradient(135deg, 
+      hsl(120 70% 95%) 0%, 
+      hsl(120 70% 90%) 100%);
+    border-color: hsl(120 70% 80%);
+  }
+
+  .security-status-disabled {
+    background: linear-gradient(135deg, 
+      hsl(30 67% 95%) 0%, 
+      hsl(30 67% 90%) 100%);
+    border-color: hsl(30 67% 80%);
+  }
+
+  /* Enhanced session card hover */
+  .session-card {
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .session-card:hover {
+    border-color: hsl(var(--corporate-blue-300));
+    box-shadow: 
+      0 4px 12px 0 hsl(var(--corporate-blue-500) / 0.10);
+    transform: translateY(-1px);
+  }
+
+  /* Activity event animations */
+  .activity-event {
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .activity-event:hover {
+    border-color: hsl(var(--corporate-blue-300));
+    background: hsl(var(--corporate-blue-50) / 0.5);
+  }
+
+  .dark .activity-event:hover {
+    background: hsl(var(--corporate-blue-950) / 0.5);
+  }
+
+  /* 2FA Setup modal enhancements */
+  .qr-placeholder {
+    background: repeating-linear-gradient(
+      45deg,
+      hsl(var(--corporate-blue-100)),
+      hsl(var(--corporate-blue-100)) 10px,
+      hsl(var(--corporate-blue-200)) 10px,
+      hsl(var(--corporate-blue-200)) 20px
+    );
+  }
+
+  .dark .qr-placeholder {
+    background: repeating-linear-gradient(
+      45deg,
+      hsl(var(--corporate-blue-900)),
+      hsl(var(--corporate-blue-900)) 10px,
+      hsl(var(--corporate-blue-800)) 10px,
+      hsl(var(--corporate-blue-800)) 20px
+    );
+  }
+
+  /* Security score progress enhancement */
+  .security-score-ring {
+    background: conic-gradient(
+      from 0deg,
+      hsl(120 70% 50%) 0deg 306deg,
+      hsl(var(--muted)) 306deg 360deg
+    );
+  }
+
+  /* Privacy switch enhanced styles */
+  .privacy-switch-card {
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .privacy-switch-card:hover {
+    background: hsl(var(--corporate-blue-50) / 0.7);
+    border-color: hsl(var(--corporate-blue-200));
+  }
+
+  .dark .privacy-switch-card:hover {
+    background: hsl(var(--corporate-blue-950) / 0.7);
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-track {
+    background: hsl(var(--muted));
+    height: 0.5rem;
+    border-radius: 0.25rem;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background: hsl(var(--corporate-blue-500));
+    height: 1.25rem;
+    width: 1.25rem;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    background: hsl(var(--corporate-blue-600));
+    transform: scale(1.1);
+  }
+
+  input[type="range"]::-moz-range-track {
+    background: hsl(var(--muted));
+    height: 0.5rem;
+    border-radius: 0.25rem;
+    border: none;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    background: hsl(var(--corporate-blue-500));
+    height: 1.25rem;
+    width: 1.25rem;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  input[type="range"]::-moz-range-thumb:hover {
+    background: hsl(var(--corporate-blue-600));
+    transform: scale(1.1);
+  }
+
+  /* Gallery item hover effects */
+  .gallery-item {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .gallery-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, 
+      hsl(var(--corporate-blue-500) / 0.1), 
+      hsl(var(--corporate-blue-600) / 0.05));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .gallery-item:hover::before {
+    opacity: 1;
+  }
+
+  .gallery-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  /* ✅ CODEX Design System v2.0 - Enhanced UserProfile Styles */
+  .shadow-corporate-hero {
+    box-shadow: 
+      0 25px 50px -12px hsl(var(--corporate-blue-500) / 0.15),
+      0 0 0 1px hsl(var(--corporate-blue-500) / 0.05),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .shadow-corporate-hero {
+    box-shadow: 
+      0 25px 50px -12px hsl(var(--corporate-blue-500) / 0.2),
+      0 0 0 1px hsl(var(--corporate-blue-500) / 0.1),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .animate-spin-reverse {
+    animation: spin 2s linear infinite reverse;
+  }
+
+  .border-corporate-blue-200 {
+    border-color: hsl(var(--corporate-blue-200));
+  }
+
+  .border-corporate-blue-700 {
+    border-color: hsl(var(--corporate-blue-700));
+  }
+
+  /* Enhanced hover animations */
+  .hover\:shadow-corporate-hero:hover {
+    box-shadow: 
+      0 35px 60px -12px hsl(var(--corporate-blue-500) / 0.2),
+      0 0 0 1px hsl(var(--corporate-blue-500) / 0.1),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+  }
+
+  .dark .hover\:shadow-corporate-hero:hover {
+    box-shadow: 
+      0 35px 60px -12px hsl(var(--corporate-blue-500) / 0.25),
+      0 0 0 1px hsl(var(--corporate-blue-500) / 0.15),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  }
+
+  /* Loading animation enhancements */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Hero background pattern animation */
+  @keyframes grid-fade {
+    0%, 100% { opacity: 0.02; }
+    50% { opacity: 0.08; }
+  }
+
+  .animate-grid-fade {
+    animation: grid-fade 4s ease-in-out infinite;
+  }
+}

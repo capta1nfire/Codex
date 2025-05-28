@@ -2,13 +2,13 @@ import { Router } from 'express';
 import express from 'express';
 
 import { authController } from '../controllers/auth.controller.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
+import { strictRateLimit, rateLimitMonitor } from '../middleware/rateLimitMiddleware.js';
 import { validateBody } from '../middleware/validationMiddleware.js';
+import { UserRole } from '../models/user.js';
 import { loginSchema } from '../schemas/authSchemas.js';
 import { createUserSchema } from '../schemas/user.schema.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
-import { UserRole } from '../models/user.js';
 import { authService } from '../services/auth.service.js';
-import { strictRateLimit, rateLimitMonitor } from '../middleware/rateLimitMiddleware.js';
 import { AppError, ErrorCode } from '../utils/errors.js';
 
 const router = Router();
@@ -38,7 +38,13 @@ const router = Router();
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/register', rateLimitMonitor, strictRateLimit, validateBody(createUserSchema), authController.register);
+router.post(
+  '/register',
+  rateLimitMonitor,
+  strictRateLimit,
+  validateBody(createUserSchema),
+  authController.register
+);
 
 /**
  * @openapi
@@ -83,7 +89,13 @@ router.post('/register', rateLimitMonitor, strictRateLimit, validateBody(createU
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/login', rateLimitMonitor, strictRateLimit, validateBody(loginSchema), authController.login);
+router.post(
+  '/login',
+  rateLimitMonitor,
+  strictRateLimit,
+  validateBody(loginSchema),
+  authController.login
+);
 
 /**
  * @openapi
@@ -218,7 +230,12 @@ router.post('/api-key', authMiddleware.authenticateJwt, authController.generateA
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/admin', authMiddleware.authenticateJwt, authMiddleware.checkRole(UserRole.ADMIN), authController.adminAccess);
+router.post(
+  '/admin',
+  authMiddleware.authenticateJwt,
+  authMiddleware.checkRole(UserRole.ADMIN),
+  authController.adminAccess
+);
 
 /**
  * @openapi
@@ -254,7 +271,12 @@ router.post('/admin', authMiddleware.authenticateJwt, authMiddleware.checkRole(U
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/premium', authMiddleware.authenticateJwt, authMiddleware.checkRole(UserRole.PREMIUM), authController.premiumAccess);
+router.post(
+  '/premium',
+  authMiddleware.authenticateJwt,
+  authMiddleware.checkRole(UserRole.PREMIUM),
+  authController.premiumAccess
+);
 
 /**
  * @openapi

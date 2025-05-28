@@ -5,6 +5,150 @@ All notable changes to the CODEX project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-01-26
+
+### 💎 Plan & Limits Section - Phase 2C (Corporate Sophistication)
+
+#### Added
+- **PlanLimitsSection Component**: Advanced plan management with corporate design system
+  - File: `frontend/src/components/profile/PlanLimitsSection.tsx`
+  - 5 plan configurations: USER, PREMIUM, ADVANCED, WEBADMIN, SUPERADMIN
+  - Hero moments with corporate gradients and smooth animations
+  - Intelligent alerts for limits and necessary upgrades
+  - Responsive grid layout with usage metrics
+
+- **Custom Progress Component**: Corporate-styled progress bars
+  - File: `frontend/src/components/ui/progress.tsx`
+  - Dynamic colors based on usage percentage (green → orange → amber)
+  - Smooth transitions with corporate easing functions
+  - No external dependencies, fully customized
+
+- **CODEX Design System v2.0 Extensions**: Corporate sophistication styles
+  - Added to: `frontend/src/app/globals.css`
+  - Microinteractions: `.ease-subtle`, `.ease-smooth`, `.scale-102`
+  - Hero buttons with hover effects and transforms
+  - Corporate shadows with blue color tokens
+  - Progress bar states: `.progress-normal`, `.progress-caution`, `.progress-warning`
+
+#### Enhanced
+- **User Profile Integration**: Strategic positioning of new section
+  - File: `frontend/src/components/UserProfile.tsx`
+  - Positioned between personal info and API keys
+  - Seamless integration with existing layout
+  - Maintains design consistency with backdrop blur and shadows
+
+- **User Type Definitions**: Extended user interface for plan data
+  - File: `frontend/src/context/AuthContext.tsx`
+  - Added `apiUsage?: number` field to User interface
+  - Full TypeScript support for plan functionality
+
+#### Features
+- **Dynamic Usage Tracking**: Real-time API usage visualization
+  - Progress bars show percentage of monthly limits
+  - Color-coded warnings at 60% and 80% usage
+  - Automatic upgrade suggestions for free users near limits
+
+- **Plan Comparison Matrix**: Clear benefit and restriction display
+  - ✅ Included features with green indicators
+  - ⚠️ Restrictions with amber warnings
+  - 📊 Detailed metrics: API calls, generations, bulk limits, support level
+
+- **Corporate Microinteractions**: Professional hover effects
+  - Card elevation on hover with smooth transforms
+  - Icon scaling with subtle ease curves
+  - Hero buttons with pulse animation for urgent actions
+  - Gradient top borders for premium feel
+
+#### Plan Configuration
+| Plan | API Calls/Month | Generations | Bulk Limit | Support |
+|------|----------------|-------------|------------|---------|
+| **Free** | 100 | 50 | 0 | Community |
+| **Premium** | 5,000 | 1,000 | 100 | Email |
+| **Advanced** | 25,000 | 5,000 | 1,000 | Priority |
+| **WebAdmin** | 50,000 | 10,000 | 5,000 | Technical |
+| **SuperAdmin** | Unlimited | Unlimited | Unlimited | Full Control |
+
+#### Technical Implementation
+- **Design System Principles**: Following corporate sophistication guidelines
+- **Performance Optimized**: Efficient re-renders with useState and useEffect
+- **Accessibility**: Proper ARIA labels and semantic HTML
+- **Mobile Responsive**: Grid adapts from 2 to 4 columns on larger screens
+
+#### Files Added/Modified
+```
+frontend/src/components/profile/
+└── PlanLimitsSection.tsx           # NEW - Corporate plan management
+
+frontend/src/components/ui/
+└── progress.tsx                    # NEW - Custom progress component
+
+frontend/src/components/
+└── UserProfile.tsx                 # MODIFIED - Integrated plan section
+
+frontend/src/context/
+└── AuthContext.tsx                 # MODIFIED - Added apiUsage field
+
+frontend/src/app/
+└── globals.css                     # MODIFIED - Added design system styles
+```
+
+#### User Experience
+- **Visual Hierarchy**: Clear plan status with branded color schemes
+- **Smart Alerts**: Contextual warnings when approaching limits
+- **Upgrade Flow**: Prominent but non-intrusive upgrade prompts
+- **Information Architecture**: Organized tabs for features, restrictions, and metrics
+
+## [2.1.1] - 2025-01-26
+
+### 📱 User Profile Enhancement - Phase 1
+
+#### Added
+- **Phone Field**: Added optional phone number field to user profiles
+  - Backend: Database migration `20250526060405_add_phone_field`
+  - Schema validation with international format support `/^[+]?[1-9][\d]{0,15}$/`
+  - Frontend: New phone input in ProfileForm component
+  - Supports empty values and international formats
+
+#### Enhanced
+- **Profile Form Validation**: Improved Zod schema synchronization between frontend and backend
+  - Fixed empty string validation issue for optional fields
+  - Enhanced user experience with proper placeholder texts
+  - Maintained existing username functionality
+
+#### Fixed
+- **Critical Validation Bug**: Resolved 400 Bad Request error when saving empty optional fields
+  - Issue: Empty strings were rejected by regex validation
+  - Solution: Added `.or(z.literal(''))` to allow empty strings
+  - Impact: Profile updates now work seamlessly for all field combinations
+
+#### Files Modified
+```
+backend/
+├── prisma/schema.prisma              # Added phone field
+├── src/schemas/user.schema.ts        # Enhanced phone validation
+├── src/models/user.ts                # Updated updateUser method
+└── prisma/migrations/                # New migration file
+
+frontend/
+├── src/schemas/auth.schema.ts        # Added phone validation
+└── src/components/profile/ProfileForm.tsx  # Added phone input field
+```
+
+#### User Experience
+- **Profile Form Fields (6 total)**:
+  - Name (required) ✅
+  - Last Name (optional) ✅
+  - Username (optional) ✅ *existing*
+  - Email (required) ✅
+  - Phone (optional) ✨ *new*
+  - Password (optional for changes) ✅
+
+#### Technical Details
+- **Validation**: International phone format with country code support
+- **Database**: Non-breaking schema change with optional field
+- **Type Safety**: Full TypeScript support with regenerated Prisma client
+- **Testing**: Verified with real user data and edge cases
+
 ## [2.1.0] - 2024-01-16
 
 ### 🔥 Super Admin System - Complete UI/UX Transformation

@@ -1,12 +1,13 @@
 import crypto from 'crypto';
 
 import { Request, Response, NextFunction } from 'express';
-import type { User } from '../models/user.js';
 
 import { userStore, UserRole } from '../models/user.js';
 import { authService } from '../services/auth.service.js';
 import { AppError, ErrorCode } from '../utils/errors.js';
 import logger from '../utils/logger.js';
+
+import type { User } from '../models/user.js';
 
 // We use Express.Request augmented with user?: User for authenticated user
 
@@ -30,13 +31,13 @@ export const authController = {
           role: UserRole.USER,
         });
       } catch (error) {
-          // Manejar error específico de username duplicado (o email duplicado)
-          if (error instanceof AppError && error.code === ErrorCode.CONFLICT_ERROR) {
-            // El error de userStore ya indica si es email o username
-             return next(error); 
-          }
-          // Re-lanzar otros errores de createUser
-          throw error; 
+        // Manejar error específico de username duplicado (o email duplicado)
+        if (error instanceof AppError && error.code === ErrorCode.CONFLICT_ERROR) {
+          // El error de userStore ya indica si es email o username
+          return next(error);
+        }
+        // Re-lanzar otros errores de createUser
+        throw error;
       }
 
       // Generar token JWT

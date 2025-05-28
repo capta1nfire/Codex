@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+
 import dotenv from 'dotenv';
 
 // Obtener __dirname en ESM
@@ -59,10 +60,10 @@ export const config: Config = {
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',')
     : [
-        'http://localhost:3000', 
+        'http://localhost:3000',
         'http://localhost:3001',
         'http://192.168.1.36:3000',
-        'http://192.168.1.36:3001'
+        'http://192.168.1.36:3001',
       ],
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
   RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),

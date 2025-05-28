@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { userController } from '../controllers/user.controller.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { validateBody, validateParams } from '../middleware/validationMiddleware.js';
@@ -64,4 +65,4 @@ router.put(
 
 // TODO: Añadir otras rutas de usuario (GET /:id, DELETE /:id, GET /)
 
-export const userRoutes = router; 
+export const userRoutes = router;

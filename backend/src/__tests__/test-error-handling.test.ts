@@ -1,5 +1,6 @@
-import { AppError, ErrorCode } from '../utils/errors.js';
 import { jest } from '@jest/globals';
+
+import { AppError, ErrorCode } from '../utils/errors.js';
 
 // Import logger statically - Jest should swap with the mock
 import logger from '../utils/logger.js';

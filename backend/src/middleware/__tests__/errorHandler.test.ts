@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
 import { jest } from '@jest/globals';
+import { Request, Response } from 'express';
 
 import { AppError, ErrorCode, HttpStatus } from '../../utils/errors.js';
 import { notFoundHandler, errorHandler, asyncErrorWrapper } from '../errorHandler.js';
@@ -36,7 +36,7 @@ describe('Error Handler Middleware', () => {
       status: jest.fn().mockReturnThis(), // mockReturnThis para encadenar
       json: jest.fn().mockReturnThis(),
       // Añadir otros métodos si es necesario
-    } as any; 
+    } as any;
     mockNext = jest.fn();
   });
 
@@ -80,7 +80,7 @@ describe('Error Handler Middleware', () => {
           error: expect.objectContaining({
             code: ErrorCode.VALIDATION_ERROR,
             message: 'Test error',
-            details: { detail: 'some context' }
+            details: { detail: 'some context' },
           }),
         })
       );
@@ -98,11 +98,11 @@ describe('Error Handler Middleware', () => {
           success: false,
           error: expect.objectContaining({
             code: ErrorCode.INTERNAL_SERVER,
-            message: 'Error interno del servidor'
+            message: 'Error interno del servidor',
           }),
         })
       );
-       expect(mockNext).not.toHaveBeenCalled();
+      expect(mockNext).not.toHaveBeenCalled();
     });
   });
 

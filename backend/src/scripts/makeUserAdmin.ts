@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+
 import logger from '../utils/logger.js';
 
 const prisma = new PrismaClient();
@@ -31,13 +32,14 @@ async function listUsers() {
     logger.info(`Total de usuarios: ${users.length}\n`);
 
     users.forEach((user, index) => {
-      const roleIcon = {
-        SUPERADMIN: '👑',
-        WEBADMIN: '🔧',
-        ADVANCED: '⭐',
-        PREMIUM: '💎',
-        USER: '👤',
-      }[user.role] || '❓';
+      const roleIcon =
+        {
+          SUPERADMIN: '👑',
+          WEBADMIN: '🔧',
+          ADVANCED: '⭐',
+          PREMIUM: '💎',
+          USER: '👤',
+        }[user.role] || '❓';
 
       const status = user.isActive ? '🟢' : '🔴';
       const lastLoginText = user.lastLogin
@@ -103,7 +105,7 @@ async function makeUserAdmin(email: string, roleType: 'WEBADMIN' | 'SUPERADMIN' 
 async function main() {
   try {
     const args = process.argv.slice(2);
-    
+
     if (args.includes('--list')) {
       await listUsers();
     } else if (args.length >= 1) {
@@ -128,4 +130,4 @@ async function main() {
   }
 }
 
-main(); 
+main();

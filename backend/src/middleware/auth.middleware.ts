@@ -107,7 +107,7 @@ export class AuthMiddleware {
         }
 
         const userRole = req.user.role.toUpperCase();
-        
+
         if (!roles.includes(userRole)) {
           throw new AppError(
             `Acceso denegado. Se requiere uno de estos roles: ${roles.join(', ')}`,
@@ -124,4 +124,4 @@ export class AuthMiddleware {
   }
 }
 
-export const authMiddleware = new AuthMiddleware(); 
+export const authMiddleware = new AuthMiddleware();

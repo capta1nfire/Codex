@@ -1,8 +1,14 @@
-import { Request, Response, NextFunction } from 'express';
 import * as Sentry from '@sentry/node';
+import { Request, Response, NextFunction } from 'express';
 
 import { JwtPayload } from '../services/auth.service.js';
-import { AppError, sendErrorResponse, NotFoundError, ErrorCode, formatError } from '../utils/errors.js';
+import {
+  AppError,
+  sendErrorResponse,
+  NotFoundError,
+  ErrorCode,
+  formatError,
+} from '../utils/errors.js';
 import logger from '../utils/logger.js';
 
 /**
@@ -61,7 +67,7 @@ export function errorHandler(
 
   // Error desconocido
   logger.error('Error no manejado:', error);
-  
+
   // Enviar respuesta de error genérica
   res.status(500).json({
     success: false,

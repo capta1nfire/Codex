@@ -1,10 +1,11 @@
 import express from 'express';
 import multer from 'multer';
-import { avatarService, DEFAULT_AVATARS } from '../services/avatar.service.js';
-import { userStore } from '../models/user.js';
+
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { validateParams } from '../middleware/validationMiddleware.js';
+import { userStore } from '../models/user.js';
 import { avatarParamsSchema } from '../schemas/avatar.schema.js';
+import { avatarService, DEFAULT_AVATARS } from '../services/avatar.service.js';
 import { AppError, ErrorCode } from '../utils/errors.js';
 
 const router = express.Router();
@@ -148,7 +149,7 @@ router.post(
       }
 
       const { type } = req.params;
-      
+
       // Actualizar usuario con avatar predeterminado
       const updatedUser = await userStore.updateUser(userId, {
         avatarUrl: avatarService.getDefaultAvatarUrl(type),
@@ -192,7 +193,7 @@ router.post('/reset', authMiddleware.authenticateJwt, async (req, res, next) => 
       throw new AppError('Usuario no autenticado', 401, ErrorCode.UNAUTHORIZED);
     }
     const userId = (req.user as any).id;
-    
+
     if (!userId) {
       throw new AppError('ID de usuario no encontrado en la sesión', 401, ErrorCode.UNAUTHORIZED);
     }
@@ -243,4 +244,4 @@ router.get('/default-options', (_req, res) => {
   });
 });
 
-export const avatarRoutes = router; 
+export const avatarRoutes = router;

@@ -16,11 +16,15 @@ import {
   Menu,
   X,
   ChevronRight,
-  Home
+  Home,
+  Crown
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import ProfilePicture from '../ui/ProfilePicture';
+import RoleBadge from '../ui/RoleBadge';
+import { usePermissions } from '@/hooks/useAuth';
+import { useSidebar } from './SuperAdminLayout';
 
 interface AdminMenuItem {
   href: string;
@@ -97,10 +101,10 @@ const adminMenuItems: AdminMenuItem[] = [
 ];
 
 export default function SuperAdminSidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen } = useSidebar();
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { userRole } = usePermissions();
 
   const handleLogout = () => {
     logout();
@@ -116,50 +120,82 @@ export default function SuperAdminSidebar() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Header */}
+      {/* Merged Header + User Info */}
       <div className="p-4 border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-600">
-            <Zap className="h-5 w-5" />
-          </div>
-          {!isCollapsed && (
-            <div className="flex-1">
-              <h2 className="font-semibold text-slate-800 dark:text-slate-100">Super Admin</h2>
-              <p className="text-xs text-slate-500">Panel de Control</p>
+        {user ? (
+          <div className="space-y-3">
+            {/* Main Title */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-blue-100 text-blue-600">
+                <Zap className="h-4 w-4" />
+              </div>
+              {!isCollapsed && (
+                <h2 className="font-bold text-slate-800 dark:text-slate-100 text-sm uppercase tracking-wide">
+                  Panel de Control
+                </h2>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* User Info */}
-      {user && (
-        <div className="p-4 border-b border-border/50">
-          <Link
-            href="/profile"
-            className={cn(
-              "flex items-center gap-3 p-2 rounded-lg transition-all duration-200",
-              "hover:bg-blue-50 hover:shadow-sm dark:hover:bg-blue-950/30",
-              "cursor-pointer group"
-            )}
-            title="Ver mi perfil"
-          >
-            <ProfilePicture user={user} size="sm" />
+            
+            {/* User Info Card */}
             {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-700 dark:group-hover:text-blue-300">
-                  {user.firstName} {user.lastName}
-                </p>
-                <p className="text-xs text-slate-500 truncate">
-                  {user.email}
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                  Ver perfil →
-                </p>
+              <Link
+                href="/profile"
+                className={cn(
+                  "flex items-start gap-3 p-3 rounded-lg transition-all duration-200",
+                  "hover:bg-blue-50 hover:shadow-sm dark:hover:bg-blue-950/30",
+                  "cursor-pointer group border border-border/30 hover:border-blue-200 dark:hover:border-blue-700"
+                )}
+                title="Ver mi perfil"
+              >
+                <ProfilePicture user={user} size="sm" />
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                    {user.firstName} {user.lastName}
+                  </p>
+                  <p className="text-xs text-slate-500 truncate">
+                    {user.email}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <RoleBadge role={userRole as any} variant="sidebar" />
+                  </div>
+                </div>
+              </Link>
+            )}
+            
+            {/* Collapsed state - show role icon instead of profile picture */}
+            {isCollapsed && (
+              <Link
+                href="/profile"
+                className={cn(
+                  "flex items-center justify-center p-3 rounded-lg transition-all duration-200",
+                  "hover:bg-slate-100 hover:shadow-sm dark:hover:bg-slate-800/50",
+                  "cursor-pointer group border border-slate-200/50 dark:border-slate-700/50",
+                  "hover:border-slate-300 dark:hover:border-slate-600"
+                )}
+                title={`${user.firstName} ${user.lastName} - Super Admin`}
+              >
+                {/* Role Badge Icon */}
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-colors duration-200">
+                  <Crown className="h-5 w-5 text-slate-600 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300" />
+                </div>
+              </Link>
+            )}
+          </div>
+        ) : (
+          // Fallback if no user
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-600">
+              <Zap className="h-5 w-5" />
+            </div>
+            {!isCollapsed && (
+              <div className="flex-1">
+                <h2 className="font-semibold text-slate-800 dark:text-slate-100">Super Admin</h2>
+                <p className="text-xs text-slate-500">Panel de Control</p>
               </div>
             )}
-          </Link>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-4">

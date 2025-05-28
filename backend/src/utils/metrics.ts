@@ -1,4 +1,5 @@
 import client from 'prom-client';
+
 import prisma from '../lib/prisma.js';
 
 // Crear un registro para las métricas

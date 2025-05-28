@@ -1,11 +1,12 @@
 import { Role as PrismaRole, User as PrismaUser } from '@prisma/client';
-import bcrypt from 'bcrypt';
-import prisma from '../lib/prisma.js';
-import { AppError, ErrorCode, HttpStatus } from '../utils/errors.js'; // Importar HttpStatus aquí
-import { CreateUserInput } from '../schemas/user.schema.js'; // Remove UpdateUserInput
 import { Prisma } from '@prisma/client'; // Importar namespace Prisma
-import logger from '../utils/logger.js';
+import bcrypt from 'bcrypt';
+
 import { apiKeyCache } from '../lib/apiKeyCache.js';
+import prisma from '../lib/prisma.js';
+import { CreateUserInput } from '../schemas/user.schema.js'; // Remove UpdateUserInput
+import { AppError, ErrorCode, HttpStatus } from '../utils/errors.js'; // Importar HttpStatus aquí
+import logger from '../utils/logger.js';
 
 // Usar la enumeración Role generada por Prisma
 export { PrismaRole as UserRole }; // <-- Add this value export
@@ -32,8 +33,35 @@ export class UserStore {
    * @throws {AppError} Si no se puede generar un nombre único después de varios intentos.
    */
   private async _generateUniqueUsername(): Promise<string> {
-    const prefixes = ['Cyber', 'Robo', 'Mech', 'Auto', 'Unit', 'Proto', 'Techno', 'Data', 'Omni', 'Syn', 'Andro', 'Giga', 'Nano'];
-    const suffixes = ['tron', 'bot', 'nex', 'core', 'link', 'dyne', 'tech', 'node', 'droid', 'byte', 'flux', 'naut'];
+    const prefixes = [
+      'Cyber',
+      'Robo',
+      'Mech',
+      'Auto',
+      'Unit',
+      'Proto',
+      'Techno',
+      'Data',
+      'Omni',
+      'Syn',
+      'Andro',
+      'Giga',
+      'Nano',
+    ];
+    const suffixes = [
+      'tron',
+      'bot',
+      'nex',
+      'core',
+      'link',
+      'dyne',
+      'tech',
+      'node',
+      'droid',
+      'byte',
+      'flux',
+      'naut',
+    ];
     let username: string | null = null;
     let isUnique = false;
     let attempts = 0;
@@ -44,10 +72,10 @@ export class UserStore {
       const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
       const number = Math.floor(Math.random() * 900) + 100; // 3-digit number
       const candidate = `${prefix}${suffix}${number}`.toLowerCase();
-      
+
       const existingUserByUsername = await prisma.user.findUnique({
         where: { username: candidate },
-        select: { id: true } // Solo necesitamos saber si existe
+        select: { id: true }, // Solo necesitamos saber si existe
       });
 
       if (!existingUserByUsername) {
@@ -63,7 +91,7 @@ export class UserStore {
       // Si no se pudo generar un username único después de maxAttempts
       throw new AppError(
         'No se pudo generar un nombre de usuario único. Inténtalo de nuevo.',
-        HttpStatus.INTERNAL_SERVER_ERROR, 
+        HttpStatus.INTERNAL_SERVER_ERROR,
         ErrorCode.INTERNAL_SERVER
       );
     }
@@ -143,7 +171,7 @@ export class UserStore {
           apiKeyPrefix: true,
           apiUsage: true,
           isActive: true,
-        }
+        },
       });
 
       if (!candidates || candidates.length === 0) {
@@ -169,14 +197,13 @@ export class UserStore {
       await apiKeyCache.set(providedApiKey, null, false);
       logger.debug(`No API key match found for prefix: ${prefix}`);
       return null;
-
     } catch (error) {
       logger.error('Error in findByApiKey:', error);
       // En caso de error, no cachear y devolver null
       return null;
     }
   }
-  
+
   /**
    * Busca un usuario por prefijo de API Key
    * @param apiKeyPrefix Prefijo de la API Key a buscar
@@ -236,9 +263,9 @@ export class UserStore {
     // Actualizar la fecha de último inicio de sesión
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
-      data: { 
+      data: {
         lastLogin: new Date(),
-        updatedAt: new Date() 
+        updatedAt: new Date(),
       },
     });
 
@@ -299,20 +326,18 @@ export class UserStore {
 
   async updateUser(
     id: string,
-    updates: Partial<
-      // Usar UpdateUserInput como tipo base para updates
-      Prisma.UserUpdateInput 
-    >
+    updates: Partial<Prisma.UserUpdateInput & { phone?: string }>
   ): Promise<User | null> {
     const userExists = await this.findById(id);
     if (!userExists) return null;
 
     const dataToUpdate: Prisma.UserUpdateInput = {};
 
-    // --- Preparar datos a actualizar, incluyendo lógica de username --- 
+    // --- Preparar datos a actualizar, incluyendo lógica de username ---
     if (updates.firstName !== undefined) dataToUpdate.firstName = updates.firstName;
     if (updates.lastName !== undefined) dataToUpdate.lastName = updates.lastName;
-    
+    if (updates.phone !== undefined) (dataToUpdate as any).phone = updates.phone;
+
     // Lógica para username:
     if (updates.username === null) {
       // Si se envía null explícitamente, regenerar username
@@ -321,7 +346,7 @@ export class UserStore {
     } else if (typeof updates.username === 'string') {
       // Si es string, limpiarlo y asignarlo (la validación min(3) la hizo Zod)
       dataToUpdate.username = updates.username.trim().toLowerCase();
-    } 
+    }
     // Si es undefined, no se toca el username existente
 
     if (updates.isActive !== undefined) dataToUpdate.isActive = updates.isActive;
@@ -330,17 +355,18 @@ export class UserStore {
     if (updates.avatarUrl !== undefined) dataToUpdate.avatarUrl = updates.avatarUrl;
     if (updates.avatarType !== undefined) dataToUpdate.avatarType = updates.avatarType;
 
-    if (updates.password && typeof updates.password === 'string') { // Asegurar que password sea string
+    if (updates.password && typeof updates.password === 'string') {
+      // Asegurar que password sea string
       dataToUpdate.password = await bcrypt.hash(updates.password, 10);
     }
     if (updates.apiKey && typeof updates.apiKey === 'string') {
       dataToUpdate.apiKey = await bcrypt.hash(updates.apiKey, 10);
       // Solo actualizar prefijo si no se proporcionó explícitamente
       if (updates.apiKeyPrefix === undefined) {
-          dataToUpdate.apiKeyPrefix = updates.apiKey.substring(0, 8);
+        dataToUpdate.apiKeyPrefix = updates.apiKey.substring(0, 8);
       }
     }
-    // --- Fin preparación datos --- 
+    // --- Fin preparación datos ---
 
     if (Object.keys(dataToUpdate).length === 0) {
       return userExists; // No hay nada que actualizar
@@ -360,29 +386,29 @@ export class UserStore {
   async generateApiKey(id: string): Promise<string> {
     // Invalidar caché de API keys existentes para este usuario
     await apiKeyCache.invalidateUserApiKeys(id);
-    
-    // Generar API Key aleatoria 
+
+    // Generar API Key aleatoria
     // Formato: prefijo (8 caracteres) + punto + cuerpo (24 caracteres)
     const prefix = Array.from({ length: 8 }, () =>
       Math.floor(Math.random() * 36).toString(36)
     ).join('');
-    
-    const body = Array.from({ length: 24 }, () => 
-      Math.floor(Math.random() * 36).toString(36)
-    ).join('');
-    
+
+    const body = Array.from({ length: 24 }, () => Math.floor(Math.random() * 36).toString(36)).join(
+      ''
+    );
+
     const apiKey = `${prefix}.${body}`;
     const hashedApiKey = await bcrypt.hash(apiKey, 10);
-    
+
     // Actualizar usuario con la nueva API Key
     await prisma.user.update({
       where: { id },
-      data: { 
+      data: {
         apiKey: hashedApiKey,
-        apiKeyPrefix: prefix 
+        apiKeyPrefix: prefix,
       },
     });
-    
+
     logger.info(`Generated new API key for user ${id} with prefix ${prefix}`);
     return apiKey;
   }
@@ -398,4 +424,3 @@ export class UserStore {
 
 // Instancia singleton para uso en toda la aplicación
 export const userStore = new UserStore();
-

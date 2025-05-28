@@ -10,4 +10,4 @@ beforeEach(() => {
 });
 
 // Exportar el tipo del mock para usar en tests si es necesario
-export type MockPrisma = DeepMockProxy<PrismaClient>; 
+export type MockPrisma = DeepMockProxy<PrismaClient>;

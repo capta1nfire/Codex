@@ -1,13 +1,14 @@
 // Imports correctos:
 import express, { Request, Response, NextFunction } from 'express';
-import { validateBody } from '../middleware/validationMiddleware.js';
-import { generateSchema } from '../schemas/generateSchemas.js'; // Esquema Plural
+
 import { config } from '../config.js';
-import { generateBarcode, generateBarcodesBatch } from '../services/barcodeService.js'; // Servicio
-import logger from '../utils/logger.js'; // Logger desde utils
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { generationRateLimit, rateLimitMonitor } from '../middleware/rateLimitMiddleware.js';
+import { validateBody } from '../middleware/validationMiddleware.js';
+import { generateSchema } from '../schemas/generateSchemas.js'; // Esquema Plural
+import { generateBarcode, generateBarcodesBatch } from '../services/barcodeService.js'; // Servicio
 import { AppError, ErrorCode } from '../utils/errors.js';
+import logger from '../utils/logger.js'; // Logger desde utils
 
 const router = express.Router();
 
@@ -169,7 +170,7 @@ router.post(
 
       logger.info(`[Route:/batch] Procesando batch con ${barcodes.length} códigos`);
       const result = await generateBarcodesBatch(barcodes, options);
-      
+
       res.set('Cache-Control', `public, max-age=${config.CACHE_MAX_AGE}`);
       return res.status(200).json(result);
     } catch (error: unknown) {

@@ -14,9 +14,9 @@ export interface ApiKeyCacheEntry {
 
 export class ApiKeyCache {
   private static instance: ApiKeyCache;
-  
+
   private constructor() {}
-  
+
   static getInstance(): ApiKeyCache {
     if (!ApiKeyCache.instance) {
       ApiKeyCache.instance = new ApiKeyCache();
@@ -42,18 +42,18 @@ export class ApiKeyCache {
     try {
       const cacheKey = this.getCacheKey(apiKey);
       const cached = await redis.get(cacheKey);
-      
+
       if (!cached) {
         return null;
       }
 
       const entry: ApiKeyCacheEntry = JSON.parse(cached);
-      
+
       // Verificar que no haya expirado (doble verificación)
       const now = Date.now();
       const age = now - entry.timestamp;
       const maxAge = entry.valid ? CACHE_TTL * 1000 : NEGATIVE_CACHE_TTL * 1000;
-      
+
       if (age > maxAge) {
         // Expirado, eliminar del caché
         await this.delete(apiKey);
@@ -81,7 +81,7 @@ export class ApiKeyCache {
 
       const ttl = valid ? CACHE_TTL : NEGATIVE_CACHE_TTL;
       await redis.setEx(cacheKey, ttl, JSON.stringify(entry));
-      
+
       logger.debug(`API key cache set: ${valid ? 'valid' : 'invalid'} for user ${userId}`);
     } catch (error) {
       logger.error('Error writing to API key cache:', error);
@@ -109,9 +109,9 @@ export class ApiKeyCache {
       // Buscar todas las claves de caché que contengan este userId
       const pattern = `${CACHE_PREFIX}*`;
       const keys = await redis.keys(pattern);
-      
+
       const keysToDelete: string[] = [];
-      
+
       for (const key of keys) {
         try {
           const cached = await redis.get(key);
@@ -147,7 +147,7 @@ export class ApiKeyCache {
     try {
       const pattern = `${CACHE_PREFIX}*`;
       const keys = await redis.keys(pattern);
-      
+
       let cleanedCount = 0;
       const now = Date.now();
 
@@ -158,7 +158,7 @@ export class ApiKeyCache {
             const entry: ApiKeyCacheEntry = JSON.parse(cached);
             const age = now - entry.timestamp;
             const maxAge = entry.valid ? CACHE_TTL * 1000 : NEGATIVE_CACHE_TTL * 1000;
-            
+
             if (age > maxAge) {
               await redis.del(key);
               cleanedCount++;
@@ -191,12 +191,12 @@ export class ApiKeyCache {
     try {
       const pattern = `${CACHE_PREFIX}*`;
       const keys = await redis.keys(pattern);
-      
+
       let totalEntries = 0;
       let validEntries = 0;
       let invalidEntries = 0;
       let expiredEntries = 0;
-      
+
       const now = Date.now();
 
       for (const key of keys) {
@@ -207,7 +207,7 @@ export class ApiKeyCache {
             const entry: ApiKeyCacheEntry = JSON.parse(cached);
             const age = now - entry.timestamp;
             const maxAge = entry.valid ? CACHE_TTL * 1000 : NEGATIVE_CACHE_TTL * 1000;
-            
+
             if (age > maxAge) {
               expiredEntries++;
             } else if (entry.valid) {
@@ -239,4 +239,4 @@ export class ApiKeyCache {
   }
 }
 
-export const apiKeyCache = ApiKeyCache.getInstance(); 
+export const apiKeyCache = ApiKeyCache.getInstance();

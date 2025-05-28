@@ -1,5 +1,6 @@
-import rateLimit from 'express-rate-limit';
 import { Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
+
 import { AppError, ErrorCode } from '../utils/errors.js';
 import logger from '../utils/logger.js';
 
@@ -61,17 +62,17 @@ export const authenticatedRateLimit = rateLimit({
   max: (req: Request) => {
     const user = req.user as any;
     if (!user) return 100;
-    
+
     // Límites diferenciados por rol
     switch (user.role) {
       case 'admin':
         return 1000; // Administradores: 1000/15min
       case 'premium':
-        return 500;  // Premium: 500/15min
+        return 500; // Premium: 500/15min
       case 'user':
-        return 300;  // Usuarios regulares: 300/15min
+        return 300; // Usuarios regulares: 300/15min
       default:
-        return 100;  // Por defecto: 100/15min
+        return 100; // Por defecto: 100/15min
     }
   },
   keyGenerator: (req: Request) => {
@@ -135,7 +136,7 @@ export const intelligentRateLimit = (req: Request, res: Response, next: any) => 
   // Determinar qué tipo de rate limiting aplicar
   const apiKey = req.headers['x-api-key'] as string;
   const user = req.user as any;
-  
+
   if (apiKey) {
     // Usar rate limiting de API key
     return apiKeyRateLimit(req, res, next);
@@ -151,8 +152,8 @@ export const intelligentRateLimit = (req: Request, res: Response, next: any) => 
 // Monitor de rate limiting (para métricas)
 export const rateLimitMonitor = (req: Request, res: Response, next: any) => {
   const originalSend = res.json;
-  
-  res.json = function(data: any) {
+
+  res.json = function (data: any) {
     // Log cuando se alcanza el rate limit
     if (data?.error?.code === ErrorCode.RATE_LIMIT_EXCEEDED) {
       const user = req.user as any;
@@ -166,6 +167,6 @@ export const rateLimitMonitor = (req: Request, res: Response, next: any) => {
     }
     return originalSend.call(this, data);
   };
-  
+
   next();
-}; 
+};

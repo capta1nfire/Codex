@@ -1,8 +1,9 @@
 // Global setup for tests
-import dotenv from 'dotenv';
 import path from 'path';
 import url from 'url';
+
 import { jest } from '@jest/globals';
+import dotenv from 'dotenv';
 
 // Obtener la ruta del directorio actual en ESM
 const __filename = url.fileURLToPath(import.meta.url);

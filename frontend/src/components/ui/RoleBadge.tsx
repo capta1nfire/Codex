@@ -1,14 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Crown, Shield, Star, Gem, User, Zap } from 'lucide-react';
+import { Crown, Shield, Star, Building2, User, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type UserRole = 'USER' | 'PREMIUM' | 'ADVANCED' | 'WEBADMIN' | 'SUPERADMIN';
+type UserRole = 'STARTER' | 'PRO' | 'ENTERPRISE' | 'ADMIN' | 'SUPERADMIN';
 
 interface RoleBadgeProps {
   role: UserRole;
-  variant?: 'default' | 'compact' | 'mobile';
+  variant?: 'default' | 'compact' | 'mobile' | 'sidebar';
   className?: string;
 }
 
@@ -22,79 +22,61 @@ const RoleBadge: React.FC<RoleBadgeProps> = ({
       case 'SUPERADMIN':
         return {
           label: 'Super Admin',
-          icon: Zap,
-          // Glassmorphism azul corporativo premium
-          gradient: 'from-blue-400 to-indigo-500',
-          bgGradient: 'from-white/25 to-blue-50/30',
-          textColor: 'text-white font-semibold',
-          borderColor: 'border-blue-200/50',
-          shadowColor: 'shadow-blue-400/25',
-          iconBg: 'bg-gradient-to-br from-slate-100 to-white',
-          glowEffect: 'shadow-blue-400/20',
+          icon: Crown,
+          // Gris elegante y neutral
+          bgColor: 'bg-slate-50 dark:bg-slate-900/40',
+          textColor: 'text-slate-700 dark:text-slate-300',
+          borderColor: 'border-slate-300 dark:border-slate-600',
+          iconColor: 'text-slate-600 dark:text-slate-400',
         };
-      case 'WEBADMIN':
+      case 'ADMIN':
         return {
           label: 'Admin',
-          icon: Crown,
-          // Glassmorphism plateado profesional
-          gradient: 'from-slate-300 to-slate-400',
-          bgGradient: 'from-white/15 to-slate-100/25',
-          textColor: 'text-slate-100 font-medium',
-          borderColor: 'border-slate-300/30',
-          shadowColor: 'shadow-slate-400/20',
-          iconBg: 'bg-gradient-to-br from-slate-400 to-slate-500',
-          glowEffect: 'shadow-slate-400/15',
+          icon: Shield,
+          // Azul sutil
+          bgColor: 'bg-blue-50 dark:bg-blue-950/30',
+          textColor: 'text-blue-700 dark:text-blue-300',
+          borderColor: 'border-blue-200 dark:border-blue-800',
+          iconColor: 'text-blue-600 dark:text-blue-400',
         };
-      case 'ADVANCED':
+      case 'ENTERPRISE':
         return {
           label: 'Enterprise',
-          icon: Crown,
-          // Glassmorphism dorado corporativo para clientes enterprise
-          gradient: 'from-amber-400 to-yellow-500',
-          bgGradient: 'from-white/15 to-amber-50/25',
-          textColor: 'text-amber-100 font-medium',
-          borderColor: 'border-amber-300/30',
-          shadowColor: 'shadow-amber-400/20',
-          iconBg: 'bg-gradient-to-br from-amber-400 to-yellow-500',
-          glowEffect: 'shadow-amber-400/15',
+          icon: Building2,
+          // Gris elegante
+          bgColor: 'bg-slate-50 dark:bg-slate-900/50',
+          textColor: 'text-slate-700 dark:text-slate-300',
+          borderColor: 'border-slate-200 dark:border-slate-700',
+          iconColor: 'text-slate-600 dark:text-slate-400',
         };
-      case 'PREMIUM':
+      case 'PRO':
         return {
-          label: 'PRO',
-          icon: Shield,
-          // Glassmorphism púrpura para clientes profesionales
-          gradient: 'from-violet-400 to-purple-400',
-          bgGradient: 'from-white/15 to-violet-50/25',
-          textColor: 'text-violet-100 font-medium',
-          borderColor: 'border-violet-300/30',
-          shadowColor: 'shadow-violet-400/20',
-          iconBg: 'bg-gradient-to-br from-violet-400 to-purple-500',
-          glowEffect: 'shadow-violet-400/15',
-        };
-      case 'USER':
-        return {
-          label: 'Freemium',
+          label: 'Pro',
           icon: Star,
-          // Glassmorphism azul suave para clientes freemium
-          gradient: 'from-blue-300 to-blue-400',
-          bgGradient: 'from-white/10 to-blue-50/20',
-          textColor: 'text-blue-100 font-normal',
-          borderColor: 'border-blue-300/25',
-          shadowColor: 'shadow-blue-400/15',
-          iconBg: 'bg-gradient-to-br from-blue-400 to-blue-500',
-          glowEffect: 'shadow-blue-400/10',
+          // Púrpura sutil
+          bgColor: 'bg-purple-50 dark:bg-purple-950/30',
+          textColor: 'text-purple-700 dark:text-purple-300',
+          borderColor: 'border-purple-200 dark:border-purple-800',
+          iconColor: 'text-purple-600 dark:text-purple-400',
+        };
+      case 'STARTER':
+        return {
+          label: 'Starter',
+          icon: Zap,
+          // Verde sutil
+          bgColor: 'bg-green-50 dark:bg-green-950/30',
+          textColor: 'text-green-700 dark:text-green-300',
+          borderColor: 'border-green-200 dark:border-green-800',
+          iconColor: 'text-green-600 dark:text-green-400',
         };
       default:
         return {
           label: 'Usuario',
           icon: User,
-          gradient: 'from-gray-300 to-gray-400',
-          bgGradient: 'from-white/10 to-gray-50/20',
-          textColor: 'text-gray-100 font-normal',
-          borderColor: 'border-gray-300/25',
-          shadowColor: 'shadow-gray-400/15',
-          iconBg: 'bg-gradient-to-br from-gray-400 to-gray-500',
-          glowEffect: 'shadow-gray-400/10',
+          bgColor: 'bg-gray-50 dark:bg-gray-900/50',
+          textColor: 'text-gray-700 dark:text-gray-300',
+          borderColor: 'border-gray-200 dark:border-gray-700',
+          iconColor: 'text-gray-600 dark:text-gray-400',
         };
     }
   };
@@ -102,28 +84,31 @@ const RoleBadge: React.FC<RoleBadgeProps> = ({
   const config = getRoleConfig(role);
   const IconComponent = config.icon;
 
-  // Variantes de tamaño y estilo
+  // Variantes extra pequeñas y sutiles
   const variants = {
     default: {
-      container: 'px-3 py-1.5 rounded-full',
-      text: 'text-xs font-semibold tracking-wide',
-      icon: 'h-3.5 w-3.5',
-      spacing: 'gap-2',
-      iconPadding: 'p-1',
+      container: 'px-2 py-0.5 rounded-md',
+      text: 'text-xs font-medium',
+      icon: 'h-2.5 w-2.5',
+      spacing: 'gap-1',
     },
     compact: {
-      container: 'px-2.5 py-1 rounded-lg',
+      container: 'px-1.5 py-0.5 rounded-sm',
       text: 'text-xs font-medium',
-      icon: 'h-3 w-3',
-      spacing: 'gap-1.5',
-      iconPadding: 'p-0.5',
+      icon: 'h-2.5 w-2.5',
+      spacing: 'gap-1',
     },
     mobile: {
-      container: 'px-2.5 py-1 rounded-md',
+      container: 'px-1.5 py-0.5 rounded-sm',
       text: 'text-xs font-medium',
-      icon: 'h-3 w-3',
-      spacing: 'gap-1.5',
-      iconPadding: 'p-0.5',
+      icon: 'h-2.5 w-2.5',
+      spacing: 'gap-1',
+    },
+    sidebar: {
+      container: 'px-1.5 py-0.5 rounded-sm',
+      text: 'text-xs font-medium',
+      icon: 'h-2.5 w-2.5',
+      spacing: 'gap-1',
     },
   };
 
@@ -132,48 +117,33 @@ const RoleBadge: React.FC<RoleBadgeProps> = ({
   return (
     <div
       className={cn(
-        // Base glassmorphism styles
-        'inline-flex items-center border backdrop-blur-md transition-all duration-300',
-        'hover:scale-105 hover:backdrop-blur-lg',
+        // Base styles - Más sutil
+        'inline-flex items-center border transition-all duration-150',
         // Container variant
         currentVariant.container,
         currentVariant.spacing,
-        // Background glassmorphism
-        `bg-gradient-to-r ${config.bgGradient}`,
-        // Border and shadow
+        // Colores sutiles
+        config.bgColor,
         config.borderColor,
-        config.shadowColor,
-        `hover:${config.glowEffect}`,
-        // Enhanced hover effects
-        'hover:shadow-lg hover:border-white/40',
+        // Sin sombras pesadas
+        'hover:shadow-sm',
         // Custom className
         className
       )}
     >
-      {/* Icon with gradient background */}
-      <div className={cn(
-        'flex items-center justify-center rounded-full',
-        config.iconBg,
-        currentVariant.iconPadding,
-        'shadow-sm'
-      )}>
-        <IconComponent 
-          className={cn(
-            currentVariant.icon,
-            role === 'SUPERADMIN' ? 'text-blue-600 drop-shadow-sm' : 
-            role === 'WEBADMIN' ? 'text-slate-600 drop-shadow-sm' :
-            role === 'ADVANCED' ? 'text-amber-600 drop-shadow-sm' :
-            'text-white drop-shadow-sm'
-          )}
-        />
-      </div>
+      {/* Icon */}
+      <IconComponent 
+        className={cn(
+          currentVariant.icon,
+          config.iconColor
+        )}
+      />
       
-      {/* Label with glassmorphism text */}
+      {/* Label */}
       <span className={cn(
         currentVariant.text,
         config.textColor,
-        'uppercase tracking-wider drop-shadow-sm',
-        'text-shadow-sm'
+        'uppercase tracking-wide'
       )}>
         {config.label}
       </span>

@@ -1,4 +1,5 @@
 import express from 'express';
+
 import prisma from '../lib/prisma.js';
 import { redis } from '../lib/redis.js';
 
@@ -21,13 +22,13 @@ router.get('/', async (_req, res) => {
     memoryUsage: {
       total: Math.round((process.memoryUsage().heapTotal / 1024 / 1024) * 100) / 100 + ' MB',
       used: Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100 + ' MB',
-      external: Math.round((process.memoryUsage().external / 1024 / 1024) * 100) / 100 + ' MB'
+      external: Math.round((process.memoryUsage().external / 1024 / 1024) * 100) / 100 + ' MB',
     },
     dependencies: {
       database: { status: 'unknown', responseTime: null, error: null } as DependencyStatus,
       redis: { status: 'unknown', responseTime: null, error: null } as DependencyStatus,
-      rust_service: { status: 'unknown', responseTime: null, error: null } as DependencyStatus
-    }
+      rust_service: { status: 'unknown', responseTime: null, error: null } as DependencyStatus,
+    },
   };
 
   // ✅ Check Database - NO crash if fails
@@ -37,31 +38,31 @@ router.get('/', async (_req, res) => {
     checks.dependencies.database = {
       status: 'operational',
       responseTime: Date.now() - dbStart,
-      error: null
+      error: null,
     };
   } catch (error: any) {
     checks.dependencies.database = {
       status: 'down',
       responseTime: Date.now() - startTime,
-      error: error.message || 'Database connection failed'
+      error: error.message || 'Database connection failed',
     };
     checks.status = 'degraded';
   }
 
-  // ✅ Check Redis - NO crash if fails  
+  // ✅ Check Redis - NO crash if fails
   try {
     const redisStart = Date.now();
     await redis.ping();
     checks.dependencies.redis = {
       status: 'operational',
       responseTime: Date.now() - redisStart,
-      error: null
+      error: null,
     };
   } catch (error: any) {
     checks.dependencies.redis = {
       status: 'down',
       responseTime: Date.now() - startTime,
-      error: error.message || 'Redis connection failed'
+      error: error.message || 'Redis connection failed',
     };
     // Redis is not critical, don't change overall status
   }
@@ -72,41 +73,43 @@ router.get('/', async (_req, res) => {
     // Using AbortController for timeout instead of fetch timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    const response = await fetch('http://localhost:3002/health', { 
+
+    const response = await fetch('http://localhost:3002/health', {
       method: 'GET',
-      signal: controller.signal
+      signal: controller.signal,
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     if (response.ok) {
       checks.dependencies.rust_service = {
         status: 'operational',
         responseTime: Date.now() - rustStart,
-        error: null
+        error: null,
       };
     } else {
       checks.dependencies.rust_service = {
         status: 'degraded',
         responseTime: Date.now() - rustStart,
-        error: `HTTP ${response.status}: ${response.statusText}`
+        error: `HTTP ${response.status}: ${response.statusText}`,
       };
     }
   } catch (error: any) {
     checks.dependencies.rust_service = {
       status: 'down',
       responseTime: Date.now() - startTime,
-      error: error.message || 'Rust service unreachable'
+      error: error.message || 'Rust service unreachable',
     };
     checks.status = 'degraded';
   }
 
   // ✅ CRÍTICO: ALWAYS respond, even if some checks failed
   const responseTime = Date.now() - startTime;
-  
+
   // Determine overall status
-  const downServices = Object.values(checks.dependencies).filter(dep => dep.status === 'down').length;
+  const downServices = Object.values(checks.dependencies).filter(
+    (dep) => dep.status === 'down'
+  ).length;
   if (downServices >= 2) {
     checks.status = 'down';
   } else if (downServices >= 1) {
@@ -117,14 +120,14 @@ router.get('/', async (_req, res) => {
   res.status(200).json({
     ...checks,
     responseTime: responseTime + 'ms',
-    alert: checks.status !== 'operational' ? 'Some services are experiencing issues' : null
+    alert: checks.status !== 'operational' ? 'Some services are experiencing issues' : null,
   });
 });
 
 // ✅ NUEVO: Database-specific health check
 router.get('/db', async (_req, res) => {
   const startTime = Date.now();
-  
+
   try {
     // Multiple DB health checks
     const checks = await Promise.allSettled([
@@ -140,16 +143,16 @@ router.get('/db', async (_req, res) => {
       checks: {
         connection: checks[0].status === 'fulfilled' ? 'ok' : 'failed',
         tables: checks[1].status === 'fulfilled' ? 'ok' : 'failed',
-        version: checks[2].status === 'fulfilled' ? 'ok' : 'failed'
+        version: checks[2].status === 'fulfilled' ? 'ok' : 'failed',
       },
       details: {
         connected: checks[0].status === 'fulfilled',
         tablesAccessible: checks[1].status === 'fulfilled',
-        version: checks[2].status === 'fulfilled' ? 'PostgreSQL' : 'unknown'
-      }
+        version: checks[2].status === 'fulfilled' ? 'PostgreSQL' : 'unknown',
+      },
     };
 
-    const failedChecks = Object.values(dbInfo.checks).filter(check => check === 'failed').length;
+    const failedChecks = Object.values(dbInfo.checks).filter((check) => check === 'failed').length;
     if (failedChecks >= 2) {
       dbInfo.status = 'down';
     } else if (failedChecks >= 1) {
@@ -157,7 +160,6 @@ router.get('/db', async (_req, res) => {
     }
 
     res.status(200).json(dbInfo);
-    
   } catch (error: any) {
     // ✅ CRITICAL: Even DB failures return useful info
     res.status(200).json({
@@ -169,13 +171,13 @@ router.get('/db', async (_req, res) => {
       checks: {
         connection: 'failed',
         tables: 'failed',
-        version: 'failed'
+        version: 'failed',
       },
       details: {
         connected: false,
         tablesAccessible: false,
-        version: 'unknown'
-      }
+        version: 'unknown',
+      },
     });
   }
 });
@@ -187,7 +189,7 @@ router.get('/quick', (_req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: Math.floor(process.uptime()),
-    pid: process.pid
+    pid: process.pid,
   });
 });
 
@@ -196,7 +198,7 @@ router.get('/system', async (_req, res) => {
   try {
     const memoryUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
-    
+
     res.status(200).json({
       status: 'operational',
       timestamp: new Date().toISOString(),
@@ -206,18 +208,18 @@ router.get('/system', async (_req, res) => {
           heapUsed: Math.round((memoryUsage.heapUsed / 1024 / 1024) * 100) / 100,
           heapTotal: Math.round((memoryUsage.heapTotal / 1024 / 1024) * 100) / 100,
           external: Math.round((memoryUsage.external / 1024 / 1024) * 100) / 100,
-          rss: Math.round((memoryUsage.rss / 1024 / 1024) * 100) / 100
+          rss: Math.round((memoryUsage.rss / 1024 / 1024) * 100) / 100,
         },
         cpu: {
           user: Math.round((cpuUsage.user / 1000) * 100) / 100,
-          system: Math.round((cpuUsage.system / 1000) * 100) / 100
+          system: Math.round((cpuUsage.system / 1000) * 100) / 100,
         },
         node: {
           version: process.version,
           platform: process.platform,
-          arch: process.arch
-        }
-      }
+          arch: process.arch,
+        },
+      },
     });
   } catch (error) {
     // ✅ Even system info failures are handled gracefully
@@ -227,10 +229,10 @@ router.get('/system', async (_req, res) => {
       error: 'Failed to collect system information',
       basicInfo: {
         uptime: Math.floor(process.uptime()),
-        pid: process.pid
-      }
+        pid: process.pid,
+      },
     });
   }
 });
 
-export default router; 
+export default router;
