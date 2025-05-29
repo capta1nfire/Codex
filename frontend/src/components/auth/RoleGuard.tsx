@@ -65,7 +65,7 @@ export function SuperAdminOnly({ children, fallback = null }: { children: React.
 
 export function WebAdminOnly({ children, fallback = null }: { children: React.ReactNode; fallback?: React.ReactNode }) {
   return (
-    <RoleGuard requiredRoles={['WEBADMIN', 'SUPERADMIN']} fallback={fallback}>
+    <RoleGuard requiredRoles={['ADMIN', 'SUPERADMIN']} fallback={fallback}>
       {children}
     </RoleGuard>
   );
@@ -73,7 +73,7 @@ export function WebAdminOnly({ children, fallback = null }: { children: React.Re
 
 export function AdvancedOnly({ children, fallback = null }: { children: React.ReactNode; fallback?: React.ReactNode }) {
   return (
-    <RoleGuard requiredRole="ADVANCED" fallback={fallback}>
+    <RoleGuard requiredRole="ENTERPRISE" fallback={fallback}>
       {children}
     </RoleGuard>
   );
@@ -81,7 +81,7 @@ export function AdvancedOnly({ children, fallback = null }: { children: React.Re
 
 export function PremiumOnly({ children, fallback = null }: { children: React.ReactNode; fallback?: React.ReactNode }) {
   return (
-    <RoleGuard requiredRoles={['PREMIUM', 'ADVANCED']} fallback={fallback}>
+    <RoleGuard requiredRoles={['PRO', 'ENTERPRISE']} fallback={fallback}>
       {children}
     </RoleGuard>
   );

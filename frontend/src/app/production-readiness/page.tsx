@@ -5,7 +5,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 export default function ProductionReadinessPage() {
   return (
-    <ProtectedRoute requiredRoles={['PREMIUM', 'ADVANCED']}>
+    <ProtectedRoute requiredRoles={['PRO', 'ENTERPRISE', 'ADMIN', 'SUPERADMIN']}>
       <ProductionReadinessContent />
     </ProtectedRoute>
   );

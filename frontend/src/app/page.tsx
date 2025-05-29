@@ -277,63 +277,26 @@ export default function Home() {
   // --- Renderizado ---
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20 border-b border-blue-200/20 dark:border-blue-800/20">
-        <div className="absolute inset-0 bg-grid-slate-100/50 dark:bg-grid-slate-800/50 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02))]" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div className="text-center space-y-6 max-w-4xl mx-auto">
-            {/* Hero Title */}
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/80 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-700/50 text-blue-700 dark:text-blue-300 text-sm font-medium">
-                <QrCode className="h-4 w-4" />
-                Generador Avanzado
-              </div>
-              
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
-                <span className="bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 dark:from-slate-100 dark:via-blue-200 dark:to-slate-100 bg-clip-text text-transparent">
-                  Códigos QR y Barras
-                </span>
-                <br />
-                <span className="text-blue-600 dark:text-blue-400">
-                  Profesionales
-                </span>
-              </h1>
-              
-              <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-                Genera códigos de barras y QR de alta calidad con opciones avanzadas de personalización. 
-                Perfecto para uso empresarial y personal.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Generator */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Main Generator - Hero-Driven Layout */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="grid grid-cols-1 xl:grid-cols-3 gap-8"
+          className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8"
         >
-          {/* Compact Configuration - Left Column */}
-          <div className="xl:col-span-1 space-y-6">
+          {/* LEVEL 1: Essential Controls - Minimal Visual Weight */}
+          <div className="lg:col-span-2 space-y-4">
             
-            {/* Essential Settings Card - Compacted */}
-            <Card className="shadow-xl shadow-blue-500/10 border-border/50 bg-card/95 backdrop-blur-sm">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <Settings className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">Configuración</CardTitle>
-                    <CardDescription className="text-sm">Tipo y datos principales</CardDescription>
-                  </div>
-                </div>
+            {/* Primary Input Card - Clean & Minimal */}
+            <Card className="border border-slate-200/60 dark:border-slate-700/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                  <Settings className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                  Configuración Esencial
+                </CardTitle>
               </CardHeader>
               
               <CardContent className="space-y-4">
-                {/* Type Selector - Compact */}
+                {/* Type Selector */}
                 <BarcodeTypeSelector
                   control={control}
                   isLoading={isLoading}
@@ -341,102 +304,67 @@ export default function Home() {
                   errors={errors}
                 />
 
-                {/* Data Input - Compact */}
+                {/* Data Input */}
                 <div className="space-y-2">
-                  <Label htmlFor="data-input" className="text-sm font-semibold flex items-center gap-2">
-                    Datos
-                    <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
-                      {selectedType?.toUpperCase()}
-                    </span>
+                  <Label htmlFor="data-input" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Contenido
                   </Label>
-                  <div className="relative">
-                    <Input
-                      id="data-input"
-                      placeholder={getDefaultDataForType(selectedType || 'qrcode')}
-                      {...register('data')}
-                      disabled={isLoading}
-                      className={cn(
-                        "h-10 transition-all duration-200 focus:scale-[1.02]",
-                        errors.data ? 'border-destructive' : 'focus:border-blue-500 focus:ring-blue-500/20'
-                      )}
-                    />
-                    {watch('data') && (
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">
-                        {watch('data').length}
-                      </div>
+                  <Input
+                    id="data-input"
+                    placeholder={getDefaultDataForType(selectedType || 'qrcode')}
+                    {...register('data')}
+                    disabled={isLoading}
+                    className={cn(
+                      "h-12 transition-all duration-200",
+                      errors.data ? 'border-destructive' : 'focus:border-blue-500 focus:ring-blue-500/20'
                     )}
-                  </div>
+                  />
                   {errors.data && (
-                    <p className="text-xs text-destructive flex items-center gap-1">
-                      <span className="w-1 h-1 bg-destructive rounded-full"></span>
-                      {errors.data.message}
-                    </p>
+                    <p className="text-xs text-destructive">{errors.data.message}</p>
                   )}
                 </div>
 
-                {/* Generate Button - Compact but Prominent */}
-                <Button 
-                  type="submit" 
-                  className={cn(
-                    "w-full h-12 text-base font-semibold rounded-xl",
-                    "bg-gradient-to-r from-blue-600 via-blue-700 to-blue-600",
-                    "hover:from-blue-700 hover:via-blue-800 hover:to-blue-700",
-                    "shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40",
-                    "transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5",
-                    "border border-blue-500/20"
-                  )}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Generando...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <QrCode className="h-4 w-4" />
-                      <span>Generar</span>
-                      <span className="text-blue-200">⚡</span>
-                    </div>
-                  )}
-                </Button>
-
-                {/* Server Error Display - Compact */}
-                {serverError && (
-                  <Card className="border-destructive/50 bg-destructive/5 backdrop-blur-sm">
-                    <CardContent className="pt-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-destructive rounded-full"></div>
-                          <p className="text-sm font-semibold text-destructive">Error</p>
-                        </div>
-                        <p className="text-xs text-destructive/80">{serverError.error}</p>
-                        {serverError.suggestion && (
-                          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-2">
-                            <p className="text-xs text-yellow-800 dark:text-yellow-200">
-                              <span className="font-medium">💡</span> {serverError.suggestion}
-                            </p>
-                          </div>
-                        )}
+                {/* HERO MOMENT: Generate Button */}
+                <div className="pt-2">
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading}
+                    className={cn(
+                      "w-full h-14 text-lg font-bold rounded-xl",
+                      "bg-gradient-to-r from-blue-600 via-blue-700 to-blue-600",
+                      "hover:from-blue-700 hover:via-blue-800 hover:to-blue-700",
+                      "shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30",
+                      "transform hover:scale-[1.02] transition-all duration-300",
+                      "border-2 border-blue-400/50 hover:border-blue-300",
+                      isLoading && "animate-pulse cursor-not-allowed"
+                    )}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 border-2 border-white/30 rounded-full animate-spin border-t-white"></div>
+                        Generando...
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <QrCode className="h-6 w-6" />
+                        Generar Código
+                      </div>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Advanced Options - Compact Collapsible */}
-            <Card className="shadow-lg shadow-indigo-500/10 border-border/50 bg-card/80 backdrop-blur-sm">
+            {/* LEVEL 2: Customization - Collapsed by Default */}
+            <Card className="border border-slate-200/40 dark:border-slate-700/40 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm shadow-sm">
               <CardHeader className="pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                    <Palette className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">Personalización</CardTitle>
-                    <CardDescription className="text-sm">Colores y opciones</CardDescription>
-                  </div>
-                </div>
+                <CardTitle className="text-base font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <Palette className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                  Personalización
+                  <span className="ml-auto text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-1 rounded-full">
+                    Opcional
+                  </span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <GenerationOptions
@@ -451,61 +379,68 @@ export default function Home() {
             </Card>
           </div>
 
-          {/* DOMINANT Preview Column - Takes 2/3 of space */}
-          <div className="xl:col-span-2">
-            <Card className="shadow-2xl shadow-blue-500/10 border-border/50 bg-card/95 backdrop-blur-sm sticky top-6 min-h-[600px]">
-              <CardHeader className="border-b border-border/50">
+          {/* HERO AREA: Code Preview - DOMINANT 3/5 of space */}
+          <div className="lg:col-span-3">
+            <Card className="border-2 border-blue-200/50 dark:border-blue-700/50 bg-gradient-to-br from-white to-blue-50/30 dark:from-slate-900 dark:to-blue-950/20 shadow-xl shadow-blue-500/10 sticky top-6 min-h-[700px]">
+              <CardHeader className="border-b border-blue-200/30 dark:border-blue-700/30 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                      <QrCode className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
+                      <QrCode className="h-8 w-8 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-2xl font-bold">Vista Previa</CardTitle>
-                      <CardDescription className="text-base">Tu código generado en tiempo real</CardDescription>
+                      <CardTitle className="text-3xl font-bold text-slate-800 dark:text-slate-200">
+                        Vista Previa
+                      </CardTitle>
+                      <CardDescription className="text-lg text-slate-600 dark:text-slate-400">
+                        Tu código generado en tiempo real
+                      </CardDescription>
                     </div>
                   </div>
                   {svgContent && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Listo</span>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-full border border-green-200 dark:border-green-700">
+                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-sm"></div>
+                      <span className="text-sm font-semibold text-green-700 dark:text-green-300">Completado</span>
                     </div>
                   )}
                 </div>
               </CardHeader>
               
-              <CardContent className="p-8">
+              <CardContent className="p-8 lg:p-12">
                 <div className="space-y-8">
-                  {/* Main Preview Display - DOMINANT */}
+                  {/* HERO: Main Preview Display - Maximum Visual Impact */}
                   <div className="relative">
                     {isLoading ? (
-                      <div className="flex items-center justify-center min-h-[400px] bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-2xl border border-dashed border-blue-200 dark:border-blue-800">
-                        <div className="text-center space-y-6">
+                      <div className="flex items-center justify-center min-h-[500px] bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-blue-950/30 rounded-3xl border-2 border-dashed border-blue-300 dark:border-blue-700">
+                        <div className="text-center space-y-8">
                           <div className="relative">
-                            <div className="w-20 h-20 border-4 border-blue-200 dark:border-blue-800 rounded-full animate-spin border-t-blue-600 dark:border-t-blue-400"></div>
-                            <QrCode className="absolute inset-0 m-auto h-8 w-8 text-blue-600 dark:text-blue-400" />
+                            <div className="w-24 h-24 border-4 border-blue-200 dark:border-blue-700 rounded-full animate-spin border-t-blue-600 dark:border-t-blue-400"></div>
+                            <QrCode className="absolute inset-0 m-auto h-10 w-10 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
-                            <p className="text-xl font-medium text-slate-700 dark:text-slate-300">Generando código...</p>
-                            <p className="text-slate-500 dark:text-slate-400">Esto tomará solo un momento</p>
+                            <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">Generando código...</p>
+                            <p className="text-lg text-slate-500 dark:text-slate-400">Creando tu código perfecto</p>
                           </div>
                         </div>
                       </div>
                     ) : serverError ? (
-                      <div className="flex items-center justify-center min-h-[400px] bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 rounded-2xl border border-dashed border-red-200 dark:border-red-800">
-                        <div className="text-center space-y-4">
-                          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto">
-                            <span className="text-3xl">⚠️</span>
+                      <div className="flex items-center justify-center min-h-[500px] bg-gradient-to-br from-red-50 via-orange-50 to-red-50 dark:from-red-950/30 dark:via-orange-950/30 dark:to-red-950/30 rounded-3xl border-2 border-dashed border-red-300 dark:border-red-700">
+                        <div className="text-center space-y-6">
+                          <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto">
+                            <span className="text-4xl">⚠️</span>
                           </div>
                           <div>
-                            <p className="text-xl font-medium text-red-700 dark:text-red-400">Error en la generación</p>
-                            <p className="text-red-600 dark:text-red-500">Revisa la configuración</p>
+                            <p className="text-2xl font-bold text-red-700 dark:text-red-400">Error en la generación</p>
+                            <p className="text-lg text-red-600 dark:text-red-500">{serverError.error}</p>
+                            {serverError.suggestion && (
+                              <p className="text-sm text-red-500 dark:text-red-400 mt-2">{serverError.suggestion}</p>
+                            )}
                           </div>
                         </div>
                       </div>
                     ) : svgContent ? (
-                      <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950/20 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 min-h-[400px] flex items-center justify-center">
-                        <div className="w-full max-w-md">
+                      <div className="bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-slate-800 dark:via-slate-900 dark:to-blue-950/30 rounded-3xl p-12 border-2 border-slate-200 dark:border-slate-700 min-h-[500px] flex items-center justify-center shadow-inner">
+                        <div className="w-full transform hover:scale-[1.02] transition-transform duration-300">
                           <BarcodeDisplay
                             key={selectedType}
                             svgContent={svgContent}
@@ -515,32 +450,40 @@ export default function Home() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center min-h-[400px] bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                        <div className="text-center space-y-6">
-                          <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto">
-                            <QrCode className="h-10 w-10 text-slate-400 dark:text-slate-500" />
+                      <div className="flex items-center justify-center min-h-[500px] bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50 dark:from-slate-900 dark:via-blue-950/20 dark:to-slate-900 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-600">
+                        <div className="text-center space-y-8">
+                          <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto shadow-lg">
+                            <QrCode className="h-12 w-12 text-slate-400 dark:text-slate-500" />
                           </div>
                           <div>
-                            <p className="text-xl font-medium text-slate-700 dark:text-slate-300">Tu código aparecerá aquí</p>
-                            <p className="text-slate-500 dark:text-slate-400">Configura y genera para ver el resultado</p>
+                            <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">Tu código aparecerá aquí</p>
+                            <p className="text-lg text-slate-500 dark:text-slate-400">Configura y genera para ver el resultado</p>
                           </div>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Action Buttons - Enhanced for Dominant View */}
+                  {/* HERO ACTIONS: Download & Print - Enhanced */}
                   {svgContent && !isLoading && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Button
                           variant="outline"
                           onClick={handleDownload}
                           disabled={!svgContent || isLoading}
                           size="lg"
-                          className="h-14 border-2 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all duration-200 hover:scale-105 text-base"
+                          className={cn(
+                            "h-16 border-2 border-blue-200 dark:border-blue-700",
+                            "bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30",
+                            "hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-900/50 dark:hover:to-blue-800/50",
+                            "hover:border-blue-300 dark:hover:border-blue-600",
+                            "transform hover:scale-105 transition-all duration-200",
+                            "text-base font-semibold text-blue-700 dark:text-blue-300",
+                            "shadow-lg shadow-blue-500/10 hover:shadow-xl hover:shadow-blue-500/20"
+                          )}
                         >
-                          <Download className="mr-3 h-5 w-5" />
+                          <Download className="mr-3 h-6 w-6" />
                           Descargar SVG
                         </Button>
                         <Button 
@@ -548,32 +491,44 @@ export default function Home() {
                           onClick={handlePrint} 
                           disabled={!svgContent || isLoading}
                           size="lg"
-                          className="h-14 border-2 hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200 hover:scale-105 text-base"
+                          className={cn(
+                            "h-16 border-2 border-slate-200 dark:border-slate-700",
+                            "bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-950/30 dark:to-slate-900/30",
+                            "hover:from-slate-100 hover:to-slate-200 dark:hover:from-slate-900/50 dark:hover:to-slate-800/50",
+                            "hover:border-slate-300 dark:hover:border-slate-600",
+                            "transform hover:scale-105 transition-all duration-200",
+                            "text-base font-semibold text-slate-700 dark:text-slate-300",
+                            "shadow-lg shadow-slate-500/10 hover:shadow-xl hover:shadow-slate-500/20"
+                          )}
                         >
-                          <Printer className="mr-3 h-5 w-5" />
+                          <Printer className="mr-3 h-6 w-6" />
                           Imprimir
                         </Button>
                       </div>
                       
-                      {/* Enhanced Info Panel */}
-                      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-blue-950/30 rounded-xl p-4 border border-blue-200/50 dark:border-blue-700/50">
-                        <div className="text-center space-y-2">
-                          <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 flex items-center justify-center gap-2">
-                            <span className="text-lg">✨</span>
-                            Código generado exitosamente
-                          </p>
-                          <div className="grid grid-cols-3 gap-4 text-xs text-blue-600 dark:text-blue-400">
-                            <div className="text-center">
-                              <p className="font-medium">Formato</p>
-                              <p>SVG</p>
+                      {/* Success Info Panel - Corporate Style */}
+                      <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-green-50 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-green-950/20 rounded-2xl p-6 border-2 border-green-200/50 dark:border-green-700/50 shadow-lg shadow-green-500/10">
+                        <div className="text-center space-y-4">
+                          <div className="flex items-center justify-center gap-3">
+                            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-lg">✓</span>
                             </div>
-                            <div className="text-center">
-                              <p className="font-medium">Resolución</p>
-                              <p>Vectorial</p>
+                            <p className="text-lg font-bold text-green-700 dark:text-green-300">
+                              Código generado exitosamente
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-3 gap-6 text-sm">
+                            <div className="text-center space-y-1">
+                              <p className="font-semibold text-green-800 dark:text-green-200">Formato</p>
+                              <p className="text-green-600 dark:text-green-400">SVG Vectorial</p>
                             </div>
-                            <div className="text-center">
-                              <p className="font-medium">Calidad</p>
-                              <p>Alta</p>
+                            <div className="text-center space-y-1">
+                              <p className="font-semibold text-green-800 dark:text-green-200">Calidad</p>
+                              <p className="text-green-600 dark:text-green-400">Alta Resolución</p>
+                            </div>
+                            <div className="text-center space-y-1">
+                              <p className="font-semibold text-green-800 dark:text-green-200">Tipo</p>
+                              <p className="text-green-600 dark:text-green-400">{selectedType?.toUpperCase()}</p>
                             </div>
                           </div>
                         </div>
@@ -586,6 +541,32 @@ export default function Home() {
           </div>
         </form>
       </main>
+
+      {/* Hero Section - Simplified and Moved Down */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-50/50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20 border-t border-slate-200/50 dark:border-slate-700/50">
+        <div className="absolute inset-0 bg-grid-slate-100/30 dark:bg-grid-slate-800/30 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.4))] dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02))]" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center space-y-6 max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/80 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-700/50 text-blue-700 dark:text-blue-300 text-sm font-medium">
+              <QrCode className="h-4 w-4" />
+              Generador Profesional
+            </div>
+            
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+              <span className="bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 dark:from-slate-100 dark:via-blue-200 dark:to-slate-100 bg-clip-text text-transparent">
+                Códigos QR y Barras
+              </span>
+              <br />
+              <span className="text-blue-600 dark:text-blue-400">de Calidad Profesional</span>
+            </h1>
+            
+            <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed">
+              Genera códigos de alta calidad con opciones avanzadas de personalización para uso empresarial y personal.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

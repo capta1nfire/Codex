@@ -23,7 +23,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 export default function WebAdminSettingsPage() {
   return (
-    <ProtectedRoute requiredRole="WEBADMIN">
+    <ProtectedRoute requiredRole="ADMIN">
       <WebAdminSettingsContent />
     </ProtectedRoute>
   );

@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 
 export default function WebAdminUsersPage() {
   return (
-    <ProtectedRoute requiredRole="WEBADMIN">
+    <ProtectedRoute requiredRole="ADMIN">
       <WebAdminUsersContent />
     </ProtectedRoute>
   );

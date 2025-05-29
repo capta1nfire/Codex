@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -8,29 +8,19 @@ import {
   Pencil, 
   Scissors, 
   Palette, 
-  Star,
   RotateCw,
   ZoomIn,
   ZoomOut,
-  Move,
-  Download,
   X,
   Check,
   Sparkles,
-  Grid3X3,
-  Sliders
+  Grid3X3
 } from 'lucide-react';
 import ProfilePicture from '../ui/ProfilePicture';
-
-interface DefaultAvatar {
-  type: string;
-  url: string;
-}
 
 interface AdvancedAvatarEditorProps {
   user: any;
   isLoading: boolean;
-  defaultProfilePictures: DefaultAvatar[];
   onFileUpload: (file: File) => Promise<void>;
   onSetDefaultPicture: (type: string) => Promise<void>;
   onResetPicture: () => Promise<void>;
@@ -65,7 +55,6 @@ const EXPANDED_AVATAR_GALLERY = [
 export default function AdvancedAvatarEditor({
   user,
   isLoading,
-  defaultProfilePictures,
   onFileUpload,
   onSetDefaultPicture,
   onResetPicture,
@@ -573,7 +562,7 @@ export default function AdvancedAvatarEditor({
                         onClick={() => setActiveTab('filters')}
                         className="hover:bg-purple-50 dark:hover:bg-purple-900"
                       >
-                        <Sliders className="h-4 w-4 mr-2" />
+                        <Grid3X3 className="h-4 w-4 mr-2" />
                         Más Filtros
                       </Button>
                       <Button

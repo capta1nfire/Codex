@@ -6,15 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Crown, 
+  Shield, 
   Zap, 
   Star, 
-  ArrowUp, 
   Check, 
   AlertTriangle,
   TrendingUp,
-  BarChart3,
-  Sparkles
+  Activity,
+  BarChart,
 } from 'lucide-react';
 
 interface PlanLimitsSectionProps {
@@ -98,7 +97,7 @@ const PLAN_CONFIG = {
   },
   ADMIN: {
     name: 'Administrador',
-    icon: BarChart3,
+    icon: BarChart,
     color: 'bg-corporate-blue-100 text-corporate-blue-700 border-corporate-blue-200',
     gradient: 'from-corporate-blue-50 to-corporate-blue-100',
     limits: {
@@ -118,7 +117,7 @@ const PLAN_CONFIG = {
   },
   SUPERADMIN: {
     name: 'Super Administrador',
-    icon: Crown,
+    icon: Shield,
     color: 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white border-yellow-300',
     gradient: 'from-yellow-50 to-amber-100',
     limits: {
@@ -194,7 +193,7 @@ export default function PlanLimitsSection({ user, isLoading = false }: PlanLimit
       <CardHeader className="bg-gradient-to-r from-corporate-blue-50/50 to-slate-50/50 dark:from-corporate-blue-950/50 dark:to-slate-950/50 border-b border-corporate-blue-200/30 dark:border-corporate-blue-700/30 rounded-t-lg m-0 py-8 px-8">
         <CardTitle className="flex items-center gap-3 text-xl">
           <div className="p-2 bg-corporate-blue-500/10 rounded-lg group-hover:bg-corporate-blue-500/20 transition-colors duration-200">
-            <BarChart3 className="h-5 w-5 text-corporate-blue-600 dark:text-corporate-blue-400" />
+            <BarChart className="h-5 w-5 text-corporate-blue-600 dark:text-corporate-blue-400" />
           </div>
           <div>
             <span className="bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
@@ -238,7 +237,7 @@ export default function PlanLimitsSection({ user, isLoading = false }: PlanLimit
                 variant="outline" 
                 className="w-full bg-white border-2 border-corporate-blue-300 text-corporate-blue-700 hover:bg-corporate-blue-50 transition-all duration-200"
               >
-                <Sparkles className="h-4 w-4 mr-2" />
+                <Activity className="h-4 w-4 mr-2" />
                 Actualizar Plan
               </Button>
             )}
@@ -275,7 +274,7 @@ export default function PlanLimitsSection({ user, isLoading = false }: PlanLimit
             
             {needsUpgrade && (
               <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <Sparkles className="h-4 w-4 text-amber-600" />
+                <Activity className="h-4 w-4 text-amber-600" />
                 <p className="text-sm text-amber-700">
                   <strong>¡Cerca del límite!</strong> Considera actualizar tu plan para mayor capacidad.
                 </p>
@@ -326,7 +325,7 @@ export default function PlanLimitsSection({ user, isLoading = false }: PlanLimit
         {/* Límites Detallados */}
         <div className="border-t border-corporate-blue-200/30 dark:border-corporate-blue-700/30 pt-8">
           <h4 className="font-semibold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-corporate-blue-500" />
+            <BarChart className="h-4 w-4 text-corporate-blue-500" />
             Límites Detallados
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -30,14 +30,13 @@ export default function BarcodeDisplay({ svgContent, type, data }: BarcodeDispla
 
     if (isLinearBarcode) {
       // Permitimos que los lineales sean más anchos
-      return `${baseClasses} max-w-xl md:max-w-2xl`;
+      return `${baseClasses} max-w-2xl lg:max-w-4xl`;
     } else if (isPdf417) {
       // Ancho intermedio para PDF417
-      return `${baseClasses} max-w-md lg:max-w-lg`;
+      return `${baseClasses} max-w-xl lg:max-w-2xl`;
     } else {
-      // QR, DataMatrix: Ancho más contenido para mantener forma cuadrada
-      // Ajusta estos valores si quieres que sean más grandes/pequeños
-      return `${baseClasses} max-w-xs sm:max-w-sm md:max-w-md`;
+      // QR, DataMatrix: SIN restricción de ancho máximo para dominio visual
+      return `${baseClasses}`;
     }
   }, [type]);
 
@@ -49,12 +48,10 @@ export default function BarcodeDisplay({ svgContent, type, data }: BarcodeDispla
 
     if (isLinearBarcode) {
       // Para lineales: altura automática pero con máximo para mantener proporción visual
-      // Puedes ajustar este valor max-h-xx (ej. max-h-24 = 6rem = 96px)
-      // Un valor más grande (ej. max-h-32) hará el código más alto pero más estrecho
-      return `${baseClasses} h-auto max-h-24 sm:max-h-28`;
+      return `${baseClasses} h-auto min-h-24 max-h-32`;
     } else {
-      // Para QR y otros 2D: altura automática, el ancho ya limitado por wrapperClasses
-      return `${baseClasses} h-auto`;
+      // Para QR y otros 2D: altura más generosa para dominancia visual
+      return `${baseClasses} h-auto min-h-48 lg:min-h-64`;
     }
   }, [type]);
 

@@ -3,7 +3,7 @@
 // import { useState, useEffect } from 'react'; // Ya no se necesitan
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, BarChart2, QrCode, User, LogOut, Settings, FileText, Shield, Crown, Users, Zap, Star, Database, Key, Activity } from 'lucide-react';
+import { Menu, X, BarChart2, QrCode, User, LogOut, Settings, FileText, Shield, Crown, Users, Zap, Star, Key } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext'; // Importar useAuth
 import { useState, useRef, useEffect } from 'react'; // Added useRef, useEffect
 import ProfilePicture from './ui/ProfilePicture'; // <-- Updated import
@@ -19,7 +19,7 @@ export default function Navbar() {
   const [isAdvancedMode, setIsAdvancedMode] = useState(false); // Estado para opciones avanzadas
   // Obtener estado y funciones del contexto
   const { isAuthenticated, user, isLoading, logout } = useAuth();
-  const { getRoleName, getRoleColor, userRole, permissions } = usePermissions();
+  const { userRole } = usePermissions();
 
   const pathname = usePathname();
 
@@ -108,21 +108,21 @@ export default function Navbar() {
                     {link.label}
                   </a>
                 ) : link.href === '/dashboard' ? (
-                                  <RoleGuard key={link.href} requiredRoles={['USER', 'PREMIUM', 'ADVANCED']}>
-                  <Link
-                    href={link.href}
-                    className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 
-                      lg:px-5 lg:py-3 lg:text-base xl:px-6 xl:py-3 xl:text-lg
-                      ${
-                        link.isActive
-                          ? 'bg-white/15 text-white shadow-sm'
-                          : 'text-blue-100 hover:bg-white/10 hover:text-white'
-                      }`}
-                  >
-                    <span className="mr-2 lg:mr-3">{link.icon}</span>
-                    {link.label}
-                  </Link>
-                </RoleGuard>
+                  <RoleGuard key={link.href} requiredRoles={['STARTER', 'PRO', 'ENTERPRISE']}>
+                    <Link
+                      href={link.href}
+                      className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 
+                        lg:px-5 lg:py-3 lg:text-base xl:px-6 xl:py-3 xl:text-lg
+                        ${
+                          link.isActive
+                            ? 'bg-white/15 text-white shadow-sm'
+                            : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                        }`}
+                    >
+                      <span className="mr-2 lg:mr-3">{link.icon}</span>
+                      {link.label}
+                    </Link>
+                  </RoleGuard>
                 ) : (
                   <Link
                     key={link.href}
@@ -190,10 +190,10 @@ export default function Navbar() {
                           {userRole && (
                             <div className="mt-0.5">
                               {userRole === 'SUPERADMIN' && <Zap className="h-4 w-4 text-blue-600" />}
-                              {userRole === 'WEBADMIN' && <Crown className="h-4 w-4 text-slate-600" />}
-                              {userRole === 'ADVANCED' && <Crown className="h-4 w-4 text-amber-600" />}
-                              {userRole === 'PREMIUM' && <Shield className="h-4 w-4 text-purple-600" />}
-                              {userRole === 'USER' && <Star className="h-4 w-4 text-blue-600" />}
+                              {userRole === 'ADMIN' && <Crown className="h-4 w-4 text-slate-600" />}
+                              {userRole === 'ENTERPRISE' && <Crown className="h-4 w-4 text-amber-600" />}
+                              {userRole === 'PRO' && <Shield className="h-4 w-4 text-purple-600" />}
+                              {userRole === 'STARTER' && <Star className="h-4 w-4 text-blue-600" />}
                             </div>
                           )}
                           <div className="flex-1">
@@ -245,7 +245,7 @@ export default function Navbar() {
                             </div>
                           </a>
                         ) : link.href === '/dashboard' ? (
-                          <RoleGuard key={link.href} requiredRoles={['USER', 'PREMIUM', 'ADVANCED']} fallback={null}>
+                          <RoleGuard key={link.href} requiredRoles={['STARTER', 'PRO', 'ENTERPRISE']} fallback={null}>
                             <Link
                               href={link.href}
                               onClick={() => setIsUserMenuOpen(false)}
@@ -672,7 +672,7 @@ export default function Navbar() {
                   {link.label}
                 </a>
               ) : link.href === '/dashboard' ? (
-                <RoleGuard key={link.href} requiredRoles={['USER', 'PREMIUM', 'ADVANCED']}>
+                <RoleGuard key={link.href} requiredRoles={['STARTER', 'PRO', 'ENTERPRISE']}>
                   <Link
                     href={link.href}
                     className={`flex items-center px-4 py-3 text-base font-medium rounded-md ${

@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from 'react-hot-toast';
-import ErrorBoundary from '@/components/ErrorBoundary';
 import SystemAlerts from '@/components/SystemAlerts';
 
 export const metadata: Metadata = {

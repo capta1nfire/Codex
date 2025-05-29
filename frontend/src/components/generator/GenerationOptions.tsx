@@ -22,13 +22,10 @@ import { toast } from 'react-hot-toast';
 import dynamic from 'next/dynamic';
 import { 
   Palette, 
-  Monitor, 
   Settings2, 
   RotateCcw, 
   ChevronDown,
   ChevronRight,
-  Zap,
-  Sliders,
   Eye
 } from 'lucide-react';
 

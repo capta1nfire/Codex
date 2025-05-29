@@ -7,7 +7,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 export default function WebAdminDashboardPage() {
   return (
-    <ProtectedRoute requiredRoles={["WEBADMIN", "SUPERADMIN"]}>
+    <ProtectedRoute requiredRoles={["ADMIN", "SUPERADMIN"]}>
       <WebAdminDashboardContent />
     </ProtectedRoute>
   );

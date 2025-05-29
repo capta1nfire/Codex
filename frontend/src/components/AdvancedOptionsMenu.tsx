@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Menu, Settings, X, Shield, FileText, ExternalLink, Crown, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePermissions } from '@/hooks/useAuth';
-import RoleGuard, { WebAdminOnly, PremiumOnly, SuperAdminOnly } from '@/components/auth/RoleGuard';
+import { WebAdminOnly, PremiumOnly } from '@/components/auth/RoleGuard';
 
 interface AdvancedOptionsMenuProps {
   isAdvancedMode: boolean;
@@ -21,7 +21,7 @@ const AdvancedOptionsMenu: React.FC<AdvancedOptionsMenuProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const { permissions, user, userRole } = usePermissions();
+  const { user, userRole } = usePermissions();
 
   // ✅ Cerrar menú al hacer clic fuera (siguiendo patrones UX)
   useEffect(() => {
@@ -217,10 +217,10 @@ const AdvancedOptionsMenu: React.FC<AdvancedOptionsMenuProps> = ({
               <div className="mb-4 p-2 rounded-lg bg-muted/30 border border-border/30">
                 <div className="flex items-center gap-2">
                   {userRole === 'SUPERADMIN' && <Crown className="h-4 w-4 text-red-600" />}
-                  {userRole === 'WEBADMIN' && <Crown className="h-4 w-4 text-orange-600" />}
-                  {userRole === 'ADVANCED' && <Crown className="h-4 w-4 text-amber-600" />}
-                  {userRole === 'PREMIUM' && <Crown className="h-4 w-4 text-purple-600" />}
-                  {userRole === 'USER' && <Users className="h-4 w-4 text-blue-600" />}
+                  {userRole === 'ADMIN' && <Crown className="h-4 w-4 text-orange-600" />}
+                  {userRole === 'ENTERPRISE' && <Crown className="h-4 w-4 text-amber-600" />}
+                  {userRole === 'PRO' && <Crown className="h-4 w-4 text-purple-600" />}
+                  {userRole === 'STARTER' && <Users className="h-4 w-4 text-blue-600" />}
                   <span className="text-xs font-medium text-foreground">
                     {user.firstName} ({userRole})
                   </span>
