@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Controller, Control, FieldErrors, UseFormWatch, UseFormReset } from 'react-hook-form';
+import { Controller, Control, FieldErrors, UseFormWatch, UseFormReset, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
 import {
   Select,
   SelectContent,
@@ -26,7 +26,8 @@ import {
   RotateCcw, 
   ChevronDown,
   ChevronRight,
-  Eye
+  Eye,
+  ArrowLeftRight
 } from 'lucide-react';
 
 // Importar dinámicamente AdvancedBarcodeOptions
@@ -45,6 +46,12 @@ const defaultFormValues: Partial<GenerateFormData> = {
     height: 100,
     includetext: true,
     ecl: 'M',
+    // ✨ CODEX Hero Gradient - Azul corporativo con negro, radial desde centro
+    gradient_enabled: true,
+    gradient_type: 'radial',
+    gradient_color1: '#2563EB', // CODEX Corporate Blue en el centro
+    gradient_color2: '#000000', // Negro en los costados para máximo contraste
+    gradient_direction: 'top-bottom',
     // Añadir defaults para opciones avanzadas si es necesario (o dejar undefined)
     qr_version: 'Auto',
     qr_mask_pattern: 'Auto',
@@ -60,6 +67,11 @@ interface GenerationOptionsProps {
   isLoading: boolean;
   selectedType: string | undefined;
   reset: UseFormReset<GenerateFormData>;
+  setValue: UseFormSetValue<GenerateFormData>;
+  getValues: UseFormGetValues<GenerateFormData>;
+  onSubmit: (data: GenerateFormData) => void;
+  expandedSection: string;
+  setExpandedSection: (section: string) => void;
 }
 
 export default function GenerationOptions({
@@ -69,8 +81,12 @@ export default function GenerationOptions({
   isLoading,
   selectedType,
   reset,
+  setValue,
+  getValues,
+  onSubmit,
+  expandedSection,
+  setExpandedSection,
 }: GenerationOptionsProps) {
-  const [expandedSection, setExpandedSection] = useState<string>('appearance');
   
   // Calculate conditional visibility
   const is1DBarcode = selectedType
@@ -118,7 +134,7 @@ export default function GenerationOptions({
       isOpen ? "border-blue-200 dark:border-blue-700 bg-blue-50/30 dark:bg-blue-950/20" : "hover:border-slate-300 dark:hover:border-slate-600"
     )}>
       <CardHeader 
-        className="pb-3 cursor-pointer"
+        className="pb-2 cursor-pointer"
         onClick={() => setExpandedSection(isOpen ? '' : id)}
       >
         <div className="flex items-center justify-between">
@@ -159,7 +175,7 @@ export default function GenerationOptions({
       </CardHeader>
       
       {isOpen && (
-        <CardContent className="pt-0 animate-in slide-in-from-top-2 duration-200">
+        <CardContent className="pt-0 pb-2 px-4 animate-in slide-in-from-top-2 duration-200">
           {children}
         </CardContent>
       )}
@@ -171,7 +187,7 @@ export default function GenerationOptions({
     label, 
     defaultValue 
   }: { 
-    name: 'options.fgcolor' | 'options.bgcolor'; 
+    name: 'options.fgcolor' | 'options.bgcolor' | 'options.gradient_color1' | 'options.gradient_color2'; 
     label: string; 
     defaultValue: string;
   }) => (
@@ -182,35 +198,48 @@ export default function GenerationOptions({
         control={control}
         defaultValue={defaultValue}
         render={({ field }) => (
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Input
-                type="text"
-                {...field}
-                disabled={isLoading}
-                placeholder={defaultValue}
-                className={cn(
-                  "h-9 pr-12 transition-all duration-200 focus:scale-[1.01]",
-                  errors.options?.[name.split('.')[1] as keyof typeof errors.options] 
-                    ? 'border-destructive' 
-                    : 'focus:border-blue-500'
-                )}
-              />
-              <div className="absolute right-1 top-1/2 -translate-y-1/2">
-                <Input
-                  type="color"
-                  value={field.value || defaultValue}
-                  onChange={field.onChange}
-                  className="w-7 h-7 p-0 border-0 rounded cursor-pointer"
-                  disabled={isLoading}
-                  aria-label={`Seleccionar ${label.toLowerCase()}`}
-                />
-              </div>
-            </div>
-            <div 
-              className="w-9 h-9 rounded border-2 border-slate-200 dark:border-slate-700"
-              style={{ backgroundColor: field.value || defaultValue }}
+          <div className="relative">
+            <Input
+              type="text"
+              {...field}
+              disabled={isLoading}
+              placeholder={defaultValue}
+              onChange={(e) => {
+                field.onChange(e);
+                // Auto-regenerar cuando cambie el color (con debounce)
+                setTimeout(() => {
+                  const currentFormValues = getValues();
+                  if (currentFormValues.data) {
+                    onSubmit(currentFormValues);
+                  }
+                }, 300);
+              }}
+              className={cn(
+                "h-9 pl-12 transition-all duration-200 focus:scale-[1.01]",
+                errors.options?.[name.split('.')[1] as keyof typeof errors.options] 
+                  ? 'border-destructive' 
+                  : 'focus:border-blue-500'
+              )}
             />
+            <div className="absolute left-1 top-1/2 -translate-y-1/2">
+              <Input
+                type="color"
+                value={field.value || defaultValue}
+                onChange={(e) => {
+                  field.onChange(e);
+                  // Auto-regenerar cuando cambie el color del picker
+                  setTimeout(() => {
+                    const currentFormValues = getValues();
+                    if (currentFormValues.data) {
+                      onSubmit(currentFormValues);
+                    }
+                  }, 100);
+                }}
+                className="w-7 h-7 p-0 border-2 border-slate-200 dark:border-slate-600 rounded-md cursor-pointer transition-all duration-200 hover:scale-110 hover:border-blue-400"
+                disabled={isLoading}
+                aria-label={`Seleccionar ${label.toLowerCase()}`}
+              />
+            </div>
           </div>
         )}
       />
@@ -218,17 +247,17 @@ export default function GenerationOptions({
   );
 
   return (
-    <div className="space-y-4">
-      {/* Appearance Section */}
+    <div className="space-y-3">
+      {/* Appearance & Colors Section - Merged */}
       <SectionCard
         id="appearance"
-        title="Apariencia"
-        subtitle="Colores y escala visual"
+        title="Apariencia y Colores"
+        subtitle="Configuración visual y efectos de color"
         icon={Palette}
         isOpen={expandedSection === 'appearance'}
         badgeText="Esencial"
       >
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Scale Slider */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -261,19 +290,204 @@ export default function GenerationOptions({
             />
           </div>
 
-          {/* Color Inputs */}
-          <div className="grid grid-cols-2 gap-4">
-            <ColorInput 
-              name="options.fgcolor" 
-              label="Color Principal" 
-              defaultValue="#000000" 
-            />
-            <ColorInput 
-              name="options.bgcolor" 
-              label="Color Fondo" 
-              defaultValue="#FFFFFF" 
-            />
-          </div>
+          {/* Color Mode Selection - New */}
+          {isQrCode && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-slate-50 to-blue-50/30 dark:from-slate-800/50 dark:to-blue-950/30 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+                <div>
+                  <Label className="text-sm font-semibold text-slate-800 dark:text-slate-200">Modo de Color</Label>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                    Elegir entre colores sólidos o efectos de gradiente
+                  </p>
+                </div>
+                <Controller
+                  name="options.gradient_enabled"
+                  control={control}
+                  defaultValue={true}
+                  render={({ field }) => (
+                    <div className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
+                      <span className={cn(
+                        "text-xs font-semibold transition-colors px-2 py-1 rounded",
+                        !field.value 
+                          ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50" 
+                          : "text-slate-500 dark:text-slate-400"
+                      )}>
+                        Sólido
+                      </span>
+                      <Switch
+                        checked={field.value || false}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          // Auto-regenerar cuando cambie el modo
+                          setTimeout(() => {
+                            const currentFormValues = getValues();
+                            if (currentFormValues.data) {
+                              onSubmit(currentFormValues);
+                            }
+                          }, 150);
+                        }}
+                        disabled={isLoading}
+                      />
+                      <span className={cn(
+                        "text-xs font-semibold transition-colors px-2 py-1 rounded",
+                        field.value 
+                          ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50" 
+                          : "text-slate-500 dark:text-slate-400"
+                      )}>
+                        Gradiente
+                      </span>
+                    </div>
+                  )}
+                />
+              </div>
+
+              {/* Conditional Content Based on Mode */}
+              {!watch('options.gradient_enabled') ? (
+                // Solid Colors Mode
+                <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+                  <div className="grid grid-cols-2 gap-4">
+                    <ColorInput 
+                      name="options.fgcolor" 
+                      label="Color Principal" 
+                      defaultValue="#000000" 
+                    />
+                    <ColorInput 
+                      name="options.bgcolor" 
+                      label="Color Fondo" 
+                      defaultValue="#FFFFFF" 
+                    />
+                  </div>
+                </div>
+              ) : (
+                // Gradient Mode
+                <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+                  {/* Gradient Type */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Tipo de Gradiente</Label>
+                    <Controller
+                      name="options.gradient_type"
+                      control={control}
+                      defaultValue="radial"
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                          <SelectTrigger className="h-9 transition-all duration-200 focus:scale-[1.01]">
+                            <SelectValue placeholder="Selecciona tipo..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="linear">Lineal</SelectItem>
+                            <SelectItem value="radial">Radial (desde el centro)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+
+                  {/* Gradient Colors */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <ColorInput 
+                      name="options.gradient_color1" 
+                      label="Color Central" 
+                      defaultValue="#2563EB" 
+                    />
+                    <ColorInput 
+                      name="options.gradient_color2" 
+                      label="Color Exterior" 
+                      defaultValue="#000000" 
+                    />
+                  </div>
+
+                  {/* Swap Colors Button */}
+                  <div className="flex justify-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const color1 = watch('options.gradient_color1') || '#2563EB';
+                        const color2 = watch('options.gradient_color2') || '#000000';
+                        // Intercambiar los colores
+                        setValue('options.gradient_color1', color2, { shouldValidate: true });
+                        setValue('options.gradient_color2', color1, { shouldValidate: true });
+                        
+                        // Regenerar si hay contenido
+                        setTimeout(() => {
+                          const currentFormValues = getValues();
+                          if (currentFormValues.data) {
+                            onSubmit(currentFormValues);
+                          }
+                        }, 100);
+                      }}
+                      disabled={isLoading}
+                      className="h-8 px-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 hover:scale-105 group"
+                      title="Intercambiar colores del gradiente"
+                    >
+                      <ArrowLeftRight className="h-3 w-3 mr-1.5 transition-transform duration-200 group-hover:scale-110" />
+                      <span className="text-xs font-medium">Invertir Colores</span>
+                    </Button>
+                  </div>
+
+                  {/* Gradient Direction - Solo para linear */}
+                  {watch('options.gradient_type') === 'linear' && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Dirección</Label>
+                      <Controller
+                        name="options.gradient_direction"
+                        control={control}
+                        defaultValue="top-bottom"
+                        render={({ field }) => (
+                          <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                            <SelectTrigger className="h-9 transition-all duration-200 focus:scale-[1.01]">
+                              <SelectValue placeholder="Selecciona dirección..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="top-bottom">↓ Vertical (arriba-abajo)</SelectItem>
+                              <SelectItem value="left-right">→ Horizontal (izquierda-derecha)</SelectItem>
+                              <SelectItem value="diagonal">↘ Diagonal</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </div>
+                  )}
+
+                  {/* Gradient Preview */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Vista Previa</Label>
+                    <div className="h-12 rounded-lg border-2 border-slate-200 dark:border-slate-700 overflow-hidden">
+                      <div 
+                        className="w-full h-full"
+                        style={{
+                          background: watch('options.gradient_type') === 'radial' 
+                            ? `radial-gradient(circle, ${watch('options.gradient_color1') || '#2563EB'} 0%, ${watch('options.gradient_color2') || '#000000'} 100%)`
+                            : watch('options.gradient_direction') === 'left-right'
+                            ? `linear-gradient(to right, ${watch('options.gradient_color1') || '#2563EB'} 0%, ${watch('options.gradient_color2') || '#000000'} 100%)`
+                            : watch('options.gradient_direction') === 'diagonal'
+                            ? `linear-gradient(135deg, ${watch('options.gradient_color1') || '#2563EB'} 0%, ${watch('options.gradient_color2') || '#000000'} 100%)`
+                            : `linear-gradient(to bottom, ${watch('options.gradient_color1') || '#2563EB'} 0%, ${watch('options.gradient_color2') || '#000000'} 100%)`
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Solid Colors for Non-QR Codes */}
+          {!isQrCode && (
+            <div className="grid grid-cols-2 gap-4">
+              <ColorInput 
+                name="options.fgcolor" 
+                label="Color Principal" 
+                defaultValue="#000000" 
+              />
+              <ColorInput 
+                name="options.bgcolor" 
+                label="Color Fondo" 
+                defaultValue="#FFFFFF" 
+              />
+            </div>
+          )}
         </div>
       </SectionCard>
 
@@ -286,7 +500,7 @@ export default function GenerationOptions({
         isOpen={expandedSection === 'display'}
         badgeText={`${selectedType?.toUpperCase()}`}
       >
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Height (if relevant) */}
           {isHeightRelevant && (
             <div className="space-y-3">
