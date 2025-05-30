@@ -14,9 +14,10 @@
 1. **🔥 PRIMERO**: `CONTEXT_SUMMARY.md` ← **ESTÁS AQUÍ** (orientación técnica inmediata)
 2. **👑 SEGUNDO**: `CODEX.md` (roadmap estratégico y fases de desarrollo) 
 3. **📖 TERCERO**: `README.md` (setup técnico detallado)
-4. **🔧 OPCIONAL**: Documentación específica según necesidad
+4. **🎨 CUARTO**: `docs/CODEX_DESIGN_SYSTEM.md` ← **LECTURA OBLIGATORIA** (filosofía visual y patrones UI)
+5. **🔧 OPCIONAL**: Documentación específica según necesidad
 
-> **⏰ Tiempo estimado**: 10 minutos para entender completamente el proyecto
+> **⏰ Tiempo estimado**: 15 minutos para entender completamente el proyecto (incluyendo design system)
 
 ---
 
@@ -31,6 +32,7 @@
 - ❌ **NUNCA reestructurar** jerarquía de archivos sin aprobación explícita
 - ❌ **NUNCA ignorar** las fases del roadmap definidas en `CODEX.md`
 - ❌ **NUNCA cambiar puertos** sin actualizar CODEX.md primero (fuente única)
+- ❌ **NUNCA crear elementos visuales** sin consultar `docs/CODEX_DESIGN_SYSTEM.md`
 
 ### **✅ ACCIONES AUTORIZADAS**
 - ✅ **Actualizar documentación existente** con nueva información
@@ -39,6 +41,7 @@
 - ✅ **Agregar tests** para validar funcionalidad
 - ✅ **Optimizar performance** sin cambiar arquitectura core
 - ✅ **Usar puertos definidos** en CODEX.md (3000, 3004, 3002)
+- ✅ **Aplicar design system v2.0** siguiendo tokens y patrones establecidos
 
 ### **🤔 REQUIERE CONSULTA PREVIA**
 - 🔄 Crear nuevos archivos de documentación
@@ -47,6 +50,7 @@
 - 🔄 Agregar nuevas dependencias importantes
 - 🔄 Cambiar procesos de desarrollo establecidos
 - 🔄 **Cambiar configuración de puertos** (requiere actualizar múltiples archivos)
+- 🔄 **Crear nuevos componentes UI** sin seguir patrones del design system
 
 ---
 
@@ -63,6 +67,7 @@
 ### **🟡 IMPORTANTES - CONSULTAR ANTES DE MODIFICAR**
 ```
 ├── CONTEXT_SUMMARY.md           # 📋 ESTE DOCUMENTO (transferencia IA)
+├── docs/CODEX_DESIGN_SYSTEM.md  # 🎨 DESIGN SYSTEM v2.0 "Corporate Sophistication" (LECTURA OBLIGATORIA)
 ├── IMPLEMENTATION_REPORT.md     # Reporte de auditoría Jules
 ├── DATABASE_DOCUMENTATION.md    # 🗄️ DOCUMENTACIÓN CRÍTICA DE BASE DE DATOS
 └── validate_implementation.js   # Script de validación crítico
@@ -72,6 +77,10 @@
 ```
 ├── docs/TROUBLESHOOTING.md      # Solución de problemas (muy útil)
 ├── docs/PORT_MIGRATION_CHECKLIST.md  # Conflictos de puertos y archivos pendientes
+├── docs/TECHNICAL_IMPROVEMENTS_2025.md  # Mejoras técnicas recientes
+├── docs/BATCH_PROCESSING_GUIDE.md      # Guía de procesamiento en lotes
+├── docs/E2E_TESTING_GUIDE.md           # Guía de testing end-to-end
+├── docs/SVG_GRADIENT_SYSTEM.md         # 🎨 Sistema avanzado de gradientes SVG para QR (Documentación técnica completa)
 ├── backend/README.md            # Documentación específica backend
 ├── frontend/README.md           # Documentación específica frontend
 └── rust_generator/README.md     # Documentación específica Rust
@@ -109,6 +118,7 @@ PostgreSQL Database + Redis Cache
 - ✅ **Error Handling**: Error boundaries con Sentry
 - ✅ **Clipboard**: useClipboard hook con fallback universal
 - ✅ **Dashboard**: Responsive con métricas tiempo real
+- ✅ **Gradientes SVG**: Sistema avanzado de gradientes continuos para QR codes con controles UI y bordes opcionales
 
 ---
 
@@ -182,6 +192,8 @@ cd rust_generator && cargo run  # Puerto 3002 (CORRECTED)
 - ✅ **DASHBOARD**: Cache clearing integrado en CacheMetricsPanel
 - ✅ **DASHBOARD**: Esquema de colores neutral (no corporativo)
 - ✅ **DOCKER**: Corregida configuración AlertManager webhook
+- ✅ **CONTEXT_SUMMARY.md ACTUALIZADO**: Agregado `docs/CODEX_DESIGN_SYSTEM.md` como lectura obligatoria (#4 en secuencia)
+- ✅ **DOCUMENTACIÓN MEJORADA**: Actualizada jerarquía, filosofía de diseño y checklist de transferencia IA
 
 ### **🎯 SESIÓN ACTUAL - Optimización Visual y Reversión**
 **Fecha**: 24 de Mayo 2025  
@@ -369,40 +381,47 @@ import { rateLimitMiddleware } from '@/middleware/rateLimitMiddleware';
 3. **YAGNI (You Aren't Gonna Need It)**: No sobre-ingeniería
 4. **Documentation as Code**: Docs viven con el código
 
-### **🎨 FILOSOFÍA DE DISEÑO: "CLEAN GLOBAL PRODUCTIVITY"**
+### **🎨 FILOSOFÍA DE DISEÑO: "CORPORATE SOPHISTICATION v2.0"**
 
 > **📋 REGLA DE ORO**: Antes de realizar **CUALQUIER** cambio visual, consultar `docs/CODEX_DESIGN_SYSTEM.md`
 
-#### **🌍 Principios de Diseño Global**
-- **Neutralidad cultural**: Evitar sesgos visuales regionales
-- **Profesionalismo**: Balance sofisticación/simplicidad  
-- **Escalabilidad**: Decisiones que funcionen a largo plazo
-- **Coherencia**: Una interfaz, un lenguaje visual
+#### **🌍 Principios de Diseño Evolucionados**
+- **Sofisticación Corporativa**: Interfaces que combinan profesionalismo empresarial con elegancia sutil
+- **Neutralidad Cultural Estratégica**: Azul corporativo como color de confianza universal
+- **Microinteracciones Elegantes**: Feedback sofisticado que deleita sin distraer
+- **Momentos Heroicos**: Acciones principales destacadas con diseño superior
+- **Progressive Disclosure**: Complejidad gradual adaptada al nivel de usuario
+- **Escalabilidad Visual**: Sistema que crece manteniendo coherencia absoluta
 
 #### **🚫 PROHIBIDO - Crear elementos visuales sin consultar:**
-- ❌ Nuevos colores o variantes no documentadas
-- ❌ Componentes UI desde cero sin revisar el sistema
-- ❌ Cambios tipográficos arbitrarios
-- ❌ Espaciados o shadows inventados
+- ❌ Nuevos colores o variantes no documentadas en design system
+- ❌ Componentes UI desde cero sin revisar patrones establecidos
+- ❌ Cambios tipográficos arbitrarios fuera del type scale
+- ❌ Espaciados, sombras o gradientes inventados
 - ❌ Iconografía que no sea Lucide React
+- ❌ Microinteracciones sin seguir timing standards (100ms-800ms)
+- ❌ Estados hover sin aplicar patrones corporativos
 
 #### **✅ OBLIGATORIO - Siempre seguir:**
-- ✅ **Tokens de diseño**: Usar variables CSS definidas (--primary, --spacing-*, etc.)
-- ✅ **Componentes modulares**: Reutilizar Button, Input, Card con sus variants
-- ✅ **Paleta "Qwen Professional"**: Mantener neutralidad cultural
-- ✅ **Consistencia visual**: Cada pixel debe alinearse con el sistema
-- ✅ **Iconografía Lucide**: Única fuente autorizada, tamaños estandarizados
+- ✅ **Design Tokens v2.0**: Usar variables CSS corporativas (--corporate-blue-*, --spacing-*, etc.)
+- ✅ **Componentes Modulares**: Reutilizar Button, Input, Card con variants establecidas
+- ✅ **Paleta "Corporate Blue Harmony"**: Mantener neutralidad cultural profesional
+- ✅ **Microinteracciones**: Aplicar hover:scale-[1.02], transition timing estándar
+- ✅ **Momentos Heroicos**: Identificar y aplicar tratamiento especial a acciones críticas
+- ✅ **Iconografía Lucide**: Única fuente autorizada, tamaños estandarizados (16px, 20px, 24px, 32px)
+- ✅ **Glassmorphism Sutil**: Solo acentos selectivos con backdrop-blur-md
+- ✅ **Gradientes Corporativos**: from-blue-500/10 to-blue-600/20 para elementos heroes
 
 #### **🔧 FLUJO DE TRABAJO VISUAL OBLIGATORIO**
 ```
-1. 📖 Consultar docs/CODEX_DESIGN_SYSTEM.md
-2. 🔍 Buscar componente/token existente
-3. 🎯 Usar variant apropiada
-4. ⚠️  Si no existe → Proponer extensión del sistema
-5. 🚫 NUNCA crear soluciones ad-hoc
+1. 📖 Consultar docs/CODEX_DESIGN_SYSTEM.md (993 líneas de filosofía completa)
+2. 🔍 Buscar componente/token existente en el sistema
+3. 🎯 Usar variant apropiada siguiendo patrones establecidos
+4. ⚠️  Si no existe → Proponer extensión del sistema siguiendo principios v2.0
+5. 🚫 NUNCA crear soluciones ad-hoc fuera del design system
 ```
 
-> **🎯 PARA NUEVOS AGENTES**: Si no has leído el Design System, **STOP**. Ve primero a `docs/CODEX_DESIGN_SYSTEM.md` antes de tocar cualquier componente visual. La consistencia visual es **sagrada** en CODEX.
+> **🎯 PARA NUEVOS AGENTES**: Si no has leído el Design System v2.0, **STOP**. Ve primero a `docs/CODEX_DESIGN_SYSTEM.md` antes de tocar cualquier componente visual. La **consistencia visual corporativa** es **sagrada** en CODEX.
 
 ### **🚀 Objetivos de Calidad**
 - **Build**: 100% exitoso siempre
@@ -418,12 +437,14 @@ import { rateLimitMiddleware } from '@/middleware/rateLimitMiddleware';
 - [ ] ✅ **PASO 1**: Leer REGLAS DE JUEGO CRÍTICAS (arriba)
 - [ ] ✅ **PASO 2**: Revisar jerarquía de documentación  
 - [ ] ✅ **PASO 3**: Leer `CODEX.md` para entender roadmap completo
-- [ ] ✅ **PASO 4**: Verificar que build funciona (`npm run build`)
-- [ ] ✅ **PASO 5**: Verificar que tests pasan (`npm test`)
-- [ ] ✅ **PASO 6**: Entender estado actual del proyecto
-- [ ] ✅ **PASO 7**: Leer sección 🧹 BUENAS PRÁCTICAS (checklist de rigor)
+- [ ] ✅ **PASO 4**: Leer `README.md` para setup técnico detallado
+- [ ] ✅ **PASO 5**: Leer `docs/CODEX_DESIGN_SYSTEM.md` para filosofía visual y patrones UI
+- [ ] ✅ **PASO 6**: Verificar que build funciona (`npm run build`)
+- [ ] ✅ **PASO 7**: Verificar que tests pasan (`npm test`)
+- [ ] ✅ **PASO 8**: Entender estado actual del proyecto
+- [ ] ✅ **PASO 9**: Leer sección 🧹 BUENAS PRÁCTICAS (checklist de rigor)
 
-> **🎓 Al completar estos 7 pasos, estarás 100% orientado en el proyecto**
+> **🎓 Al completar estos 9 pasos, estarás 100% orientado en el proyecto con comprensión completa del design system**
 
 ### **🤝 Al Finalizar Sesión**
 - [ ] ✅ **Ejecutar checklist 🧹 BUENAS PRÁCTICAS** (limpieza post-cambios)
@@ -431,6 +452,7 @@ import { rateLimitMiddleware } from '@/middleware/rateLimitMiddleware';
 - [ ] ✅ Documentar problemas encontrados en TROUBLESHOOTING.md
 - [ ] ✅ Actualizar CHANGELOG.md si hubo cambios significativos
 - [ ] ✅ Asegurar que proyecto sigue funcionando
+- [ ] ✅ **Verificar consistencia visual** si se hicieron cambios UI/UX
 
 ---
 
@@ -492,12 +514,13 @@ ls -la CODEX.md README.md API_DOCUMENTATION.md
 Si eres un nuevo agente IA trabajando en CODEX:
 
 1. **🚪 Este documento es tu PUNTO DE ENTRADA** - has empezado correctamente
-2. **📋 Sigue la secuencia de lectura** - CONTEXT_SUMMARY → CODEX.md → README.md
+2. **📋 Sigue la secuencia de lectura** - CONTEXT_SUMMARY → CODEX.md → README.md → **CODEX_DESIGN_SYSTEM.md**
 3. **🚨 Respeta las reglas** - evita errores que otros cometieron
-4. **🤝 Pregunta si dudas** - mejor consultar que romper algo
-5. **📝 Documenta cambios** - actualiza este archivo al finalizar
+4. **🎨 Sigue el design system** - consistencia visual corporativa es sagrada
+5. **🤝 Pregunta si dudas** - mejor consultar que romper algo
+6. **📝 Documenta cambios** - actualiza este archivo al finalizar
 
-**¡Bienvenido al equipo! 🚀 Ahora ve a leer `CODEX.md` para el roadmap completo.**
+**¡Bienvenido al equipo! 🚀 Ahora ve a leer `CODEX.md` para el roadmap completo, y no olvides el Design System v2.0.**
 
 ---
 

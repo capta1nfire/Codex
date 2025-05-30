@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, AlertTriangle, Activity, Clock, TrendingUp } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 // import {
 //   Table,
 //   TableBody,
@@ -41,6 +43,14 @@ interface RustAnalyticsData {
   timestamp: string; // Coincide con JSON
 }
 
+// --- NUEVO: Interfaces para monitoreo en tiempo real ---
+interface RequestTracker {
+  timestamp: number;
+  requestsInLastMinute: number;
+  requestsInLastHour: number;
+  recentRequests: number[]; // timestamps de las últimas 60 peticiones
+}
+
 // --- Fin Interfaces Ajustadas ---
 
 // Helper para formatear duración (maneja null)
@@ -70,10 +80,63 @@ export default function RustAnalyticsDisplay() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  
+  // --- NUEVO: Estados para monitoreo en tiempo real ---
+  const [requestTracker, setRequestTracker] = useState<RequestTracker>({
+    timestamp: Date.now(),
+    requestsInLastMinute: 0,
+    requestsInLastHour: 0,
+    recentRequests: []
+  });
+  const [lastTotalRequests, setLastTotalRequests] = useState<number>(0);
+  const [alertLevel, setAlertLevel] = useState<'none' | 'warning' | 'critical'>('none');
+
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // --- NUEVO: Función para detectar y actualizar actividad de peticiones ---
+  const updateRequestActivity = (currentTotal: number) => {
+    const now = Date.now();
+    const oneMinuteAgo = now - 60000;
+    const oneHourAgo = now - 3600000;
+    
+    // Calcular nuevas peticiones desde la última actualización
+    const newRequests = currentTotal - lastTotalRequests;
+    
+    setRequestTracker(prev => {
+      // Agregar timestamps de nuevas peticiones
+      const newTimestamps = Array(newRequests).fill(0).map(() => now);
+      const allRequests = [...prev.recentRequests, ...newTimestamps];
+      
+      // Filtrar peticiones de la última hora
+      const recentRequests = allRequests.filter(timestamp => timestamp > oneHourAgo);
+      
+      // Contar peticiones del último minuto
+      const requestsInLastMinute = recentRequests.filter(timestamp => timestamp > oneMinuteAgo).length;
+      
+      // Determinar nivel de alerta
+      let newAlertLevel: 'none' | 'warning' | 'critical' = 'none';
+      if (requestsInLastMinute > 10) {
+        newAlertLevel = 'critical'; // Más de 10 peticiones por minuto es crítico
+      } else if (requestsInLastMinute > 5) {
+        newAlertLevel = 'warning'; // Más de 5 por minuto es sospechoso
+      }
+      
+      setAlertLevel(newAlertLevel);
+      
+      return {
+        timestamp: now,
+        requestsInLastMinute,
+        requestsInLastHour: recentRequests.length,
+        recentRequests: recentRequests.slice(-100) // Mantener solo las últimas 100
+      };
+    });
+    
+    setLastTotalRequests(currentTotal);
+  };
 
   useEffect(() => {
     const fetchAnalyticsData = async () => {
@@ -89,6 +152,12 @@ export default function RustAnalyticsDisplay() {
           `${rustServiceUrl}/analytics/performance`
         );
         setAnalyticsData(response.data);
+        
+        // --- NUEVO: Actualizar rastreador de actividad ---
+        if (response.data.overall.total_requests !== lastTotalRequests) {
+          updateRequestActivity(response.data.overall.total_requests);
+        }
+        
         setError(null);
       } catch (err) {
         console.error('Error fetching Rust analytics data:', err);
@@ -103,24 +172,27 @@ export default function RustAnalyticsDisplay() {
     };
 
     fetchAnalyticsData();
-    const interval = setInterval(fetchAnalyticsData, 60000);
+    // 🚨 REDUCIDO: De 60s a 5 minutos para reducir spam crítico
+    const interval = setInterval(fetchAnalyticsData, 300000);
 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading]);
 
   return (
-    <Card className="h-full group/main hover:shadow-md hover:shadow-primary/5 transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
+    <Card className="h-full group/main hover:shadow-corporate-hero hover:shadow-corporate-blue-500/20 transition-all duration-300 border-corporate-blue-200/30 dark:border-corporate-blue-700/30 hover:border-corporate-blue-300/50 dark:hover:border-corporate-blue-600/50 hover:-translate-y-1 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg group-hover/main:text-primary transition-colors duration-200">
-          <RefreshCw className="h-5 w-5 transition-transform duration-200 group-hover/main:scale-110" />
-          Métricas de Performance
+        <CardTitle className="flex items-center gap-2 text-lg group-hover/main:text-corporate-blue-600 dark:group-hover/main:text-corporate-blue-400 transition-colors duration-200">
+          <div className="p-1.5 bg-corporate-blue-500/10 rounded-lg group-hover/main:bg-corporate-blue-500/20 transition-colors duration-200">
+            <Activity className="h-4 w-4 text-corporate-blue-600 dark:text-corporate-blue-400" />
+          </div>
+          Monitor de Performance
         </CardTitle>
-        <CardDescription className="transition-colors duration-200 group-hover:text-foreground/70">
-          Métricas de caché y rendimiento de generación de códigos. Actualizado cada 60s.
+        <CardDescription className="transition-colors duration-200 group-hover/main:text-foreground/70">
+          Análisis en tiempo real del generador Rust y detección de anomalías.
           {isMounted && analyticsData && (
-            <span className="block text-xs mt-1 transition-colors duration-200 group-hover:text-muted-foreground">
-              Última act: {new Date(analyticsData.timestamp).toLocaleTimeString()}
+            <span className="block text-xs mt-1 text-corporate-blue-600/60 dark:text-corporate-blue-400/60">
+              Actualizado: {new Date(analyticsData.timestamp).toLocaleTimeString()}
             </span>
           )}
         </CardDescription>
@@ -129,104 +201,165 @@ export default function RustAnalyticsDisplay() {
       <CardContent>
         {isLoading ? (
           <div className="flex justify-center items-center h-32">
-            <p className="text-muted-foreground animate-pulse">
-              Cargando análisis de rendimiento...
-            </p>
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative">
+                <div className="w-8 h-8 border-2 border-corporate-blue-200 dark:border-corporate-blue-700 rounded-full"></div>
+                <div className="absolute inset-0 w-8 h-8 border-2 border-transparent border-t-corporate-blue-500 rounded-full animate-spin"></div>
+              </div>
+              <p className="text-corporate-blue-600/70 dark:text-corporate-blue-400/70 text-sm animate-pulse">
+                Analizando rendimiento...
+              </p>
+            </div>
           </div>
         ) : !analyticsData ? (
           <></>
         ) : (
-          <div className="space-y-3">
-            {/* Main Stats - Más enfocado en métricas clave */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-3 bg-gradient-to-br from-slate-50/30 to-slate-100/30 dark:from-slate-950/10 dark:to-slate-900/20 rounded-lg border border-border/30 hover:border-border/50 transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 group/requests">
-                <div className="text-2xl font-bold text-foreground group-hover/requests:text-foreground transition-all duration-200 group-hover/requests:scale-105">
-                  {analyticsData.overall.total_requests}
-                </div>
-                <div className="text-xs text-muted-foreground/70 mb-2">Peticiones Totales</div>
-                <div className="flex justify-center">
-                  <RefreshCw className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover/requests:scale-110" />
-                </div>
+          <div className="space-y-4">
+            {/* --- MEJORADO: Monitor de Actividad con Estilo Corporativo --- */}
+            <div className={cn(
+              "p-4 rounded-xl border-2 transition-all duration-300",
+              alertLevel === 'critical' 
+                ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 shadow-corporate-lg" 
+                : alertLevel === 'warning'
+                ? "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 shadow-corporate-lg"
+                : "bg-corporate-blue-50 dark:bg-corporate-blue-950/20 border-corporate-blue-200 dark:border-corporate-blue-800 shadow-corporate-lg"
+            )}>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <Activity className={cn(
+                    "h-4 w-4",
+                    alertLevel === 'critical' ? "text-red-600 animate-spin" :
+                    alertLevel === 'warning' ? "text-amber-600" : "text-corporate-blue-600"
+                  )} />
+                  Actividad en Tiempo Real
+                </h4>
+                <Badge variant="outline" className={cn(
+                  "text-xs",
+                  alertLevel === 'critical' ? "border-red-300 text-red-700 animate-pulse" :
+                  alertLevel === 'warning' ? "border-amber-300 text-amber-700" :
+                  "border-corporate-blue-300 text-corporate-blue-700"
+                )}>
+                  {alertLevel === 'none' ? 'Normal' : alertLevel === 'warning' ? 'Alerta' : 'CRÍTICO'}
+                </Badge>
               </div>
               
-              <div className="text-center p-3 bg-gradient-to-br from-slate-50/30 to-slate-100/30 dark:from-slate-950/10 dark:to-slate-900/20 rounded-lg border border-border/30 hover:border-border/50 transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 group/cache">
-                <div className="text-2xl font-bold text-foreground transition-all duration-200 group-hover/cache:scale-105">
-                  {formatPercentage(analyticsData.overall.cache_hit_rate_percent)}
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                <div className="text-center p-3 bg-white/80 dark:bg-slate-800/80 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+                  <div className={cn(
+                    "text-xl font-bold mb-1",
+                    alertLevel === 'critical' ? "text-red-600" :
+                    alertLevel === 'warning' ? "text-amber-600" : "text-corporate-blue-600"
+                  )}>
+                    {requestTracker.requestsInLastMinute}
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400">Último minuto</div>
                 </div>
-                <div className="text-xs text-muted-foreground/70 mb-2">Eficiencia Cache</div>
-                <div className="flex justify-center">
-                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse transition-transform duration-200 group-hover/cache:scale-125"></div>
+                
+                <div className="text-center p-3 bg-white/80 dark:bg-slate-800/80 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+                  <div className="text-xl font-bold text-corporate-blue-600 mb-1">
+                    {requestTracker.requestsInLastHour}
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400">Última hora</div>
+                </div>
+                
+                <div className="text-center p-3 bg-white/80 dark:bg-slate-800/80 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+                  <div className="text-xl font-bold text-slate-600 dark:text-slate-300 mb-1">
+                    {analyticsData.overall.total_requests}
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400">Total</div>
+                </div>
+              </div>
+
+              {/* Alerta detallada con estilo corporativo */}
+              {alertLevel !== 'none' && (
+                <div className={cn(
+                  "p-3 rounded-lg text-xs border-l-4",
+                  alertLevel === 'critical' 
+                    ? "bg-red-100 dark:bg-red-950/30 border-red-500 text-red-800 dark:text-red-200"
+                    : "bg-amber-100 dark:bg-amber-950/30 border-amber-500 text-amber-800 dark:text-amber-200"
+                )}>
+                  <div className="font-semibold flex items-center gap-1 mb-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    {alertLevel === 'critical' ? 'PROBLEMA DETECTADO:' : 'ADVERTENCIA:'}
+                  </div>
+                  <div>
+                    {alertLevel === 'critical' 
+                      ? `${requestTracker.requestsInLastMinute} peticiones/min detectadas. Posible spam o auto-regeneración excesiva.`
+                      : `Actividad elevada: ${requestTracker.requestsInLastMinute} peticiones/min. Monitorear para evitar saturación.`
+                    }
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* --- CONSOLIDADO: Métricas de Rendimiento (Eliminando duplicados) --- */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-corporate-blue-50/50 to-slate-50/50 dark:from-corporate-blue-950/50 dark:to-slate-950/50 border border-corporate-blue-200/40 dark:border-corporate-blue-700/40">
+              <h4 className="font-semibold text-sm text-corporate-blue-700 dark:text-corporate-blue-300 mb-3 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Rendimiento del Sistema
+              </h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-slate-600 dark:text-slate-400">Cache Hit Rate:</span>
+                    <Badge variant="outline" className="text-xs bg-corporate-blue-100 dark:bg-corporate-blue-900">
+                      {formatPercentage(analyticsData.overall.cache_hit_rate_percent)}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-slate-600 dark:text-slate-400">Tiempo Promedio:</span>
+                    <span className="text-xs font-mono text-corporate-blue-600 dark:text-corporate-blue-400">
+                      {formatDuration(analyticsData.overall.avg_response_ms)}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-slate-600 dark:text-slate-400">Tiempo Máximo:</span>
+                    <span className="text-xs font-mono text-slate-600 dark:text-slate-300">
+                      {formatDuration(analyticsData.overall.max_response_ms)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-slate-600 dark:text-slate-400">Tipos Activos:</span>
+                    <span className="text-xs font-mono text-slate-600 dark:text-slate-300">
+                      {Object.keys(analyticsData.by_barcode_type).length} códigos
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Performance Stats consolidado */}
-            <div className="p-3 rounded-lg bg-gradient-to-br from-card/50 to-card/80 hover:from-card/80 hover:to-card/100 border border-border/40 hover:border-border/60 transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 group/performance">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-sm transition-colors duration-200 group-hover/performance:text-primary">Métricas de Rendimiento</h4>
-                <RefreshCw className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover/performance:scale-110 group-hover/performance:text-primary" />
-              </div>
+            {/* --- OPTIMIZADO: Top 3 Tipos Más Usados (Información única) --- */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200/40 dark:border-slate-700/40">
+              <h4 className="font-semibold text-sm text-slate-700 dark:text-slate-300 mb-3">
+                Distribución por Tipo
+              </h4>
               
-              <div className="space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground transition-colors duration-200 group-hover/performance:text-foreground/70">Respuesta Promedio:</span>
-                  <span className="font-mono transition-colors duration-200 group-hover/performance:text-primary">{formatDuration(analyticsData.overall.avg_response_ms)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground transition-colors duration-200 group-hover/performance:text-foreground/70">Respuesta Máxima:</span>
-                  <span className="font-mono transition-colors duration-200 group-hover/performance:text-primary">{formatDuration(analyticsData.overall.max_response_ms)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground transition-colors duration-200 group-hover/performance:text-foreground/70">Tipos Activos:</span>
-                  <span className="font-mono transition-colors duration-200 group-hover/performance:text-primary">{Object.keys(analyticsData.by_barcode_type).length} códigos</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Top Types - Solo cantidad de requests, sin duplicar hit rates */}
-            <div className="p-3 rounded-lg bg-gradient-to-br from-card/50 to-card/80 hover:from-card/80 hover:to-card/100 border border-border/40 hover:border-border/60 transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 group/distribution">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-sm transition-colors duration-200 group-hover/distribution:text-primary">Distribución por Tipo</h4>
-                <div className="text-xs text-muted-foreground transition-colors duration-200 group-hover/distribution:text-foreground/70">
-                  Top 3 más usados
-                </div>
-              </div>
-              
-              <div className="space-y-1 text-xs">
+              <div className="space-y-2">
                 {Object.entries(analyticsData.by_barcode_type)
                   .sort(([,a], [,b]) => (b.hit_count + b.miss_count) - (a.hit_count + a.miss_count))
                   .slice(0, 3)
                   .map(([type, stats], index) => (
-                  <div key={type} className="flex justify-between p-1 rounded transition-colors duration-200 group-hover/distribution:bg-muted/20">
+                  <div key={type} className="flex justify-between items-center p-2 bg-white/50 dark:bg-slate-700/50 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full transition-transform duration-200 group-hover/distribution:scale-125 ${
-                        index === 0 ? 'bg-slate-400 animate-pulse' :
-                        index === 1 ? 'bg-slate-500 animate-pulse' :
-                        'bg-slate-600 animate-pulse'
+                      <div className={`w-2 h-2 rounded-full ${
+                        index === 0 ? 'bg-corporate-blue-500' :
+                        index === 1 ? 'bg-corporate-blue-400' :
+                        'bg-slate-400'
                       }`}></div>
-                      <span className="text-muted-foreground font-mono transition-colors duration-200 group-hover/distribution:text-foreground/80">{type}:</span>
+                      <span className="text-xs font-mono text-slate-700 dark:text-slate-300">{type}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono transition-colors duration-200 group-hover/distribution:text-primary">{stats.hit_count + stats.miss_count} req</span>
-                      <span className="font-mono text-muted-foreground transition-colors duration-200 group-hover/distribution:text-foreground/80">{stats.hit_count}</span>
-                      <span className="text-muted-foreground transition-colors duration-200 group-hover/distribution:text-foreground/60">/</span>
-                      <span className="font-mono text-muted-foreground transition-colors duration-200 group-hover/distribution:text-foreground/80">{stats.miss_count}</span>
+                      <span className="text-xs font-semibold text-corporate-blue-600 dark:text-corporate-blue-400">
+                        {stats.hit_count + stats.miss_count}
+                      </span>
+                      <span className="text-xs text-slate-500">req</span>
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-
-            {/* Status Indicator compacto */}
-            <div className="p-2 rounded-lg bg-gradient-to-br from-card/50 to-card/80 hover:from-card/80 hover:to-card/100 border border-border/40 hover:border-border/60 transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 group/status">
-              <div className="flex items-center gap-2 text-xs">
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse transition-transform duration-200 group-hover/status:scale-125"></div>
-                <span className="text-muted-foreground transition-colors duration-200 group-hover/status:text-foreground/70">Rust service analytics</span>
-                {isMounted && analyticsData && (
-                  <span className="ml-auto font-mono text-muted-foreground transition-colors duration-200 group-hover/status:text-primary">
-                    {new Date(analyticsData.timestamp).toLocaleTimeString()}
-                  </span>
-                )}
               </div>
             </div>
           </div>

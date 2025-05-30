@@ -31,6 +31,22 @@ export const generateFormSchema = z.object({
         .optional()
         .or(z.literal('')), // Permitir vacío para usar el default
 
+      // Opciones de gradiente (principalmente para QR)
+      gradient_enabled: z.boolean().optional(),
+      gradient_type: z.enum(['linear', 'radial']).optional(),
+      gradient_color1: z
+        .string()
+        .regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido (ej. #FF0000)')
+        .optional()
+        .or(z.literal('')),
+      gradient_color2: z
+        .string()
+        .regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido (ej. #0000FF)')
+        .optional()
+        .or(z.literal('')),
+      gradient_direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
+      gradient_borders: z.boolean().optional(), // Control para mostrar/ocultar bordes en gradientes
+
       // Opciones específicas 1D (ej. Code128)
       height: z
         .number({ invalid_type_error: 'La altura debe ser un número' })

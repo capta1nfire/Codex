@@ -194,8 +194,8 @@ export const useSystemMonitoring = () => {
     // ✅ Initial check
     checkSystemHealth();
     
-    // ✅ Check every 15 seconds
-    const interval = setInterval(checkSystemHealth, 15000);
+    // 🚨 REDUCIDO: De 15s a 45s para reducir spam crítico
+    const interval = setInterval(checkSystemHealth, 45000);
     
     return () => clearInterval(interval);
   }, [checkSystemHealth]);

@@ -15,6 +15,7 @@ Frontend moderno para la plataforma Codex de generación de códigos de barras y
 - **Personalización**: Opciones para personalizar la generación de códigos:
   - Escala (tamaño)
   - Nivel de corrección de errores para QR
+  - **Sistema de Gradientes SVG**: Gradientes continuos para códigos QR con bordes opcionales
 - **Visualización en Tiempo Real**: Previsualización inmediata de los códigos generados
 - **Exportación**: Descarga de códigos en formato SVG
 - **Diseño Responsivo**: Interfaz adaptable a dispositivos móviles y de escritorio
@@ -199,3 +200,4 @@ npm start
 
 - [README principal](../README.md): Documentación general del proyecto
 - [CHANGELOG.md](../CHANGELOG.md): Historial de cambios
+- [Sistema de Gradientes SVG](../docs/SVG_GRADIENT_SYSTEM.md): Documentación técnica completa del sistema de gradientes

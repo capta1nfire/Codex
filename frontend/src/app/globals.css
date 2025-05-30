@@ -55,16 +55,16 @@
     --primary-foreground: 0 0% 100%; /* Blanco */
     --secondary: 210 9% 45%;
     --secondary-foreground: 0 0% 100%; /* Blanco */
-    --muted: 210 13% 92%; /* Gris muy claro, similar a fondo */
-    --muted-foreground: 210 9% 45%; /* Gris medio, similar a secundario */
-    --accent: 155 100% 38%;
-    --accent-foreground: 0 0% 100%; /* Blanco */
-    --destructive: 10 70% 56%; /* Rojo Ladrillo */
-    --destructive-foreground: 0 0% 100%; /* Blanco */
-    --success: 120 70% 60%;
-    --success-foreground: 120 70% 15%; /* Texto oscuro */
-    --warning: 38 95% 51%; /* Naranja Ámbar */
-    --warning-foreground: 220 9% 15%; /* Texto oscuro */
+    --muted: 210 9% 25%; /* Gris oscuro, similar a secundario */
+    --muted-foreground: 210 13% 65%; /* Gris más claro que foreground */
+    --accent: 210 53% 65%; /* CODEX Corporate Blue claro en lugar de verde */
+    --accent-foreground: 220 9% 15%; /* Texto oscuro */
+    --destructive: 10 70% 66%;
+    --destructive-foreground: 220 9% 15%;
+    --success: 210 53% 65%; /* CODEX Corporate Blue claro en lugar de verde */
+    --success-foreground: 220 9% 15%; /* Texto oscuro para contraste */
+    --warning: 30 67% 62%; /* Añadir warning */
+    --warning-foreground: 220 9% 15%; /* Añadir warning-foreground */
     --border: 210 13% 88%;
     --input: 210 13% 88%; /* Usar mismo que borde o ligeramente diferente */
     --ring: 210 53% 36%; /* Usar primario para ring */
@@ -536,6 +536,115 @@
   }
 
   .animate-grid-fade {
-    animation: grid-fade 4s ease-in-out infinite;
+    animation: grid-fade 3s ease-in-out infinite;
+  }
+
+  /* ✅ SVG Transparency Rules - CODEX Generator */
+  .barcode-svg svg {
+    background: transparent !important;
+  }
+  
+  .barcode-svg svg rect[fill="#ffffff"],
+  .barcode-svg svg rect[fill="#FFFFFF"],
+  .barcode-svg svg rect[fill="white"] {
+    fill: transparent !important;
+  }
+  
+  .barcode-svg svg rect[style*="fill:#ffffff"],
+  .barcode-svg svg rect[style*="fill:#FFFFFF"],
+  .barcode-svg svg rect[style*="fill:white"] {
+    fill: transparent !important;
+  }
+
+  /* 🎯 CODEX Linear Barcode Optimization - Design System v2.0 */
+  .svg-linear-barcode {
+    /* Optimización específica para códigos lineales */
+    container-type: inline-size;
+    min-height: 80px;
+  }
+
+  .svg-linear-barcode svg {
+    /* Prevent SVG compression en códigos lineales */
+    min-height: 60px !important;
+    max-height: 120px !important;
+    width: 100% !important;
+    height: auto !important;
+    /* Preservar aspect ratio original */
+    aspect-ratio: auto !important;
+  }
+
+  .svg-rectangular-code {
+    /* PDF417 y códigos 2D rectangulares */
+    container-type: inline-size;
+    min-height: 120px;
+  }
+
+  .svg-rectangular-code svg {
+    min-height: 100px !important;
+    max-height: 180px !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .svg-square-code {
+    /* QR, DataMatrix, Aztec - códigos cuadrados */
+    container-type: inline-size;
+    min-height: 200px;
+  }
+
+  .svg-square-code svg {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 400px !important;
+    max-height: 400px !important;
+  }
+
+  /* 🎨 Corporate Blue Harmony - Sombras específicas para códigos */
+  .shadow-corporate-lg {
+    box-shadow: 
+      0 8px 25px 0 hsl(var(--corporate-blue-500) / 0.15),
+      0 0 0 1px hsl(var(--corporate-blue-500) / 0.05);
+  }
+
+  .dark .shadow-corporate-lg {
+    box-shadow: 
+      0 8px 25px 0 hsl(var(--corporate-blue-500) / 0.2),
+      0 0 0 1px hsl(var(--corporate-blue-500) / 0.1);
+  }
+
+  /* Responsive optimizations para códigos lineales */
+  @container (max-width: 640px) {
+    .svg-linear-barcode {
+      min-height: 60px;
+    }
+    
+    .svg-linear-barcode svg {
+      min-height: 50px !important;
+      max-height: 80px !important;
+    }
+  }
+
+  @container (min-width: 1024px) {
+    .svg-linear-barcode {
+      min-height: 100px;
+    }
+    
+    .svg-linear-barcode svg {
+      min-height: 80px !important;
+      max-height: 140px !important;
+    }
+  }
+
+  /* Anti-aliasing y renderizado optimizado */
+  .svg-linear-barcode svg,
+  .svg-rectangular-code svg,
+  .svg-square-code svg {
+    /* Renderizado nítido para códigos de barras */
+    image-rendering: crisp-edges;
+    shape-rendering: crispEdges;
+    /* Fallback para compatibilidad */
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: pixelated;
   }
 }

@@ -1,12 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
+import { applySvgGradient, GradientOptions } from '@/lib/svg-gradient-processor';
 
 interface BarcodeDisplayProps {
   svgContent: string;
   type: string;
   data: string;
-  // Quitamos 'scale' de las props, ya no se usa para el display CSS
+  gradientOptions?: GradientOptions;
 }
 
 const typeLabels: Record<string, string> = {
@@ -19,7 +20,28 @@ const typeLabels: Record<string, string> = {
   datamatrix: 'Data Matrix',
 };
 
-export default function BarcodeDisplay({ svgContent, type, data }: BarcodeDisplayProps) {
+export default function BarcodeDisplay({ svgContent, type, data, gradientOptions }: BarcodeDisplayProps) {
+  // Procesar SVG con gradientes si está habilitado
+  const processedSvgContent = useMemo(() => {
+    if (!svgContent) return '';
+    
+    // Solo aplicar gradientes si están habilitados y tenemos opciones
+    if (gradientOptions?.enabled && type === 'qrcode') {
+      console.log('[BarcodeDisplay] 🎨 Aplicando gradiente:', gradientOptions);
+      try {
+        const result = applySvgGradient(svgContent, gradientOptions);
+        console.log('[BarcodeDisplay] ✅ Gradiente aplicado exitosamente');
+        return result;
+      } catch (error) {
+        console.error('[BarcodeDisplay] ❌ Error aplicando gradiente:', error);
+        console.log('[BarcodeDisplay] 🔄 Fallback al SVG original');
+        return svgContent; // Fallback al SVG original
+      }
+    }
+    
+    return svgContent;
+  }, [svgContent, gradientOptions, type]);
+
   // Calculamos clases de Tailwind condicionales para el contenedor/wrapper principal
   const wrapperClasses = useMemo(() => {
     // Clases base: Añadimos padding, fondo blanco suave, borde, sombra, centrado
@@ -88,7 +110,7 @@ export default function BarcodeDisplay({ svgContent, type, data }: BarcodeDispla
       {/* Div que contiene directamente el SVG */}
       <div
         className={svgContainerClasses} // <-- Clases para tamaño/aspecto
-        dangerouslySetInnerHTML={{ __html: svgContent }}
+        dangerouslySetInnerHTML={{ __html: processedSvgContent }}
         role="img"
         // Usamos un título más descriptivo para accesibilidad
         aria-label={`Código ${typeLabels[type] || type} generado para los datos: ${data.substring(0, 30)}${data.length > 30 ? '...' : ''}`}

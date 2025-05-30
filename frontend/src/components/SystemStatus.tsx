@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Server, Database, Zap, CheckCircle2, AlertCircle, XCircle, Clock, RefreshCw, Play, Pause, Square, Settings } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface ServiceStatus {
   service: string;
@@ -288,7 +289,7 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ isAdvancedMode: externalAdv
   useEffect(() => {
     if (isMounted) {
       fetchHealthData();
-      const interval = setInterval(fetchHealthData, 10000);
+      const interval = setInterval(fetchHealthData, 30000);
       return () => clearInterval(interval);
     }
   }, [isMounted]);
@@ -318,6 +319,9 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ isAdvancedMode: externalAdv
 
   const overallStatus = getStatusDisplay(health.overall);
   const OverallIcon = overallStatus.icon;
+
+  // ✅ Auth & Authorization
+  const { user } = useAuth();
 
   // ✅ Enhanced Service Control Functions with Better Feedback
   const [serviceActions, setServiceActions] = useState<Record<string, string>>({});
@@ -396,8 +400,6 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ isAdvancedMode: externalAdv
       }, 5000);
     }
   };
-  
-
 
   return (
     <Card className="w-full h-full group hover:shadow-md transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
@@ -626,7 +628,7 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ isAdvancedMode: externalAdv
         {/* ✅ Info de Actualización Mejorada */}
         <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-border/30 transition-colors duration-200 group-hover:text-muted-foreground group-hover:border-border/50">
           <span>
-            Verificación automática cada 10 segundos
+            Verificación automática cada 30 segundos
           </span>
           <div className="flex items-center gap-2">
             <button 

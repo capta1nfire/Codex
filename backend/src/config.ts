@@ -66,7 +66,7 @@ export const config: Config = {
         'http://192.168.1.36:3001',
       ],
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-  RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
+  RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX || '1000', 10),
   MAX_REQUEST_SIZE: process.env.MAX_REQUEST_SIZE || '1mb',
 
   JWT_SECRET: process.env.JWT_SECRET || 'dev-jwt-secret-key-change-in-production',

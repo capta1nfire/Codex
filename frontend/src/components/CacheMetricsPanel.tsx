@@ -64,23 +64,23 @@ export default function CacheMetricsPanel({ isAdvancedMode }: CacheMetricsPanelP
     };
 
     fetchCacheStats();
-    const interval = setInterval(fetchCacheStats, 30000); // Update every 30s
+    const interval = setInterval(fetchCacheStats, 120000);
     
     return () => clearInterval(interval);
   }, []);
 
   const getHitRateColor = (rate: number) => {
-    if (rate >= 70) return 'text-slate-700 dark:text-slate-300';
-    if (rate >= 50) return 'text-slate-600 dark:text-slate-400';
-    if (rate >= 20) return 'text-slate-600 dark:text-slate-400';
-    return 'text-slate-500 dark:text-slate-500';
+    if (rate >= 70) return 'text-corporate-blue-700 dark:text-corporate-blue-300';
+    if (rate >= 50) return 'text-corporate-blue-600 dark:text-corporate-blue-400';
+    if (rate >= 20) return 'text-amber-600 dark:text-amber-400';
+    return 'text-red-600 dark:text-red-400';
   };
 
   const getHitRateBadge = (rate: number) => {
-    if (rate >= 70) return <Badge className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">Excelente</Badge>;
-    if (rate >= 50) return <Badge className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">Bueno</Badge>;
-    if (rate >= 20) return <Badge className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">Regular</Badge>;
-    return <Badge className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">Bajo</Badge>;
+    if (rate >= 70) return <Badge className="bg-corporate-blue-100 text-corporate-blue-700 dark:bg-corporate-blue-900 dark:text-corporate-blue-300">Excelente</Badge>;
+    if (rate >= 50) return <Badge className="bg-corporate-blue-100 text-corporate-blue-700 dark:bg-corporate-blue-800 dark:text-corporate-blue-300">Bueno</Badge>;
+    if (rate >= 20) return <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">Regular</Badge>;
+    return <Badge className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">Crítico</Badge>;
   };
 
   // ✅ Función para limpiar cache
@@ -134,16 +134,26 @@ export default function CacheMetricsPanel({ isAdvancedMode }: CacheMetricsPanelP
 
   if (isLoading) {
     return (
-      <Card className="h-full group hover:shadow-md transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
+      <Card className="h-full group/main hover:shadow-corporate-hero hover:shadow-corporate-blue-500/20 transition-all duration-300 border-corporate-blue-200/30 dark:border-corporate-blue-700/30 hover:border-corporate-blue-300/50 dark:hover:border-corporate-blue-600/50 hover:-translate-y-1 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg group-hover:text-primary transition-colors duration-200">
-            <RefreshCw className="h-5 w-5 animate-pulse transition-transform duration-200 group-hover:scale-110" />
-            Métricas de Cache
+          <CardTitle className="flex items-center gap-2 text-lg group-hover/main:text-corporate-blue-600 dark:group-hover/main:text-corporate-blue-400 transition-colors duration-200">
+            <div className="p-1.5 bg-corporate-blue-500/10 rounded-lg">
+              <RefreshCw className="h-4 w-4 text-corporate-blue-600 dark:text-corporate-blue-400 animate-pulse" />
+            </div>
+            Cache & Optimización
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex justify-center items-center h-32">
-            <p className="text-muted-foreground animate-pulse">Cargando métricas...</p>
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative">
+                <div className="w-8 h-8 border-2 border-corporate-blue-200 dark:border-corporate-blue-700 rounded-full"></div>
+                <div className="absolute inset-0 w-8 h-8 border-2 border-transparent border-t-corporate-blue-500 rounded-full animate-spin"></div>
+              </div>
+              <p className="text-corporate-blue-600/70 dark:text-corporate-blue-400/70 text-sm animate-pulse">
+                Analizando cache...
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -152,15 +162,17 @@ export default function CacheMetricsPanel({ isAdvancedMode }: CacheMetricsPanelP
 
   if (!stats) {
     return (
-      <Card className="h-full group hover:shadow-md transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
+      <Card className="h-full group/main hover:shadow-corporate-hero hover:shadow-corporate-blue-500/20 transition-all duration-300 border-corporate-blue-200/30 dark:border-corporate-blue-700/30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg group-hover:text-primary transition-colors duration-200">
-            <RefreshCw className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
-            Métricas de Cache
+          <CardTitle className="flex items-center gap-2 text-lg text-corporate-blue-600 dark:text-corporate-blue-400">
+            <div className="p-1.5 bg-corporate-blue-500/10 rounded-lg">
+              <RefreshCw className="h-4 w-4" />
+            </div>
+            Cache & Optimización
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-muted-foreground">
+          <div className="text-center text-slate-600 dark:text-slate-400">
             <p className="text-sm">No hay datos de cache disponibles</p>
           </div>
         </CardContent>
@@ -169,147 +181,136 @@ export default function CacheMetricsPanel({ isAdvancedMode }: CacheMetricsPanelP
   }
 
   return (
-    <Card className="h-full group hover:shadow-md transition-all duration-200 border-border/50 hover:border-border hover:-translate-y-0.5">
+    <Card className="h-full group/main hover:shadow-corporate-hero hover:shadow-corporate-blue-500/20 transition-all duration-300 border-corporate-blue-200/30 dark:border-corporate-blue-700/30 hover:border-corporate-blue-300/50 dark:hover:border-corporate-blue-600/50 hover:-translate-y-1 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <CardTitle className="flex items-center gap-2 text-lg group-hover:text-primary transition-colors duration-200">
-              <RefreshCw className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
-              Métricas de Cache
+            <CardTitle className="flex items-center gap-2 text-lg group-hover/main:text-corporate-blue-600 dark:group-hover/main:text-corporate-blue-400 transition-colors duration-200">
+              <div className="p-1.5 bg-corporate-blue-500/10 rounded-lg group-hover/main:bg-corporate-blue-500/20 transition-colors duration-200">
+                <Zap className="h-4 w-4 text-corporate-blue-600 dark:text-corporate-blue-400" />
+              </div>
+              Cache & Optimización
             </CardTitle>
-            <CardDescription className="transition-colors duration-200 group-hover:text-foreground/70">
-              Rendimiento y eficiencia del sistema de caché
+            <CardDescription className="transition-colors duration-200 group-hover/main:text-foreground/70">
+              Eficiencia del sistema de caché y optimizaciones automáticas.
               {isMounted && lastUpdate && (
-                <span className="block text-xs mt-1 text-muted-foreground/80 transition-colors duration-200 group-hover:text-muted-foreground">
-                  Última act: {lastUpdate.toLocaleTimeString()}
+                <span className="block text-xs mt-1 text-corporate-blue-600/60 dark:text-corporate-blue-400/60">
+                  Actualizado: {lastUpdate.toLocaleTimeString()}
                 </span>
               )}
             </CardDescription>
           </div>
           
-          {/* ✅ Botón de Configuración - Solo visible en modo avanzado */}
+          {/* Control de Configuración Avanzada */}
           {isAdvancedMode && (
             <button
               onClick={() => setIsConfigMode(!isConfigMode)}
-              className="flex items-center justify-center w-8 h-8 rounded-lg border border-border/50 bg-card/50 hover:border-border hover:bg-card hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 group/settings"
+              className="flex items-center justify-center w-8 h-8 rounded-lg border border-corporate-blue-200/50 dark:border-corporate-blue-700/50 bg-corporate-blue-50/50 dark:bg-corporate-blue-950/50 hover:border-corporate-blue-300 dark:hover:border-corporate-blue-600 hover:bg-corporate-blue-100/50 dark:hover:bg-corporate-blue-900/50 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 group/settings"
               title="Configuración de cache"
             >
-              <Settings className="h-4 w-4 text-muted-foreground transition-all duration-200 group-hover/settings:text-primary group-hover/settings:rotate-90" />
+              <Settings className="h-4 w-4 text-corporate-blue-600 dark:text-corporate-blue-400 transition-all duration-200 group-hover/settings:rotate-90" />
             </button>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        {/* ✅ Panel de Configuración - Solo visible cuando isConfigMode está activo */}
+        {/* Panel de Configuración Avanzada */}
         {isAdvancedMode && isConfigMode && (
           <div className="mb-4">
-            {/* Título de Configuración - Mismo estilo que "Servicios del Sistema" */}
-            <h4 className="text-lg font-semibold flex items-center gap-2 transition-colors duration-200 group-hover:text-primary mb-3">
-              <Settings className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
-              Configuración de Cache
+            <h4 className="text-sm font-semibold flex items-center gap-2 text-corporate-blue-700 dark:text-corporate-blue-300 mb-3">
+              <Settings className="h-4 w-4" />
+              Gestión de Cache
             </h4>
             
-            {/* Botón de Limpiar Cache */}
             <button
               onClick={handleClearCache}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-red-50/50 to-red-100/50 dark:from-red-950/20 dark:to-red-900/30 border border-red-200/40 hover:border-red-300/60 transition-all duration-200 hover:shadow-sm group/clear mb-4"
+              className="w-full flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-red-50/80 to-red-100/50 dark:from-red-950/30 dark:to-red-900/40 border border-red-200/50 hover:border-red-300/70 transition-all duration-200 hover:shadow-lg hover:shadow-red-500/20 group/clear mb-4"
             >
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400">
                 <Trash2 className="h-4 w-4 transition-transform duration-200 group-hover/clear:scale-110" />
               </div>
               <div className="flex-1 text-left">
-                <div className="font-medium text-sm text-red-700 dark:text-red-300">
-                  Limpiar Cache
+                <div className="font-semibold text-sm text-red-700 dark:text-red-300">
+                  Limpiar Cache Completo
                 </div>
                 <div className="text-xs text-red-600/70 dark:text-red-400/70">
-                  Resetear métricas Rust
+                  Resetear métricas y optimizaciones
                 </div>
               </div>
             </button>
             
-            {/* Línea separadora entre configuración y métricas */}
-            <div className="border-t border-border/30 mb-4"></div>
+            <div className="border-t border-corporate-blue-200/30 dark:border-corporate-blue-700/30 mb-4"></div>
           </div>
         )}
         
         <div className="space-y-4">
-          {/* Main Stats - Colores neutrales moderados */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Hit Rate - Primary Metric */}
-            <div className="text-center p-3 bg-gradient-to-br from-slate-50/30 to-slate-100/30 dark:from-slate-950/10 dark:to-slate-900/20 rounded-lg border border-border/30 hover:border-border/50 transition-all duration-200 group/hit">
-              <div className={`text-2xl font-bold transition-colors duration-200 ${getHitRateColor(stats.hitRate)} group-hover/hit:scale-105 transform transition-transform`}>
+          {/* Métrica Principal: Hit Rate (Único y prominente) */}
+          <div className="p-4 rounded-xl bg-gradient-to-br from-corporate-blue-50/50 to-slate-50/50 dark:from-corporate-blue-950/50 dark:to-slate-950/50 border border-corporate-blue-200/40 dark:border-corporate-blue-700/40">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Zap className="h-4 w-4 text-corporate-blue-600 dark:text-corporate-blue-400" />
+                <span className="text-sm font-semibold text-corporate-blue-700 dark:text-corporate-blue-300">
+                  Eficiencia de Cache
+                </span>
+              </div>
+              <div className={`text-3xl font-bold mb-2 ${getHitRateColor(stats.hitRate)}`}>
                 {stats.hitRate.toFixed(1)}%
               </div>
-              <div className="text-xs text-muted-foreground/70 mb-2">Hit Rate</div>
               <div className="flex justify-center items-center gap-2">
                 {stats.hitRate >= 50 ? (
-                  <TrendingUp className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover/hit:scale-110" />
+                  <TrendingUp className="h-4 w-4 text-corporate-blue-500" />
                 ) : (
-                  <TrendingDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover/hit:scale-110" />
+                  <TrendingDown className="h-4 w-4 text-amber-500" />
                 )}
-                <div className="transition-transform duration-200 group-hover/hit:scale-105">
-                  {getHitRateBadge(stats.hitRate)}
+                {getHitRateBadge(stats.hitRate)}
+              </div>
+            </div>
+          </div>
+
+          {/* Métricas Secundarias Optimizadas */}
+          <div className="grid grid-cols-1 gap-3">
+            <div className="p-3 rounded-xl bg-gradient-to-r from-slate-50/50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200/40 dark:border-slate-700/40">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Tiempo de Respuesta</span>
+                </div>
+                <div className="text-lg font-mono font-semibold text-corporate-blue-600 dark:text-corporate-blue-400">
+                  {stats.avgResponseTime.toFixed(1)}ms
                 </div>
               </div>
             </div>
-
-            {/* Total Requests */}
-            <div className="text-center p-3 bg-gradient-to-br from-slate-50/30 to-slate-100/30 dark:from-slate-950/10 dark:to-slate-900/20 rounded-lg border border-border/30 hover:border-border/50 transition-all duration-200 group/requests">
-              <div className="text-2xl font-bold text-foreground group-hover/requests:text-foreground transition-colors duration-200 group-hover/requests:scale-105 transform transition-transform">
-                {stats.totalRequests.toLocaleString()}
-              </div>
-              <div className="text-xs text-muted-foreground/70 mb-2">Total Requests</div>
-              <div className="flex justify-center">
-                <BarChart3 className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover/requests:scale-110" />
-              </div>
-            </div>
           </div>
 
-          {/* Response Time Card */}
-          <div className="p-3 rounded-lg bg-gradient-to-r from-slate-50/20 to-slate-100/20 dark:from-slate-950/10 dark:to-slate-900/15 border border-border/30 hover:border-border/50 transition-all duration-200 hover:shadow-sm group/response">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover/response:scale-110" />
-                <span className="text-sm font-medium">Tiempo de Respuesta Promedio</span>
-              </div>
-              <div className="text-lg font-mono font-bold text-foreground group-hover/response:text-foreground transition-colors duration-200">
-                {stats.avgResponseTime.toFixed(1)}ms
-              </div>
-            </div>
-          </div>
-
-          {/* Top Types Section - Enhanced */}
+          {/* Distribución por Tipos - Solo información única (sin duplicar requests totales) */}
           {stats.topTypes.length > 0 && (
-            <div className="pt-3 border-t border-border/50">
-              <h4 className="text-sm font-medium text-foreground/90 flex items-center gap-2 mb-3">
-                <TrendingUp className="h-4 w-4" />
-                Tipos Más Populares
+            <div className="pt-3 border-t border-corporate-blue-200/30 dark:border-corporate-blue-700/30">
+              <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2 mb-3">
+                <TrendingUp className="h-4 w-4 text-corporate-blue-500" />
+                Top Cache Performance
               </h4>
               
               <div className="space-y-2">
                 {stats.topTypes.map((type, index) => (
                   <div 
                     key={type.type}
-                    className="p-2.5 rounded-lg bg-gradient-to-r from-muted/30 to-muted/60 dark:from-muted/20 dark:to-muted/40 border border-border/40 hover:border-border/60 transition-all duration-200 hover:shadow-sm group/type"
+                    className="p-3 rounded-lg bg-white/60 dark:bg-slate-700/60 border border-slate-200/40 dark:border-slate-600/40 hover:border-corporate-blue-300/50 dark:hover:border-corporate-blue-600/50 transition-all duration-200 hover:shadow-md group/type"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${
-                          index === 0 ? 'bg-slate-400' :
-                          index === 1 ? 'bg-slate-500' :
-                          'bg-slate-600'
+                          index === 0 ? 'bg-corporate-blue-500' :
+                          index === 1 ? 'bg-corporate-blue-400' :
+                          'bg-slate-400'
                         } transition-all duration-200 group-hover/type:scale-125`}></div>
-                        <span className="text-sm font-medium capitalize">{type.type}</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 capitalize">{type.type}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-muted-foreground">
-                          {type.requests} req
-                        </span>
                         <Badge 
                           variant="outline" 
                           className={`text-xs transition-all duration-200 group-hover/type:scale-105 ${getHitRateColor(type.hitRate)}`}
                         >
-                          {type.hitRate.toFixed(1)}%
+                          {type.hitRate.toFixed(1)}% cache
                         </Badge>
                       </div>
                     </div>

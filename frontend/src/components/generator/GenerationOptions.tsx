@@ -27,7 +27,8 @@ import {
   ChevronDown,
   ChevronRight,
   Eye,
-  ArrowLeftRight
+  ArrowLeftRight,
+  RefreshCw
 } from 'lucide-react';
 
 // Importar dinámicamente AdvancedBarcodeOptions
@@ -191,7 +192,7 @@ export default function GenerationOptions({
     label: string; 
     defaultValue: string;
   }) => (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <Label className="text-sm font-medium">{label}</Label>
       <Controller
         name={name}
@@ -201,18 +202,13 @@ export default function GenerationOptions({
           <div className="relative">
             <Input
               type="text"
-              {...field}
+              value={field.value || defaultValue}
               disabled={isLoading}
               placeholder={defaultValue}
               onChange={(e) => {
-                field.onChange(e);
-                // Auto-regenerar cuando cambie el color (con debounce)
-                setTimeout(() => {
-                  const currentFormValues = getValues();
-                  if (currentFormValues.data) {
-                    onSubmit(currentFormValues);
-                  }
-                }, 300);
+                field.onChange(e.target.value);
+                // ✅ CORREGIDO: Eliminada auto-regeneración que causaba spam de peticiones
+                // Solo actualizar el valor, no regenerar automáticamente
               }}
               className={cn(
                 "h-9 pl-12 transition-all duration-200 focus:scale-[1.01]",
@@ -226,14 +222,9 @@ export default function GenerationOptions({
                 type="color"
                 value={field.value || defaultValue}
                 onChange={(e) => {
-                  field.onChange(e);
-                  // Auto-regenerar cuando cambie el color del picker
-                  setTimeout(() => {
-                    const currentFormValues = getValues();
-                    if (currentFormValues.data) {
-                      onSubmit(currentFormValues);
-                    }
-                  }, 100);
+                  field.onChange(e.target.value);
+                  // ✅ CORREGIDO: Eliminada auto-regeneración que causaba spam de peticiones
+                  // Solo actualizar el valor, no regenerar automáticamente
                 }}
                 className="w-7 h-7 p-0 border-2 border-slate-200 dark:border-slate-600 rounded-md cursor-pointer transition-all duration-200 hover:scale-110 hover:border-blue-400"
                 disabled={isLoading}
@@ -318,13 +309,8 @@ export default function GenerationOptions({
                         checked={field.value || false}
                         onCheckedChange={(checked) => {
                           field.onChange(checked);
-                          // Auto-regenerar cuando cambie el modo
-                          setTimeout(() => {
-                            const currentFormValues = getValues();
-                            if (currentFormValues.data) {
-                              onSubmit(currentFormValues);
-                            }
-                          }, 150);
+                          // ✅ CORREGIDO: Eliminada auto-regeneración que causaba spam de peticiones
+                          // Solo actualizar el valor, no regenerar automáticamente
                         }}
                         disabled={isLoading}
                       />
@@ -409,13 +395,8 @@ export default function GenerationOptions({
                         setValue('options.gradient_color1', color2, { shouldValidate: true });
                         setValue('options.gradient_color2', color1, { shouldValidate: true });
                         
-                        // Regenerar si hay contenido
-                        setTimeout(() => {
-                          const currentFormValues = getValues();
-                          if (currentFormValues.data) {
-                            onSubmit(currentFormValues);
-                          }
-                        }, 100);
+                        // ✅ CORREGIDO: Eliminada auto-regeneración que causaba spam de peticiones
+                        // Solo actualizar los valores, no regenerar automáticamente
                       }}
                       disabled={isLoading}
                       className="h-8 px-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 hover:scale-105 group"
@@ -467,6 +448,28 @@ export default function GenerationOptions({
                         }}
                       />
                     </div>
+                  </div>
+
+                  {/* Gradient Borders Control */}
+                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-slate-50 to-slate-50/50 dark:from-slate-800/50 dark:to-slate-800/30 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+                    <div>
+                      <Label className="text-sm font-medium text-slate-800 dark:text-slate-200">Bordes de Separación</Label>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                        Mostrar bordes sutiles entre elementos del código
+                      </p>
+                    </div>
+                    <Controller
+                      name="options.gradient_borders"
+                      control={control}
+                      defaultValue={false}
+                      render={({ field }) => (
+                        <Switch
+                          checked={field.value || false}
+                          onCheckedChange={field.onChange}
+                          disabled={isLoading}
+                        />
+                      )}
+                    />
                   </div>
                 </div>
               )}
@@ -629,7 +632,24 @@ export default function GenerationOptions({
       </SectionCard>
 
       {/* Reset Button */}
-      <div className="pt-2">
+      <div className="pt-2 space-y-2">
+        {/* ✅ OPTIMIZADO: Botón de regeneración manual que solo ejecuta cuando es necesario */}
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          onClick={() => {
+            const currentValues = getValues();
+            console.log('[Regenerar Manual] Ejecutando onSubmit con valores actuales:', currentValues);
+            onSubmit(currentValues);
+          }}
+          disabled={isLoading || !watch('data')}
+          className="w-full h-9 bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 hover:scale-[1.01]"
+        >
+          <RefreshCw className={cn("h-3 w-3 mr-2", isLoading && "animate-spin")} />
+          {isLoading ? 'Generando...' : 'Regenerar Código'}
+        </Button>
+        
         <Button
           type="button"
           variant="outline"

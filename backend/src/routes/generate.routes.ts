@@ -48,8 +48,8 @@ const router = express.Router();
 router.post(
   '/',
   rateLimitMonitor,
-  generationRateLimit,
-  authMiddleware.optionalAuth, // Auth opcional para distinguir usuarios
+  authMiddleware.optionalAuth, // Auth opcional que permite request sin auth pero reconoce usuarios logueados
+  generationRateLimit, // Mover DESPUÉS de auth para que pueda acceder a req.user
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { barcode_type, data, options } = req.body;
@@ -130,8 +130,8 @@ router.post(
 router.post(
   '/batch',
   rateLimitMonitor,
-  generationRateLimit,
   authMiddleware.optionalAuth,
+  generationRateLimit,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { barcodes, options } = req.body;

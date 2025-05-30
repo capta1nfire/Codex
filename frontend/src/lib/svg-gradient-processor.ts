@@ -5,327 +5,289 @@ export interface GradientOptions {
   color1: string;
   color2: string;
   direction: 'top-bottom' | 'left-right' | 'diagonal' | 'center-out';
+  borders?: boolean; // Control para mostrar/ocultar bordes
 }
 
 export function applySvgGradient(svgString: string, gradientOptions: GradientOptions): string {
   console.log('[DEBUG Gradient] 🎨 Iniciando aplicación de gradiente:', gradientOptions);
+  console.log('[DEBUG Gradient] 📝 SVG original:', svgString.substring(0, 200) + '...');
   
   if (!gradientOptions.enabled) {
     console.log('[DEBUG Gradient] ❌ Gradiente deshabilitado, retornando SVG original');
     return svgString;
   }
 
-  // Parsear el SVG como DOM para manipularlo
-  const parser = new DOMParser();
-  const svgDoc = parser.parseFromString(svgString, 'image/svg+xml');
-  const svgElement = svgDoc.querySelector('svg');
-  
-  if (!svgElement) {
-    console.error('[DEBUG Gradient] ❌ No se encontró elemento SVG');
-    return svgString;
-  }
+  try {
+    // Parsear el SVG como DOM para manipularlo
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgString, 'image/svg+xml');
+    const svgElement = svgDoc.querySelector('svg');
+    
+    if (!svgElement) {
+      console.error('[DEBUG Gradient] ❌ No se encontró elemento SVG');
+      return svgString;
+    }
 
-  console.log('[DEBUG Gradient] ✅ SVG parseado correctamente:', {
-    width: svgElement.getAttribute('width'),
-    height: svgElement.getAttribute('height'),
-    viewBox: svgElement.getAttribute('viewBox'),
-    children: svgElement.children.length
-  });
+    console.log('[DEBUG Gradient] ✅ SVG parseado correctamente');
 
-  // Obtener dimensiones del viewBox o del SVG
-  const viewBox = svgElement.getAttribute('viewBox');
-  
-  if (viewBox) {
-    const [, , w, h] = viewBox.split(' ').map(Number);
-    // Se obtienen las dimensiones pero no se usan en esta implementación
-    // Podrían usarse para validaciones futuras
-  }
+    // Obtener dimensiones del SVG
+    const viewBox = svgElement.getAttribute('viewBox');
+    const width = svgElement.getAttribute('width') || '100%';
+    const height = svgElement.getAttribute('height') || '100%';
+    
+    console.log('[DEBUG Gradient] 📏 Atributos SVG:', { viewBox, width, height });
+    
+    let svgWidth = 200, svgHeight = 200; // valores por defecto
+    if (viewBox) {
+      const [, , w, h] = viewBox.split(' ').map(Number);
+      svgWidth = w;
+      svgHeight = h;
+      console.log('[DEBUG Gradient] 📐 Dimensiones desde viewBox:', { svgWidth, svgHeight });
+    } else {
+      console.log('[DEBUG Gradient] ⚠️ No se encontró viewBox, usando dimensiones por defecto');
+    }
 
-  // Crear IDs únicos
-  const gradientId = `gradient-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  const maskId = `mask-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Obtener o crear elemento defs
+    let defs = svgElement.querySelector('defs');
+    if (!defs) {
+      defs = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      svgElement.insertBefore(defs, svgElement.firstChild);
+      console.log('[DEBUG Gradient] ➕ Elemento defs creado');
+    } else {
+      console.log('[DEBUG Gradient] ✅ Elemento defs encontrado');
+    }
 
-  // Crear elemento defs si no existe
-  let defs = svgElement.querySelector('defs');
-  if (!defs) {
-    defs = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    svgElement.insertBefore(defs, svgElement.firstChild);
-    console.log('[DEBUG Gradient] ➕ Elemento defs creado');
-  } else {
-    console.log('[DEBUG Gradient] ✅ Elemento defs ya existía');
-  }
-  
-  console.log('[DEBUG Gradient] 📁 Estado inicial de defs:', {
-    defsChildren: defs.children.length
-  });
+    // Crear IDs únicos
+    const gradientId = `gradient-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const maskId = `mask-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    console.log('[DEBUG Gradient] 🆔 IDs generados:', { gradientId, maskId });
 
-  // 1. Crear la máscara usando los elementos originales del QR
-  const mask = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'mask');
-  mask.setAttribute('id', maskId);
-  
-  // Fondo negro de la máscara (oculta)
-  const maskBackground = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  maskBackground.setAttribute('width', '100%');
-  maskBackground.setAttribute('height', '100%');
-  maskBackground.setAttribute('fill', 'black');
-  mask.appendChild(maskBackground);
+    // Encontrar elementos negros ANTES de crear la máscara
+    const blackElements = svgElement.querySelectorAll('[fill="#000000"], [fill="#000"], [fill="black"], [fill="rgb(0,0,0)"]');
+    const blackGroups = svgElement.querySelectorAll('g[fill="#000000"], g[fill="#000"], g[fill="black"], g[fill="rgb(0,0,0)"]');
+    
+    console.log('[DEBUG Gradient] 🔍 Elementos negros encontrados:');
+    console.log('  - Elementos individuales:', blackElements.length);
+    console.log('  - Grupos:', blackGroups.length);
+    
+    // Log detallado de los primeros elementos encontrados
+    if (blackElements.length > 0) {
+      console.log('[DEBUG Gradient] 🔍 Primeros 3 elementos negros:');
+      Array.from(blackElements).slice(0, 3).forEach((el, i) => {
+        console.log(`    ${i + 1}: <${el.tagName} fill="${el.getAttribute('fill')}" ${el.getAttribute('x') ? `x="${el.getAttribute('x')}" y="${el.getAttribute('y')}" width="${el.getAttribute('width')}" height="${el.getAttribute('height')}"` : ''}/>`);
+      });
+    }
 
-  // Copiar todos los elementos visibles del QR a la máscara en blanco (revela)
-  const qrElements = svgElement.querySelectorAll('rect, path, circle, polygon');
-  const qrGroups = svgElement.querySelectorAll('g[fill]');
-  
-  console.log('[DEBUG Gradient] 📋 Elementos encontrados:', {
-    qrElements: qrElements.length,
-    qrGroups: qrGroups.length
-  });
-  
-  // Clonar elementos individuales que no sean el fondo
-  let elementsCloned = 0;
-  qrElements.forEach(element => {
-    const fill = element.getAttribute('fill');
-    console.log('[DEBUG Gradient] 🔍 Elemento rect:', { fill, tagName: element.tagName });
-    if (fill && fill !== '#FFFFFF' && fill !== '#ffffff' && fill !== 'white' && fill !== 'transparent') {
+    // IMPORTANTE: Eliminar o hacer transparente el rectángulo blanco de fondo
+    const whiteBackgrounds = svgElement.querySelectorAll('rect[fill="#FFFFFF"], rect[fill="#ffffff"], rect[fill="white"], rect[fill="rgb(255,255,255)"]');
+    let backgroundsRemoved = 0;
+    
+    whiteBackgrounds.forEach(rect => {
+      // Solo eliminar rectángulos que cubran todo el SVG (son fondos)
+      const rectWidth = rect.getAttribute('width');
+      const rectHeight = rect.getAttribute('height');
+      const rectX = rect.getAttribute('x') || '0';
+      const rectY = rect.getAttribute('y') || '0';
+      
+      // Si es un rectángulo que cubre todo el SVG (fondo), eliminarlo
+      if ((rectWidth === svgWidth.toString() || rectWidth === '100%' || rectWidth === `${svgWidth}`) &&
+          (rectHeight === svgHeight.toString() || rectHeight === '100%' || rectHeight === `${svgHeight}`) &&
+          (rectX === '0' || !rectX) && (rectY === '0' || !rectY)) {
+        
+        console.log('[DEBUG Gradient] 🗑️ Eliminando rectángulo blanco de fondo:', {
+          width: rectWidth,
+          height: rectHeight,
+          x: rectX,
+          y: rectY,
+          fill: rect.getAttribute('fill')
+        });
+        
+        rect.remove();
+        backgroundsRemoved++;
+      }
+    });
+    
+    console.log('[DEBUG Gradient] 🧹 Rectángulos de fondo eliminados:', backgroundsRemoved);
+
+    // Si no se encuentran elementos, buscar de forma más amplia
+    if (blackElements.length === 0 && blackGroups.length === 0) {
+      console.log('[DEBUG Gradient] 🔍 No se encontraron elementos negros explícitos, buscando más ampliamente...');
+      const allElements = svgElement.querySelectorAll('rect, path, polygon, circle, ellipse');
+      console.log('[DEBUG Gradient] 📊 Todos los elementos encontrados:', allElements.length);
+      
+      Array.from(allElements).slice(0, 5).forEach((el, i) => {
+        console.log(`    ${i + 1}: <${el.tagName} fill="${el.getAttribute('fill')}" style="${el.getAttribute('style')}"/>`);
+      });
+    }
+
+    // Crear el gradiente con coordenadas absolutas
+    let gradientElement;
+    
+    if (gradientOptions.type === 'radial') {
+      gradientElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+      gradientElement.setAttribute('id', gradientId);
+      gradientElement.setAttribute('gradientUnits', 'userSpaceOnUse');
+      gradientElement.setAttribute('cx', (svgWidth / 2).toString());
+      gradientElement.setAttribute('cy', (svgHeight / 2).toString());
+      gradientElement.setAttribute('r', (Math.max(svgWidth, svgHeight) * 0.7).toString());
+      console.log('[DEBUG Gradient] 🌀 Gradiente radial creado:', {
+        cx: svgWidth / 2,
+        cy: svgHeight / 2,
+        r: Math.max(svgWidth, svgHeight) * 0.7
+      });
+    } else {
+      gradientElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+      gradientElement.setAttribute('id', gradientId);
+      gradientElement.setAttribute('gradientUnits', 'userSpaceOnUse');
+      
+      // Configurar dirección del gradiente lineal con coordenadas absolutas
+      switch (gradientOptions.direction) {
+        case 'top-bottom':
+          gradientElement.setAttribute('x1', '0');
+          gradientElement.setAttribute('y1', '0');
+          gradientElement.setAttribute('x2', '0');
+          gradientElement.setAttribute('y2', svgHeight.toString());
+          break;
+        case 'left-right':
+          gradientElement.setAttribute('x1', '0');
+          gradientElement.setAttribute('y1', '0');
+          gradientElement.setAttribute('x2', svgWidth.toString());
+          gradientElement.setAttribute('y2', '0');
+          break;
+        case 'diagonal':
+          gradientElement.setAttribute('x1', '0');
+          gradientElement.setAttribute('y1', '0');
+          gradientElement.setAttribute('x2', svgWidth.toString());
+          gradientElement.setAttribute('y2', svgHeight.toString());
+          break;
+        default:
+          gradientElement.setAttribute('x1', '0');
+          gradientElement.setAttribute('y1', '0');
+          gradientElement.setAttribute('x2', '0');
+          gradientElement.setAttribute('y2', svgHeight.toString());
+      }
+      console.log('[DEBUG Gradient] 📏 Gradiente lineal creado:', {
+        direction: gradientOptions.direction,
+        coordinates: {
+          x1: gradientElement.getAttribute('x1'),
+          y1: gradientElement.getAttribute('y1'),
+          x2: gradientElement.getAttribute('x2'),
+          y2: gradientElement.getAttribute('y2')
+        }
+      });
+    }
+
+    // Crear paradas de color
+    const stop1 = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop1.setAttribute('offset', '0%');
+    stop1.setAttribute('stop-color', gradientOptions.color1);
+    
+    const stop2 = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop2.setAttribute('offset', '100%');
+    stop2.setAttribute('stop-color', gradientOptions.color2);
+    
+    gradientElement.appendChild(stop1);
+    gradientElement.appendChild(stop2);
+    defs.appendChild(gradientElement);
+    console.log('[DEBUG Gradient] 🎨 Paradas de color agregadas:', {
+      color1: gradientOptions.color1,
+      color2: gradientOptions.color2
+    });
+
+    // Crear una máscara simple
+    const mask = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'mask');
+    mask.setAttribute('id', maskId);
+    
+    // Fondo negro de la máscara (oculta todo)
+    const maskBackground = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    maskBackground.setAttribute('width', '100%');
+    maskBackground.setAttribute('height', '100%');
+    maskBackground.setAttribute('fill', 'black');
+    mask.appendChild(maskBackground);
+    console.log('[DEBUG Gradient] 🎭 Fondo de máscara creado (negro - oculta todo)');
+
+    let maskElementsCreated = 0;
+    
+    // Agregar elementos negros a la máscara como blancos
+    blackElements.forEach(element => {
       const maskElement = element.cloneNode(true) as Element;
       maskElement.setAttribute('fill', 'white'); // En la máscara, blanco = visible
       mask.appendChild(maskElement);
-      elementsCloned++;
-    }
-  });
+      maskElementsCreated++;
+    });
 
-  // Clonar grupos que tengan fill
-  let groupsCloned = 0;
-  qrGroups.forEach(group => {
-    const fill = group.getAttribute('fill');
-    console.log('[DEBUG Gradient] 🔍 Grupo:', { fill, tagName: group.tagName, children: group.children.length });
-    if (fill && fill !== '#FFFFFF' && fill !== '#ffffff' && fill !== 'white' && fill !== 'transparent') {
-      const maskGroup = group.cloneNode(true) as Element;
-      // Cambiar todos los fills en el grupo clonado a blanco
-      maskGroup.setAttribute('fill', 'white');
-      const innerElements = maskGroup.querySelectorAll('[fill]');
-      innerElements.forEach(el => {
-        const innerFill = el.getAttribute('fill');
-        if (innerFill && innerFill !== '#FFFFFF' && innerFill !== '#ffffff' && innerFill !== 'white' && innerFill !== 'transparent') {
-          el.setAttribute('fill', 'white');
-        }
-      });
-      mask.appendChild(maskGroup);
-      groupsCloned++;
-    }
-  });
+    // También buscar en grupos
+    blackGroups.forEach(group => {
+      const maskElement = group.cloneNode(true) as Element;
+      maskElement.setAttribute('fill', 'white');
+      mask.appendChild(maskElement);
+      maskElementsCreated++;
+    });
 
-  console.log('[DEBUG Gradient] 📊 Clonación completada:', {
-    elementsCloned,
-    groupsCloned,
-    maskChildren: mask.children.length
-  });
+    defs.appendChild(mask);
+    console.log('[DEBUG Gradient] 🎭 Máscara creada con', maskElementsCreated, 'elementos blancos');
 
-  defs.appendChild(mask);
+    // Hacer los elementos originales transparentes
+    blackElements.forEach(element => {
+      element.setAttribute('fill', 'transparent');
+      // Agregar borde blanco transparente solo si está habilitado
+      if (gradientOptions.borders) {
+        element.setAttribute('stroke', 'rgba(255, 255, 255, 0.4)');
+        element.setAttribute('stroke-width', '0.05');
+      }
+    });
+    blackGroups.forEach(group => {
+      group.setAttribute('fill', 'transparent');
+      // Agregar borde blanco transparente a elementos del grupo si está habilitado
+      if (gradientOptions.borders) {
+        const groupElements = group.querySelectorAll('rect, path, polygon, circle, ellipse');
+        groupElements.forEach(el => {
+          el.setAttribute('stroke', 'rgba(255, 255, 255, 0.4)');
+          el.setAttribute('stroke-width', '0.05');
+        });
+      }
+    });
+    console.log('[DEBUG Gradient] 👻 Elementos originales hechos transparentes' + (gradientOptions.borders ? ' con bordes transparentes' : ''));
 
-  // 2. Crear el gradiente
-  let gradientElement;
-  
-  if (gradientOptions.type === 'linear') {
-    gradientElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-    gradientElement.setAttribute('id', gradientId);
+    // Crear un rectángulo de fondo con el gradiente y la máscara
+    const backgroundRect = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    backgroundRect.setAttribute('x', '0');
+    backgroundRect.setAttribute('y', '0');
+    backgroundRect.setAttribute('width', svgWidth.toString());
+    backgroundRect.setAttribute('height', svgHeight.toString());
+    backgroundRect.setAttribute('fill', `url(#${gradientId})`);
+    backgroundRect.setAttribute('mask', `url(#${maskId})`);
     
-    // Configurar dirección del gradiente lineal
-    switch (gradientOptions.direction) {
-      case 'top-bottom':
-        gradientElement.setAttribute('x1', '0%');
-        gradientElement.setAttribute('y1', '0%');
-        gradientElement.setAttribute('x2', '0%');
-        gradientElement.setAttribute('y2', '100%');
-        break;
-      case 'left-right':
-        gradientElement.setAttribute('x1', '0%');
-        gradientElement.setAttribute('y1', '0%');
-        gradientElement.setAttribute('x2', '100%');
-        gradientElement.setAttribute('y2', '0%');
-        break;
-      case 'diagonal':
-        gradientElement.setAttribute('x1', '0%');
-        gradientElement.setAttribute('y1', '0%');
-        gradientElement.setAttribute('x2', '100%');
-        gradientElement.setAttribute('y2', '100%');
-        break;
-      default:
-        gradientElement.setAttribute('x1', '0%');
-        gradientElement.setAttribute('y1', '0%');
-        gradientElement.setAttribute('x2', '0%');
-        gradientElement.setAttribute('y2', '100%');
+    // Insertar el rectángulo de fondo después de defs, pero antes del contenido
+    const firstNonDefs = Array.from(svgElement.children).find(child => child.tagName !== 'defs');
+    if (firstNonDefs) {
+      svgElement.insertBefore(backgroundRect, firstNonDefs);
+      console.log('[DEBUG Gradient] 📦 Rectángulo de fondo insertado antes del primer elemento');
+    } else {
+      svgElement.appendChild(backgroundRect);
+      console.log('[DEBUG Gradient] 📦 Rectángulo de fondo agregado al final');
     }
-  } else {
-    // Gradiente radial
-    gradientElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
-    gradientElement.setAttribute('id', gradientId);
-    gradientElement.setAttribute('cx', '50%');
-    gradientElement.setAttribute('cy', '50%');
-    gradientElement.setAttribute('r', '70%'); // Un poco más grande para mejor cobertura
+
+    console.log('[DEBUG Gradient] 🎯 Rectángulo de fondo creado:', {
+      x: 0, y: 0,
+      width: svgWidth,
+      height: svgHeight,
+      fill: `url(#${gradientId})`,
+      mask: `url(#${maskId})`
+    });
+
+    // Serializar el SVG modificado
+    const serializer = new XMLSerializer();
+    const result = serializer.serializeToString(svgDoc);
+    
+    console.log('[DEBUG Gradient] 📄 SVG resultante (primeros 500 chars):', result.substring(0, 500));
+    console.log('[DEBUG Gradient] ✅ SVG procesado exitosamente');
+    
+    return result;
+
+  } catch (error) {
+    console.error('[DEBUG Gradient] ❌ Error procesando gradiente:', error);
+    console.error('[DEBUG Gradient] 📄 SVG original que causó el error:', svgString);
+    return svgString; // Fallback al SVG original
   }
-
-  // Crear paradas de color (usando colores reales)
-  const stop1 = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'stop');
-  stop1.setAttribute('offset', '0%');
-  stop1.setAttribute('stop-color', gradientOptions.color1); // Color real 1
-  stop1.setAttribute('stop-opacity', '1');
-
-  const stop2 = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'stop');
-  stop2.setAttribute('offset', '100%');
-  stop2.setAttribute('stop-color', gradientOptions.color2); // Color real 2
-  stop2.setAttribute('stop-opacity', '1');
-  
-  console.log('[DEBUG Gradient] 🌈 Gradiente creado con colores reales:', {
-    color1: gradientOptions.color1,
-    color2: gradientOptions.color2
-  });
-
-  gradientElement.appendChild(stop1);
-  gradientElement.appendChild(stop2);
-  defs.appendChild(gradientElement);
-  
-  console.log('[DEBUG Gradient] 📐 Gradiente agregado a defs:', {
-    gradientType: gradientElement.tagName,
-    gradientId: gradientElement.getAttribute('id'),
-    x1: gradientElement.getAttribute('x1'),
-    y1: gradientElement.getAttribute('y1'),
-    x2: gradientElement.getAttribute('x2'),
-    y2: gradientElement.getAttribute('y2'),
-    cx: gradientElement.getAttribute('cx'),
-    cy: gradientElement.getAttribute('cy'),
-    r: gradientElement.getAttribute('r'),
-    stops: gradientElement.children.length
-  });
-
-  // 3. NUEVO ENFOQUE: Crear rectángulos individuales para bordes + gradiente global
-  console.log('[DEBUG Gradient] 🎨 Creando rectángulos individuales para bordes + gradiente global');
-  
-  let individualRectsCreated = 0;
-  
-  // Procesar elementos rect individuales - SOLO PARA BORDES
-  qrElements.forEach(element => {
-    const fill = element.getAttribute('fill');
-    if (fill && fill !== '#FFFFFF' && fill !== '#ffffff' && fill !== 'white' && fill !== 'transparent') {
-      // Crear un nuevo rectángulo solo para el borde
-      const borderRect = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      
-      // Copiar posición y tamaño del elemento original
-      borderRect.setAttribute('x', element.getAttribute('x') || '0');
-      borderRect.setAttribute('y', element.getAttribute('y') || '0');
-      borderRect.setAttribute('width', element.getAttribute('width') || '4');
-      borderRect.setAttribute('height', element.getAttribute('height') || '4');
-      
-      // Solo borde, sin fill para que se vea el gradiente de abajo
-      borderRect.setAttribute('fill', 'none');
-      borderRect.setAttribute('stroke', 'white');
-      borderRect.setAttribute('stroke-width', '0.05');
-      borderRect.setAttribute('stroke-opacity', '0.3');
-      borderRect.setAttribute('class', 'border-rect');
-      
-      // Insertar el nuevo rectángulo después del original
-      element.parentNode?.insertBefore(borderRect, element.nextSibling);
-      
-      // Ocultar el elemento original
-      element.setAttribute('visibility', 'hidden');
-      
-      individualRectsCreated++;
-    }
-  });
-
-  // Procesar grupos que contienen elementos rect - SOLO PARA BORDES
-  qrGroups.forEach(group => {
-    const fill = group.getAttribute('fill');
-    if (fill && fill !== '#FFFFFF' && fill !== '#ffffff' && fill !== 'white' && fill !== 'transparent') {
-      // Crear un nuevo grupo para los rectángulos con bordes
-      const borderGroup = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'g');
-      borderGroup.setAttribute('class', 'border-group');
-      
-      // Procesar cada rect dentro del grupo
-      const innerRects = group.querySelectorAll('rect');
-      innerRects.forEach(rect => {
-        const borderRect = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        
-        // Copiar posición y tamaño
-        borderRect.setAttribute('x', rect.getAttribute('x') || '0');
-        borderRect.setAttribute('y', rect.getAttribute('y') || '0');
-        borderRect.setAttribute('width', rect.getAttribute('width') || '4');
-        borderRect.setAttribute('height', rect.getAttribute('height') || '4');
-        
-        // Solo borde, sin fill para que se vea el gradiente de abajo
-        borderRect.setAttribute('fill', 'none');
-        borderRect.setAttribute('stroke', 'white');
-        borderRect.setAttribute('stroke-width', '0.05');
-        borderRect.setAttribute('stroke-opacity', '0.3');
-        borderRect.setAttribute('class', 'border-rect');
-        
-        borderGroup.appendChild(borderRect);
-        individualRectsCreated++;
-      });
-      
-      // Insertar el nuevo grupo después del original
-      group.parentNode?.insertBefore(borderGroup, group.nextSibling);
-      
-      // Ocultar el grupo original
-      group.setAttribute('visibility', 'hidden');
-    }
-  });
-
-  console.log('[DEBUG Gradient] ✨ Rectángulos de borde creados:', { 
-    individualRectsCreated,
-    totalElements: qrElements.length,
-    totalGroups: qrGroups.length
-  });
-
-  // 4. Crear rectángulo global con gradiente usando máscara
-  const globalGradientRect = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  globalGradientRect.setAttribute('width', '100%');
-  globalGradientRect.setAttribute('height', '100%');
-  globalGradientRect.setAttribute('fill', `url(#${gradientId})`);
-  globalGradientRect.setAttribute('mask', `url(#${maskId})`);
-  globalGradientRect.setAttribute('class', 'global-gradient-rect');
-  globalGradientRect.setAttribute('style', `fill: url(#${gradientId}) !important;`);
-  
-  console.log('[DEBUG Gradient] 🌈 Rectángulo gradiente global creado con máscara');
-
-  // 5. Insertar el gradiente global ANTES de los bordes (para que esté debajo)
-  const firstNonDefs = Array.from(svgElement.children).find(child => child.tagName !== 'defs');
-  if (firstNonDefs) {
-    svgElement.insertBefore(globalGradientRect, firstNonDefs);
-    console.log('[DEBUG Gradient] ✅ Gradiente global insertado antes del primer elemento');
-  } else {
-    svgElement.appendChild(globalGradientRect);
-    console.log('[DEBUG Gradient] ✅ Gradiente global agregado al final');
-  }
-
-  // Serializar el SVG modificado
-  const serializer = new XMLSerializer();
-  const result = serializer.serializeToString(svgDoc);
-  
-  console.log('[DEBUG Gradient] 🏁 SVG procesado:', {
-    originalLength: svgString.length,
-    resultLength: result.length,
-    gradientId,
-    maskId,
-    svgChildren: svgElement.children.length,
-    defsChildren: defs?.children.length
-  });
-  
-  // Log de la estructura del SVG
-  console.log('[DEBUG Gradient] 🏗️ Estructura final del SVG:', {
-    children: Array.from(svgElement.children).map((child, index) => ({
-      index,
-      tagName: child.tagName,
-      id: child.getAttribute('id'),
-      fill: child.getAttribute('fill'),
-      mask: child.getAttribute('mask'),
-      visibility: child.getAttribute('visibility'),
-      opacity: child.getAttribute('opacity'),
-      width: child.getAttribute('width'),
-      height: child.getAttribute('height')
-    }))
-  });
-  
-  // Log del SVG resultante (truncado)
-  console.log('[DEBUG Gradient] 📄 SVG resultante (primeros 500 chars):', result.substring(0, 500));
-  
-  return result;
 } 

@@ -29,16 +29,16 @@ export const basicRateLimit = rateLimit({
 export const generationRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
   max: (req: Request) => {
-    // Límite dinámico basado en el tipo de código
+    // 🚨 LÍMITES AUMENTADOS TEMPORALMENTE para reducir errores 429
     const barcodeType = req.body?.barcode_type;
     switch (barcodeType) {
       case 'qrcode':
-        return 50; // QR codes: 50/hora
+        return 500; // QR codes: 500/hora (era 50)
       case 'code128':
       case 'ean13':
-        return 30; // Códigos de barras: 30/hora
+        return 300; // Códigos de barras: 300/hora (era 30)
       default:
-        return 20; // Otros tipos: 20/hora
+        return 200; // Otros tipos: 200/hora (era 20)
     }
   },
   keyGenerator: (req: Request) => {
@@ -46,13 +46,37 @@ export const generationRateLimit = rateLimit({
     const apiKey = req.headers['x-api-key'] as string;
     return apiKey ? `apikey:${apiKey}` : `ip:${req.ip}`;
   },
-  message: {
-    success: false,
-    error: {
-      code: ErrorCode.RATE_LIMIT_EXCEEDED,
-      message: 'Límite de generación de códigos alcanzado.',
-      suggestion: 'Espera una hora o considera actualizar tu plan.',
-    },
+  skip: (req: Request) => {
+    // Skip rate limiting para SUPERADMIN
+    const user = req.user as any;
+    const isSkipped = user?.role === 'SUPERADMIN';
+    
+    // Debug logging para SUPERADMIN
+    if (user?.role === 'SUPERADMIN') {
+      logger.info('[Rate Limit] SUPERADMIN detected - skipping rate limit', {
+        userId: user.id,
+        userEmail: user.email,
+        path: req.path
+      });
+    }
+    
+    return isSkipped;
+  },
+  message: (req: Request) => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    return {
+      success: false,
+      error: {
+        code: ErrorCode.RATE_LIMIT_EXCEEDED,
+        message: isProduction 
+          ? 'Has alcanzado el límite de códigos gratuitos.'
+          : 'Límite de generación de códigos alcanzado.',
+        suggestion: isProduction
+          ? 'Actualiza a un plan Premium para generar códigos ilimitados. ¡Solo $9.99/mes!'
+          : 'Espera una hora o considera actualizar tu plan.',
+      },
+    };
   },
 });
 
@@ -65,7 +89,9 @@ export const authenticatedRateLimit = rateLimit({
 
     // Límites diferenciados por rol
     switch (user.role) {
-      case 'admin':
+      case 'SUPERADMIN':
+        return 999999; // SUPERADMIN: Prácticamente ilimitado
+      case 'ADMIN':
         return 1000; // Administradores: 1000/15min
       case 'premium':
         return 500; // Premium: 500/15min
@@ -79,13 +105,22 @@ export const authenticatedRateLimit = rateLimit({
     const user = req.user as any;
     return user ? `user:${user.id}` : `ip:${req.ip}`;
   },
-  message: {
-    success: false,
-    error: {
-      code: ErrorCode.RATE_LIMIT_EXCEEDED,
-      message: 'Límite de requests alcanzado para tu cuenta.',
-      suggestion: 'Espera 15 minutos o considera actualizar tu plan.',
-    },
+  message: (req: Request) => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const user = req.user as any;
+    
+    return {
+      success: false,
+      error: {
+        code: ErrorCode.RATE_LIMIT_EXCEEDED,
+        message: isProduction
+          ? `Límite de requests alcanzado para tu plan ${user?.role || 'gratuito'}.`
+          : 'Límite de requests alcanzado para tu cuenta.',
+        suggestion: isProduction
+          ? 'Mejora tu experiencia con un plan Premium - requests ilimitados por solo $9.99/mes.'
+          : 'Espera 15 minutos o considera actualizar tu plan.',
+      },
+    };
   },
 });
 
@@ -103,9 +138,11 @@ export const strictRateLimit = rateLimit({
     },
   },
   skip: (req: Request) => {
-    // Skip rate limiting para admins en desarrollo
+    // Skip rate limiting para SUPERADMIN y ADMIN
     const user = req.user as any;
-    return process.env.NODE_ENV === 'development' && user?.role === 'admin';
+    return user?.role === 'SUPERADMIN' || 
+           user?.role === 'ADMIN' ||
+           (process.env.NODE_ENV === 'development' && user?.role === 'ADMIN');
   },
 });
 
