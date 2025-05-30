@@ -53,6 +53,7 @@ const defaultFormValues: Partial<GenerateFormData> = {
     gradient_color1: '#2563EB', // CODEX Corporate Blue en el centro
     gradient_color2: '#000000', // Negro en los costados para máximo contraste
     gradient_direction: 'top-bottom',
+    gradient_borders: true,
     // Añadir defaults para opciones avanzadas si es necesario (o dejar undefined)
     qr_version: 'Auto',
     qr_mask_pattern: 'Auto',
@@ -461,7 +462,7 @@ export default function GenerationOptions({
                     <Controller
                       name="options.gradient_borders"
                       control={control}
-                      defaultValue={false}
+                      defaultValue={true}
                       render={({ field }) => (
                         <Switch
                           checked={field.value || false}
