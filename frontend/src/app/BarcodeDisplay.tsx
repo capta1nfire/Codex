@@ -26,7 +26,7 @@ export default function BarcodeDisplay({ svgContent, type, data, gradientOptions
     if (!svgContent) return '';
     
     // Solo aplicar gradientes si están habilitados y tenemos opciones
-    if (gradientOptions?.enabled && type === 'qrcode') {
+    if (gradientOptions?.enabled && (type === 'qrcode' || type === 'datamatrix')) {
       console.log('[BarcodeDisplay] 🎨 Aplicando gradiente:', gradientOptions);
       try {
         const result = applySvgGradient(svgContent, gradientOptions);
@@ -44,9 +44,8 @@ export default function BarcodeDisplay({ svgContent, type, data, gradientOptions
 
   // Calculamos clases de Tailwind condicionales para el contenedor/wrapper principal
   const wrapperClasses = useMemo(() => {
-    // Clases base: Añadimos padding, fondo blanco suave, borde, sombra, centrado
-    const baseClasses =
-      'p-4 sm:p-6 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col items-center w-full';
+    // Clases base: Solo centrado y padding, sin borde ni fondo
+    const baseClasses = 'p-4 sm:p-6 flex flex-col items-center w-full';
     const isLinearBarcode = ['code128', 'ean13', 'upca', 'code39'].includes(type);
     const isPdf417 = type === 'pdf417';
 
@@ -70,10 +69,10 @@ export default function BarcodeDisplay({ svgContent, type, data, gradientOptions
 
     if (isLinearBarcode) {
       // Para lineales: altura automática pero con máximo para mantener proporción visual
-      return `${baseClasses} h-auto min-h-24 max-h-32`;
+      return `${baseClasses} h-auto min-h-16 max-h-24`;
     } else {
-      // Para QR y otros 2D: altura más generosa para dominancia visual
-      return `${baseClasses} h-auto min-h-48 lg:min-h-64`;
+      // Para QR y otros 2D: altura más pequeña para un tamaño más compacto
+      return `${baseClasses} h-auto min-h-32 lg:min-h-40`;
     }
   }, [type]);
 
@@ -110,6 +109,7 @@ export default function BarcodeDisplay({ svgContent, type, data, gradientOptions
       {/* Div que contiene directamente el SVG */}
       <div
         className={svgContainerClasses} // <-- Clases para tamaño/aspecto
+        style={{ maxWidth: '352px', maxHeight: '264px' }} // Limitar tamaño máximo del SVG - aumentado 10%
         dangerouslySetInnerHTML={{ __html: processedSvgContent }}
         role="img"
         // Usamos un título más descriptivo para accesibilidad

@@ -90,6 +90,9 @@ export default function GenerationOptions({
   setExpandedSection,
 }: GenerationOptionsProps) {
   
+  // Estado interno para manejar qué sección específica está abierta
+  const [internalExpandedSection, setInternalExpandedSection] = React.useState<string>('appearance');
+  
   // Calculate conditional visibility
   const is1DBarcode = selectedType
     ? !['qrcode', 'pdf417', 'datamatrix', 'aztec'].includes(selectedType)
@@ -137,7 +140,7 @@ export default function GenerationOptions({
     )}>
       <CardHeader 
         className="pb-2 cursor-pointer"
-        onClick={() => setExpandedSection(isOpen ? '' : id)}
+        onClick={() => setInternalExpandedSection(isOpen ? '' : id)}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -246,42 +249,10 @@ export default function GenerationOptions({
         title="Apariencia y Colores"
         subtitle="Configuración visual y efectos de color"
         icon={Palette}
-        isOpen={expandedSection === 'appearance'}
+        isOpen={internalExpandedSection === 'appearance'}
         badgeText="Esencial"
       >
         <div className="space-y-4">
-          {/* Scale Slider */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">Escala</Label>
-              <Badge variant="outline" className="text-xs">
-                {watch('options.scale')}x
-              </Badge>
-            </div>
-            <Controller
-              name="options.scale"
-              control={control}
-              defaultValue={4}
-              render={({ field }) => (
-                <div className="space-y-2">
-                  <Slider
-                    min={1}
-                    max={10}
-                    step={1}
-                    value={[field.value ?? 4]}
-                    onValueChange={(value) => field.onChange(value[0])}
-                    disabled={isLoading}
-                    className="transition-all duration-200 hover:scale-[1.01]"
-                  />
-                  <div className="flex justify-between text-xs text-slate-500">
-                    <span>Pequeño (1x)</span>
-                    <span>Grande (10x)</span>
-                  </div>
-                </div>
-              )}
-            />
-          </div>
-
           {/* Color Mode Selection - New */}
           {isQrCode && (
             <div className="space-y-4">
@@ -501,7 +472,7 @@ export default function GenerationOptions({
         title="Visualización"
         subtitle="Opciones de formato y presentación"
         icon={Eye}
-        isOpen={expandedSection === 'display'}
+        isOpen={internalExpandedSection === 'display'}
         badgeText={`${selectedType?.toUpperCase()}`}
       >
         <div className="space-y-4">
@@ -619,7 +590,7 @@ export default function GenerationOptions({
         title="Opciones Avanzadas"
         subtitle="Configuración específica del formato"
         icon={Settings2}
-        isOpen={expandedSection === 'advanced'}
+        isOpen={internalExpandedSection === 'advanced'}
         badgeText="Experto"
       >
         <AdvancedBarcodeOptions

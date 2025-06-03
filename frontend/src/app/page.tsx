@@ -1,22 +1,17 @@
 'use client'; // Necesario para usar hooks como useState y manejar eventos
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import BarcodeDisplay from './BarcodeDisplay';
 import { generateFormSchema, GenerateFormData } from '@/schemas/generate.schema';
-// import { useAuth } from '@/context/AuthContext';
-import { Download, Printer, QrCode, Settings, Palette, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react';
-import BarcodeTypeSelector from '@/components/generator/BarcodeTypeSelector';
+import { Download, QrCode } from 'lucide-react';
 import GenerationOptions from '@/components/generator/GenerationOptions';
-
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 
 // Interfaz para el error estructurado devuelto por el backend
 interface ErrorResponse {
@@ -65,7 +60,7 @@ const defaultFormValues: GenerateFormData = {
   barcode_type: 'qrcode',
   data: getDefaultDataForType('qrcode'),
   options: {
-    scale: 4,
+    scale: 2,
     fgcolor: '#000000',
     bgcolor: undefined, // undefined para SVG transparente que permita gradientes
     height: 100,
@@ -77,7 +72,6 @@ const defaultFormValues: GenerateFormData = {
     gradient_color1: '#2563EB', // CODEX Corporate Blue en el centro
     gradient_color2: '#000000', // Negro en los costados para máximo contraste
     gradient_direction: 'top-bottom', // No se usa en radial pero mantenemos por consistencia
-    gradient_borders: true, // ✅ ACTIVADO POR DEFECTO - Bordes blancos transparentes
   },
 };
 
@@ -86,13 +80,7 @@ export default function Home() {
   const [svgContent, setSvgContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<ErrorResponse | null>(null);
-  const [showPreviewBackground, setShowPreviewBackground] = useState(true); // Fondo activado por defecto
-  const [showSettingsMenu, setShowSettingsMenu] = useState(false); // Estado para el menú de configuración
-  const [expandedSection, setExpandedSection] = useState<string>('essential'); // Configuración Esencial abierta por defecto
-  // Estados para animaciones corporativas consistentes
-  const [heroAnimated, setHeroAnimated] = useState(false);
-  // const { user } = useAuth(); // Ya no necesitamos user directamente aquí si userRole no se usa
-  // const userRole = user?.role; // userRole ya no se pasa a los hijos relevantes
+  const [expandedSection, setExpandedSection] = useState<string>('advanced'); // Opciones Avanzadas abiertas por defecto
 
   // --- react-hook-form Configuración ---
   const {
@@ -113,16 +101,101 @@ export default function Home() {
   // Observar el tipo de código seleccionado para lógica condicional
   const selectedType = watch('barcode_type');
 
-  // --- Variables Derivadas (Se mueven a GenerationOptions.tsx) ---
-  // const is1DBarcode = selectedType ? !['qrcode', 'pdf417', 'datamatrix', 'aztec'].includes(selectedType) : false;
-  // const isHeightRelevant = selectedType ? !['qrcode', 'datamatrix', 'aztec'].includes(selectedType) : false;
-  // const isQrCode = selectedType === 'qrcode';
+  // CATEGORÍAS EXPANDIDAS con múltiples códigos por categoría - SISTEMA DE COLORES DISTINTIVOS
+  const categories = useMemo(() => [
+    {
+      id: '2d',
+      name: 'Códigos 2D',
+      icon: '⬛',
+      description: 'QR Code, Data Matrix, PDF417, Aztec - Alta capacidad de datos',
+      types: [
+        { id: 'qrcode', name: 'QR Code', priority: 1 },
+        { id: 'datamatrix', name: 'Data Matrix', priority: 2 },
+        { id: 'pdf417', name: 'PDF417', priority: 3 },
+        { id: 'aztec', name: 'Aztec', priority: 4 }
+      ],
+      visual: 'square',
+      color: 'blue',
+      priority: 1
+    },
+    {
+      id: 'lineales',
+      name: 'Códigos Lineales',
+      icon: '📊',
+      description: 'Code 128, Code 39, Code 93 - Logística y cadena de suministro',
+      types: [
+        { id: 'code128', name: 'Code 128', priority: 1 },
+        { id: 'code39', name: 'Code 39', priority: 2 },
+        { id: 'code93', name: 'Code 93', priority: 3 },
+        { id: 'codabar', name: 'Codabar', priority: 4 }
+      ],
+      visual: 'line',
+      color: 'green',
+      priority: 2
+    },
+    {
+      id: 'ean',
+      name: 'EAN/UPC',
+      icon: '🛒',
+      description: 'EAN-13, EAN-8, UPC-A, UPC-E - Retail universal "Sunrise 2027"',
+      types: [
+        { id: 'ean13', name: 'EAN-13', priority: 1 },
+        { id: 'ean8', name: 'EAN-8', priority: 2 },
+        { id: 'upca', name: 'UPC-A', priority: 3 },
+        { id: 'upce', name: 'UPC-E', priority: 4 }
+      ],
+      visual: 'line',
+      color: 'orange',
+      priority: 3
+    },
+    {
+      id: 'especializados',
+      name: 'Especializados',
+      icon: '📦',
+      description: 'ITF-14, MSI, Pharmacode - Aplicaciones específicas',
+      types: [
+        { id: 'itf', name: 'ITF-14', priority: 1 }
+        // Se pueden agregar más códigos especializados aquí
+      ],
+      visual: 'line',
+      color: 'purple',
+      priority: 4
+    }
+  ], []);
 
-  // Animaciones corporativas al montar
-  useEffect(() => {
-    const timer = setTimeout(() => setHeroAnimated(true), 200);
-    return () => clearTimeout(timer);
-  }, []);
+  // Estado para la categoría seleccionada - Empezar con Códigos 2D (QR Code #1 prioridad)
+  const [selectedCategory, setSelectedCategory] = useState('2d');
+
+  // Función helper para obtener colores por categoría
+  const getCategoryColors = (categoryColor: string, isSelected: boolean) => {
+    const colors = {
+      blue: {
+        bg: isSelected ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-white dark:bg-slate-900',
+        border: isSelected ? 'border-blue-300 dark:border-blue-600' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600',
+        text: isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-slate-700 dark:text-slate-300',
+        accent: 'from-blue-600 to-blue-800 dark:from-blue-400 dark:to-blue-200'
+      },
+      green: {
+        bg: isSelected ? 'bg-green-100 dark:bg-green-900/30' : 'bg-white dark:bg-slate-900',
+        border: isSelected ? 'border-green-300 dark:border-green-600' : 'border-slate-200 dark:border-slate-700 hover:border-green-300 dark:hover:border-green-600',
+        text: isSelected ? 'text-green-700 dark:text-green-300' : 'text-slate-700 dark:text-slate-300',
+        accent: 'from-green-600 to-green-800 dark:from-green-400 dark:to-green-200'
+      },
+      orange: {
+        bg: isSelected ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-white dark:bg-slate-900',
+        border: isSelected ? 'border-orange-300 dark:border-orange-600' : 'border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-600',
+        text: isSelected ? 'text-orange-700 dark:text-orange-300' : 'text-slate-700 dark:text-slate-300',
+        accent: 'from-orange-600 to-orange-800 dark:from-orange-400 dark:to-orange-200'
+      },
+      purple: {
+        bg: isSelected ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-white dark:bg-slate-900',
+        border: isSelected ? 'border-purple-300 dark:border-purple-600' : 'border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600',
+        text: isSelected ? 'text-purple-700 dark:text-purple-300' : 'text-slate-700 dark:text-slate-300',
+        accent: 'from-purple-600 to-purple-800 dark:from-purple-400 dark:to-purple-200'
+      }
+    };
+    return colors[categoryColor as keyof typeof colors] || colors.blue;
+  };
 
   // --- Handlers ---
 
@@ -130,7 +203,6 @@ export default function Home() {
   const onSubmit = useCallback(async (formData: GenerateFormData) => {
     const requestId = Date.now();
     console.log(`[onSubmit-${requestId}] 🚀 INICIO - Datos validados recibidos:`, formData);
-    console.log(`[onSubmit-${requestId}] 📋 formData.options ANTES de construir payload:`, formData.options);
     setServerError(null);
     setIsLoading(true);
     setSvgContent('');
@@ -141,15 +213,12 @@ export default function Home() {
       options: formData.options || {},
     };
 
-    console.log(`[onSubmit-${requestId}] 📦 Preparando fetch con payload:`, payload);
-
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
       const requestUrl = `${backendUrl}/api/generate`;
       
       // Obtener token de autenticación
       const token = localStorage.getItem('token');
-      console.log('[DEBUG] Token encontrado:', token ? 'Sí' : 'No');
       
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -157,7 +226,6 @@ export default function Home() {
       
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
-        console.log('[DEBUG] Header Authorization agregado');
       }
       
       const response = await fetch(requestUrl, {
@@ -168,7 +236,6 @@ export default function Home() {
       });
 
       const result = await response.json();
-      console.log(`[onSubmit-${requestId}] 📥 Resultado JSON recibido:`, result);
 
       if (!response.ok) {
         let message = 'Error desconocido al generar el código.';
@@ -185,7 +252,6 @@ export default function Home() {
           message = result.message;
         }
 
-        console.error(`[onSubmit-${requestId}] ❌ Error de backend:`, { status: response.status, result });
         setServerError({
           success: false,
           error: message,
@@ -194,12 +260,10 @@ export default function Home() {
         });
         setSvgContent('');
       } else {
-        console.log(`[onSubmit-${requestId}] ✅ Generación exitosa.`);
         setSvgContent(result.svgString);
         setServerError(null);
       }
     } catch (err) {
-      console.error(`[onSubmit-${requestId}] 💥 Error en fetch o procesando:`, err);
       setServerError({
         success: false,
         error: err instanceof Error ? err.message : 'Error de conexión o inesperado.',
@@ -207,176 +271,56 @@ export default function Home() {
       setSvgContent('');
     } finally {
       setIsLoading(false);
-      console.log(`[onSubmit-${requestId}] 🏁 FINALIZADO.`);
     }
   }, []);
 
-  // Definir handleTypeChange DESPUÉS de onSubmit
-  const handleTypeChange = useCallback(
-    async (newType: string) => {
-      const newData = getDefaultDataForType(newType);
-      // Actualizar tipo y datos
-      setValue('barcode_type', newType, { shouldValidate: true });
-      setValue('data', newData, { shouldValidate: true });
-      setServerError(null);
+  // Handler para cambio de categoría
+  const handleCategoryChange = useCallback(async (categoryId: string) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    const newType = category?.types[0]?.id || 'qrcode'; // Tomar el primer código de la categoría
+    setSelectedCategory(categoryId);
+    
+    const newData = getDefaultDataForType(newType);
+    setValue('barcode_type', newType, { shouldValidate: true });
+    setValue('data', newData, { shouldValidate: true });
+    setServerError(null);
 
-      // Obtener TODOS los valores actuales del formulario DESPUÉS de actualizarlos
-      const currentFormValues = getValues();
+    const currentFormValues = getValues();
+    // Asegurar que las opciones de gradiente estén incluidas
+    const completeFormValues = {
+      ...currentFormValues,
+      options: {
+        ...defaultFormValues.options,
+        ...currentFormValues.options,
+      }
+    };
+    await onSubmit(completeFormValues);
+  }, [setValue, onSubmit, getValues, categories]);
 
-      console.log(
-        `[handleTypeChange] Tipo cambiado a ${newType}. Llamando a onSubmit con valores completos:`,
-        currentFormValues
-      );
-      // Llamar a onSubmit con el objeto completo
-      await onSubmit(currentFormValues);
+  // Handler para cambio de código dentro de categoría
+  const handleCodeTypeChange = useCallback(async (newType: string) => {
+    const newData = getDefaultDataForType(newType);
+    setValue('barcode_type', newType, { shouldValidate: true });
+    setValue('data', newData, { shouldValidate: true });
+    setServerError(null);
 
-      // Quitar el objeto parcial anterior
-      // await onSubmit({
-      //   barcode_type: newType,
-      //   data: newData,
-      // });
-    },
-    [setValue, onSubmit, getValues]
-  ); // Añadir getValues a las dependencias
+    const currentFormValues = getValues();
+    // Asegurar que las opciones de gradiente estén incluidas
+    const completeFormValues = {
+      ...currentFormValues,
+      options: {
+        ...defaultFormValues.options,
+        ...currentFormValues.options,
+      }
+    };
+    await onSubmit(completeFormValues);
+  }, [setValue, onSubmit, getValues]);
 
   // useEffect para generar al montar
   useEffect(() => {
-    console.log('[useEffect] Montado. Llamando a onSubmit con valores por defecto.');
-    // Llamar a onSubmit directamente aquí puede causar problemas si aún no está definida
-    // o si sus dependencias no están listas. Es más seguro obtener los valores
-    // por defecto y llamar a onSubmit con ellos.
     onSubmit(defaultFormValues);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // <--- Dependencias vacías para que solo se ejecute al montar
-
-  // useEffect para actualizar bgcolor cuando cambie showPreviewBackground
-  useEffect(() => {
-    // Solo ejecutar si showPreviewBackground cambió después del montaje
-    if (typeof showPreviewBackground === 'boolean') {
-      const newBgcolor = undefined; // undefined en lugar de string vacía para SVG transparente
-      console.log(`[DEBUG] showPreviewBackground cambió a: ${showPreviewBackground}, SVG bgcolor: "${newBgcolor}" (always transparent)`);
-      setValue('options.bgcolor', newBgcolor, { shouldValidate: true });
-      
-      // Solo regenerar si tenemos contenido existente Y no es la primera carga
-      if (svgContent) {
-        const currentFormValues = getValues();
-        console.log('[DEBUG] Regenerando por cambio en toggle de fondo');
-        onSubmit(currentFormValues);
-      }
-    }
-  }, [showPreviewBackground]); // Solo depender de showPreviewBackground
-
-  // useEffect para cerrar el menú de configuración al hacer click fuera
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showSettingsMenu) {
-        const target = event.target as Element;
-        if (!target.closest('.relative')) {
-          setShowSettingsMenu(false);
-        }
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showSettingsMenu]);
-
-  // --- Section Card Component - UPGRADED con filosofía corporativa ---
-  const SectionCard = ({ 
-    id, 
-    title, 
-    subtitle, 
-    icon: Icon, 
-    children, 
-    isOpen, 
-    badgeText,
-    animationDelay = 0
-  }: {
-    id: string;
-    title: string;
-    subtitle: string;
-    icon: any;
-    children: React.ReactNode;
-    isOpen: boolean;
-    badgeText?: string;
-    animationDelay?: number;
-  }) => (
-    <Card className={cn(
-      // Sombras y bordes corporativos del perfil
-      "shadow-corporate-lg border-corporate-blue-200/50 dark:border-corporate-blue-700/50 bg-card/95 backdrop-blur-sm",
-      "hover:shadow-corporate-hero hover:border-corporate-blue-300/70 dark:hover:border-corporate-blue-600/70",
-      "transition-all duration-500 ease-smooth transform overflow-hidden p-0",
-      // Estados visuales corporativos
-      isOpen ? "border-corporate-blue-300/70 dark:border-corporate-blue-600/70 bg-gradient-to-br from-blue-50/50 to-corporate-blue-50/30 dark:from-blue-950/30 dark:to-corporate-blue-950/20" : "",
-      // Animaciones de entrada corporativas
-      heroAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-    )}
-    style={{ transitionDelay: `${animationDelay}ms` }}
-    >
-      <CardHeader 
-        className={cn(
-          "cursor-pointer py-6 px-6 m-0",
-          // Gradientes corporativos consistentes con el perfil
-          isOpen 
-            ? "bg-gradient-to-r from-corporate-blue-50/50 to-slate-50/50 dark:from-corporate-blue-950/50 dark:to-slate-950/50 border-b border-corporate-blue-200/30 dark:border-corporate-blue-700/30"
-            : "bg-gradient-to-r from-slate-50/30 to-slate-50/30 dark:from-slate-800/30 dark:to-slate-800/30 hover:from-corporate-blue-50/30 hover:to-slate-50/30 dark:hover:from-corporate-blue-950/30 dark:hover:to-slate-950/30"
-        )}
-        onClick={() => setExpandedSection(isOpen ? '' : id)}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              "p-2 rounded-lg transition-all duration-300 ease-smooth",
-              isOpen 
-                ? "bg-corporate-blue-500/10 group-hover:bg-corporate-blue-500/20" 
-                : "bg-slate-100 dark:bg-slate-800 hover:bg-corporate-blue-500/10"
-            )}>
-              <Icon className={cn(
-                "h-5 w-5 transition-all duration-300 ease-smooth",
-                isOpen 
-                  ? "text-corporate-blue-600 dark:text-corporate-blue-400" 
-                  : "text-slate-600 dark:text-slate-400 group-hover:text-corporate-blue-600 dark:group-hover:text-corporate-blue-400"
-              )} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className={cn(
-                  "text-lg transition-colors duration-200",
-                  isOpen 
-                    ? "bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent"
-                    : "text-slate-800 dark:text-slate-200"
-                )}>{title}</CardTitle>
-                {badgeText && (
-                  <Badge variant="secondary" className={cn(
-                    "text-xs transition-all duration-200",
-                    isOpen 
-                      ? "bg-corporate-blue-100 dark:bg-corporate-blue-900 border-corporate-blue-200 dark:border-corporate-blue-700"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                  )}>
-                  {badgeText}
-                </Badge>
-              )}
-              </div>
-              <CardDescription className="text-slate-600 dark:text-slate-400 mt-1">{subtitle}</CardDescription>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {isOpen ? (
-              <ChevronDown className="h-5 w-5 text-corporate-blue-500 transition-all duration-300 ease-smooth" />
-            ) : (
-              <ChevronRight className="h-5 w-5 text-slate-400 transition-all duration-300 ease-smooth group-hover:text-corporate-blue-500" />
-            )}
-          </div>
-        </div>
-      </CardHeader>
-      
-      {isOpen && (
-        <CardContent className="p-6 animate-in slide-in-from-top-2 duration-300 ease-smooth">
-          {children}
-        </CardContent>
-      )}
-    </Card>
-  );
+  }, []);
 
   // --- Action Handlers ---
   const handleDownload = useCallback(() => {
@@ -388,12 +332,11 @@ export default function Home() {
     const safeFilename = (selectedType || 'barcode').replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
     downloadLink.href = svgUrl;
-    downloadLink.download = `${safeFilename}_${Date.now()}.svg`; // Add timestamp for uniqueness
+    downloadLink.download = `${safeFilename}_${Date.now()}.svg`;
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
     URL.revokeObjectURL(svgUrl);
-    console.log('[handleDownload] SVG descargado.');
   }, [svgContent, selectedType]);
 
   const handlePrint = useCallback(() => {
@@ -401,7 +344,6 @@ export default function Home() {
 
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      // Simple print structure: just the SVG
       printWindow.document.write(`
         <html>
           <head><title>Imprimir Código</title></head>
@@ -410,386 +352,367 @@ export default function Home() {
             <script>
               window.onload = function() {
                 window.print();
-                window.onafterprint = function() { window.close(); }; // Close after printing attempt
+                window.onafterprint = function() { window.close(); };
               }
             </script>
           </body>
         </html>
       `);
-      printWindow.document.close(); // Important for some browsers
-      console.log('[handlePrint] Diálogo de impresión abierto.');
+      printWindow.document.close();
     } else {
-      console.error(
-        '[handlePrint] No se pudo abrir la ventana de impresión. Verifica bloqueadores de pop-ups.'
-      );
       alert(
         'No se pudo abrir la ventana de impresión. Por favor, revisa si tu navegador está bloqueando las ventanas emergentes.'
       );
     }
   }, [svgContent]);
 
-  // --- Renderizado ---
+  // --- Renderizado REESTRUCTURADO ---
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Main Generator - Hero-Driven Layout */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="grid grid-cols-1 lg:grid-cols-10 gap-6 lg:gap-8"
-        >
-          {/* LEVEL 1: Essential Controls - Now Collapsible */}
-          <div className="lg:col-span-5 space-y-6">
-            
-            <SectionCard
-              id="essential"
-              title="Configuración Esencial"
-              subtitle="Tipo de código y contenido principal"
-              icon={Settings}
-              isOpen={expandedSection === 'essential'}
-              badgeText="Requerido"
-              animationDelay={0}
-            >
-              <div className="space-y-4">
-                {/* Type Selector */}
-                <BarcodeTypeSelector
-                  control={control}
-                  isLoading={isLoading}
-                  handleTypeChange={handleTypeChange}
-                  errors={errors}
-                />
-
-                {/* Data Input */}
-                <div className="space-y-2">
-                  <Label htmlFor="data-input" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Contenido
-                  </Label>
-                  <Input
-                    id="data-input"
-                    placeholder={getDefaultDataForType(selectedType || 'qrcode')}
-                    {...register('data')}
-                    disabled={isLoading}
-                    className={cn(
-                      "h-12 transition-all duration-200",
-                      errors.data ? 'border-destructive' : 'focus:border-corporate-blue-500 focus:ring-corporate-blue-500/20'
-                    )}
-                  />
-                  {errors.data && (
-                    <p className="text-xs text-destructive">{errors.data.message}</p>
+      {/* FILA 1: Selector Horizontal de Tipos de Códigos */}
+      <section className="border-b border-slate-200/30 dark:border-slate-700/30 bg-gradient-to-r from-white via-slate-50/20 to-white dark:from-slate-950 dark:via-slate-900/20 dark:to-slate-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* Selector Horizontal de Categorías - MEJORADO con colores distintivos */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {categories.map((category) => {
+              const isSelected = selectedCategory === category.id;
+              const colors = getCategoryColors(category.color, isSelected);
+              
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => handleCategoryChange(category.id)}
+                  className={cn(
+                    "group relative p-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md",
+                    colors.bg,
+                    `border-2 ${colors.border}`
                   )}
-                </div>
-
-                {/* HERO MOMENT: Generate Button */}
-                <div className="pt-2">
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading}
-                    className={cn(
-                      "w-full h-14 text-lg font-bold rounded-xl",
-                      "bg-gradient-to-r from-corporate-blue-600 via-corporate-blue-700 to-corporate-blue-600",
-                      "hover:from-corporate-blue-700 hover:via-corporate-blue-800 hover:to-corporate-blue-700",
-                      "shadow-corporate-lg shadow-corporate-blue-500/25 hover:shadow-corporate-hero hover:shadow-corporate-blue-500/30",
-                      "transform hover:scale-[1.02] transition-all duration-300 ease-smooth",
-                      "border-2 border-corporate-blue-400/50 hover:border-corporate-blue-300",
-                      isLoading && "animate-pulse cursor-not-allowed"
-                    )}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 border-2 border-white/30 rounded-full animate-spin border-t-white"></div>
-                        Generando...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-3">
-                        <QrCode className="h-6 w-6" />
-                        Generar Código
-                      </div>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </SectionCard>
-
-            {/* LEVEL 2: Customization - UPGRADED con filosofía corporativa */}
-            <Card className={cn(
-              // Sombras y bordes corporativos del perfil
-              "shadow-corporate-lg border-corporate-blue-200/50 dark:border-corporate-blue-700/50 bg-card/95 backdrop-blur-sm",
-              "hover:shadow-corporate-hero hover:border-corporate-blue-300/70 dark:hover:border-corporate-blue-600/70",
-              "transition-all duration-500 ease-smooth transform overflow-hidden p-0",
-              // Animaciones de entrada corporativas
-              heroAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            )}
-            style={{ transitionDelay: '100ms' }}
-            >
-              <CardHeader className="bg-gradient-to-r from-corporate-blue-50/50 to-slate-50/50 dark:from-corporate-blue-950/50 dark:to-slate-950/50 border-b border-corporate-blue-200/30 dark:border-corporate-blue-700/30 rounded-t-lg m-0 py-6 px-6">
-                <CardTitle className="flex items-center gap-3 text-lg">
-                  <div className="p-2 bg-corporate-blue-500/10 rounded-lg group-hover:bg-corporate-blue-500/20 transition-colors duration-200">
-                    <Palette className="h-5 w-5 text-corporate-blue-600 dark:text-corporate-blue-400" />
-                  </div>
-                  <div>
-                    <span className="bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
-                      Personalización
-                    </span>
-                    <Badge variant="secondary" className="ml-3 text-xs">
-                      Opcional
-                    </Badge>
-                  </div>
-                </CardTitle>
-                <CardDescription className="text-slate-600 dark:text-slate-400 mt-2">
-                  Configura colores, tamaños y opciones avanzadas de tu código
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                <GenerationOptions
-                  control={control}
-                  errors={errors}
-                  watch={watch}
-                  isLoading={isLoading}
-                  selectedType={selectedType}
-                  reset={reset}
-                  setValue={setValue}
-                  getValues={getValues}
-                  onSubmit={onSubmit}
-                  expandedSection={expandedSection}
-                  setExpandedSection={setExpandedSection}
-                />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* HERO AREA: Code Preview - UPGRADED con filosofía corporativa */}
-          <div className="lg:col-span-5">
-            <Card className={cn(
-              // Sombras y bordes corporativos premium para el hero
-              "shadow-corporate-hero border-2 border-corporate-blue-200/70 dark:border-corporate-blue-700/70",
-              "bg-gradient-to-br from-white via-blue-50/30 to-corporate-blue-50/30 dark:from-slate-900 dark:via-blue-950/30 dark:to-corporate-blue-950/20",
-              "hover:shadow-[0_25px_50px_-12px_rgba(37,99,235,0.25)] hover:border-corporate-blue-300/80 dark:hover:border-corporate-blue-600/80",
-              "transition-all duration-500 ease-smooth transform sticky top-6 min-h-[600px] overflow-hidden",
-              // Animación de entrada del hero
-              heroAnimated ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-98'
-            )}
-            style={{ transitionDelay: '200ms' }}
-            >
-              <CardHeader className="border-b border-corporate-blue-200/40 dark:border-corporate-blue-700/40 bg-gradient-to-r from-corporate-blue-50/60 to-blue-50/60 dark:from-corporate-blue-950/40 dark:to-blue-950/40 m-0 py-8 px-8">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gradient-to-br from-corporate-blue-500 to-corporate-blue-600 rounded-xl shadow-corporate-lg">
-                      <QrCode className="h-8 w-8 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
-                        Vista Previa
-                      </CardTitle>
-                      <CardDescription className="text-lg text-slate-600 dark:text-slate-400">
-                        Tu código generado en tiempo real
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {/* Settings Menu - UPGRADED con estilo corporativo */}
-                    <div className="relative">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                        className={cn(
-                          "h-10 w-10 rounded-lg transition-all duration-300 ease-smooth",
-                          showSettingsMenu || svgContent
-                            ? "bg-corporate-blue-100 dark:bg-corporate-blue-900/30 text-corporate-blue-700 dark:text-corporate-blue-300 border border-corporate-blue-200 dark:border-corporate-blue-700 shadow-lg" 
-                            : "text-slate-500 dark:text-slate-400 hover:text-corporate-blue-700 dark:hover:text-corporate-blue-300 hover:bg-corporate-blue-50 dark:hover:bg-corporate-blue-950/30 hover:shadow-md"
-                        )}
-                        title="Configuración de vista previa"
-                      >
-                        <Settings className="h-5 w-5" />
-                      </Button>
-                      
-                      {/* Dropdown Menu - UPGRADED */}
-                      {showSettingsMenu && (
-                        <div className="absolute right-0 top-12 w-48 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-xl border border-corporate-blue-200/50 dark:border-corporate-blue-700/50 shadow-corporate-lg z-50">
-                          <div className="p-3">
-                            <div className="text-xs font-semibold text-corporate-blue-700 dark:text-corporate-blue-300 px-2 py-1 mb-2">
-                              Vista Previa
-                            </div>
-                            
-                            <button
-                              onClick={() => {
-                                setShowPreviewBackground(!showPreviewBackground);
-                                setShowSettingsMenu(false);
-                              }}
-                              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-corporate-blue-50 dark:hover:bg-corporate-blue-950/30 rounded-lg transition-all duration-200"
-                            >
-                              {showPreviewBackground ? (
-                                <Eye className="h-4 w-4" />
-                              ) : (
-                                <EyeOff className="h-4 w-4" />
-                              )}
-                              <span>
-                                {showPreviewBackground ? "Mostrar fondo" : "Ocultar fondo"}
-                              </span>
-                            </button>
-                          </div>
-                        </div>
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">{category.icon}</div>
+                    <h3 className={cn("font-semibold text-sm", colors.text)}>
+                      {category.name}
+                    </h3>
+                    <div className="mt-1 h-4 flex items-center justify-center">
+                      {category.visual === 'line' ? (
+                        <div className={cn(
+                          "h-1 w-full bg-gradient-to-r bg-no-repeat bg-center opacity-60",
+                          isSelected ? colors.accent : "from-slate-600 to-slate-800 dark:from-slate-300 dark:to-slate-100"
+                        )}></div>
+                      ) : (
+                        <div className={cn(
+                          "w-4 h-4 opacity-60",
+                          isSelected ? `bg-gradient-to-br ${colors.accent}` : "bg-gradient-to-br from-slate-600 to-slate-800 dark:from-slate-300 dark:to-slate-100"
+                        )}></div>
                       )}
                     </div>
                   </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="p-4 lg:p-6">
-                {/* UNIFIED PREVIEW DISPLAY - UPGRADED con filosofía corporativa */}
-                {isLoading ? (
-                  <div className="flex items-center justify-center min-h-[400px] bg-gradient-to-br from-corporate-blue-50/80 via-blue-50/60 to-corporate-blue-50/80 dark:from-corporate-blue-950/40 dark:via-blue-950/30 dark:to-corporate-blue-950/40 rounded-3xl border-2 border-dashed border-corporate-blue-300/60 dark:border-corporate-blue-700/60 mb-6 shadow-inner">
-                    <div className="text-center space-y-6">
-                      <div className="relative">
-                        <div className="w-20 h-20 border-4 border-corporate-blue-200 dark:border-corporate-blue-700 rounded-full animate-spin border-t-corporate-blue-600 dark:border-t-corporate-blue-400"></div>
-                        <QrCode className="absolute inset-0 m-auto h-8 w-8 text-corporate-blue-600 dark:text-corporate-blue-400" />
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-slate-700 dark:text-slate-300">Generando código...</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Creando tu código perfecto</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : serverError ? (
-                  <div className="flex items-center justify-center min-h-[400px] bg-gradient-to-br from-red-50/80 via-orange-50/60 to-red-50/80 dark:from-red-950/40 dark:via-orange-950/30 dark:to-red-950/40 rounded-3xl border-2 border-dashed border-red-300/60 dark:border-red-700/60 mb-6 shadow-inner">
-                    <div className="text-center space-y-4">
-                      <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto">
-                        <span className="text-3xl">⚠️</span>
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-red-700 dark:text-red-400">Error en la generación</p>
-                        <p className="text-sm text-red-600 dark:text-red-500">{serverError.error}</p>
-                        {serverError.suggestion && (
-                          <p className="text-xs text-red-500 dark:text-red-400 mt-2">{serverError.suggestion}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : svgContent ? (
-                  <>
-                    <div className={cn(
-                      "rounded-3xl p-8 min-h-[400px] flex items-center justify-center mb-6 transform hover:scale-[1.01] transition-all duration-300 ease-smooth",
-                      showPreviewBackground && "bg-gradient-to-br from-corporate-blue-50/40 via-blue-50/30 to-corporate-blue-50/40 dark:from-corporate-blue-950/30 dark:via-blue-950/20 dark:to-corporate-blue-950/30 border border-corporate-blue-100/60 dark:border-corporate-blue-800/40 shadow-inner"
-                    )}>
-                      <BarcodeDisplay
-                        key={selectedType}
-                        svgContent={svgContent}
-                        type={selectedType}
-                        data={watch('data')}
-                        gradientOptions={{
-                          enabled: watch('options.gradient_enabled') || false,
-                          type: watch('options.gradient_type') || 'linear',
-                          color1: watch('options.gradient_color1') || '#3B82F6',
-                          color2: watch('options.gradient_color2') || '#8B5CF6',
-                          direction: watch('options.gradient_direction') || 'top-bottom',
-                          borders: watch('options.gradient_borders') || false,
-                        }}
-                      />
-                    </div>
+                </button>
+              );
+            })}
+          </div>
 
-                    {/* INTEGRATED ACTIONS & SUCCESS INFO - UPGRADED con filosofía corporativa */}
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <Button
-                          variant="outline"
-                          onClick={handleDownload}
-                          disabled={!svgContent || isLoading}
-                          className={cn(
-                            "h-12 border-2 border-corporate-blue-200/70 dark:border-corporate-blue-700/70",
-                            "bg-gradient-to-r from-corporate-blue-50/80 to-corporate-blue-100/60 dark:from-corporate-blue-950/40 dark:to-corporate-blue-900/40",
-                            "hover:from-corporate-blue-100/90 hover:to-corporate-blue-200/70 dark:hover:from-corporate-blue-900/60 dark:hover:to-corporate-blue-800/60",
-                            "hover:border-corporate-blue-300/80 dark:hover:border-corporate-blue-600/80",
-                            "transform hover:scale-[1.02] transition-all duration-300 ease-smooth",
-                            "text-sm font-semibold text-corporate-blue-700 dark:text-corporate-blue-300",
-                            "shadow-corporate-lg shadow-corporate-blue-500/10 hover:shadow-corporate-hero hover:shadow-corporate-blue-500/20"
-                          )}
-                        >
-                          <Download className="mr-2 h-5 w-5" />
-                          Descargar SVG
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          onClick={handlePrint} 
-                          disabled={!svgContent || isLoading}
-                          className={cn(
-                            "h-12 border-2 border-slate-200/70 dark:border-slate-700/70",
-                            "bg-gradient-to-r from-slate-50/80 to-slate-100/60 dark:from-slate-950/40 dark:to-slate-900/40",
-                            "hover:from-slate-100/90 hover:to-slate-200/70 dark:hover:from-slate-900/60 dark:hover:to-slate-800/60",
-                            "hover:border-slate-300/80 dark:hover:border-slate-600/80",
-                            "transform hover:scale-[1.02] transition-all duration-300 ease-smooth",
-                            "text-sm font-semibold text-slate-700 dark:text-slate-300",
-                            "shadow-corporate-lg shadow-slate-500/10 hover:shadow-corporate-hero hover:shadow-slate-500/20"
-                          )}
-                        >
-                          <Printer className="mr-2 h-5 w-5" />
-                          Imprimir
-                        </Button>
-                      </div>
+          {/* NUEVO: Selector de códigos específicos dentro de la categoría */}
+          <div className="mt-4">
+            {(() => {
+              const currentCategory = categories.find(cat => cat.id === selectedCategory);
+              const colors = getCategoryColors(currentCategory?.color || 'blue', true);
+              
+              return (
+                <div className={cn(
+                  "p-4 rounded-lg border-2",
+                  colors.bg,
+                  colors.border
+                )}>
+                  <h3 className={cn("text-sm font-medium mb-3 text-center", colors.text)}>
+                    Selecciona el tipo de código:
+                  </h3>
+                  
+                  {/* Selector horizontal de códigos dentro de la categoría */}
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {currentCategory?.types.map((codeType) => {
+                      const isActiveCode = selectedType === codeType.id;
                       
-                      {/* COMPACT SUCCESS INFO - UPGRADED con filosofía corporativa */}
-                      <div className="bg-gradient-to-r from-corporate-blue-50/80 via-corporate-blue-50/80 to-corporate-blue-50/80 dark:from-corporate-blue-950/30 dark:via-corporate-blue-950/30 dark:to-corporate-blue-950/30 rounded-xl p-4 border border-corporate-blue-200/60 dark:border-corporate-blue-700/60 shadow-inner">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-corporate-blue-500 rounded-full flex items-center justify-center shadow-lg">
-                              <span className="text-white text-sm">✓</span>
-                            </div>
-                            <p className="text-sm font-semibold text-corporate-blue-700 dark:text-corporate-blue-300">
-                              Código generado exitosamente
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-4 text-xs text-corporate-blue-600 dark:text-corporate-blue-400 font-medium">
-                            <span>SVG</span>
-                            <span>•</span>
-                            <span>Alta Resolución</span>
-                            <span>•</span>
-                            <span>{selectedType?.toUpperCase()}</span>
-                          </div>
+                      return (
+                        <button
+                          key={codeType.id}
+                          onClick={() => handleCodeTypeChange(codeType.id)}
+                          className={cn(
+                            "flex-shrink-0 px-3 py-2 text-xs font-medium rounded-md transition-all duration-200",
+                            isActiveCode
+                              ? `bg-gradient-to-r ${colors.accent} text-white shadow-md`
+                              : `bg-white dark:bg-slate-800 ${colors.text} border border-current/20 hover:${colors.bg}`
+                          )}
+                        >
+                          {codeType.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      </section>
+
+      {/* FILA 2: Generador Principal - Configuración y Vista Previa */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* COLUMNA 1-2: Configuración Amplia */}
+            <section className="lg:col-span-2 space-y-4">
+              {/* Input de Datos */}
+              <div className="shadow-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950">
+                <div className="px-6 py-4">
+                  <h3 className="text-base font-semibold mb-3">Datos</h3>
+                  <div className="flex gap-3">
+                    <Input
+                      {...register('data')}
+                      placeholder={`Ingresa el contenido...`}
+                      className={cn(
+                        "h-10 flex-1",
+                        errors.data && "border-red-400 dark:border-red-600"
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className={cn(
+                        "h-10 px-6 font-medium flex-shrink-0",
+                        "bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600",
+                        "transition-all duration-200"
+                      )}
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Generando...
+                        </div>
+                      ) : (
+                        "Generar"
+                      )}
+                    </Button>
+                  </div>
+                  {errors.data && (
+                    <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                      {errors.data.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Opciones Avanzadas Colapsibles */}
+              {expandedSection === 'advanced' ? (
+                <Card className="shadow-sm border border-slate-200 dark:border-slate-700">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base font-semibold">Opciones Avanzadas</CardTitle>
+                      <button
+                        type="button"
+                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        onClick={() => setExpandedSection('')}
+                      >
+                        Ocultar
+                      </button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <GenerationOptions
+                      control={control}
+                      errors={errors}
+                      watch={watch}
+                      isLoading={isLoading}
+                      selectedType={selectedType}
+                      reset={reset}
+                      setValue={setValue}
+                      getValues={getValues}
+                      onSubmit={onSubmit}
+                      expandedSection={expandedSection}
+                      setExpandedSection={setExpandedSection}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="shadow-sm border border-slate-200 dark:border-slate-700">
+                  <CardContent className="p-4">
+                    <button
+                      type="button"
+                      className="w-full text-left text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                      onClick={() => setExpandedSection('advanced')}
+                    >
+                      + Mostrar opciones avanzadas
+                    </button>
+                  </CardContent>
+                </Card>
+              )}
+            </section>
+
+            {/* COLUMNA 3: Vista Previa Compacta */}
+            <section className="lg:col-span-1">
+              <Card className="shadow-sm border border-slate-200 dark:border-slate-700 min-h-[300px]">
+                <CardContent className="p-6">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center min-h-[250px]">
+                      <div className="text-center space-y-4">
+                        <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-700 rounded-full animate-spin border-t-blue-600 dark:border-t-blue-400 mx-auto"></div>
+                        <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">Generando código...</p>
+                      </div>
+                    </div>
+                  ) : serverError ? (
+                    <div className="flex items-center justify-center min-h-[250px]">
+                      <div className="text-center space-y-4">
+                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto">
+                          <span className="text-3xl">⚠️</span>
+                        </div>
+                        <div>
+                          <p className="text-lg font-semibold text-red-700 dark:text-red-400">Error en la generación</p>
+                          <p className="text-sm text-red-600 dark:text-red-500">{serverError.error}</p>
                         </div>
                       </div>
                     </div>
-                  </>
-                ) : (
-                  <div className="flex items-center justify-center min-h-[400px] bg-gradient-to-br from-slate-50/60 via-corporate-blue-50/40 to-slate-50/60 dark:from-slate-900/60 dark:via-corporate-blue-950/30 dark:to-slate-900/60 rounded-3xl border-2 border-dashed border-slate-300/60 dark:border-slate-600/60 shadow-inner">
-                    <div className="text-center space-y-6">
-                      <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-corporate-blue-100 dark:from-slate-800 dark:to-corporate-blue-900 rounded-3xl flex items-center justify-center mx-auto shadow-corporate-lg">
-                        <QrCode className="h-10 w-10 text-slate-400 dark:text-slate-500" />
+                  ) : svgContent ? (
+                    <div className="space-y-6">
+                      {/* Preview Area */}
+                      <div className="flex items-center justify-center min-h-[250px] bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                        <BarcodeDisplay
+                          key={selectedType}
+                          svgContent={svgContent}
+                          type={selectedType}
+                          data={watch('data')}
+                          gradientOptions={{
+                            enabled: watch('options.gradient_enabled') || false,
+                            type: watch('options.gradient_type') || 'linear',
+                            color1: watch('options.gradient_color1') || '#3B82F6',
+                            color2: watch('options.gradient_color2') || '#8B5CF6',
+                            direction: watch('options.gradient_direction') || 'top-bottom',
+                            borders: watch('options.gradient_borders') || false,
+                          }}
+                        />
                       </div>
-                      <div>
-                        <p className="text-xl font-bold text-slate-700 dark:text-slate-300">Tu código aparecerá aquí</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Configura y genera para ver el resultado</p>
+
+                      {/* Opciones de Descarga */}
+                      <Card className="shadow-sm border border-slate-200 dark:border-slate-700">
+                        <CardContent className="p-4">
+                          <div className="space-y-4">
+                            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Opciones de Descarga</h3>
+                            <div className="grid grid-cols-1 gap-4">
+                              {/* Control de Escala */}
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <label className="text-xs text-slate-600 dark:text-slate-400">Calidad</label>
+                                  <span className="text-xs font-mono text-slate-700 dark:text-slate-300">
+                                    {(() => {
+                                      const scale = watch('options.scale') || 2;
+                                      const size = scale * 100; // Estimación base de 100px por escala
+                                      return `${size} x ${size} Px`;
+                                    })()}
+                                  </span>
+                                </div>
+                                <div className="relative">
+                                  <input
+                                    type="range"
+                                    min="1"
+                                    max="10"
+                                    step="1"
+                                    value={watch('options.scale') || 2}
+                                    onChange={(e) => setValue('options.scale', parseInt(e.target.value))}
+                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                                    style={{
+                                      background: 'linear-gradient(to right, #e2e8f0 0%, #93c5fd 50%, #3b82f6 100%)',
+                                    }}
+                                  />
+                                  <style jsx>{`
+                                    input[type="range"]::-webkit-slider-thumb {
+                                      appearance: none;
+                                      width: 20px;
+                                      height: 20px;
+                                      border-radius: 50%;
+                                      background: #3b82f6;
+                                      border: 3px solid white;
+                                      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                      cursor: pointer;
+                                    }
+                                    input[type="range"]::-moz-range-thumb {
+                                      width: 20px;
+                                      height: 20px;
+                                      border-radius: 50%;
+                                      background: #3b82f6;
+                                      border: 3px solid white;
+                                      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                      cursor: pointer;
+                                      border: none;
+                                    }
+                                  `}</style>
+                                  <div className="flex justify-between text-xs text-slate-500 mt-1">
+                                    <span>Low Quality</span>
+                                    <span>High Quality</span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Selector de Formato */}
+                              <div>
+                                <label className="text-xs text-slate-600 dark:text-slate-400">Formato</label>
+                                <select className="h-8 px-2 rounded-md border border-input bg-background text-sm w-full mt-1">
+                                  <option value="svg">SVG</option>
+                                  <option value="png">PNG</option>
+                                  <option value="jpg">JPG</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Download Button */}
+                      <div className="text-center">
+                        <Button
+                          type="button"
+                          onClick={handleDownload}
+                          disabled={!svgContent || isLoading}
+                          className="h-12 px-8 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+                        >
+                          <Download className="mr-2 h-5 w-5" />
+                          Descargar Código de Barras
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  ) : (
+                    <div className="flex items-center justify-center min-h-[250px] text-center">
+                      <div className="space-y-4">
+                        <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center mx-auto">
+                          <QrCode className="h-10 w-10 text-slate-400 dark:text-slate-500" />
+                        </div>
+                        <div>
+                          <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">Tu código aparecerá aquí</p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">Configura y genera para ver el resultado</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </section>
           </div>
         </form>
       </main>
 
-      {/* Hero Section - UPGRADED con filosofía corporativa */}
-      <section className={cn(
-        "relative overflow-hidden transition-all duration-700 ease-smooth",
-        "bg-gradient-to-br from-slate-50/60 via-white/80 to-corporate-blue-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-corporate-blue-950/30",
-        "border-t border-corporate-blue-200/50 dark:border-corporate-blue-700/50",
-        heroAnimated ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-      )}
-      style={{ transitionDelay: '400ms' }}
-      >
-        <div className="absolute inset-0 bg-grid-slate-100/30 dark:bg-grid-slate-800/30 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.4))] dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02))]" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      {/* FILA 3: Sección Hero Movida Abajo */}
+      <section className="bg-gradient-to-br from-slate-50/60 via-white/80 to-blue-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/30 border-t border-slate-200/50 dark:border-slate-700/50 mt-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center space-y-6 max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-corporate-blue-100/90 dark:bg-corporate-blue-900/40 border border-corporate-blue-200/60 dark:border-corporate-blue-700/60 text-corporate-blue-700 dark:text-corporate-blue-300 text-sm font-medium shadow-corporate-lg backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/90 dark:bg-blue-900/40 border border-blue-200/60 dark:border-blue-700/60 text-blue-700 dark:text-blue-300 text-sm font-medium shadow-lg backdrop-blur-sm">
               <QrCode className="h-4 w-4" />
               Generador Profesional
             </div>
             
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-              <span className="bg-gradient-to-r from-slate-900 via-corporate-blue-800 to-slate-900 dark:from-slate-100 dark:via-corporate-blue-200 dark:to-slate-100 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 dark:from-slate-100 dark:via-blue-200 dark:to-slate-100 bg-clip-text text-transparent">
                 Códigos QR y Barras
               </span>
               <br />
-              <span className="text-corporate-blue-600 dark:text-corporate-blue-400">de Calidad Profesional</span>
+              <span className="text-blue-600 dark:text-blue-400">de Calidad Profesional</span>
             </h1>
             
             <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed">
