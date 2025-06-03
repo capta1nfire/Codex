@@ -119,22 +119,30 @@ export default function SuperAdminSidebar() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Merged Header + User Info */}
+      {/* CODEX Logo & Brand */}
+      <div className="p-4 border-b border-border/50">
+        <div className="flex items-center gap-3">
+          {/* Logo */}
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-corporate-blue-600 to-corporate-blue-700 shadow-lg">
+            <span className="text-white font-bold text-lg">C</span>
+          </div>
+          {!isCollapsed && (
+            <div className="flex-1">
+              <h1 className="font-bold text-xl text-slate-800 dark:text-slate-100 tracking-tight">
+                CODEX
+              </h1>
+              <p className="text-xs text-slate-500 uppercase tracking-wider">
+                Barcode Generator
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* User Info Section */}
       <div className="p-4 border-b border-border/50">
         {user ? (
           <div className="space-y-3">
-            {/* Main Title */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-blue-100 text-blue-600">
-                <Zap className="h-4 w-4" />
-              </div>
-              {!isCollapsed && (
-                <h2 className="font-bold text-slate-800 dark:text-slate-100 text-sm uppercase tracking-wide">
-                  Panel de Control
-                </h2>
-              )}
-            </div>
-            
             {/* User Info Card */}
             {!isCollapsed && (
               <Link
@@ -181,10 +189,10 @@ export default function SuperAdminSidebar() {
             )}
           </div>
         ) : (
-          // Fallback if no user
+          // Fallback if no user - Just role info
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-600">
-              <Zap className="h-5 w-5" />
+              <Crown className="h-5 w-5" />
             </div>
             {!isCollapsed && (
               <div className="flex-1">
