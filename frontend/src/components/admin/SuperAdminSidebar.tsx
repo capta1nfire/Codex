@@ -300,7 +300,7 @@ export default function SuperAdminSidebar() {
       {/* Mobile Toggle Button */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="fixed top-20 left-4 z-50 lg:hidden inline-flex items-center justify-center p-2 rounded-md bg-white/95 backdrop-blur-sm border border-border/50 shadow-lg"
+        className="fixed top-4 left-4 z-50 lg:hidden inline-flex items-center justify-center p-2 rounded-md bg-white/95 backdrop-blur-sm border border-border/50 shadow-lg"
       >
         {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
@@ -316,9 +316,8 @@ export default function SuperAdminSidebar() {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden lg:flex fixed left-0 bg-white/95 backdrop-blur-sm border-r border-border/50 shadow-lg z-40 transition-all duration-300",
-          "top-16 lg:top-20 xl:top-24", // Empezar después del navbar
-          "h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] xl:h-[calc(100vh-6rem)]", // Altura ajustada
+          "hidden lg:flex fixed left-0 top-0 bg-white/95 backdrop-blur-sm border-r border-border/50 shadow-lg z-40 transition-all duration-300",
+          "h-screen", // Altura completa de la pantalla
           isCollapsed ? "w-16" : "w-72"
         )}
       >
@@ -338,9 +337,8 @@ export default function SuperAdminSidebar() {
       {/* Mobile Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 w-72 bg-white/95 backdrop-blur-sm border-r border-border/50 shadow-lg z-50 lg:hidden transition-transform duration-300",
-          "top-16 lg:top-20 xl:top-24", // Empezar después del navbar
-          "h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] xl:h-[calc(100vh-6rem)]", // Altura ajustada
+          "fixed left-0 top-0 w-72 bg-white/95 backdrop-blur-sm border-r border-border/50 shadow-lg z-50 lg:hidden transition-transform duration-300",
+          "h-screen", // Altura completa de la pantalla
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
