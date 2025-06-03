@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/Navbar';
 import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -27,9 +26,8 @@ export default function RootLayout({
         <TooltipProvider>
           <AuthProvider>
             <ErrorBoundary>
-              <Navbar />
               <SuperAdminLayout>
-                <main className="pt-16 lg:pt-20 xl:pt-24">{children}</main>
+                <main>{children}</main>
               </SuperAdminLayout>
               
               <SystemAlerts />
@@ -44,7 +42,7 @@ export default function RootLayout({
                   fontSize: '14px',
                   padding: '16px',
                   borderRadius: '8px',
-                  marginTop: '120px',
+                  marginTop: '20px',
                 },
                 success: {
                   iconTheme: {
