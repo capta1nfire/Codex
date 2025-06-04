@@ -15,9 +15,10 @@
 2. **👑 SEGUNDO**: `CODEX.md` (roadmap estratégico y fases de desarrollo) 
 3. **📖 TERCERO**: `README.md` (setup técnico detallado)
 4. **🎨 CUARTO**: `docs/CODEX_DESIGN_SYSTEM.md` ← **LECTURA OBLIGATORIA** (filosofía visual y patrones UI)
-5. **🔧 OPCIONAL**: Documentación específica según necesidad
+5. **🚀 QUINTO**: `BARCODE_ROADMAP.md` ← **INVESTIGACIÓN ESTRATÉGICA OBLIGATORIA** (análisis técnico de códigos especializados)
+6. **🔧 OPCIONAL**: Documentación específica según necesidad
 
-> **⏰ Tiempo estimado**: 15 minutos para entender completamente el proyecto (incluyendo design system)
+> **⏰ Tiempo estimado**: 20 minutos para entender completamente el proyecto (incluyendo design system e investigación estratégica)
 
 ---
 
@@ -61,6 +62,7 @@
 ├── CODEX.md                     # 👑 DOCUMENTO MAESTRO - Roadmap/Estrategia
 ├── README.md                    # Overview técnico principal
 ├── API_DOCUMENTATION.md         # Documentación completa de APIs
+├── BARCODE_ROADMAP.md           # 🚀 INVESTIGACIÓN ESTRATÉGICA - Análisis técnico de códigos especializados
 └── CHANGELOG.md                 # Historial oficial de versiones
 ```
 
@@ -119,6 +121,67 @@ PostgreSQL Database + Redis Cache
 - ✅ **Clipboard**: useClipboard hook con fallback universal
 - ✅ **Dashboard**: Responsive con métricas tiempo real
 - ✅ **Gradientes SVG**: Sistema avanzado de gradientes continuos para QR codes con controles UI y bordes opcionales
+
+---
+
+## 🎯 **INVESTIGACIÓN ESTRATÉGICA - BARCODE_ROADMAP.md** 
+
+> **🚨 LECTURA CRÍTICA**: El archivo `BARCODE_ROADMAP.md` contiene la **investigación exhaustiva de mercado 2025** que define completamente la **estrategia de especialización** de CODEX.
+
+### **📊 CONTENIDO ESTRATÉGICO FUNDAMENTAL**
+
+#### **🥇 Los 5 Códigos Especializados (Orden de Prioridad)**
+1. **QR Code**: Máxima relevancia - Marketing, pagos móviles, logística (100M usuarios proyectados 2025)
+2. **Data Matrix**: Industria, farmacéutica, aeroespacial - Alta densidad y DPM
+3. **EAN/UPC**: Retail universal - Preparación para "Sunrise 2027" (transición 2D)
+4. **Code 128 (GS1-128)**: Logística, cadena de suministro - Identificadores de aplicación
+5. **ITF-14**: Empaques, cartón corrugado - Impresión directa robusta
+
+#### **🔬 BIBLIOTECAS RUST ESPECIALIZADAS**
+```rust
+// Especificaciones técnicas por tipo de código
+QR Code: qrcodegen, qrcode_generator    // Personalización avanzada + logos
+Data Matrix: datamatrix                 // Optimización DPM + alta densidad  
+EAN/UPC: barcoders, ean-rs             // Validación GTIN perfecta
+Code 128: barcoders                     // GS1-128 + Identificadores de Aplicación
+ITF-14: barcoders                       // Bearer bars + cartón corrugado
+```
+
+#### **🎯 VENTAJA COMPETITIVA ESTRATÉGICA**
+- **Competencia**: Intenta cubrir 30-50 tipos de códigos **superficialmente**
+- **CODEX**: Domina técnicamente los **5 tipos más importantes** (85% del mercado real)
+- **Resultado**: Posicionamiento premium basado en **calidad técnica superior**
+
+#### **📈 TENDENCIAS CRÍTICAS 2025-2027**
+- **"Sunrise 2027"**: Transición retail global hacia códigos 2D (oportunidad masiva)
+- **GS1 Digital Link**: QR codes conectando productos físicos al mundo digital
+- **Crecimiento QR**: 433% en últimos 4 años, sectores líderes: Marketing (23.75%), Educación (13.23%)
+- **Industria 4.0**: Data Matrix crítico para trazabilidad y serialización
+
+### **🎪 IMPLEMENTACIÓN EN CODEX**
+
+#### **✅ YA IMPLEMENTADO**
+- **Selector de categorías**: Frontend con navegación horizontal por tipo especializado
+- **Arquitectura Rust**: Preparada para bibliotecas especializadas
+- **Documentación estratégica**: CODEX.md actualizado v1.3.0 con estrategia completa
+
+#### **🔄 EN DESARROLLO** (basado en BARCODE_ROADMAP.md)
+- **QR Code avanzado**: Personalización con logos y gradientes corporativos  
+- **Validación EAN/UPC**: Cumplimiento GS1 perfecto para retail
+- **Data Matrix industrial**: Optimización para DPM y espacios pequeños
+- **Code 128 logístico**: Implementación perfecta de Identificadores de Aplicación
+- **ITF-14 robusto**: Bearer bars y optimización para cartón corrugado
+
+### **🚨 IMPORTANCIA CRÍTICA PARA AGENTES IA**
+
+**SI NO LEES BARCODE_ROADMAP.md, NO ENTENDERÁS**:
+- ❌ **Por qué** CODEX se especializa en solo 5 códigos vs 50 genéricos
+- ❌ **Cómo** posicionarse como líder técnico premium vs competencia genérica  
+- ❌ **Cuáles** bibliotecas Rust usar para cada tipo de código específico
+- ❌ **Qué** oportunidades estratégicas representa "Sunrise 2027"
+- ❌ **Dónde** enfocar desarrollo para máximo impacto de mercado
+
+**CONSECUENCIA**: Desarrollo sin dirección estratégica, decisiones técnicas incorrectas, pérdida de ventaja competitiva fundamental.
 
 ---
 
@@ -185,7 +248,7 @@ cd rust_generator && cargo run  # Puerto 3002 (CORRECTED)
 - ✅ **ENTERPRISE**: Backend restart real con detección de PM2/systemd
 - ✅ **ENTERPRISE**: Control robusto de Rust service con process management
 - ✅ **ENTERPRISE**: Validación post-acción y health checks automáticos
-- ✅ **ENTERPRISE**: Nuevos endpoints de status y health-check forzado
+- ✅ **ENTERPRISE**: Nuevos endpoints de status and health-check forzado
 - ✅ **ENTERPRISE**: Frontend con feedback visual en tiempo real de acciones
 - ✅ **DASHBOARD**: Implementado layout de 3 columnas con altura forzada igual
 - ✅ **DASHBOARD**: Sistema de modo avanzado con configuración de servicios

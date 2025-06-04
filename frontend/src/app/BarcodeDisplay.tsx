@@ -44,35 +44,24 @@ export default function BarcodeDisplay({ svgContent, type, data, gradientOptions
 
   // Calculamos clases de Tailwind condicionales para el contenedor/wrapper principal
   const wrapperClasses = useMemo(() => {
-    // Clases base: Solo centrado y padding, sin borde ni fondo
-    const baseClasses = 'p-4 sm:p-6 flex flex-col items-center w-full';
-    const isLinearBarcode = ['code128', 'ean13', 'upca', 'code39'].includes(type);
-    const isPdf417 = type === 'pdf417';
-
-    if (isLinearBarcode) {
-      // Permitimos que los lineales sean más anchos
-      return `${baseClasses} max-w-2xl lg:max-w-4xl`;
-    } else if (isPdf417) {
-      // Ancho intermedio para PDF417
-      return `${baseClasses} max-w-xl lg:max-w-2xl`;
-    } else {
-      // QR, DataMatrix: SIN restricción de ancho máximo para dominio visual
-      return `${baseClasses}`;
-    }
+    // Clases base: Ocupar todo el contenedor disponible
+    const baseClasses = 'w-full h-full flex flex-col items-center justify-center';
+    
+    return baseClasses;
   }, [type]);
 
   // Calculamos clases para el div que contiene el SVG interno
   const svgContainerClasses = useMemo(() => {
-    // Clases base: Centrado, padding interno para que no toque bordes
-    const baseClasses = 'w-full flex justify-center items-center p-2';
+    // Clases base: Ocupar 100% del contenedor disponible
+    const baseClasses = 'w-full h-full flex justify-center items-center';
     const isLinearBarcode = ['code128', 'ean13', 'upca', 'code39'].includes(type);
 
     if (isLinearBarcode) {
-      // Para lineales: altura automática pero con máximo para mantener proporción visual
-      return `${baseClasses} h-auto min-h-16 max-h-24`;
+      // Para lineales: mantener aspecto pero ocupar todo el ancho
+      return `${baseClasses} min-h-[150px]`;
     } else {
-      // Para QR y otros 2D: altura más pequeña para un tamaño más compacto
-      return `${baseClasses} h-auto min-h-32 lg:min-h-40`;
+      // Para QR y otros 2D: ocupar todo el espacio disponible
+      return `${baseClasses} min-h-[200px]`;
     }
   }, [type]);
 
@@ -109,7 +98,6 @@ export default function BarcodeDisplay({ svgContent, type, data, gradientOptions
       {/* Div que contiene directamente el SVG */}
       <div
         className={svgContainerClasses} // <-- Clases para tamaño/aspecto
-        style={{ maxWidth: '352px', maxHeight: '264px' }} // Limitar tamaño máximo del SVG - aumentado 10%
         dangerouslySetInnerHTML={{ __html: processedSvgContent }}
         role="img"
         // Usamos un título más descriptivo para accesibilidad

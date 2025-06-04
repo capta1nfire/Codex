@@ -232,8 +232,8 @@ export function applySvgGradient(svgString: string, gradientOptions: GradientOpt
       element.setAttribute('fill', 'transparent');
       // Agregar borde blanco transparente solo si está habilitado
       if (gradientOptions.borders) {
-        element.setAttribute('stroke', 'rgba(255, 255, 255, 0.4)');
-        element.setAttribute('stroke-width', '0.05');
+        element.setAttribute('stroke', 'rgba(255, 255, 255, 0.5)');
+        element.setAttribute('stroke-width', '0.025');
       }
     });
     blackGroups.forEach(group => {
@@ -242,8 +242,8 @@ export function applySvgGradient(svgString: string, gradientOptions: GradientOpt
       if (gradientOptions.borders) {
         const groupElements = group.querySelectorAll('rect, path, polygon, circle, ellipse');
         groupElements.forEach(el => {
-          el.setAttribute('stroke', 'rgba(255, 255, 255, 0.4)');
-          el.setAttribute('stroke-width', '0.05');
+          el.setAttribute('stroke', 'rgba(255, 255, 255, 0.5)');
+          el.setAttribute('stroke-width', '0.025');
         });
       }
     });

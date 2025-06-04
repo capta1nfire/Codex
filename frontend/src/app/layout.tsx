@@ -5,7 +5,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import SystemAlerts from '@/components/SystemAlerts';
-import SuperAdminLayout from '@/components/admin/SuperAdminLayout';
+import AppLayout from '@/components/admin/AppLayout';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -26,9 +26,9 @@ export default function RootLayout({
         <TooltipProvider>
           <AuthProvider>
             <ErrorBoundary>
-              <SuperAdminLayout>
+              <AppLayout>
                 <main>{children}</main>
-              </SuperAdminLayout>
+              </AppLayout>
               
               <SystemAlerts />
             </ErrorBoundary>

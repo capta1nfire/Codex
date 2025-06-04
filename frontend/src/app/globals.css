@@ -44,31 +44,31 @@
 
 @layer base {
   :root {
-    /* Paleta Qwen - Modo Claro */
-    --background: 210 13% 96%;
-    --foreground: 220 9% 15%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 220 9% 15%;
-    --popover: 0 0% 100%; /* Asumir blanco o card */
-    --popover-foreground: 220 9% 15%; /* Asumir foreground */
-    --primary: 210 53% 36%;
-    --primary-foreground: 0 0% 100%; /* Blanco */
-    --secondary: 210 9% 45%;
-    --secondary-foreground: 0 0% 100%; /* Blanco */
-    --muted: 210 9% 25%; /* Gris oscuro, similar a secundario */
-    --muted-foreground: 210 13% 65%; /* Gris más claro que foreground */
-    --accent: 210 53% 65%; /* CODEX Corporate Blue claro en lugar de verde */
-    --accent-foreground: 220 9% 15%; /* Texto oscuro */
-    --destructive: 10 70% 66%;
-    --destructive-foreground: 220 9% 15%;
-    --success: 210 53% 65%; /* CODEX Corporate Blue claro en lugar de verde */
-    --success-foreground: 220 9% 15%; /* Texto oscuro para contraste */
-    --warning: 30 67% 62%; /* Añadir warning */
-    --warning-foreground: 220 9% 15%; /* Añadir warning-foreground */
-    --border: 210 13% 88%;
-    --input: 210 13% 88%; /* Usar mismo que borde o ligeramente diferente */
-    --ring: 210 53% 36%; /* Usar primario para ring */
-    --radius: 0.5rem; /* Mantener radio */
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
 
     /* ✅ CODEX Design System v2.0 - Corporate Blue Tokens */
     --corporate-blue-50: 210 53% 95%;
@@ -84,30 +84,31 @@
   }
 
   .dark {
-    /* Paleta Qwen - Modo Oscuro */
-    --background: 210 13% 10%;
-    --foreground: 210 13% 92%;
-    --card: 210 13% 15%;
-    --card-foreground: 210 13% 92%;
-    --popover: 210 13% 15%; /* Asumir card */
-    --popover-foreground: 210 13% 92%; /* Asumir foreground */
-    --primary: 210 53% 66%;
-    --primary-foreground: 220 9% 15%; /* Texto oscuro */
-    --secondary: 210 9% 25%;
-    --secondary-foreground: 210 13% 92%;
-    --muted: 210 9% 25%; /* Gris oscuro, similar a secundario */
-    --muted-foreground: 210 13% 65%; /* Gris más claro que foreground */
-    --accent: 155 100% 70%;
-    --accent-foreground: 0 0% 10%; /* Texto oscuro */
-    --destructive: 10 70% 66%;
-    --destructive-foreground: 220 9% 15%;
-    --success: 120 70% 70%;
-    --success-foreground: 120 70% 15%; /* Texto oscuro */
-    --warning: 30 67% 62%; /* Añadir warning */
-    --warning-foreground: 220 9% 15%; /* Añadir warning-foreground */
-    --border: 210 9% 30%;
-    --input: 210 9% 30%; /* Usar mismo que borde */
-    --ring: 210 53% 66%; /* Usar primario claro para ring */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --radius: 0.5rem;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
 
     /* ✅ CODEX Design System v2.0 - Corporate Blue Tokens Dark Mode */
     --corporate-blue-50: 210 53% 10%;
@@ -556,6 +557,18 @@
     fill: transparent !important;
   }
 
+  /* ✅ SVG Full Container Scaling - CODEX Generator */
+  .barcode-svg svg,
+  .svg-linear-barcode svg,
+  .svg-rectangular-code svg,
+  .svg-square-code svg {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: contain;
+  }
+
   /* 🎯 CODEX Linear Barcode Optimization - Design System v2.0 */
   .svg-linear-barcode {
     /* Optimización específica para códigos lineales */
@@ -647,4 +660,78 @@
     image-rendering: -moz-crisp-edges;
     image-rendering: pixelated;
   }
+}
+
+/* ✅ CODEX Horizontal Tabs - Clean scrollbar styles */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Smooth scrolling for horizontal tabs */
+.scrollbar-hide {
+  scroll-behavior: smooth;
+}
+
+/* Ocultar scrollbars pero mantener funcionalidad */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Hacer que los SVGs escalen correctamente */
+.barcode-container svg {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+
+/* Asegurar que sticky funcione correctamente */
+.sticky-container {
+  position: sticky;
+  top: 1rem;
+  z-index: 10;
+}
+
+/* Scroll suave para toda la página */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Mejorar scrollbars en contenedores con scroll */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgb(241 245 249);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(100 116 139);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: rgb(15 23 42);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(71 85 105);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(100 116 139);
 }

@@ -2,6 +2,8 @@
   "extends": ["next/core-web-vitals"],
   "rules": {
     "react/no-unescaped-entities": "warn",
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/exhaustive-deps": "warn",
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-uses-react": "off"
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Controller, Control, FieldErrors, UseFormWatch, UseFormReset, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
 import {
   Select,
@@ -90,8 +90,8 @@ export default function GenerationOptions({
   setExpandedSection,
 }: GenerationOptionsProps) {
   
-  // Estado interno para manejar qué sección específica está abierta
-  const [internalExpandedSection, setInternalExpandedSection] = React.useState<string>('appearance');
+  // Estado para el tab activo
+  const [activeTab, setActiveTab] = useState<string>('color');
   
   // Calculate conditional visibility
   const is1DBarcode = selectedType
@@ -140,7 +140,7 @@ export default function GenerationOptions({
     )}>
       <CardHeader 
         className="pb-2 cursor-pointer"
-        onClick={() => setInternalExpandedSection(isOpen ? '' : id)}
+        onClick={() => setActiveTab(id)}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -196,8 +196,8 @@ export default function GenerationOptions({
     label: string; 
     defaultValue: string;
   }) => (
-    <div className="space-y-1.5">
-      <Label className="text-sm font-medium">{label}</Label>
+    <div className="space-y-1">
+      <Label className="text-xs font-medium text-slate-600 dark:text-slate-400">{label}</Label>
       <Controller
         name={name}
         control={control}
@@ -209,13 +209,9 @@ export default function GenerationOptions({
               value={field.value || defaultValue}
               disabled={isLoading}
               placeholder={defaultValue}
-              onChange={(e) => {
-                field.onChange(e.target.value);
-                // ✅ CORREGIDO: Eliminada auto-regeneración que causaba spam de peticiones
-                // Solo actualizar el valor, no regenerar automáticamente
-              }}
+              onChange={(e) => field.onChange(e.target.value)}
               className={cn(
-                "h-9 pl-12 transition-all duration-200 focus:scale-[1.01]",
+                "h-8 pl-10 text-sm",
                 errors.options?.[name.split('.')[1] as keyof typeof errors.options] 
                   ? 'border-destructive' 
                   : 'focus:border-blue-500'
@@ -225,12 +221,8 @@ export default function GenerationOptions({
               <Input
                 type="color"
                 value={field.value || defaultValue}
-                onChange={(e) => {
-                  field.onChange(e.target.value);
-                  // ✅ CORREGIDO: Eliminada auto-regeneración que causaba spam de peticiones
-                  // Solo actualizar el valor, no regenerar automáticamente
-                }}
-                className="w-7 h-7 p-0 border-2 border-slate-200 dark:border-slate-600 rounded-md cursor-pointer transition-all duration-200 hover:scale-110 hover:border-blue-400"
+                onChange={(e) => field.onChange(e.target.value)}
+                className="w-6 h-6 p-0 border-2 border-slate-200 dark:border-slate-600 rounded cursor-pointer"
                 disabled={isLoading}
                 aria-label={`Seleccionar ${label.toLowerCase()}`}
               />
@@ -241,69 +233,94 @@ export default function GenerationOptions({
     </div>
   );
 
-  return (
-    <div className="space-y-3">
-      {/* Appearance & Colors Section - Merged */}
-      <SectionCard
-        id="appearance"
-        title="Apariencia y Colores"
-        subtitle="Configuración visual y efectos de color"
-        icon={Palette}
-        isOpen={internalExpandedSection === 'appearance'}
-        badgeText="Esencial"
-      >
-        <div className="space-y-4">
-          {/* Color Mode Selection - New */}
-          {isQrCode && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-slate-50 to-blue-50/30 dark:from-slate-800/50 dark:to-blue-950/30 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
-                <div>
-                  <Label className="text-sm font-semibold text-slate-800 dark:text-slate-200">Modo de Color</Label>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                    Elegir entre colores sólidos o efectos de gradiente
-                  </p>
-                </div>
-                <Controller
-                  name="options.gradient_enabled"
-                  control={control}
-                  defaultValue={true}
-                  render={({ field }) => (
-                    <div className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
-                      <span className={cn(
-                        "text-xs font-semibold transition-colors px-2 py-1 rounded",
-                        !field.value 
-                          ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50" 
-                          : "text-slate-500 dark:text-slate-400"
-                      )}>
-                        Sólido
-                      </span>
-                      <Switch
-                        checked={field.value || false}
-                        onCheckedChange={(checked) => {
-                          field.onChange(checked);
-                          // ✅ CORREGIDO: Eliminada auto-regeneración que causaba spam de peticiones
-                          // Solo actualizar el valor, no regenerar automáticamente
-                        }}
-                        disabled={isLoading}
-                      />
-                      <span className={cn(
-                        "text-xs font-semibold transition-colors px-2 py-1 rounded",
-                        field.value 
-                          ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50" 
-                          : "text-slate-500 dark:text-slate-400"
-                      )}>
-                        Gradiente
-                      </span>
-                    </div>
-                  )}
-                />
-              </div>
+  // Definir los tabs
+  const tabs = [
+    {
+      id: 'color',
+      name: 'COLOR',
+      icon: Palette,
+    },
+    {
+      id: 'design',
+      name: 'DESIGN',
+      icon: Eye,
+    },
+    {
+      id: 'advanced',
+      name: 'ADVANCED',
+      icon: Settings2,
+    },
+  ];
 
-              {/* Conditional Content Based on Mode */}
-              {!watch('options.gradient_enabled') ? (
-                // Solid Colors Mode
-                <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
-                  <div className="grid grid-cols-2 gap-4">
+  return (
+    <div className="space-y-4">
+      {/* Tabs Navigation */}
+      <div className="flex border-b border-slate-200 dark:border-slate-700">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 border-b-2 flex-1 justify-center",
+                isActive
+                  ? "border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20"
+                  : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              <span>{tab.name}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab Content */}
+      <div className="min-h-[300px]">
+        {/* COLOR Tab */}
+        {activeTab === 'color' && (
+          <div className="space-y-4 animate-in fade-in-50 duration-200">
+            {/* Color Mode Selection - Simplified */}
+            {isQrCode && (
+              <div className="space-y-3">
+                {/* Simple Color Mode Toggle */}
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Modo de Color</Label>
+                  <Controller
+                    name="options.gradient_enabled"
+                    control={control}
+                    defaultValue={true}
+                    render={({ field }) => (
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "text-xs transition-colors",
+                          !field.value ? "text-slate-900 dark:text-slate-100 font-medium" : "text-slate-500"
+                        )}>
+                          Sólido
+                        </span>
+                        <Switch
+                          checked={field.value || false}
+                          onCheckedChange={field.onChange}
+                          disabled={isLoading}
+                        />
+                        <span className={cn(
+                          "text-xs transition-colors",
+                          field.value ? "text-slate-900 dark:text-slate-100 font-medium" : "text-slate-500"
+                        )}>
+                          Gradiente
+                        </span>
+                      </div>
+                    )}
+                  />
+                </div>
+
+                {/* Color Controls */}
+                {!watch('options.gradient_enabled') ? (
+                  // Solid Colors Mode
+                  <div className="grid grid-cols-2 gap-3">
                     <ColorInput 
                       name="options.fgcolor" 
                       label="Color Principal" 
@@ -315,323 +332,253 @@ export default function GenerationOptions({
                       defaultValue="#FFFFFF" 
                     />
                   </div>
-                </div>
-              ) : (
-                // Gradient Mode
-                <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
-                  {/* Gradient Type */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Tipo de Gradiente</Label>
-                    <Controller
-                      name="options.gradient_type"
-                      control={control}
-                      defaultValue="radial"
-                      render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                          <SelectTrigger className="h-9 transition-all duration-200 focus:scale-[1.01]">
-                            <SelectValue placeholder="Selecciona tipo..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="linear">Lineal</SelectItem>
-                            <SelectItem value="radial">Radial (desde el centro)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
-
-                  {/* Gradient Colors */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <ColorInput 
-                      name="options.gradient_color1" 
-                      label="Color Central" 
-                      defaultValue="#2563EB" 
-                    />
-                    <ColorInput 
-                      name="options.gradient_color2" 
-                      label="Color Exterior" 
-                      defaultValue="#000000" 
-                    />
-                  </div>
-
-                  {/* Swap Colors Button */}
-                  <div className="flex justify-center">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const color1 = watch('options.gradient_color1') || '#2563EB';
-                        const color2 = watch('options.gradient_color2') || '#000000';
-                        // Intercambiar los colores
-                        setValue('options.gradient_color1', color2, { shouldValidate: true });
-                        setValue('options.gradient_color2', color1, { shouldValidate: true });
-                        
-                        // ✅ CORREGIDO: Eliminada auto-regeneración que causaba spam de peticiones
-                        // Solo actualizar los valores, no regenerar automáticamente
-                      }}
-                      disabled={isLoading}
-                      className="h-8 px-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 hover:scale-105 group"
-                      title="Intercambiar colores del gradiente"
-                    >
-                      <ArrowLeftRight className="h-3 w-3 mr-1.5 transition-transform duration-200 group-hover:scale-110" />
-                      <span className="text-xs font-medium">Invertir Colores</span>
-                    </Button>
-                  </div>
-
-                  {/* Gradient Direction - Solo para linear */}
-                  {watch('options.gradient_type') === 'linear' && (
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Dirección</Label>
+                ) : (
+                  // Gradient Mode - Simplified
+                  <div className="space-y-3">
+                    {/* Gradient Type */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">Tipo</Label>
                       <Controller
-                        name="options.gradient_direction"
+                        name="options.gradient_type"
                         control={control}
-                        defaultValue="top-bottom"
+                        defaultValue="radial"
                         render={({ field }) => (
                           <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                            <SelectTrigger className="h-9 transition-all duration-200 focus:scale-[1.01]">
-                              <SelectValue placeholder="Selecciona dirección..." />
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="top-bottom">↓ Vertical (arriba-abajo)</SelectItem>
-                              <SelectItem value="left-right">→ Horizontal (izquierda-derecha)</SelectItem>
-                              <SelectItem value="diagonal">↘ Diagonal</SelectItem>
+                              <SelectItem value="linear">Lineal</SelectItem>
+                              <SelectItem value="radial">Radial</SelectItem>
                             </SelectContent>
                           </Select>
                         )}
                       />
                     </div>
-                  )}
 
-                  {/* Gradient Preview */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Vista Previa</Label>
-                    <div className="h-12 rounded-lg border-2 border-slate-200 dark:border-slate-700 overflow-hidden">
-                      <div 
-                        className="w-full h-full"
-                        style={{
-                          background: watch('options.gradient_type') === 'radial' 
-                            ? `radial-gradient(circle, ${watch('options.gradient_color1') || '#2563EB'} 0%, ${watch('options.gradient_color2') || '#000000'} 100%)`
-                            : watch('options.gradient_direction') === 'left-right'
-                            ? `linear-gradient(to right, ${watch('options.gradient_color1') || '#2563EB'} 0%, ${watch('options.gradient_color2') || '#000000'} 100%)`
-                            : watch('options.gradient_direction') === 'diagonal'
-                            ? `linear-gradient(135deg, ${watch('options.gradient_color1') || '#2563EB'} 0%, ${watch('options.gradient_color2') || '#000000'} 100%)`
-                            : `linear-gradient(to bottom, ${watch('options.gradient_color1') || '#2563EB'} 0%, ${watch('options.gradient_color2') || '#000000'} 100%)`
-                        }}
+                    {/* Gradient Colors with Swap */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-sm font-medium">Colores</Label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const color1 = watch('options.gradient_color1') || '#2563EB';
+                            const color2 = watch('options.gradient_color2') || '#000000';
+                            setValue('options.gradient_color1', color2, { shouldValidate: true });
+                            setValue('options.gradient_color2', color1, { shouldValidate: true });
+                          }}
+                          disabled={isLoading}
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                          title="Intercambiar colores"
+                        >
+                          <ArrowLeftRight className="h-3 w-3" />
+                          Intercambiar
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <ColorInput 
+                          name="options.gradient_color1" 
+                          label="Primario" 
+                          defaultValue="#2563EB" 
+                        />
+                        <ColorInput 
+                          name="options.gradient_color2" 
+                          label="Secundario" 
+                          defaultValue="#000000" 
+                        />
+                      </div>
+                    </div>
+
+                    {/* Gradient Direction - Only for linear */}
+                    {watch('options.gradient_type') === 'linear' && (
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">Dirección</Label>
+                        <Controller
+                          name="options.gradient_direction"
+                          control={control}
+                          defaultValue="top-bottom"
+                          render={({ field }) => (
+                            <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                              <SelectTrigger className="h-9">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="top-bottom">↓ Vertical</SelectItem>
+                                <SelectItem value="left-right">→ Horizontal</SelectItem>
+                                <SelectItem value="diagonal">↘ Diagonal</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                    )}
+
+                    {/* Gradient Borders - Simplified */}
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Bordes</Label>
+                      <Controller
+                        name="options.gradient_borders"
+                        control={control}
+                        defaultValue={true}
+                        render={({ field }) => (
+                          <Switch
+                            checked={field.value || false}
+                            onCheckedChange={field.onChange}
+                            disabled={isLoading}
+                          />
+                        )}
                       />
                     </div>
                   </div>
-
-                  {/* Gradient Borders Control */}
-                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-slate-50 to-slate-50/50 dark:from-slate-800/50 dark:to-slate-800/30 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
-                    <div>
-                      <Label className="text-sm font-medium text-slate-800 dark:text-slate-200">Bordes de Separación</Label>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                        Mostrar bordes sutiles entre elementos del código
-                      </p>
-                    </div>
-                    <Controller
-                      name="options.gradient_borders"
-                      control={control}
-                      defaultValue={true}
-                      render={({ field }) => (
-                        <Switch
-                          checked={field.value || false}
-                          onCheckedChange={field.onChange}
-                          disabled={isLoading}
-                        />
-                      )}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Solid Colors for Non-QR Codes */}
-          {!isQrCode && (
-            <div className="grid grid-cols-2 gap-4">
-              <ColorInput 
-                name="options.fgcolor" 
-                label="Color Principal" 
-                defaultValue="#000000" 
-              />
-              <ColorInput 
-                name="options.bgcolor" 
-                label="Color Fondo" 
-                defaultValue="#FFFFFF" 
-              />
-            </div>
-          )}
-        </div>
-      </SectionCard>
-
-      {/* Display Section */}
-      <SectionCard
-        id="display"
-        title="Visualización"
-        subtitle="Opciones de formato y presentación"
-        icon={Eye}
-        isOpen={internalExpandedSection === 'display'}
-        badgeText={`${selectedType?.toUpperCase()}`}
-      >
-        <div className="space-y-4">
-          {/* Height (if relevant) */}
-          {isHeightRelevant && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Altura</Label>
-                <Badge variant="outline" className="text-xs">
-                  {watch('options.height')}px
-                </Badge>
-              </div>
-              <Controller
-                name="options.height"
-                control={control}
-                defaultValue={100}
-                render={({ field }) => (
-                  <div className="space-y-2">
-                    <Slider
-                      min={10}
-                      max={500}
-                      step={10}
-                      value={[field.value ?? 100]}
-                      onValueChange={(value) => field.onChange(value[0])}
-                      disabled={isLoading}
-                      className="transition-all duration-200 hover:scale-[1.01]"
-                    />
-                    <div className="flex justify-between text-xs text-slate-500">
-                      <span>Bajo (10px)</span>
-                      <span>Alto (500px)</span>
-                    </div>
-                  </div>
                 )}
-              />
-            </div>
-          )}
+              </div>
+            )}
 
-          {/* Include Text (if 1D) */}
-          {is1DBarcode && (
-            <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+            {/* Solid Colors for Non-QR Codes */}
+            {!isQrCode && (
+              <div className="grid grid-cols-2 gap-3">
+                <ColorInput 
+                  name="options.fgcolor" 
+                  label="Color Principal" 
+                  defaultValue="#000000" 
+                />
+                <ColorInput 
+                  name="options.bgcolor" 
+                  label="Color Fondo" 
+                  defaultValue="#FFFFFF" 
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* DESIGN Tab */}
+        {activeTab === 'design' && (
+          <div className="space-y-4 animate-in fade-in-50 duration-200">
+            {/* Height (if relevant) */}
+            {isHeightRelevant && (
               <div>
-                <Label className="text-sm font-medium">Mostrar Texto</Label>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                  Incluir texto legible debajo del código
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium">Altura</Label>
+                  <Badge variant="outline" className="text-xs">
+                    {watch('options.height')}px
+                  </Badge>
+                </div>
+                <Controller
+                  name="options.height"
+                  control={control}
+                  defaultValue={100}
+                  render={({ field }) => (
+                    <div className="space-y-1">
+                      <Slider
+                        min={10}
+                        max={500}
+                        step={10}
+                        value={[field.value ?? 100]}
+                        onValueChange={(value) => field.onChange(value[0])}
+                        disabled={isLoading}
+                      />
+                      <div className="flex justify-between text-xs text-slate-500">
+                        <span>10px</span>
+                        <span>500px</span>
+                      </div>
+                    </div>
+                  )}
+                />
               </div>
-              <Controller
-                name="options.includetext"
-                control={control}
-                defaultValue={true}
-                render={({ field }) => (
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={isLoading}
-                  />
-                )}
-              />
-            </div>
-          )}
+            )}
 
-          {/* ECL Level (if QR) */}
-          {isQrCode && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Nivel de Corrección de Errores</Label>
-              <Controller
-                name="options.ecl"
-                control={control}
-                defaultValue="M"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                    <SelectTrigger className="h-9 transition-all duration-200 focus:scale-[1.01]">
-                      <SelectValue placeholder="Selecciona nivel..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="L">
-                        <div className="flex items-center justify-between w-full">
-                          <span>L - Bajo</span>
-                          <Badge variant="secondary" className="ml-2 text-xs">~7%</Badge>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="M">
-                        <div className="flex items-center justify-between w-full">
-                          <span>M - Medio</span>
-                          <Badge variant="secondary" className="ml-2 text-xs">~15%</Badge>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="Q">
-                        <div className="flex items-center justify-between w-full">
-                          <span>Q - Alto</span>
-                          <Badge variant="secondary" className="ml-2 text-xs">~25%</Badge>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="H">
-                        <div className="flex items-center justify-between w-full">
-                          <span>H - Máximo</span>
-                          <Badge variant="secondary" className="ml-2 text-xs">~30%</Badge>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Mayor corrección permite recuperar el código aunque esté parcialmente dañado
-              </p>
-            </div>
-          )}
-        </div>
-      </SectionCard>
+            {/* Include Text (if 1D) */}
+            {is1DBarcode && (
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Mostrar Texto</Label>
+                <Controller
+                  name="options.includetext"
+                  control={control}
+                  defaultValue={true}
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isLoading}
+                    />
+                  )}
+                />
+              </div>
+            )}
 
-      {/* Advanced Section */}
-      <SectionCard
-        id="advanced"
-        title="Opciones Avanzadas"
-        subtitle="Configuración específica del formato"
-        icon={Settings2}
-        isOpen={internalExpandedSection === 'advanced'}
-        badgeText="Experto"
-      >
-        <AdvancedBarcodeOptions
-          control={control}
-          errors={errors}
-          watch={watch}
-          isLoading={isLoading}
-          selectedType={selectedType}
-          reset={reset}
-        />
-      </SectionCard>
+            {/* ECL Level (if QR) */}
+            {isQrCode && (
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Corrección de Errores</Label>
+                <Controller
+                  name="options.ecl"
+                  control={control}
+                  defaultValue="M"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="L">L - Bajo (~7%)</SelectItem>
+                        <SelectItem value="M">M - Medio (~15%)</SelectItem>
+                        <SelectItem value="Q">Q - Alto (~25%)</SelectItem>
+                        <SelectItem value="H">H - Máximo (~30%)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            )}
+          </div>
+        )}
 
-      {/* Reset Button */}
-      <div className="pt-2 space-y-2">
-        {/* ✅ OPTIMIZADO: Botón de regeneración manual que solo ejecuta cuando es necesario */}
+        {/* ADVANCED Tab */}
+        {activeTab === 'advanced' && (
+          <div className="animate-in fade-in-50 duration-200">
+            <AdvancedBarcodeOptions
+              control={control}
+              errors={errors}
+              watch={watch}
+              isLoading={isLoading}
+              selectedType={selectedType}
+              reset={reset}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+        {/* Primary Action - Regenerate */}
         <Button
           type="button"
           variant="default"
           size="sm"
           onClick={() => {
             const currentValues = getValues();
-            console.log('[Regenerar Manual] Ejecutando onSubmit con valores actuales:', currentValues);
             onSubmit(currentValues);
           }}
           disabled={isLoading || !watch('data')}
-          className="w-full h-9 bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 hover:scale-[1.01]"
+          className="w-full h-9 bg-blue-600 hover:bg-blue-700 text-white"
         >
           <RefreshCw className={cn("h-3 w-3 mr-2", isLoading && "animate-spin")} />
-          {isLoading ? 'Generando...' : 'Regenerar Código'}
+          {isLoading ? 'Generando...' : 'Regenerar'}
         </Button>
         
+        {/* Secondary Action - Reset */}
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="sm"
           onClick={handleResetOptions}
           disabled={isLoading}
-          className="w-full h-9 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200 hover:scale-[1.01]"
+          className="w-full h-8 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
         >
           <RotateCcw className="h-3 w-3 mr-2" />
-          Restablecer a Valores por Defecto
+          Restablecer
         </Button>
       </div>
     </div>
