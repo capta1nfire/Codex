@@ -61,7 +61,6 @@
   @media (min-width: 1024px) {
     .generator-grid {
       grid-template-columns: 2fr 1fr; /* Proporción 2:1 */
-      gap: 1.5rem;
       align-items: stretch; /* Para altura igual */
     }
     
@@ -92,6 +91,29 @@
       grid-template-columns: 1fr;
       gap: 1.5rem;
     }
+  }
+}
+
+@layer base {
+  /* Placeholder colors - más claros */
+  ::placeholder {
+    @apply text-slate-400 dark:text-slate-500;
+  }
+  
+  ::-webkit-input-placeholder {
+    @apply text-slate-400 dark:text-slate-500;
+  }
+  
+  ::-moz-placeholder {
+    @apply text-slate-400 dark:text-slate-500;
+  }
+  
+  :-ms-input-placeholder {
+    @apply text-slate-400 dark:text-slate-500;
+  }
+  
+  :-moz-placeholder {
+    @apply text-slate-400 dark:text-slate-500;
   }
 }
 

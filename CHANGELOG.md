@@ -5,6 +5,60 @@ All notable changes to the CODEX project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-01-07
+
+### 🎨 UI/UX Improvements - Visual Refinements and Structure Enhancement
+
+#### Added
+- **Numbered Step Indicators**: Added prominent numbered steps (1, 2, 3) for better workflow guidance
+  - Square design with rounded corners (`rounded-md`) instead of circular
+  - Blue background (`bg-blue-600`) with white numbers for visibility
+  - Smaller size (`w-6 h-6`) per user preference
+  
+- **Unified Container Design**: Merged two columns to appear as single block
+  - Applied single shadow (`shadow-sm`) to main container
+  - Added red border temporarily for debugging (later changed to slate)
+  - Border between columns for visual separation
+
+#### Changed
+- **Container Structure**:
+  - Removed gap between columns (`gap-0`) for unified appearance
+  - Expanded main container from `max-w-6xl` to `max-w-7xl`
+  - Reduced top padding from `pt-4` to `pt-1.5` for tighter spacing
+  - Fixed bottom padding to `pb-1.5` for consistency
+
+- **Color Section Restructuring**:
+  - Reorganized from 4-column to 2x2 grid layout
+  - Moved "Aplicar bordes al gradiente" above color selectors
+  - Removed "Intercambiar" text, keeping only icon (`ArrowLeftRight`)
+  - Aligned all control heights to `h-8` for consistency
+  - Color picker now beside text input, not overlapping
+
+- **Visual Improvements**:
+  - Made all QR form default values appear in light gray (`text-slate-400`)
+  - Applied consistent subtle shadows to both columns
+  - Fixed placeholder colors to be lighter (`text-slate-400`)
+  - Improved visual hierarchy with better section separation
+
+#### Fixed
+- **CSS Conflicts**: Removed `gap: 1.5rem` from generator-grid CSS that was overriding Tailwind classes
+- **Sticky Functionality**: Preserved sticky preview behavior during restructuring
+- **Shadow Consistency**: Applied same subtle shadow to both columns (user wanted column 1 shadow on column 2)
+
+#### Technical Details
+- **Files Modified**:
+  - `frontend/src/app/page.tsx` - Main layout and structure changes
+  - `frontend/src/app/globals.css` - Fixed CSS grid gap conflict
+  - `frontend/src/components/generator/GenerationOptions.tsx` - Color section restructuring
+  - `frontend/src/components/generator/PreviewSection.tsx` - Added numbered step 3
+  - `frontend/src/components/ui/input.tsx` - Updated placeholder colors
+  - All QR Form components - Applied light gray to default values
+
+#### Known Limitations
+- **Background Color Feature**: Temporarily disabled due to conflicts with gradient SVG masks
+  - Gradient functionality uses SVG masks that conflict with background implementation
+  - Future implementation would require rewriting gradient logic or alternative approach
+
 ## [1.2.0] - 2025-06-07
 
 ### 🛡️ System Stability Improvements - Critical Infrastructure Update

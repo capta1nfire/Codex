@@ -207,7 +207,15 @@ function GenerationOptions({
         control={control}
         defaultValue={defaultValue}
         render={({ field }) => (
-          <div className="relative">
+          <div className="flex gap-2 items-center">
+            <Input
+              type="color"
+              value={field.value || defaultValue}
+              onChange={(e) => field.onChange(e.target.value)}
+              className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+              disabled={isLoading}
+              aria-label={`Seleccionar ${label.toLowerCase()}`}
+            />
             <Input
               type="text"
               value={field.value || defaultValue}
@@ -215,22 +223,12 @@ function GenerationOptions({
               placeholder={defaultValue}
               onChange={(e) => field.onChange(e.target.value)}
               className={cn(
-                "h-8 pl-10 text-sm",
+                "h-8 text-sm flex-1",
                 errors.options?.[name.split('.')[1] as keyof typeof errors.options] 
                   ? 'border-destructive' 
                   : 'focus:border-blue-500'
               )}
             />
-            <div className="absolute left-1 top-1/2 -translate-y-1/2">
-              <Input
-                type="color"
-                value={field.value || defaultValue}
-                onChange={(e) => field.onChange(e.target.value)}
-                className="w-6 h-6 p-0 border-2 border-slate-200 dark:border-slate-600 rounded cursor-pointer"
-                disabled={isLoading}
-                aria-label={`Seleccionar ${label.toLowerCase()}`}
-              />
-            </div>
           </div>
         )}
       />
@@ -279,7 +277,7 @@ function GenerationOptions({
     switch (activeTab) {
       case 'color':
         return (
-          <div className="space-y-4 animate-in fade-in-50 duration-200">
+          <div className="space-y-3 animate-in fade-in-50 duration-200">
             {/* QR Code Color Options */}
             {isQrCode && (
               <div className="space-y-4">
@@ -338,18 +336,18 @@ function GenerationOptions({
                 ) : (
                   // Gradient Mode - Organizado en una fila de 4 columnas
                   <div className="space-y-4">
-                    {/* Primera fila: Tipo, Colores e Intercambiar */}
-                    <div className="grid grid-cols-4 gap-3">
-                      {/* Gradient Type */}
+                    {/* Grid de 2x2 para opciones de color */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Primera columna, primera fila - Tipo de gradiente */}
                       <div>
-                        <Label className="text-xs font-medium mb-1.5 block">Tipo</Label>
+                        <Label className="text-xs font-medium mb-1.5 block">Tipo de gradiente</Label>
                         <Controller
                           name="options.gradient_type"
                           control={control}
                           defaultValue="radial"
                           render={({ field }) => (
                             <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                              <SelectTrigger className="h-9">
+                              <SelectTrigger className="h-8">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -371,78 +369,102 @@ function GenerationOptions({
                         />
                       </div>
 
-                      {/* Gradient Colors */}
+                      {/* Segunda columna, primera fila - Aplicar bordes */}
+                      <div className="flex items-end">
+                        <div className="w-full p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs font-medium">Aplicar bordes al gradiente</Label>
+                            <Controller
+                              name="options.gradient_borders"
+                              control={control}
+                              defaultValue={true}
+                              render={({ field }) => (
+                                <Switch
+                                  checked={field.value || false}
+                                  onCheckedChange={field.onChange}
+                                  disabled={isLoading}
+                                  className="data-[state=checked]:bg-blue-600"
+                                />
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Primera columna, segunda fila - Color 1 */}
                       <ColorInput 
                         name="options.gradient_color1" 
                         label="Color 1" 
                         defaultValue="#2563EB" 
                       />
-                      <ColorInput 
-                        name="options.gradient_color2" 
-                        label="Color 2" 
-                        defaultValue="#000000" 
-                      />
-                      
-                      {/* Swap colors button */}
-                      <div>
-                        <Label className="text-xs font-medium mb-1.5 block opacity-0">Acción</Label>
-                        <button
-                          type="button"
-                          onClick={handleSwapColors}
-                          disabled={isLoading}
-                          className="w-full h-9 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md flex items-center justify-center gap-1 transition-all border border-blue-200 dark:border-blue-800"
-                          title="Intercambiar colores"
-                        >
-                          <ArrowLeftRight className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Intercambiar</span>
-                        </button>
+
+                      {/* Segunda columna, segunda fila - Color 2 con botón intercambiar */}
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium text-slate-600 dark:text-slate-400">Color 2</Label>
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <Controller
+                              name="options.gradient_color2"
+                              control={control}
+                              defaultValue="#000000"
+                              render={({ field }) => (
+                                <div className="flex gap-2 items-center">
+                                  <Input
+                                    type="color"
+                                    value={field.value || "#000000"}
+                                    onChange={(e) => field.onChange(e.target.value)}
+                                    className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+                                    disabled={isLoading}
+                                  />
+                                  <Input
+                                    type="text"
+                                    value={field.value || "#000000"}
+                                    disabled={isLoading}
+                                    placeholder="#000000"
+                                    onChange={(e) => field.onChange(e.target.value)}
+                                    className="h-8 text-sm flex-1"
+                                  />
+                                </div>
+                              )}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleSwapColors}
+                            disabled={isLoading}
+                            className="w-8 h-8 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md flex items-center justify-center transition-all border border-blue-200 dark:border-blue-800"
+                            title="Intercambiar colores"
+                          >
+                            <ArrowLeftRight className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Segunda fila: Dirección (solo para linear) */}
+                    {/* Dirección del gradiente (solo para linear) */}
                     {watch('options.gradient_type') === 'linear' && (
-                      <div className="grid grid-cols-4 gap-3">
-                        <div>
-                          <Label className="text-xs font-medium mb-1.5 block">Dirección</Label>
-                          <Controller
-                            name="options.gradient_direction"
-                            control={control}
-                            defaultValue="top-bottom"
-                            render={({ field }) => (
-                              <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                                <SelectTrigger className="h-9">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="top-bottom">↓ Vertical</SelectItem>
-                                  <SelectItem value="left-right">→ Horizontal</SelectItem>
-                                  <SelectItem value="diagonal">↘ Diagonal</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            )}
-                          />
-                        </div>
-                        <div className="col-span-3"></div>
+                      <div>
+                        <Label className="text-xs font-medium mb-1.5 block">Dirección del gradiente</Label>
+                        <Controller
+                          name="options.gradient_direction"
+                          control={control}
+                          defaultValue="top-bottom"
+                          render={({ field }) => (
+                            <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                              <SelectTrigger className="h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="top-bottom">↓ Vertical</SelectItem>
+                                <SelectItem value="left-right">→ Horizontal</SelectItem>
+                                <SelectItem value="diagonal">↘ Diagonal</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
                       </div>
                     )}
 
-                    {/* Tercera fila: Aplicar bordes al gradiente */}
-                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                      <Label className="text-sm font-medium">Aplicar bordes al gradiente</Label>
-                      <Controller
-                        name="options.gradient_borders"
-                        control={control}
-                        defaultValue={true}
-                        render={({ field }) => (
-                          <Switch
-                            checked={field.value || false}
-                            onCheckedChange={field.onChange}
-                            disabled={isLoading}
-                            className="data-[state=checked]:bg-blue-600"
-                          />
-                        )}
-                      />
-                    </div>
                   </div>
                 )}
               </div>
@@ -506,7 +528,7 @@ function GenerationOptions({
   }, [activeTab, control, errors, watch, isLoading, selectedType, reset, isQrCode, handleSwapColors]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Tabs Navigation */}
       <div className="flex border-b border-slate-200 dark:border-slate-700">
         {tabs.map((tab) => {
@@ -533,7 +555,7 @@ function GenerationOptions({
       </div>
 
       {/* Tab Content */}
-      <div className="min-h-[200px]">
+      <div>
         {tabContent}
       </div>
     </div>

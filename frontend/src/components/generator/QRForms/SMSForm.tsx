@@ -12,6 +12,13 @@ interface SMSFormProps {
 }
 
 export const SMSForm: React.FC<SMSFormProps> = ({ data, onChange, isLoading }) => {
+  // Check if values are defaults for SMS
+  const isCountryCodeDefault = data.countryCode === '+1';
+  const isPhoneNumberDefault = data.phoneNumber === '1234567890';
+  const isMessageDefaultSMS = data.message === 'Tu mensaje aquí';
+  const isMessageDefaultWhatsApp = data.message === 'Hola!';
+  const isMessageDefault = isMessageDefaultSMS || isMessageDefaultWhatsApp;
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-3 gap-3">
@@ -21,7 +28,7 @@ export const SMSForm: React.FC<SMSFormProps> = ({ data, onChange, isLoading }) =
             value={data.countryCode}
             onChange={(e) => onChange('countryCode', e.target.value)}
             placeholder="+1"
-            className="h-9"
+            className={`h-9 ${isCountryCodeDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
             disabled={isLoading}
           />
         </div>
@@ -31,7 +38,7 @@ export const SMSForm: React.FC<SMSFormProps> = ({ data, onChange, isLoading }) =
             value={data.phoneNumber}
             onChange={(e) => onChange('phoneNumber', e.target.value)}
             placeholder="1234567890"
-            className="h-9"
+            className={`h-9 ${isPhoneNumberDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
             disabled={isLoading}
           />
         </div>
@@ -42,7 +49,7 @@ export const SMSForm: React.FC<SMSFormProps> = ({ data, onChange, isLoading }) =
           value={data.message}
           onChange={(e) => onChange('message', e.target.value)}
           placeholder="Your message here"
-          className="h-9"
+          className={`h-9 ${isMessageDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
           disabled={isLoading}
         />
       </div>

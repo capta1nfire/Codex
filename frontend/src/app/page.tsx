@@ -179,7 +179,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <main className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-6">
+      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-6">
         {/* Tabs de tipos de código */}
         <BarcodeTypeTabs 
           selectedType={selectedType} 
@@ -187,13 +187,14 @@ export default function Home() {
         />
 
         <form onSubmit={handleSubmit(onSubmit)} className="scroll-smooth">
-          <div className="generator-grid">
+          <div className="generator-grid gap-0 shadow-sm rounded-lg border border-slate-200 dark:border-slate-700">
             {/* Columna de configuración */}
-            <section className="configuration-column" id="form-content">
-              <Card className="shadow-corporate-md hover:shadow-corporate-lg border border-slate-200 dark:border-slate-700 transition-all duration-200 bg-white dark:bg-slate-950">
+            <section className="configuration-column space-y-4" id="form-content">
+              {/* Card 1: Selector de tipo y contenido */}
+              <Card className="border-0 lg:border-r lg:border-slate-200 lg:dark:border-slate-700 rounded-l-lg bg-gradient-to-br from-corporate-blue-100/40 via-corporate-blue-50/20 to-corporate-blue-100/40 dark:from-corporate-blue-950/40 dark:via-corporate-blue-950/20 dark:to-corporate-blue-950/40">
                 <CardContent className="p-0">
                   {/* Sección 1: Contenido */}
-                  <div className="px-6 py-4 bg-gradient-to-b from-slate-50/50 to-transparent dark:from-slate-900/50">
+                  <div className="px-6 pt-1.5 pb-1.5">
                     {/* Selector de tipo de contenido QR */}
                     {selectedType === 'qrcode' && (
                       <QRContentSelector
@@ -205,8 +206,11 @@ export default function Home() {
                     
                     {/* Formularios dinámicos para QR Code */}
                     {selectedType === 'qrcode' ? (
-                      <div className="space-y-4">
-                        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">1. Complete el contenido</h3>
+                      <div className="mt-4 p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-xs">1</span>
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Complete el contenido</h3>
+                        </div>
                         <QRForm
                           type={selectedQRType}
                           data={qrFormData[selectedQRType]}
@@ -233,34 +237,38 @@ export default function Home() {
                         {errors.data.message}
                       </p>
                     )}
+                    
+                    {/* Sección 2: Diseño - Como subcontenedor dentro del contenedor principal */}
+                    {selectedType === 'qrcode' && (
+                      <div className="mt-4 pt-4 pb-1.5 px-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-xs">2</span>
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Diseña tu código QR</h3>
+                        </div>
+                        <GenerationOptions
+                          control={control}
+                          errors={errors}
+                          watch={watch}
+                          isLoading={isLoading}
+                          selectedType={selectedType}
+                          reset={reset}
+                          setValue={setValue}
+                          getValues={getValues}
+                          onSubmit={onSubmit}
+                          expandedSection={expandedSection}
+                          setExpandedSection={setExpandedSection}
+                        />
+                      </div>
+                    )}
                   </div>
-
-                  {/* Sección 2: Diseño - Solo para QR */}
-                  {selectedType === 'qrcode' && (
-                    <div className="px-6 pb-4 bg-gradient-to-b from-corporate-blue-50/30 to-transparent dark:from-corporate-blue-950/20">
-                      <h3 className="text-sm font-semibold text-corporate-blue-700 dark:text-corporate-blue-300 mb-4">2. Diseña tu código QR</h3>
-                      <GenerationOptions
-                        control={control}
-                        errors={errors}
-                        watch={watch}
-                        isLoading={isLoading}
-                        selectedType={selectedType}
-                        reset={reset}
-                        setValue={setValue}
-                        getValues={getValues}
-                        onSubmit={onSubmit}
-                        expandedSection={expandedSection}
-                        setExpandedSection={setExpandedSection}
-                      />
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             </section>
 
             {/* Columna de vista previa - Sticky */}
-            <section className="lg:col-span-1 shadow-corporate-md border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 hover:shadow-corporate-lg transition-shadow duration-200">
-              <PreviewSection
+            <section className="lg:col-span-1 lg:rounded-r-lg bg-white dark:bg-slate-950">
+              <div className="sticky-preview">
+                <PreviewSection
                 svgContent={svgContent}
                 isLoading={isLoading}
                 serverError={serverError}
@@ -283,6 +291,7 @@ export default function Home() {
                     : false
                 }
               />
+              </div>
             </section>
           </div>
         </form>

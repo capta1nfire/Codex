@@ -10,14 +10,16 @@ interface LinkFormProps {
 }
 
 export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading }) => {
+  const isDefaultValue = data.url === 'https://tu-sitio-web.com';
+  
   return (
     <div>
-      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Website URL</label>
+      <label className="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-3">Website URL</label>
       <Input
         value={data.url}
         onChange={(e) => onChange('url', e.target.value)}
         placeholder="https://your-website.com"
-        className="h-9"
+        className={`h-9 ${isDefaultValue ? 'text-slate-400 dark:text-slate-600' : ''}`}
         disabled={isLoading}
       />
     </div>

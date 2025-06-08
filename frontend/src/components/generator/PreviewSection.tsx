@@ -33,7 +33,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   const { handleDownload } = useBarcodeActions(svgContent, selectedType);
 
   return (
-    <div className="sticky-preview w-full">
+    <div className="w-full p-0">
       {isTyping && isWaitingForValidInput ? (
         <div className="flex items-center justify-center min-h-[200px]">
           <div className="text-center space-y-4">
@@ -65,10 +65,9 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
                 </div>
               </div>
             ) : svgContent ? (
-              <Card className="border-0 shadow-none w-full">
-                <CardContent className="p-0 space-y-4 w-full">
+              <div className="space-y-4 w-full">
                   {/* Preview Area */}
-                  <div className="flex items-center justify-center min-h-[200px] barcode-container w-full">
+                  <div className="flex items-center justify-center min-h-[200px] barcode-container w-full pt-4">
                     <BarcodeDisplay
                       key={selectedType}
                       svgContent={svgContent}
@@ -79,7 +78,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
                   </div>
 
                   {/* Control de Calidad */}
-                  <div className="space-y-2 p-4">
+                  <div className="space-y-2 px-6">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Calidad</label>
                     <span className="text-sm font-mono text-slate-700 dark:text-slate-300">
@@ -131,8 +130,16 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
                   </div>
                 </div>
 
+                {/* Título con número 3 */}
+                <div className="px-6 mt-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-xs">3</span>
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Descargar Código QR</h3>
+                  </div>
+                </div>
+
                 {/* Botones de Descarga */}
-                <div className="grid grid-cols-2 gap-2 px-4 pb-4">
+                <div className="grid grid-cols-2 gap-2 px-6 pb-6 mt-4">
                   <Button
                     type="button"
                     variant="outline"
@@ -178,8 +185,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
                     EPS
                   </Button>
                 </div>
-                </CardContent>
-              </Card>
+              </div>
             ) : (
               <div className="flex items-center justify-center min-h-[200px] text-center">
                 <div className="space-y-4">

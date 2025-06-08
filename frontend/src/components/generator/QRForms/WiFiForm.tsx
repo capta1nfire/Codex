@@ -13,6 +13,10 @@ interface WiFiFormProps {
 }
 
 export const WiFiForm: React.FC<WiFiFormProps> = ({ data, onChange, isLoading }) => {
+  // Check if values are defaults
+  const isNetworkNameDefault = data.networkName === 'NombreRed';
+  const isPasswordDefault = data.password === 'contraseña';
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
@@ -22,7 +26,7 @@ export const WiFiForm: React.FC<WiFiFormProps> = ({ data, onChange, isLoading })
             value={data.networkName}
             onChange={(e) => onChange('networkName', e.target.value)}
             placeholder="WiFi Network Name"
-            className="h-9"
+            className={`h-9 ${isNetworkNameDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
             disabled={isLoading}
           />
         </div>
@@ -33,7 +37,7 @@ export const WiFiForm: React.FC<WiFiFormProps> = ({ data, onChange, isLoading })
             onChange={(e) => onChange('password', e.target.value)}
             placeholder="Password"
             type="password"
-            className="h-9"
+            className={`h-9 ${isPasswordDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
             disabled={isLoading}
           />
         </div>

@@ -14,7 +14,7 @@ export const QRContentSelector: React.FC<QRContentSelectorProps> = ({
   isLoading
 }) => {
   return (
-    <div className="space-y-1.5 mb-3">
+    <div className="space-y-1.5">
       {/* Grid de tipos de contenido QR */}
       <div className="grid grid-cols-5 gap-1.5">
         {qrContentTypes.slice(0, 10).map((qrType) => {
