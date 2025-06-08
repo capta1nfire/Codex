@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 
 // Imports de crates externos
 use axum::{
-    extract::Json,
+    extract::{Json, Query},
     http::{
         header::{self, HeaderValue, HeaderName},
         StatusCode,
@@ -1479,13 +1479,89 @@ async fn qr_v2_validate_handler(
 }
 
 /// Handler para preview en tiempo real
-async fn qr_v2_preview_handler() -> impl IntoResponse {
-    // TODO: Implementar preview en Fase 2
-    (
-        StatusCode::NOT_IMPLEMENTED,
-        Json(serde_json::json!({
-            "success": false,
-            "error": "Preview not implemented yet"
-        }))
-    ).into_response()
+async fn qr_v2_preview_handler(
+    Query(params): Query<HashMap<String, String>>
+) -> impl IntoResponse {
+    use crate::engine::{QrEngine, QrRequest, OutputFormat, QrCustomization};
+    use crate::engine::types::{EyeShape, DataPattern, ColorOptions};
+    
+    // Extraer parámetros del query string
+    let data = params.get("data").cloned().unwrap_or_else(|| "https://codex.com".to_string());
+    let size = params.get("size").and_then(|s| s.parse::<u32>().ok()).unwrap_or(200);
+    
+    // Parsear customización si existe
+    let customization = if params.contains_key("eye_shape") || params.contains_key("pattern") {
+        let eye_shape = params.get("eye_shape")
+            .and_then(|s| serde_json::from_str::<EyeShape>(&format!("\"{}\"", s)).ok());
+        
+        let data_pattern = params.get("pattern")
+            .and_then(|s| serde_json::from_str::<DataPattern>(&format!("\"{}\"", s)).ok());
+            
+        let colors = if let (Some(fg), Some(bg)) = (params.get("foreground"), params.get("background")) {
+            Some(ColorOptions {
+                foreground: fg.clone(),
+                background: bg.clone(),
+                gradient: None,
+            })
+        } else {
+            None
+        };
+        
+        Some(QrCustomization {
+            eye_shape,
+            data_pattern,
+            colors,
+            gradient: None,
+            logo: None,
+            frame: None,
+            effects: vec![],
+            error_correction: None,
+        })
+    } else {
+        None
+    };
+    
+    let request = QrRequest {
+        data,
+        size,
+        format: OutputFormat::Svg,
+        customization,
+    };
+    
+    // Generar QR
+    let engine = QR_ENGINE.clone();
+    match engine.generate(&request) {
+        Ok(output) => {
+            // Devolver SVG directamente con content-type apropiado
+            (
+                StatusCode::OK,
+                [
+                    (header::CONTENT_TYPE, "image/svg+xml"),
+                    (header::CACHE_CONTROL, "no-cache, no-store, must-revalidate"),
+                ],
+                output.data
+            ).into_response()
+        }
+        Err(e) => {
+            // Generar SVG de error
+            let error_svg = format!(
+                r#"<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="200" height="200" fill="#fee2e2"/>
+                    <text x="100" y="100" text-anchor="middle" fill="#dc2626" font-size="14">
+                        Error: {}
+                    </text>
+                </svg>"#,
+                e.to_string()
+            );
+            
+            (
+                StatusCode::OK,
+                [
+                    (header::CONTENT_TYPE, "image/svg+xml"),
+                    (header::CACHE_CONTROL, "no-cache, no-store, must-revalidate"),
+                ],
+                error_svg
+            ).into_response()
+        }
+    }
 }

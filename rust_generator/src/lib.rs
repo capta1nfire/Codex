@@ -1,5 +1,7 @@
 // Exponer el nuevo motor QR
 pub mod engine;
+pub mod shapes;
+pub mod processing;
 
 // Imports
 use rxing::{common::BitMatrix, BarcodeFormat, MultiFormatWriter, Writer, EncodeHints};

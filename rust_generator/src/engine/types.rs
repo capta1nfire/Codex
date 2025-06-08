@@ -256,6 +256,34 @@ pub struct GradientData {
     pub gradient_type: GradientType,
 }
 
+/// Color RGBA
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub a: u8,
+}
+
+/// Modo de color
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ColorMode {
+    Solid,
+    Gradient,
+    Pattern,
+}
+
+/// Gradiente
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Gradient {
+    pub id: String,
+    pub start_color: Color,
+    pub end_color: Color,
+    pub gradient_type: String,
+    pub svg_definition: String,
+    pub fill_reference: String,
+}
+
 /// Resultado de validación
 #[derive(Debug, Clone, Serialize)]
 pub struct ValidationResult {
