@@ -1994,3 +1994,31 @@
 {"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 20:35:03"}
 {"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 20:35:10"}
 {"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 20:35:10"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-06-07 21:47:18"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-06-07 21:47:18"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:00:12"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:00:12"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:08:15"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:08:15"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:08:50"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:08:50"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:08:53"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:08:53"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:08:55"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:08:55"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:08:56"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:08:56"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:08:58"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:08:58"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:08:59"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:08:59"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:09:00"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:09:00"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:09:01"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:09:01"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:09:02"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:09:02"}
+{"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"codex-backend","timestamp":"2025-06-07 22:09:19"}
+{"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/generate","service":"codex-backend","timestamp":"2025-06-07 22:09:19"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-06-08 14:04:15"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"codex-backend","timestamp":"2025-06-08 14:04:15"}

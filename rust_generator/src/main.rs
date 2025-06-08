@@ -610,6 +610,10 @@ async fn main() {
         .route("/cache/clear", post(clear_cache_handler))
         .route("/cache/config", post(configure_cache_handler))
         .route("/analytics/performance", get(performance_analytics_handler))
+        // Nuevos endpoints del motor QR v2
+        .route("/api/qr/generate", post(qr_v2_generate_handler))
+        .route("/api/qr/validate", post(qr_v2_validate_handler))
+        .route("/api/qr/preview", get(qr_v2_preview_handler))
         .layer(cors); // Añadir la capa CORS
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3002));
@@ -1407,4 +1411,81 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
     }
+}
+
+// ===== NUEVOS HANDLERS PARA EL MOTOR QR V2 =====
+
+/// Handler para generación con el nuevo motor QR
+async fn qr_v2_generate_handler(
+    Json(payload): Json<rust_generator::engine::types::QrRequest>
+) -> impl IntoResponse {
+    let start_time = Instant::now();
+    
+    info!(
+        data_length = payload.data.len(),
+        size = payload.size,
+        "QR v2 generation request"
+    );
+    
+    // Usar el motor global
+    match rust_generator::engine::QR_ENGINE.generate(payload).await {
+        Ok(output) => {
+            let duration = start_time.elapsed().as_millis() as u64;
+            
+            info!(
+                duration_ms = duration,
+                complexity = ?output.metadata.complexity_level,
+                quality_score = output.metadata.quality_score,
+                "QR v2 generation successful"
+            );
+            
+            (
+                StatusCode::OK,
+                Json(serde_json::json!({
+                    "success": true,
+                    "data": output.data,
+                    "format": output.format,
+                    "metadata": output.metadata,
+                }))
+            ).into_response()
+        }
+        Err(e) => {
+            error!(error = %e, "QR v2 generation failed");
+            
+            (
+                StatusCode::from_u16(e.status_code()).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+                Json(serde_json::json!({
+                    "success": false,
+                    "error": e.to_string(),
+                    "suggestion": e.suggestion(),
+                }))
+            ).into_response()
+        }
+    }
+}
+
+/// Handler para validación de QR
+async fn qr_v2_validate_handler(
+    Json(payload): Json<serde_json::Value>
+) -> impl IntoResponse {
+    // TODO: Implementar validación en Fase 4
+    (
+        StatusCode::NOT_IMPLEMENTED,
+        Json(serde_json::json!({
+            "success": false,
+            "error": "Validation not implemented yet"
+        }))
+    ).into_response()
+}
+
+/// Handler para preview en tiempo real
+async fn qr_v2_preview_handler() -> impl IntoResponse {
+    // TODO: Implementar preview en Fase 2
+    (
+        StatusCode::NOT_IMPLEMENTED,
+        Json(serde_json::json!({
+            "success": false,
+            "error": "Preview not implemented yet"
+        }))
+    ).into_response()
 }

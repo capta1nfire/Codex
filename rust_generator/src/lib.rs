@@ -1,3 +1,6 @@
+// Exponer el nuevo motor QR
+pub mod engine;
+
 // Imports
 use rxing::{common::BitMatrix, BarcodeFormat, MultiFormatWriter, Writer, EncodeHints};
 use std::error::Error;
