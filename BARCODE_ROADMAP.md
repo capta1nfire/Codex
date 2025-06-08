@@ -1,6 +1,6 @@
 ## Investigación Exhaustiva de Códigos de Barras y QR para Desarrollo Masivo en 2025 (con Enfoque en Rust)
 
-A continuación, se presenta una investigación detallada sobre los principales códigos de barras y códigos QR más utilizados y vigentes a nivel global en 2025, con un enfoque en su relevancia para el desarrollo masivo de códigos en un sitio web líder mundial en generación de códigos. Se priorizan los códigos más adoptados en industrias clave y se excluyen aquellos con uso limitado o en desuso.
+A continuación, se presenta una investigación detallada sobre los principales códigos de barras y códigos QR más utilizados y vigentes a nivel global en 2025, con un enfoque en su relevancia para el desarrollo masivo de códigos en un sitio web líder mundial en generación de códigos. CODEX implementa soporte completo para todos los tipos relevantes del mercado, con optimizaciones especiales en los más críticos.
 
 ### **Clasificación y Relevancia Global**
 

@@ -5,6 +5,41 @@ All notable changes to the CODEX project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-06-07
+
+### 🛡️ System Stability Improvements - Critical Infrastructure Update
+
+#### Added
+- **PM2 Process Manager Integration**: Robust service management with auto-restart
+  - File: `ecosystem.config.js` - PM2 configuration with memory limits
+  - File: `pm2-start.sh` - Intelligent startup script with cleanup
+  - File: `backend/start-dev.sh` - Backend without watch mode for stability
+  - Auto-restart on failure with configurable delays
+  - Memory limits: Backend 1GB, Frontend 2GB, Rust 500MB
+  - Organized logging by service
+
+- **Comprehensive Stability Documentation**
+  - File: `STABILITY_IMPROVEMENTS.md` - Complete audit report and solutions
+  - Updated: `README.md` - New PM2 instructions and stability section
+  - Updated: `CONTEXT_SUMMARY.md` - PM2 system documentation
+
+#### Fixed
+- **Backend TSX Watch**: Removed constant file watching that caused endless restarts
+- **Frontend Experimental Features**: Disabled unstable `instrumentationHook`
+- **Memory Management**: Added limits to prevent OS process kills at 94% memory
+- **Service Recovery**: Services now auto-restart instead of staying dead
+- **Health Check Spam**: Reduced excessive `SELECT 1` queries flooding logs
+
+#### Changed
+- **Development Workflow**: PM2 is now the recommended method for starting services
+- **Backend Startup**: Uses `tsx` without watch mode in development
+- **Frontend Config**: Disabled experimental features for stability
+- **Logging**: Cleaner, organized logs without query spam
+
+#### Security
+- Memory limits prevent DoS from runaway processes
+- Process isolation with PM2 management
+
 ## [2.2.0] - 2025-01-26
 
 ### 💎 Plan & Limits Section - Phase 2C (Corporate Sophistication)

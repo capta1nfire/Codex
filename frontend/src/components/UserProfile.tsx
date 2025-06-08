@@ -188,8 +188,8 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
         {/* Enhanced Error Alert with Corporate Styling */}
       {error && (
         <Card className={`
-          border-destructive/50 bg-gradient-to-r from-destructive/5 to-destructive/10 
-          transition-all duration-500 ease-smooth transform
+          shadow-corporate-md border-destructive/50 bg-gradient-to-r from-destructive/5 to-destructive/10 
+          transition-all duration-200 ease-smooth transform
           ${mounted ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}
         `}>
           <CardContent className="pt-6">
@@ -211,9 +211,9 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
         transition-all duration-700 ease-smooth transform
         ${heroAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}
       `}>
-        <Card className="relative overflow-hidden border-0 shadow-corporate-hero">
+        <Card className="relative overflow-hidden shadow-corporate-lg hover:shadow-corporate-xl border border-corporate-blue-200/50 dark:border-corporate-blue-700/50 transition-all duration-200">
           {/* Hero Background Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-blue-100/50 to-slate-50 dark:from-blue-950 dark:via-blue-900/50 dark:to-slate-950"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-corporate-blue-50/30 via-corporate-blue-100/20 to-slate-50 dark:from-corporate-blue-950/30 dark:via-corporate-blue-900/20 dark:to-slate-950"></div>
 
           <CardContent className="relative p-8">
             <div className="flex flex-col lg:flex-row items-start gap-8">
@@ -240,9 +240,9 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg p-4 border border-blue-200/50 dark:border-blue-700/50">
+                  <div className="bg-white dark:bg-slate-900 shadow-sm hover:shadow-md rounded-lg p-4 border border-slate-200 dark:border-slate-700 transition-all duration-200 hover:border-corporate-blue-300 dark:hover:border-corporate-blue-600 hover:transform hover:-translate-y-0.5">
                     <div className="flex items-center gap-2 mb-1">
-                      <Calendar className="h-4 w-4 text-blue-600" />
+                      <Calendar className="h-4 w-4 text-corporate-blue-600" />
                       <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Miembro desde</span>
                     </div>
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -250,33 +250,33 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
                     </p>
                   </div>
 
-                  <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg p-4 border border-green-200/50 dark:border-green-700/50">
+                  <div className="bg-white dark:bg-slate-900 shadow-sm hover:shadow-md rounded-lg p-4 border border-slate-200 dark:border-slate-700 transition-all duration-200 hover:border-corporate-blue-300 dark:hover:border-corporate-blue-600 hover:transform hover:-translate-y-0.5">
                     <div className="flex items-center gap-2 mb-1">
-                      <Shield className="h-4 w-4 text-green-600" />
+                      <Shield className="h-4 w-4 text-corporate-blue-600" />
                       <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Estado</span>
                     </div>
-                    <p className="text-sm font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm font-semibold text-corporate-blue-600 dark:text-corporate-blue-400 flex items-center gap-1">
+                      <div className="w-2 h-2 bg-corporate-blue-500 rounded-full animate-pulse"></div>
                       Activo
                     </p>
                   </div>
 
-                  <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg p-4 border border-purple-200/50 dark:border-purple-700/50">
+                  <div className="bg-white dark:bg-slate-900 shadow-sm hover:shadow-md rounded-lg p-4 border border-slate-200 dark:border-slate-700 transition-all duration-200 hover:border-corporate-blue-300 dark:hover:border-corporate-blue-600 hover:transform hover:-translate-y-0.5">
                     <div className="flex items-center gap-2 mb-1">
-                      <TrendingUp className="h-4 w-4 text-purple-600" />
+                      <TrendingUp className="h-4 w-4 text-corporate-blue-600" />
                       <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Rol</span>
                     </div>
-                    <p className="text-sm font-semibold text-purple-600 dark:text-purple-400 capitalize">
+                    <p className="text-sm font-semibold text-corporate-blue-600 dark:text-corporate-blue-400 capitalize">
                       {user.role?.toLowerCase()}
                     </p>
                   </div>
 
-                  <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg p-4 border border-amber-200/50 dark:border-amber-700/50">
+                  <div className="bg-white dark:bg-slate-900 shadow-sm hover:shadow-md rounded-lg p-4 border border-slate-200 dark:border-slate-700 transition-all duration-200 hover:border-corporate-blue-300 dark:hover:border-corporate-blue-600 hover:transform hover:-translate-y-0.5">
                     <div className="flex items-center gap-2 mb-1">
-                      <Clock className="h-4 w-4 text-amber-600" />
+                      <Clock className="h-4 w-4 text-corporate-blue-600" />
                       <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Actualizado</span>
                     </div>
-                    <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                    <p className="text-sm font-semibold text-corporate-blue-600 dark:text-corporate-blue-400">
                       {lastUpdate === 0 ? 'Hoy' : `${lastUpdate}d`}
                     </p>
                   </div>
@@ -340,11 +340,11 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
                 </div>
                 
                 <div className="flex items-center justify-center lg:justify-start gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-green-600 dark:text-green-400 font-medium">Cuenta Activa</span>
+                  <div className="flex items-center gap-2 px-3 py-1 bg-corporate-blue-100 dark:bg-corporate-blue-900/30 rounded-full">
+                    <div className="w-2 h-2 bg-corporate-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-corporate-blue-600 dark:text-corporate-blue-400 font-medium">Cuenta Activa</span>
                   </div>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs border-corporate-blue-300 dark:border-corporate-blue-700">
                     {user.role?.toLowerCase()}
                   </Badge>
                 </div>
@@ -397,16 +397,16 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
           <CardContent className="space-y-8 p-8">
             {/* Security Overview Cards - Corporate Design System */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-green-50/80 to-green-100/40 dark:from-green-950/80 dark:to-green-900/40 rounded-xl p-6 border border-green-200/40 dark:border-green-700/40">
+              <div className="bg-gradient-to-br from-corporate-blue-50/80 to-corporate-blue-100/40 dark:from-corporate-blue-950/80 dark:to-corporate-blue-900/40 rounded-xl p-6 border border-corporate-blue-200/40 dark:border-corporate-blue-700/40">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 bg-green-500/10 rounded-lg">
-                    <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <div className="p-2 bg-corporate-blue-500/10 rounded-lg">
+                    <Shield className="h-5 w-5 text-corporate-blue-600 dark:text-corporate-blue-400" />
                   </div>
-                  <span className="text-sm font-medium text-green-700 dark:text-green-300">Puntuación de Seguridad</span>
+                  <span className="text-sm font-medium text-corporate-blue-700 dark:text-corporate-blue-300">Puntuación de Seguridad</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-green-600 dark:text-green-400">85%</span>
-                  <Badge variant="outline" className="text-xs bg-green-100 dark:bg-green-900 border-green-300 dark:border-green-700">
+                  <span className="text-2xl font-bold text-corporate-blue-600 dark:text-corporate-blue-400">85%</span>
+                  <Badge variant="outline" className="text-xs bg-corporate-blue-100 dark:bg-corporate-blue-900 border-corporate-blue-300 dark:border-corporate-blue-700">
                     Buena
                   </Badge>
                 </div>
@@ -442,16 +442,16 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-amber-50/80 to-amber-100/40 dark:from-amber-950/80 dark:to-amber-900/40 rounded-xl p-6 border border-amber-200/40 dark:border-amber-700/40">
+              <div className="bg-gradient-to-br from-slate-50/80 to-slate-100/40 dark:from-slate-800/80 dark:to-slate-700/40 rounded-xl p-6 border border-slate-200/40 dark:border-slate-600/40">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 bg-amber-500/10 rounded-lg">
-                    <Lock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  <div className="p-2 bg-slate-500/10 rounded-lg">
+                    <Lock className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                   </div>
-                  <span className="text-sm font-medium text-amber-700 dark:text-amber-300">2FA Estado</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">2FA Estado</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-amber-600 dark:text-amber-400">Inactivo</span>
-                  <Badge variant="outline" className="text-xs bg-amber-100 dark:bg-amber-900 border-amber-300 dark:border-amber-700">
+                  <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Inactivo</span>
+                  <Badge variant="outline" className="text-xs bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600">
                     Recomendado
                   </Badge>
                 </div>
@@ -475,10 +475,10 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
                   <div className="bg-slate-50/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200/50 dark:border-slate-700/50">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Fortaleza de Contraseña</span>
-                      <Badge variant="outline" className="text-xs bg-green-100 dark:bg-green-900">Fuerte</Badge>
+                      <Badge variant="outline" className="text-xs bg-corporate-blue-100 dark:bg-corporate-blue-900 border-corporate-blue-300 dark:border-corporate-blue-700">Fuerte</Badge>
                     </div>
                     <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mb-3">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+                      <div className="bg-gradient-to-r from-corporate-blue-500 to-corporate-blue-600 h-2 rounded-full" style={{ width: '85%' }}></div>
                     </div>
                     <Button variant="outline" size="sm" className="w-full">
                       Cambiar Contraseña
@@ -495,7 +495,7 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
                   <div className="bg-slate-50/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200/50 dark:border-slate-700/50">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Estado 2FA</span>
-                      <Badge variant="outline" className="text-xs bg-amber-100 dark:bg-amber-900">Inactivo</Badge>
+                      <Badge variant="outline" className="text-xs bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600">Inactivo</Badge>
                     </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
                       Agrega una capa extra de seguridad a tu cuenta
@@ -519,15 +519,15 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
                 <div className="bg-slate-50/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200/50 dark:border-slate-700/50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-green-500/10 rounded-lg">
-                        <Smartphone className="h-4 w-4 text-green-600" />
+                      <div className="p-2 bg-corporate-blue-500/10 rounded-lg">
+                        <Smartphone className="h-4 w-4 text-corporate-blue-600" />
                       </div>
                       <div>
                         <p className="font-medium text-slate-800 dark:text-slate-200">MacBook Pro - Chrome</p>
                         <p className="text-sm text-slate-500 dark:text-slate-400">Madrid, Spain • Activo ahora</p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-xs bg-green-100 dark:bg-green-900">Actual</Badge>
+                    <Badge variant="outline" className="text-xs bg-corporate-blue-100 dark:bg-corporate-blue-900 border-corporate-blue-300 dark:border-corporate-blue-700">Actual</Badge>
                   </div>
                 </div>
 
@@ -857,21 +857,21 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
         {/* Enhanced API Keys Section */}
         {isAdvancedMode && (
           <Card className={`
-            shadow-corporate-lg border-purple-200/50 dark:border-purple-700/50 bg-card/95 backdrop-blur-sm
+            shadow-corporate-lg border-corporate-blue-200/50 dark:border-corporate-blue-700/50 bg-card/95 backdrop-blur-sm
             transition-all duration-500 ease-smooth transform
             ${heroAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}
-            hover:shadow-corporate-hero hover:border-purple-300/70 dark:hover:border-purple-600/70
+            hover:shadow-corporate-hero hover:border-corporate-blue-300/70 dark:hover:border-corporate-blue-600/70
           `} style={{ transitionDelay: '300ms' }}>
-            <CardHeader className="bg-gradient-to-r from-purple-50/50 to-slate-50/50 dark:from-purple-950/50 dark:to-slate-950/50 border-b border-purple-200/30 dark:border-purple-700/30">
+            <CardHeader className="bg-gradient-to-r from-corporate-blue-50/50 to-slate-50/50 dark:from-corporate-blue-950/50 dark:to-slate-950/50 border-b border-corporate-blue-200/30 dark:border-corporate-blue-700/30">
               <CardTitle className="flex items-center gap-3 text-xl">
-                <div className="p-2 bg-purple-500/10 rounded-lg">
-                  <Key className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div className="p-2 bg-corporate-blue-500/10 rounded-lg">
+                  <Key className="h-5 w-5 text-corporate-blue-600 dark:text-corporate-blue-400" />
                 </div>
                 <div>
                   <span className="bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
                     Claves API
                   </span>
-                  <Badge variant="secondary" className="ml-3 text-xs bg-purple-100 dark:bg-purple-900">
+                  <Badge variant="secondary" className="ml-3 text-xs bg-corporate-blue-100 dark:bg-corporate-blue-900 border-corporate-blue-300 dark:border-corporate-blue-700">
                     Avanzado
                   </Badge>
                 </div>

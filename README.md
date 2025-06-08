@@ -23,6 +23,46 @@
 
 ---
 
+## 🛡️ **Mejoras de Estabilidad del Sistema (NEW - Jun 2025)**
+
+### **🚨 Problema Crítico Resuelto**
+El sistema experimentaba caídas constantes de servicios con cualquier cambio mínimo en archivos. Una auditoría profunda reveló:
+
+- **Backend**: `tsx watch` reiniciaba con cada cambio de archivo
+- **Frontend**: Feature experimental `instrumentationHook` causaba inestabilidad  
+- **Scripts**: Sin manejo de procesos caídos (no auto-restart)
+- **Sistema**: 94% de memoria consumida causando kills del OS
+
+### **✅ Solución Implementada: PM2 Process Manager**
+
+#### **Características del Nuevo Sistema**
+- **Auto-restart**: Los servicios se reinician automáticamente si fallan
+- **Límites de memoria**: Previene consumo excesivo (Backend: 1GB, Frontend: 2GB, Rust: 500MB)
+- **Logs separados**: Mejor debugging con logs organizados por servicio
+- **Monitoreo en tiempo real**: Dashboard interactivo con `pm2 monit`
+- **Sin modo watch en producción**: Backend estable sin reinicios constantes
+
+#### **Scripts de Gestión**
+```bash
+# Nuevo sistema robusto
+./pm2-start.sh    # Inicia todos con PM2 (RECOMENDADO)
+./stop-services.sh # Detiene todos los servicios
+
+# Gestión con PM2
+pm2 status        # Estado de servicios
+pm2 logs          # Logs en tiempo real
+pm2 restart all   # Reiniciar todos
+pm2 stop all      # Detener todos
+pm2 monit         # Monitor interactivo
+```
+
+#### **Archivos de Configuración**
+- `ecosystem.config.js`: Configuración PM2 con límites y auto-restart
+- `backend/start-dev.sh`: Backend sin watch mode para estabilidad
+- `pm2-start.sh`: Script inteligente con limpieza automática
+
+---
+
 ## 🏆 **Implementaciones Críticas Completadas**
 
 ### **⚡ Optimizaciones de Performance**
@@ -134,16 +174,19 @@ cp frontend/.env.local.example frontend/.env.local
 cd backend && npx prisma migrate dev && cd ..
 ```
 
-### **3. Development**
+### **3. Development - Sistema Robusto con PM2**
 ```bash
-# Terminal 1: Backend
-cd backend && npm run dev
+# OPCIÓN RECOMENDADA: Usar PM2 para estabilidad y auto-restart
+./pm2-start.sh
 
-# Terminal 2: Frontend  
-cd frontend && npm run dev
+# Comandos PM2 útiles:
+pm2 status      # Ver estado de todos los servicios
+pm2 logs        # Ver todos los logs en tiempo real
+pm2 restart all # Reiniciar todos los servicios
+pm2 monit       # Monitor interactivo con métricas
 
-# Terminal 3: Rust Generator (opcional)
-cd rust_generator && cargo run
+# OPCIÓN ALTERNATIVA: Iniciar manualmente (menos estable)
+./dev.sh        # Script tradicional sin auto-restart
 ```
 
 ### **4. Validation**
@@ -161,6 +204,7 @@ node validate_implementation.js
 - [`IMPLEMENTATION_REPORT.md`](./IMPLEMENTATION_REPORT.md) - Reporte completo de auditoría
 - [`API_DOCUMENTATION.md`](./API_DOCUMENTATION.md) - Documentación completa de APIs
 - [`DATABASE_DOCUMENTATION.md`](./DATABASE_DOCUMENTATION.md) - **📚 Documentación crítica de Base de Datos**
+- [`STABILITY_IMPROVEMENTS.md`](./STABILITY_IMPROVEMENTS.md) - **🛡️ Auditoría y mejoras de estabilidad (Jun 2025)**
 - [`CHANGELOG.md`](./CHANGELOG.md) - Historial detallado de cambios
 - [`CONTEXT_SUMMARY.md`](./CONTEXT_SUMMARY.md) - Contexto actual del proyecto
 

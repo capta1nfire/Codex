@@ -306,13 +306,13 @@ export default function PlanLimitsSection({ user, isLoading = false }: PlanLimit
             {currentPlan.restrictions.length > 0 && (
               <div className="space-y-3">
                 <h4 className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertTriangle className="h-4 w-4 text-slate-600" />
                   Restricciones
                 </h4>
                 <ul className="space-y-2">
                   {currentPlan.restrictions.map((restriction, index) => (
                     <li key={index} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                      <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
+                      <div className="w-1.5 h-1.5 bg-slate-500 rounded-full"></div>
                       {restriction}
                     </li>
                   ))}

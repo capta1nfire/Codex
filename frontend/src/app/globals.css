@@ -42,6 +42,59 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .min-h-content {
+    min-height: calc(100vh - 4rem);
+  }
+  
+  /* Sistema de Grid Optimizado para Generador */
+  .generator-grid {
+    display: grid;
+    min-height: auto;
+  }
+  
+  /* Altura mínima reducida para la columna de configuración */
+  .generator-grid > section:first-child {
+    min-height: 300px;
+  }
+  
+  @media (min-width: 1024px) {
+    .generator-grid {
+      grid-template-columns: 2fr 1fr; /* Proporción 2:1 */
+      gap: 1.5rem;
+      align-items: stretch; /* Para altura igual */
+    }
+    
+    /* Columna izquierda - Configuración */
+    .generator-grid > section:first-child {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Columna derecha - Preview con contenedor sticky interno */
+    .generator-grid > section:last-child {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* El sticky debe estar en el div interno, no en el section */
+    .generator-grid > section:last-child .sticky-preview {
+      position: sticky;
+      position: -webkit-sticky;
+      top: 0.5rem;
+    }
+  }
+  
+  /* Mobile: Stack vertical */
+  @media (max-width: 1023px) {
+    .generator-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -81,6 +134,12 @@
     --corporate-blue-700: 210 53% 30%;
     --corporate-blue-800: 210 53% 20%;
     --corporate-blue-950: 210 53% 10%;
+    
+    /* Sombras corporativas con tinte azul */
+    --shadow-corporate-sm: 0 2px 4px 0 rgb(37 99 235 / 0.08);
+    --shadow-corporate-md: 0 4px 12px 0 rgb(37 99 235 / 0.12);
+    --shadow-corporate-lg: 0 8px 25px 0 rgb(37 99 235 / 0.15);
+    --shadow-corporate-xl: 0 12px 40px 0 rgb(37 99 235 / 0.2);
   }
 
   .dark {
@@ -133,11 +192,11 @@
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
-    overflow-x: hidden;
+    /* Removido overflow-x: hidden para permitir sticky position */
   }
 
   html {
-    overflow-x: hidden;
+    /* Removido overflow-x: hidden para permitir sticky position */
   }
 
   /* Ocultar scrollbar innecesario en páginas como login */
@@ -275,6 +334,23 @@
   .filter-preview:hover {
     transform: scale(1.05);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Corporate shadow utilities */
+  .shadow-corporate-sm {
+    box-shadow: var(--shadow-corporate-sm);
+  }
+  
+  .shadow-corporate-md {
+    box-shadow: var(--shadow-corporate-md);
+  }
+  
+  .shadow-corporate-lg {
+    box-shadow: var(--shadow-corporate-lg);
+  }
+  
+  .shadow-corporate-xl {
+    box-shadow: var(--shadow-corporate-xl);
   }
 
   /* Enhanced range slider for crop controls */
@@ -694,11 +770,23 @@
   object-fit: contain;
 }
 
-/* Asegurar que sticky funcione correctamente */
-.sticky-container {
-  position: sticky;
-  top: 1rem;
-  z-index: 10;
+/* Sistema de Sticky Optimizado para Preview */
+.preview-column {
+  /* Ya se maneja en .generator-grid */
+}
+
+/* Asegurar scroll suave sin interferir con sticky */
+.configuration-column {
+  /* Permite scroll natural sin restricciones */
+  overflow: visible;
+}
+
+/* Fix para Safari y otros navegadores */
+@supports (-webkit-appearance: none) {
+  .generator-grid > section:last-child {
+    position: -webkit-sticky;
+    position: sticky;
+  }
 }
 
 /* Scroll suave para toda la página */

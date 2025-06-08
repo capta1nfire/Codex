@@ -33,11 +33,36 @@ export default function AdvancedBarcodeOptions({
   // reset,
 }: AdvancedBarcodeOptionsProps) {
   // Derivar estados como isQrCode aquí si es más limpio que pasarlos como props
-  const isQrCode = selectedType === 'qr';
+  const isQrCode = selectedType === 'qrcode';
   // ... y así para otros tipos que tienen opciones avanzadas
 
   return (
-    <>
+    <div className="space-y-4">
+      {/* ECL Level (if QR) - Movido desde Design */}
+      {isQrCode && (
+        <div>
+          <Label className="text-sm font-medium mb-2 block">Corrección de Errores</Label>
+          <Controller
+            name="options.ecl"
+            control={control}
+            defaultValue="M"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="L">L - Bajo (~7%)</SelectItem>
+                  <SelectItem value="M">M - Medio (~15%)</SelectItem>
+                  <SelectItem value="Q">Q - Alto (~25%)</SelectItem>
+                  <SelectItem value="H">H - Máximo (~30%)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+      )}
+
       {/* Renderizar opciones avanzadas según el tipo */}
       {isQrCode && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
@@ -685,6 +710,6 @@ export default function AdvancedBarcodeOptions({
             No hay opciones avanzadas disponibles para el tipo '{selectedType || '-'}'.
           </p>
         )}
-    </>
+    </div>
   );
 }

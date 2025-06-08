@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Sticky Layout</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      /* NO overflow hidden */
+    }
+    
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    .generator-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      align-items: start;
+      min-height: calc(100vh - 120px);
+    }
+    
+    .configuration-column {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .preview-column {
+      position: sticky;
+      top: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+    
+    .form-section {
+      margin-bottom: 20px;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 4px;
+    }
+    
+    .preview-content {
+      height: 400px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #6b7280;
+    }
+    
+    @media (max-width: 1023px) {
+      .generator-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .preview-column {
+        position: relative;
+        top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 style="margin-bottom: 20px;">Test de Layout con Sticky</h1>
+    
+    <div class="generator-grid">
+      <!-- Columna de configuración -->
+      <div class="configuration-column">
+        <h2>Configuración</h2>
+        <div class="form-section">
+          <h3>Sección 1</h3>
+          <p>Contenido del formulario...</p>
+        </div>
+        <div class="form-section">
+          <h3>Sección 2</h3>
+          <p>Más contenido...</p>
+        </div>
+        <div class="form-section">
+          <h3>Sección 3</h3>
+          <p>Más contenido...</p>
+        </div>
+        <div class="form-section">
+          <h3>Sección 4</h3>
+          <p>Más contenido...</p>
+        </div>
+        <div class="form-section">
+          <h3>Sección 5</h3>
+          <p>Más contenido...</p>
+        </div>
+        <div class="form-section">
+          <h3>Sección 6</h3>
+          <p>Más contenido...</p>
+        </div>
+        <div class="form-section">
+          <h3>Sección 7</h3>
+          <p>Más contenido...</p>
+        </div>
+        <div class="form-section">
+          <h3>Sección 8</h3>
+          <p>Más contenido para probar scroll...</p>
+        </div>
+      </div>
+      
+      <!-- Columna de preview sticky -->
+      <div class="preview-column">
+        <h2>Vista Previa (Sticky)</h2>
+        <div class="preview-content">
+          <p>Código QR aquí</p>
+        </div>
+        <p style="margin-top: 20px;">Esta columna debería permanecer visible mientras haces scroll en la columna izquierda.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const { login, isLoading } = useAuth();
   const router = useRouter();
 
@@ -91,7 +92,7 @@ export default function LoginForm() {
               </div>
             )}
 
-            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+            <form name="loginForm" className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               {/* Email Field - Enhanced */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
@@ -100,6 +101,7 @@ export default function LoginForm() {
                 <div className="relative group">
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     autoComplete="email"
                     {...register('email')}
@@ -125,6 +127,7 @@ export default function LoginForm() {
                 <div className="relative group">
                   <Input
                     id="password"
+                    name="password"
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
                     {...register('password')}
@@ -154,7 +157,10 @@ export default function LoginForm() {
                 <div className="flex items-center space-x-2">
                   <input
                     id="remember"
+                    name="remember"
                     type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
                     className="h-4 w-4 rounded border-border text-blue-600 focus:ring-blue-500 focus:ring-offset-0 transition-colors"
                   />
                   <Label htmlFor="remember" className="text-muted-foreground cursor-pointer hover:text-foreground transition-colors">

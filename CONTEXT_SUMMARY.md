@@ -1,8 +1,8 @@
 # 📋 **CODEX - Documento de Transferencia para Agentes IA**
 
-**Última Actualización**: 24 de Mayo, 2025  
-**Versión del Proyecto**: 1.1.0  
-**Estado**: ✅ **DESARROLLO ACTIVO - FASE 1.5 → 2.0**
+**Última Actualización**: 7 de Junio, 2025  
+**Versión del Proyecto**: 1.2.0  
+**Estado**: ✅ **DESARROLLO ACTIVO - FASE 1.5 → 2.0** | 🛡️ **SISTEMA ESTABILIZADO CON PM2**
 
 ---
 
@@ -121,6 +121,29 @@ PostgreSQL Database + Redis Cache
 - ✅ **Clipboard**: useClipboard hook con fallback universal
 - ✅ **Dashboard**: Responsive con métricas tiempo real
 - ✅ **Gradientes SVG**: Sistema avanzado de gradientes continuos para QR codes con controles UI y bordes opcionales
+- ✅ **PM2 Process Manager**: Sistema robusto con auto-restart y monitoreo (Jun 2025)
+
+### **🛡️ Sistema de Gestión de Servicios PM2 (NUEVO)**
+```bash
+# MÉTODO RECOMENDADO - Estable con auto-restart
+./pm2-start.sh    # Inicia todos los servicios con PM2
+
+# Comandos PM2 útiles:
+pm2 status        # Estado de todos los servicios
+pm2 logs          # Logs en tiempo real
+pm2 restart all   # Reiniciar todos
+pm2 stop all      # Detener todos
+pm2 monit         # Monitor interactivo
+
+# Detener servicios:
+./stop-services.sh # Limpia todos los procesos
+```
+
+**Características PM2:**
+- Auto-restart si falla un servicio
+- Límites de memoria configurados
+- Backend sin modo watch para estabilidad
+- Logs organizados por servicio
 
 ---
 

@@ -48,6 +48,143 @@
 #### **4. 🚀 Eficiencia con Elegancia**
 - **Performance first**: Animaciones optimizadas y ligeras
 - **Escalabilidad**: Sistema que crece manteniendo coherencia
+
+---
+
+## 🎯 **Barcode Generator Design Philosophy**
+
+### **Filosofía Central: "Always Visible Preview"**
+El generador de códigos de barras sigue el principio de **"Vista Previa Siempre Visible"**, asegurando que los usuarios puedan ver sus cambios en tiempo real sin perder contexto durante la configuración.
+
+### **Estructura del Layout**
+```
+┌─────────────────────────────────────────────────────┐
+│                 Tabs de Navegación                   │
+├─────────────────────────────┬───────────────────────┤
+│                             │                       │
+│   Panel de Configuración    │   Panel de Preview    │
+│   (2/3 del ancho)          │   (1/3 del ancho)     │
+│                             │                       │
+│   • Entrada de Datos       │   [Posición Sticky]   │
+│   • Tipos de Contenido QR  │                       │
+│   • Opciones Avanzadas     │   • Vista Previa Live │
+│   • Configuración Color    │   • Control Calidad   │
+│   • Opciones de Formato    │   • Botones Descarga  │
+│                             │                       │
+│   [Contenido Scrolleable]   │   [Sigue el Scroll]   │
+│                             │                       │
+└─────────────────────────────┴───────────────────────┘
+```
+
+### **Requisitos Visuales**
+
+#### **1. Columnas de Altura Igual**
+- Ambas columnas deben mantener altura visual idéntica
+- Los fondos y bordes deben alinearse perfectamente
+- Crear una apariencia cohesiva y profesional
+
+#### **2. Comportamiento Sticky del Preview**
+- El panel de preview permanece visible durante la configuración
+- Sigue suavemente el scroll del usuario dentro de sus límites
+- Nunca se extiende más allá de su contenedor
+- Mantiene posición relativa al viewport
+
+#### **3. Consideraciones Responsive**
+- **Desktop (≥1024px)**: Layout lado a lado con preview sticky
+- **Tablet (768px-1023px)**: Layout apilado, preview arriba
+- **Mobile (<768px)**: Layout apilado de ancho completo
+
+### **Notas de Implementación**
+
+#### **Desafío Actual (Por resolver)**
+Estamos implementando un requisito dual:
+1. Alturas de columna iguales para consistencia visual
+2. Posicionamiento sticky para el panel de preview
+
+Este es un desafío CSS complejo que requiere balance cuidadoso entre:
+- CSS Grid para estructura del layout
+- Flexbox para organización interna de columnas
+- Sticky positioning para comportamiento del preview
+
+#### **Consideraciones Futuras**
+Una vez finalizada la estructura visual:
+- Documentar la solución CSS final como patrón reutilizable
+- Crear variantes de componentes para diferentes casos de uso
+- Asegurar compatibilidad con todos los tipos de códigos
+- Probar con diferentes longitudes de contenido
+
+### **Design Tokens para el Generador**
+
+```css
+/* Espaciado específico del generador */
+--generator-gap: 1.5rem;
+--generator-padding: 1.5rem;
+--generator-min-height: 600px;
+--generator-preview-top: 1rem;
+
+/* Proporciones de columnas */
+--generator-config-width: 2fr;
+--generator-preview-width: 1fr;
+
+/* Transiciones */
+--generator-transition: all 200ms ease-out;
+```
+
+### **Patrones de Interacción**
+
+#### **1. Actualizaciones en Tiempo Real**
+- Los cambios se reflejan inmediatamente en el preview
+- No se necesita botón "Generar" para actualizaciones de preview
+- Transiciones suaves entre estados
+
+#### **2. Feedback Visual**
+- Estados de carga con skeleton screens
+- Estados de error con mensajes claros
+- Estados de éxito con animaciones sutiles
+
+#### **3. Accesibilidad**
+- Soporte para navegación con teclado
+- Anuncios para lectores de pantalla
+- Gestión de foco
+
+### **Arquitectura de Componentes**
+
+```
+BarcodeGenerator/
+├── Layout/
+│   ├── GeneratorGrid
+│   ├── ConfigurationColumn
+│   └── PreviewColumn (con sticky wrapper)
+├── Configuration/
+│   ├── DataInput
+│   ├── QRContentTypes
+│   └── AdvancedOptions
+└── Preview/
+    ├── BarcodeDisplay
+    ├── QualityControls
+    └── DownloadActions
+```
+
+### **Mejores Prácticas**
+
+#### **1. Performance**
+- Debounce para actualizaciones rápidas
+- Optimizar renderizado SVG
+- Lazy load para componentes pesados
+
+#### **2. Consistencia**
+- Usar escala de espaciado establecida
+- Seguir sistema de colores
+- Mantener jerarquía tipográfica
+
+#### **3. Mantenibilidad**
+- Límites claros de componentes
+- Props y comportamientos documentados
+- Patrones reutilizables
+
+---
+
+**Nota**: La implementación de columnas sticky está siendo refinada actualmente. Una vez finalizada, esta sección será actualizada con la solución CSS exacta y guías de implementación.
 - **Accesibilidad avanzada**: WCAG AA+ como estándar mínimo
 
 ---

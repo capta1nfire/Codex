@@ -20,13 +20,13 @@
 
 La plataforma web para generación de códigos de barras y QR está concebida para ofrecer una experiencia moderna, rápida e intuitiva a usuarios de todos los niveles. Compatible con navegadores modernos como Chrome, Firefox, Safari y Edge, estará diseñada para ser accesible desde dispositivos móviles y de escritorio. Con un enfoque modular y escalable, la plataforma integrará tecnologías actuales para brindar personalización avanzada, rendimiento óptimo y soporte para diferentes perfiles de usuario. Se garantizará la compatibilidad mediante pruebas automatizadas y herramientas como BrowserStack.
 
-**🚀 NUEVA FILOSOFÍA 2025:** Especialización técnica profunda sobre los códigos más relevantes del mercado en lugar de cobertura genérica de todos los tipos existentes.
+**🚀 FILOSOFÍA ACTUALIZADA 2025:** Cobertura integral de códigos de barras con optimización técnica profunda en los tipos más relevantes del mercado global.
 
-## 1.5. ESTRATEGIA DE ESPECIALIZACIÓN DE CÓDIGOS 2025 🎯
+## 1.5. ESTRATEGIA DE CÓDIGOS SOPORTADOS 2025 🎯
 
-### **📊 INVESTIGACIÓN DE MERCADO - CÓDIGOS PRIORIZADOS**
+### **📊 COBERTURA COMPLETA - CÓDIGOS IMPLEMENTADOS**
 
-Basado en investigación exhaustiva del mercado global 2025, CODEX se especializa en los **5 tipos de códigos más críticos y utilizados mundialmente**, ordenados por relevancia:
+CODEX ofrece soporte integral para una amplia gama de códigos de barras, adaptándose a las necesidades diversas del mercado global. La plataforma incluye tanto códigos de alta prioridad como especializados:
 
 #### **🥇 NIVEL 1: CÓDIGOS MATRICIALES (2D) - ALTA PRIORIDAD**
 
@@ -37,6 +37,7 @@ Basado en investigación exhaustiva del mercado global 2025, CODEX se especializ
 - **🔧 Rust Implementation:** `qrcodegen`, `qrcode_generator` crates
 - **⭐ Tendencias:** GS1 Digital Link, Empaques Inteligentes, Personalización avanzada
 - **💡 CODEX Focus:** Personalización visual avanzada, gradientes, logos, optimización móvil
+- **📱 15 Tipos de Contenido QR:** Link, Text, Email, Call, SMS, V-card, WhatsApp, Wi-Fi, PDF, App, Images, Video, Social Media, Event, 2D Barcode
 
 **2. Data Matrix**
 - **🌍 Relevancia Global:** Muy Alta - Sectores Específicos Críticos
@@ -75,25 +76,51 @@ Basado en investigación exhaustiva del mercado global 2025, CODEX se especializ
 - **💡 CODEX Focus:** Bearer bars opcionales, optimización para cartón
 - **📦 Características:** 14 dígitos, GTIN para agrupaciones, alta tolerancia impresión
 
-### **❌ CÓDIGOS EXCLUIDOS ESTRATÉGICAMENTE**
+### **✅ CÓDIGOS ADICIONALES SOPORTADOS**
 
-**Tipos NO priorizados por baja relevancia de mercado 2025:**
-- Code 39, Code 93, Codabar (uso limitado/decreciente)
-- PDF417 (reemplazado por QR/DataMatrix en la mayoría de casos)
-- Aztec (nicho muy específico)
-- Otros códigos especializados con adopción <5% del mercado
+**Tipos implementados para cobertura completa del mercado:**
 
-### **🎯 VENTAJAS COMPETITIVAS DE LA ESPECIALIZACIÓN**
+**PDF417**
+- **🌍 Relevancia:** Aplicaciones específicas en documentación
+- **🎯 Sectores:** Identificaciones, Tickets de transporte, Documentos legales
+- **🔧 Rust Implementation:** `pdf417` crate
+- **💡 Focus:** Alta capacidad de datos, documentación extensa
 
-1. **🔬 Profundidad Técnica:** Implementación perfecta de cada estándar vs cobertura superficial
-2. **⚡ Optimización:** Mejor rendimiento y calidad en códigos prioritarios
-3. **📚 Experiencia Usuario:** UX especializada sin confusión de opciones irrelevantes
-4. **🎨 Personalización:** Características avanzadas específicas por tipo de código
-5. **🔧 Mantenimiento:** Menor complejidad, mayor estabilidad
-6. **📈 Posicionamiento:** Líder en códigos importantes vs genérico en todos
+**Code 39**
+- **🌍 Relevancia:** Industrial y defensa
+- **🎯 Sectores:** Industria, Defensa, Automotriz
+- **🔧 Rust Implementation:** `barcoders` crate
+- **💡 Focus:** Soporte alfanumérico completo
+
+**Code 93**
+- **🌍 Relevancia:** Aplicaciones específicas
+- **🎯 Sectores:** Servicios postales canadienses
+- **🔧 Rust Implementation:** `barcoders` crate
+- **💡 Focus:** Mayor densidad que Code 39
+
+**Codabar**
+- **🌍 Relevancia:** Aplicaciones nicho
+- **🎯 Sectores:** Bibliotecas, Bancos de sangre
+- **🔧 Rust Implementation:** `barcoders` crate
+- **💡 Focus:** Compatibilidad con sistemas legacy
+
+**Aztec**
+- **🌍 Relevancia:** Aplicaciones móviles específicas
+- **🎯 Sectores:** Tickets móviles, Transporte
+- **🔧 Rust Implementation:** `aztec` crate
+- **💡 Focus:** Optimización para pantallas móviles
+
+### **🎯 VENTAJAS COMPETITIVAS DE LA COBERTURA INTEGRAL**
+
+1. **🔬 Flexibilidad Total:** Soporte para todas las necesidades del mercado
+2. **⚡ Optimización Selectiva:** Mayor profundidad en códigos más utilizados
+3. **📚 Experiencia Usuario:** Interfaz intuitiva con opciones organizadas por relevancia
+4. **🎨 Personalización:** Características avanzadas adaptadas por tipo de código
+5. **🔧 Escalabilidad:** Capacidad de añadir nuevos tipos según demanda del mercado
+6. **📈 Posicionamiento:** Solución integral para todas las industrias
 
 ## 2. Objetivos Estratégicos (actualizado v1.3.0)
-- **🎯 NUEVO OBJETIVO PRINCIPAL:** Crear la plataforma MÁS ESPECIALIZADA y técnicamente superior para los 5 códigos más importantes del mercado global.
+- **🎯 OBJETIVO PRINCIPAL ACTUALIZADO:** Crear la plataforma más COMPLETA y técnicamente superior con soporte integral para todos los códigos de barras relevantes del mercado global.
 - Ofrecer compatibilidad perfecta con la mayor variedad de lectores y escáneres del mercado para códigos priorizados.
 - Garantizar escalabilidad técnica y de negocio con modelos de suscripción.  
 - Implementar APIs robustas para integraciones empresariales y SDKs nativos.  
@@ -111,7 +138,7 @@ Basado en investigación exhaustiva del mercado global 2025, CODEX se especializ
    - **Premium:** APIs especializadas, generación en lote, QR dinámicos, branding avanzado, cumplimiento GS1 perfecto, altas SLA, analíticas profundas.  
 2. **Competidores clave (10–15):**  
    - **TEC‑IT, Uniqode, QR Tiger, qr‑code‑generator.com, Scanova, QRCodeChimp, ME‑QR, Flowcode, Orca Scan, Canva, Adobe Express, Avery, QRCode Monkey**.  
-   - **🎯 DIFERENCIACIÓN CODEX:** Mientras la competencia intenta cubrir 30-50 tipos de códigos superficialmente, CODEX domina técnicamente los 5 más importantes.
+   - **🎯 DIFERENCIACIÓN CODEX:** CODEX ofrece cobertura completa de códigos de barras con implementación técnica superior, especialmente en los tipos más críticos del mercado.
 3. **Modelos de monetización:** Freemium escalado, APIs de pago, publicidad en free, valor añadido en suites de diseño, software on‑premise.  
 4. **Fortalezas comunes:** Variedad de simbologías, UX minimalista, APIs e integraciones, analíticas, exportación vectorial, GS1.  
 5. **Debilidades detectadas:** UX densa en soluciones técnicas, precios complejos, publicidad intrusiva, falta de seguridad avanzada, **implementación superficial de estándares técnicos**.
@@ -123,7 +150,7 @@ Basado en investigación exhaustiva del mercado global 2025, CODEX se especializ
 - **Personalización avanzada:** Logos, degradados, marcos CTA, plantillas white‑label especializadas por tipo de código.  
 - **Seguridad & Confianza:** Certificaciones SOC2/ISO/GDPR, dominios custom, detección de phishing QR.  
 - **Precios transparentes:** Bundle freemium claro + planes Pro/Enterprise + add‑ons.
-- **🔬 NUEVA OPORTUNIDAD:** Especialización técnica como ventaja competitiva principal frente a soluciones genéricas.
+- **🔬 NUEVA OPORTUNIDAD:** Implementación técnica superior como ventaja competitiva principal con cobertura completa del mercado.
 - **🎯 NUEVA OPORTUNIDAD:** Posicionamiento premium basado en calidad técnica superior en códigos críticos.
 
 ## 3. Audiencia Objetivo
@@ -132,7 +159,7 @@ Basado en investigación exhaustiva del mercado global 2025, CODEX se especializ
 - **Empresas:** logística, manufactura, retail, ecommerce, salud que dependen de códigos críticos.
 - **Individuos:** emprendedores, pequeños negocios, estudiantes que necesitan códigos de alta calidad.
 
-Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, como carga masiva para empresas o personalización visual para diseñadores, **optimizadas específicamente para los 5 tipos de códigos priorizados**.
+Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, como carga masiva para empresas o personalización visual para diseñadores, **con optimización especial en los tipos de códigos más críticos del mercado**.
 
 ## 4. Arquitectura y Tecnologías
 
@@ -143,7 +170,7 @@ Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, 
 - Estilos: Tailwind CSS + Shadcn UI
 - Responsive Design: adaptación completa a móvil y escritorio
 - Accesibilidad: cumplimiento con WCAG, pruebas con AXE/WAVE
-- **🎯 ESPECIALIZACIÓN:** Selector de categorías optimizado para los 5 tipos priorizados
+- **🎯 INTERFAZ:** Selector de categorías completo con todos los tipos de códigos soportados
 
 ### 4.2 Backend
 - Lenguaje: Node.js (TypeScript) + Express
@@ -172,8 +199,8 @@ Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, 
 
 ## 5. Interfaz y Experiencia de Usuario (actualizado v1.3.0)
 
-- Diseño limpio y moderno optimizado para los 5 códigos especializados
-- **🎯 Selector de categorías especializado** con navegación horizontal intuitiva
+- Diseño limpio y moderno optimizado para todos los tipos de códigos soportados
+- **🎯 Selector de categorías completo** con navegación horizontal intuitiva para todos los tipos de códigos
 - Vista previa en tiempo real con optimizaciones específicas por tipo de código
 - **🎨 Opciones de personalización especializadas:**
   - **QR Code:** Colores, gradientes, logos, marcos personalizados
@@ -185,25 +212,25 @@ Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, 
 - Plantillas especializadas por sector (retail, logística, industria, salud)
 - Multilingüe: interfaz disponible inicialmente en inglés y español, con plan de expansión a francés, alemán, etc. mediante DeepL
 
-### 5.1 Design System v2.0 "Corporate Sophistication" (Especializado)
+### 5.1 Design System v2.0 "Corporate Sophistication" (Integral)
 **Documento maestro:** [`docs/CODEX_DESIGN_SYSTEM.md`](docs/CODEX_DESIGN_SYSTEM.md)
 
-La interfaz sigue el **CODEX Design System v2.0** evolucionado hacia sofisticación corporativa con **especialización por tipo de código**:
+La interfaz sigue el **CODEX Design System v2.0** evolucionado hacia sofisticación corporativa con **optimización por tipo de código**:
 
-#### **🎯 Filosofía Evolucionada con Especialización**
+#### **🎯 Filosofía Evolucionada con Cobertura Integral**
 - **"Corporate Sophistication"**: Interfaces que combinan profesionalismo empresarial con elegancia sutil
 - **Progressive Disclosure**: Complejidad gradual adaptada al nivel de usuario Y tipo de código
 - **Micro-interactions**: Feedback visual sofisticado específico por categoría de código
 - **Hero Moments**: Destacar acciones principales con preview dominante por tipo
 
-#### **🏗️ Implementaciones Especializadas Completadas**
-- **✅ Selector de Categorías Horizontal**: 5 categorías especializadas con estado visual
+#### **🏗️ Implementaciones Completadas**
+- **✅ Selector de Categorías Horizontal**: Todas las categorías de códigos con estado visual
 - **✅ Configuración Contextual**: Opciones específicas por tipo de código
 - **✅ Preview Optimizado**: Renderizado especializado por categoría
 - **✅ Validación Inteligente**: Verificación específica por estándar (GS1, ISO)
 - **✅ UX Sin Fricción**: Eliminación de opciones irrelevantes por tipo
 
-#### **⚡ Características Técnicas Modernizadas Especializadas**
+#### **⚡ Características Técnicas Modernizadas**
 - **Componentes**: SectionCard (accordion), ColorInput (hybrid), Progress (custom), CategorySelector (specialized)
 - **Glassmorphism**: `backdrop-blur-md`, `bg-card/95` para profundidad sin peso
 - **Micro-interactions**: `hover:scale-[1.02]`, `transition-all duration-200`
@@ -239,9 +266,9 @@ El sistema garantiza **coherencia visual corporativa especializada** en toda la 
 
 ## 7. Compatibilidad y Estándares (actualizado v1.3.0)
 
-### 7.1 Lectores de Códigos - ESPECIALIZACIÓN TÉCNICA
-- **🎯 SOPORTE PERFECTO para códigos priorizados:** QR Code, Data Matrix, EAN/UPC, Code 128, ITF-14
-- Compatible con escáneres industriales, POS y dispositivos móviles para tipos priorizados
+### 7.1 Lectores de Códigos - COMPATIBILIDAD COMPLETA
+- **🎯 SOPORTE PERFECTO para todos los códigos:** QR Code, Data Matrix, EAN/UPC, Code 128, ITF-14, PDF417, Code 39, Code 93, Codabar, Aztec
+- Compatible con escáneres industriales, POS y dispositivos móviles para todos los tipos
 - **🔬 Validación exhaustiva** con normas GS1, ISO/IEC específicas por código:
   - **QR:** ISO/IEC 18004, GS1 QR Code
   - **Data Matrix:** ISO/IEC 16022, GS1 DataMatrix, MIL-STD-130
@@ -259,8 +286,8 @@ El sistema garantiza **coherencia visual corporativa especializada** en toda la 
   - **ITF-14:** Impresión directa cartón corrugado
 - Compatibilidad con impresoras como Zebra, Datamax, Honeywell
 
-## 8. Planes y Monetización (actualizado v1.3.0 - ESPECIALIZACIÓN)
-- **Plan Gratis:** Códigos estáticos de los 5 tipos especializados, personalización básica (color), PNG; sin exportación vectorial, sin analíticas, con marca Codex.  
+## 8. Planes y Monetización (actualizado v1.3.0 - COBERTURA INTEGRAL)
+- **Plan Gratis:** Códigos estáticos de todos los tipos soportados, personalización básica (color), PNG; sin exportación vectorial, sin analíticas, con marca Codex.  
 - **Plan Profesional/PYME:** QR dinámicos limitados, personalización avanzada por tipo, SVG/EPS, generación en lote especializada, analíticas básicas, API estándar, soporte comunitario.  
 - **Plan Enterprise/API:** QR dinámicos ilimitados, personalización completa por categoría, analíticas avanzadas especializadas, validación GS1 perfecta, multiusuario, SSO/SAML, SLA 99.99%, dominios custom, soporte técnico especializado.  
 - **🎯 Add-ons Especializados:** 
@@ -269,126 +296,126 @@ El sistema garantiza **coherencia visual corporativa especializada** en toda la 
   - **APIs Especializadas:** Endpoints optimizados por tipo de código
   - **Certificación de Calidad:** Validación con organismos internacionales
 
-## 9. API Externa e Integraciones (especializada v1.3.0)
+## 9. API Externa e Integraciones (completa v1.3.0)
 
-- **🔬 API REST especializada** con endpoints optimizados por tipo de código
+- **🔬 API REST completa** con endpoints optimizados por tipo de código
 - **📊 Endpoints específicos:**
   - `/api/qr` - Personalización avanzada, logos, gradientes
   - `/api/datamatrix` - Optimización DPM, alta densidad
   - `/api/ean` - Validación GTIN perfecta
   - `/api/code128` - Identificadores de Aplicación GS1
   - `/api/itf14` - Bearer bars, configuración para cartón corrugado
-- Documentación técnica especializada por tipo con ejemplos específicos
-- **🚀 SDKs especializados** (JS, Python, PHP) con métodos optimizados
+- Documentación técnica completa por tipo con ejemplos específicos
+- **🚀 SDKs completos** (JS, Python, PHP) con métodos optimizados
 - Dashboard de uso con métricas específicas por tipo de código
-- Webhooks para automatizaciones especializadas
-- **🎯 Integraciones empresariales especializadas:**
+- Webhooks para automatizaciones de todos los tipos
+- **🎯 Integraciones empresariales completas:**
   - **Retail:** Shopify, WooCommerce con validación EAN/UPC
   - **Logística:** ERPs con Code 128 y ITF-14 optimizados
   - **Industria:** Sistemas MES/ERP con Data Matrix
   - **Marketing:** Platforms con QR Code personalizado
 
-## 10. Soporte, Comunidad y Escalabilidad (especializado v1.3.0)
+## 10. Soporte, Comunidad y Escalabilidad (integral v1.3.0)
 
-- **🤖 Asistente IA especializado** con conocimiento profundo de cada tipo de código
-- **📚 Base de conocimiento especializada:**
+- **🤖 Asistente IA completo** con conocimiento profundo de cada tipo de código
+- **📚 Base de conocimiento integral:**
   - Guías técnicas por tipo de código
   - Mejores prácticas por sector (retail, industria, logística)
   - Troubleshooting específico por estándar
-- **🎓 Tutoriales interactivos especializados** por categoría de código
-- Sistema de tickets con SLA por plan y especialización técnica requerida
+- **🎓 Tutoriales interactivos completos** por categoría de código
+- Sistema de tickets con SLA por plan y complejidad técnica requerida
 - **🌐 Comunidad activa** con canales específicos por tipo de código
-- Sesiones Q&A especializadas por sector industrial
+- Sesiones Q&A completas por sector industrial
 - **📈 Escalabilidad técnica** con optimizaciones específicas por tipo
-- **🔧 Canales de soporte especializado:** chat técnico, email especializado, telefónico premium
+- **🔧 Canales de soporte completo:** chat técnico, email, telefónico premium
 
-## 11. Metodología de Desarrollo (especializada v1.3.0)
+## 11. Metodología de Desarrollo (integral v1.3.0)
 
-- Desarrollo ágil (Scrum / Kanban) con sprints especializados por tipo de código
+- Desarrollo ágil (Scrum / Kanban) con sprints organizados por tipo de código
 - Control de versiones con GitHub con branches específicos por categoría
-- **🔬 Testing especializado:**
+- **🔬 Testing completo:**
   - Pruebas unitarias específicas por biblioteca Rust
   - Pruebas de integración por tipo de código
   - Pruebas E2E con escáneres específicos por categoría
-- **⚡ CI/CD especializado** con pipelines optimizados por tipo
-- **🧪 Pruebas de calidad específicas:**
+- **⚡ CI/CD optimizado** con pipelines organizados por tipo
+- **🧪 Pruebas de calidad completas:**
   - Validación de estándares ISO/GS1 por tipo
   - Testing de compatibilidad con escáneres específicos
-  - Pruebas de rendimiento por biblioteca especializada
+  - Pruebas de rendimiento por biblioteca
 
-## 12. KPIs Iniciales y Medición de Éxito (especializado v1.3.0)
+## 12. KPIs Iniciales y Medición de Éxito (integral v1.3.0)
 
-- **⚡ Rendimiento especializado:**
+- **⚡ Rendimiento optimizado:**
   - Tiempo medio de generación < 500ms por tipo de código
   - Optimización específica: QR < 300ms, DataMatrix < 400ms, EAN < 200ms
-- **📊 Compatibilidad especializada:**
+- **📊 Compatibilidad completa:**
   - 98% de compatibilidad con lectores específicos por tipo
   - 100% cumplimiento de estándares ISO/GS1 por categoría
 - **🔧 SLA diferenciado:**
   - Disponibilidad 99.99% para códigos críticos (QR, EAN)
   - Tiempo de respuesta API < 150ms para tipos optimizados
-- **📈 Adopción especializada:**
-  - NPS ≥ 9 para usuarios de códigos especializados
+- **📈 Adopción del mercado:**
+  - NPS ≥ 9 para usuarios de todos los tipos de códigos
   - Tasa de conversión > 25% en sectores objetivo
-  - Retención > 90% en planes especializados
+  - Retención > 90% en planes premium
 
 ## 14. Consideraciones Finales (actualizado v1.3.0)
 
-- **🌐 Plataforma multilingüe** con terminología técnica especializada (inglés y español inicial, expansión prevista)
-- **💾 Backups especializados** con priorización por criticidad de tipo de código
-- **🌱 Prácticas sostenibles especializadas:** hosting verde, promoción de digitalización en sectores específicos
+- **🌐 Plataforma multilingüe** con terminología técnica completa (inglés y español inicial, expansión prevista)
+- **💾 Backups integrales** con priorización por criticidad de tipo de código
+- **🌱 Prácticas sostenibles:** hosting verde, promoción de digitalización en todos los sectores
 - **💰 Optimización de costos** con monitoreo específico por tipo de código y uso de recursos
 - **🔬 Investigación continua** en nuevas versiones de estándares y tecnologías emergentes
-- **🎯 Expansión sectorial** basada en adopción y feedback de códigos especializados
+- **🎯 Expansión sectorial** basada en adopción y feedback de todos los tipos de códigos
 
 ## 15. Conclusión Estratégica v1.3.0
 
-Este documento presenta la **evolución estratégica fundamental** de CODEX hacia una plataforma líder mundial en generación especializada de códigos de barras y QR. 
+Este documento presenta la **evolución estratégica fundamental** de CODEX hacia una plataforma líder mundial en generación integral de códigos de barras y QR. 
 
-**La decisión estratégica de especialización profunda en los 5 códigos más críticos del mercado global** posiciona a CODEX como una solución técnicamente superior y comercialmente enfocada, diferenciándose claramente de competidores genéricos.
+**La estrategia de cobertura completa con optimización técnica en los códigos más críticos del mercado global** posiciona a CODEX como una solución técnicamente superior y comercialmente flexible, diferenciándose claramente de competidores con implementaciones superficiales.
 
-**Su arquitectura especializada, implementación técnica perfecta con Rust, y enfoque en sectores de alto valor** la establecen como la referencia para usuarios técnicos y empresas que requieren máxima calidad y cumplimiento de estándares.
+**Su arquitectura modular, implementación técnica perfecta con Rust, y soporte para todos los sectores** la establecen como la referencia para usuarios técnicos y empresas que requieren máxima calidad y cumplimiento de estándares.
 
-**La incorporación de la investigación de mercado 2025, la preparación para "Sunrise 2027", y el desarrollo de capacidades especializadas por sector** refuerzan su proyección como líder técnico a largo plazo en un mercado en transformación.
+**La incorporación de la investigación de mercado 2025, la preparación para "Sunrise 2027", y el desarrollo de capacidades integrales por sector** refuerzan su proyección como líder técnico a largo plazo en un mercado en transformación.
 
-## 17. Mantenimiento y Calidad de Código Especializada (v1.3.0)
+## 17. Mantenimiento y Calidad de Código (v1.3.0)
 
-Para asegurar la excelencia técnica en la implementación especializada, se adoptarán prácticas específicas por tipo de código:
+Para asegurar la excelencia técnica en la implementación integral, se adoptarán prácticas específicas por tipo de código:
 
-### 17.1 Herramientas Automatizadas Especializadas
+### 17.1 Herramientas Automatizadas
 
-- **🔬 Linters especializados:**
+- **🔬 Linters optimizados:**
   - **Rust Clippy** con reglas específicas para bibliotecas de códigos de barras
   - **ESLint** con configuraciones por tipo de código en frontend
   - **Validadores de estándares** automáticos (ISO/GS1) por categoría
   
 - **📊 Análisis de calidad por tipo:**
-  - **Depcheck especializado** para dependencias por categoría de código
+  - **Depcheck completo** para dependencias por categoría de código
   - **Testing de compatibilidad** automático con escáneres específicos
-  - **Benchmarking de rendimiento** por biblioteca Rust especializada
+  - **Benchmarking de rendimiento** por biblioteca Rust
 
-### 17.2 Prácticas de Desarrollo Especializadas
+### 17.2 Prácticas de Desarrollo
 
-- **🎯 Principios especializados:**
+- **🎯 Principios de calidad:**
   - **DRY por categoría:** Abstracciones específicas por tipo de código
-  - **Modularidad especializada:** Componentes optimizados por estándar
+  - **Modularidad:** Componentes optimizados por estándar
   - **Refactorización dirigida:** Mejoras específicas por biblioteca
   
-- **📝 Documentación especializada:**
+- **📝 Documentación completa:**
   - **Comentarios técnicos** específicos por estándar (ISO/GS1)
   - **Ejemplos de uso** por sector industrial
   - **Troubleshooting** específico por tipo de código
 
-### 17.3 Testing Especializado
+### 17.3 Testing Integral
 
-- **🧪 Cobertura especializada:**
+- **🧪 Cobertura completa:**
   - Pruebas específicas por biblioteca Rust
   - Validación de cumplimiento de estándares por tipo
   - Testing de compatibilidad por categoría de escáner
   
 - **⚡ Performance testing:**
   - Benchmarks específicos por tipo de código
-  - Pruebas de carga por biblioteca especializada
+  - Pruebas de carga por biblioteca
   - Optimización continua por categoría
 
 ---
@@ -398,7 +425,7 @@ Para asegurar la excelencia técnica en la implementación especializada, se ado
 ## 📋 **Table of Contents**
 - [Executive Summary](#executive-summary)
 - [Project Overview](#project-overview)
-- [Specialized Strategy 2025](#specialized-strategy-2025) ← **NEW: STRATEGIC FOCUS**
+- [Complete Strategy 2025](#complete-strategy-2025) ← **NEW: COMPREHENSIVE COVERAGE**
 - [Port Configuration](#port-configuration) ← **FUENTE ÚNICA DE VERDAD**
 - [Development Roadmap](#development-roadmap)
 - [Business Strategy](#business-strategy)
@@ -413,7 +440,7 @@ Para asegurar la excelencia técnica en la implementación especializada, se ado
 ```bash
 Frontend (Next.js):       3000  # Main user interface
 Backend (Express):        3004  # API and business logic  
-Rust Generator (Axum):    3002  # High-performance specialized code generation
+Rust Generator (Axum):    3002  # High-performance code generation for all types
 Database (PostgreSQL):    5432  # Data persistence
 Redis Cache:              6379  # Caching layer
 ```
@@ -432,24 +459,24 @@ npm run dev
 # 🏠 MANUAL: Individual services
 cd backend && npm run dev       # Port 3004
 cd frontend && npm run dev      # Port 3000  
-cd rust_generator && cargo run # Port 3002 (SPECIALIZED)
+cd rust_generator && cargo run # Port 3002
 ```
 
 ### **🌐 DEVELOPMENT URLS**
-- **Frontend**: http://localhost:3000 (Specialized UI)
-- **Backend API**: http://localhost:3004 (Specialized endpoints)
-- **Rust Service**: http://localhost:3002 (5 specialized barcode types)
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:3004
+- **Rust Service**: http://localhost:3002 (All barcode types)
 - **Health Check**: http://localhost:3004/health/status
-- **API Docs**: http://localhost:3004/api-docs (Specialized documentation)
+- **API Docs**: http://localhost:3004/api-docs
 
 ### **🚨 HISTORICAL NOTE**
 Previous agents have used conflicting ports (3001 vs 3004 for backend). This section **OVERRIDES** all previous configurations.
 
-**🎯 v1.3.0 UPDATE:** All services now optimized for the 5 specialized barcode types: QR Code, Data Matrix, EAN/UPC, Code 128, ITF-14.
+**🎯 v1.3.0 UPDATE:** All services now support the complete range of barcode types with optimizations for the most critical ones.
 
 ---
 
-## 🚀 **PRÓXIMOS PASOS INMEDIATOS - IMPLEMENTACIÓN ESTRATÉGICA** 
+## 🚀 **PRÓXIMOS PASOS INMEDIATOS - IMPLEMENTACIÓN COMPLETA** 
 
 ### **⚡ ACCIONES CRÍTICAS POST-INVESTIGACIÓN (Próximas 2-4 semanas)**
 
@@ -471,9 +498,9 @@ Previous agents have used conflicting ports (3001 vs 3004 for backend). This sec
 - Integración con sistemas POS
 ```
 
-#### **🥉 PRIORIDAD INMEDIATA 3: Interfaz Especializada Completada**
+#### **🥉 PRIORIDAD INMEDIATA 3: Interfaz Completa**
 ```tsx
-// Frontend - Especialized UX
+// Frontend - Complete UX
 - Selector de categorías funcional (IMPLEMENTADO)
 - Configuración contextual por tipo
 - Validación visual inteligente
@@ -482,17 +509,17 @@ Previous agents have used conflicting ports (3001 vs 3004 for backend). This sec
 
 ### **📋 CHECKLIST DE VALIDACIÓN ESTRATÉGICA**
 
-- [x] ✅ **Investigación de mercado analizada** (5 códigos críticos identificados)
-- [x] ✅ **CODEX.md actualizado** con estrategia de especialización
+- [x] ✅ **Investigación de mercado analizada** (todos los códigos relevantes identificados)
+- [x] ✅ **CODEX.md actualizado** con estrategia de cobertura completa
 - [x] ✅ **Selector de categorías implementado** en frontend
-- [ ] 🔄 **Bibliotecas Rust especializadas** por tipo de código
+- [ ] 🔄 **Bibliotecas Rust completas** por tipo de código
 - [ ] 🔄 **Validación GS1 perfecta** para EAN/UPC  
 - [ ] 🔄 **Personalización QR avanzada** con logos/gradientes
 - [ ] 🔄 **Data Matrix optimización** para DPM
 - [ ] 🔄 **Code 128 con GS1-128** perfecto
 - [ ] 🔄 **ITF-14 con bearer bars** optimizado
 
-### **🎯 MÉTRICAS DE ÉXITO ESPECIALIZACIÓN (2025)**
+### **🎯 MÉTRICAS DE ÉXITO IMPLEMENTACIÓN (2025)**
 
 | Código | Métrica Objetivo | Timeline | Validación |
 |--------|------------------|----------|------------|
@@ -504,27 +531,27 @@ Previous agents have used conflicting ports (3001 vs 3004 for backend). This sec
 
 ### **🔮 HITOS ESTRATÉGICOS 2025-2027**
 
-- **Q1 2025:** Especialización técnica completada (5 códigos)
-- **Q2 2025:** Lanzamiento beta con códigos especializados
+- **Q1 2025:** Implementación técnica completada (todos los códigos)
+- **Q2 2025:** Lanzamiento beta con soporte completo de códigos
 - **Q3 2025:** Expansión en sectores objetivo (retail, industria)
 - **Q4 2025:** Preparación completa "Sunrise 2027"
-- **2026:** Liderazgo técnico consolidado en códigos críticos
+- **2026:** Liderazgo técnico consolidado en el mercado integral
 - **2027:** Aprovechamiento completo transición retail 2D
 
 ---
 
 ## 📚 **CONCLUSIÓN ESTRATÉGICA FINAL**
 
-El informe de investigación ha **TRANSFORMADO COMPLETAMENTE** la dirección estratégica de CODEX. La decisión de **especialización profunda en los 5 códigos más críticos del mercado global** es la clave para:
+La estrategia de CODEX ha evolucionado hacia una **COBERTURA COMPLETA del mercado de códigos de barras con implementación técnica superior**. Esta decisión estratégica es la clave para:
 
-1. **🎯 Diferenciación técnica** vs competidores genéricos
-2. **💰 Posicionamiento premium** basado en calidad superior  
-3. **📈 Enfoque de mercado** en sectores de alto valor
-4. **🚀 Implementación eficiente** con bibliotecas Rust especializadas
+1. **🎯 Flexibilidad total** para todas las necesidades del mercado
+2. **💰 Posicionamiento premium** basado en calidad superior integral
+3. **📈 Enfoque de mercado** en todos los sectores
+4. **🚀 Implementación eficiente** con bibliotecas Rust optimizadas
 5. **🔮 Preparación futura** para transiciones como "Sunrise 2027"
 
-**CODEX pasa de ser "otra plataforma genérica de códigos" a "LA plataforma especializada técnicamente superior para los códigos más importantes del mercado mundial".**
+**CODEX se posiciona como "LA plataforma integral técnicamente superior para TODOS los códigos de barras del mercado mundial".**
 
 Esta estrategia nos posiciona para liderar técnicamente un mercado de $8+ billones en transformación hacia la digitalización y códigos 2D.
 
-**🎖️ El futuro de CODEX es ser EL ESTÁNDAR DE ORO en calidad técnica para códigos críticos empresariales.**
+**🎖️ El futuro de CODEX es ser EL ESTÁNDAR DE ORO en calidad técnica para todos los códigos de barras empresariales.**

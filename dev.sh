@@ -319,7 +319,7 @@ main() {
     start_server "Backend" "backend" "npm run dev" "3004" "🔧"
     sleep 3
     
-    start_server "Frontend" "frontend" "npm run dev" "3000" "🎨"
+    start_server "Frontend" "frontend" "./start-dev.sh" "3000" "🎨"
     sleep 3
     
     start_server "Rust-Generator" "rust_generator" "cargo run" "3002" "⚡"

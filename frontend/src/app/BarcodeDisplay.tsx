@@ -44,24 +44,24 @@ export default function BarcodeDisplay({ svgContent, type, data, gradientOptions
 
   // Calculamos clases de Tailwind condicionales para el contenedor/wrapper principal
   const wrapperClasses = useMemo(() => {
-    // Clases base: Ocupar todo el contenedor disponible
-    const baseClasses = 'w-full h-full flex flex-col items-center justify-center';
+    // Clases base: Centrar contenido sin forzar altura completa
+    const baseClasses = 'w-full flex flex-col items-center justify-center';
     
     return baseClasses;
   }, [type]);
 
   // Calculamos clases para el div que contiene el SVG interno
   const svgContainerClasses = useMemo(() => {
-    // Clases base: Ocupar 100% del contenedor disponible
-    const baseClasses = 'w-full h-full flex justify-center items-center';
+    // Clases base: Centrar el SVG y ocupar el espacio necesario
+    const baseClasses = 'flex justify-center items-center';
     const isLinearBarcode = ['code128', 'ean13', 'upca', 'code39'].includes(type);
 
     if (isLinearBarcode) {
-      // Para lineales: mantener aspecto pero ocupar todo el ancho
-      return `${baseClasses} min-h-[150px]`;
+      // Para lineales: mantener aspecto pero ocupar ancho necesario
+      return `${baseClasses} w-full min-h-[150px]`;
     } else {
-      // Para QR y otros 2D: ocupar todo el espacio disponible
-      return `${baseClasses} min-h-[200px]`;
+      // Para QR y otros 2D: ocupar el espacio necesario
+      return `${baseClasses}`;
     }
   }, [type]);
 
@@ -93,16 +93,22 @@ export default function BarcodeDisplay({ svgContent, type, data, gradientOptions
   // --- Renderizado del Componente ---
   return (
     // Aplicamos las clases calculadas al div contenedor principal
-    // Este div ahora tiene fondo blanco, borde, sombra, padding
     <div className={wrapperClasses}>
       {/* Div que contiene directamente el SVG */}
       <div
-        className={svgContainerClasses} // <-- Clases para tamaño/aspecto
+        className={svgContainerClasses}
         dangerouslySetInnerHTML={{ __html: processedSvgContent }}
         role="img"
-        // Usamos un título más descriptivo para accesibilidad
         aria-label={`Código ${typeLabels[type] || type} generado para los datos: ${data.substring(0, 30)}${data.length > 30 ? '...' : ''}`}
       />
+      <style jsx>{`
+        div :global(svg) {
+          max-width: 100%;
+          max-height: 100%;
+          width: auto;
+          height: auto;
+        }
+      `}</style>
       {/* Mostramos etiquetas debajo */}
       {renderTextLabel()}
       {renderTypeInfo()}

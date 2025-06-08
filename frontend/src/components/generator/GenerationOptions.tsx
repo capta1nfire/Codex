@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Controller, Control, FieldErrors, UseFormWatch, UseFormReset, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
 import {
   Select,
@@ -33,9 +33,7 @@ import {
 
 // Importar dinámicamente AdvancedBarcodeOptions
 const AdvancedBarcodeOptions = dynamic(() => import('./AdvancedBarcodeOptions'), {
-  // Opcional: componente de carga
-  // loading: () => <p className="text-sm text-gray-500">Cargando opciones avanzadas...</p>,
-  ssr: false, // Generalmente bueno para componentes del lado del cliente con mucha interactividad
+  ssr: false,
 });
 
 // Valores por defecto
@@ -58,7 +56,6 @@ const defaultFormValues: Partial<GenerateFormData> = {
     qr_version: 'Auto',
     qr_mask_pattern: 'Auto',
     code128_codeset: 'Auto',
-    // ...otros defaults...
   },
 };
 
@@ -76,7 +73,7 @@ interface GenerationOptionsProps {
   setExpandedSection: (section: string) => void;
 }
 
-export default function GenerationOptions({
+function GenerationOptions({
   control,
   errors,
   watch,
@@ -90,8 +87,14 @@ export default function GenerationOptions({
   setExpandedSection,
 }: GenerationOptionsProps) {
   
-  // Estado para el tab activo
+  // Estado para el tab activo - aislado para evitar re-renders del padre
   const [activeTab, setActiveTab] = useState<string>('color');
+  
+  // Memoizar el cambio de tab para evitar re-renders
+  const handleTabChange = useCallback((tabId: string) => {
+    // Solo actualizar el estado local, no disparar cambios en el formulario
+    setActiveTab(tabId);
+  }, []);
   
   // Calculate conditional visibility
   const is1DBarcode = selectedType
@@ -102,7 +105,7 @@ export default function GenerationOptions({
     : false;
   const isQrCode = selectedType === 'qrcode';
 
-  const handleResetOptions = () => {
+  const handleResetOptions = useCallback(() => {
     reset(
       { ...watch(), options: defaultFormValues.options },
       { keepDefaultValues: false, keepValues: false }
@@ -115,7 +118,7 @@ export default function GenerationOptions({
         border: '1px solid #0284c7',
       },
     });
-  };
+  }, [reset, watch]);
 
   const SectionCard = ({ 
     id, 
@@ -140,7 +143,7 @@ export default function GenerationOptions({
     )}>
       <CardHeader 
         className="pb-2 cursor-pointer"
-        onClick={() => setActiveTab(id)}
+        onClick={() => handleTabChange(id)}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -187,7 +190,8 @@ export default function GenerationOptions({
     </Card>
   );
 
-  const ColorInput = ({ 
+  // ColorInput como componente interno memoizado
+  const ColorInput = React.memo(({ 
     name, 
     label, 
     defaultValue 
@@ -231,87 +235,86 @@ export default function GenerationOptions({
         )}
       />
     </div>
-  );
+  ));
+  ColorInput.displayName = 'ColorInput';
 
-  // Definir los tabs
-  const tabs = [
+  // Memoizar el handler de intercambio de colores
+  const handleSwapColors = useCallback(() => {
+    const color1 = watch('options.gradient_color1') || '#2563EB';
+    const color2 = watch('options.gradient_color2') || '#000000';
+    // Usar batch update para evitar múltiples re-renders
+    setValue('options.gradient_color1', color2, { shouldValidate: false });
+    setValue('options.gradient_color2', color1, { shouldValidate: false });
+    // Solo generar después de ambas actualizaciones
+    const currentFormValues = getValues();
+    onSubmit(currentFormValues);
+  }, [watch, setValue, getValues, onSubmit]);
+
+  // Definir los tabs - memoizado para evitar recreación
+  const tabs = useMemo(() => [
     {
       id: 'color',
       name: 'COLOR',
       icon: Palette,
     },
     {
-      id: 'design',
-      name: 'DESIGN',
-      icon: Eye,
+      id: 'shapes',
+      name: 'SHAPES',
+      icon: Settings2,
+    },
+    {
+      id: 'logo',
+      name: 'LOGO',
+      icon: Settings2,
     },
     {
       id: 'advanced',
       name: 'ADVANCED',
       icon: Settings2,
     },
-  ];
+  ], []);
 
-  return (
-    <div className="space-y-4">
-      {/* Tabs Navigation */}
-      <div className="flex border-b border-slate-200 dark:border-slate-700">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 border-b-2 flex-1 justify-center",
-                isActive
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20"
-                  : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300"
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              <span>{tab.name}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Tab Content */}
-      <div className="min-h-[300px]">
-        {/* COLOR Tab */}
-        {activeTab === 'color' && (
+  // Memoizar el contenido de cada tab para evitar re-renders
+  const tabContent = useMemo(() => {
+    switch (activeTab) {
+      case 'color':
+        return (
           <div className="space-y-4 animate-in fade-in-50 duration-200">
-            {/* Color Mode Selection - Simplified */}
+            {/* QR Code Color Options */}
             {isQrCode && (
-              <div className="space-y-3">
-                {/* Simple Color Mode Toggle */}
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Modo de Color</Label>
+              <div className="space-y-4">
+                {/* Color Mode Toggle - Centered with better styling */}
+                <div className="flex justify-center pb-3 border-b border-slate-200 dark:border-slate-700">
                   <Controller
                     name="options.gradient_enabled"
                     control={control}
                     defaultValue={true}
                     render={({ field }) => (
-                      <div className="flex items-center gap-2">
-                        <span className={cn(
-                          "text-xs transition-colors",
-                          !field.value ? "text-slate-900 dark:text-slate-100 font-medium" : "text-slate-500"
-                        )}>
+                      <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full p-1">
+                        <button
+                          type="button"
+                          onClick={() => field.onChange(false)}
+                          className={cn(
+                            "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                            !field.value 
+                              ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm" 
+                              : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                          )}
+                        >
                           Sólido
-                        </span>
-                        <Switch
-                          checked={field.value || false}
-                          onCheckedChange={field.onChange}
-                          disabled={isLoading}
-                        />
-                        <span className={cn(
-                          "text-xs transition-colors",
-                          field.value ? "text-slate-900 dark:text-slate-100 font-medium" : "text-slate-500"
-                        )}>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => field.onChange(true)}
+                          className={cn(
+                            "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                            field.value 
+                              ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm" 
+                              : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                          )}
+                        >
                           Gradiente
-                        </span>
+                        </button>
                       </div>
                     )}
                   />
@@ -319,8 +322,8 @@ export default function GenerationOptions({
 
                 {/* Color Controls */}
                 {!watch('options.gradient_enabled') ? (
-                  // Solid Colors Mode
-                  <div className="grid grid-cols-2 gap-3">
+                  // Solid Colors Mode - 2 columnas
+                  <div className="grid grid-cols-2 gap-4">
                     <ColorInput 
                       name="options.fgcolor" 
                       label="Color Principal" 
@@ -333,90 +336,99 @@ export default function GenerationOptions({
                     />
                   </div>
                 ) : (
-                  // Gradient Mode - Simplified
-                  <div className="space-y-3">
-                    {/* Gradient Type */}
-                    <div>
-                      <Label className="text-sm font-medium mb-2 block">Tipo</Label>
-                      <Controller
-                        name="options.gradient_type"
-                        control={control}
-                        defaultValue="radial"
-                        render={({ field }) => (
-                          <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                            <SelectTrigger className="h-9">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="linear">Lineal</SelectItem>
-                              <SelectItem value="radial">Radial</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                    </div>
-
-                    {/* Gradient Colors with Swap */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <Label className="text-sm font-medium">Colores</Label>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const color1 = watch('options.gradient_color1') || '#2563EB';
-                            const color2 = watch('options.gradient_color2') || '#000000';
-                            setValue('options.gradient_color1', color2, { shouldValidate: true });
-                            setValue('options.gradient_color2', color1, { shouldValidate: true });
-                          }}
-                          disabled={isLoading}
-                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
-                          title="Intercambiar colores"
-                        >
-                          <ArrowLeftRight className="h-3 w-3" />
-                          Intercambiar
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <ColorInput 
-                          name="options.gradient_color1" 
-                          label="Primario" 
-                          defaultValue="#2563EB" 
-                        />
-                        <ColorInput 
-                          name="options.gradient_color2" 
-                          label="Secundario" 
-                          defaultValue="#000000" 
-                        />
-                      </div>
-                    </div>
-
-                    {/* Gradient Direction - Only for linear */}
-                    {watch('options.gradient_type') === 'linear' && (
+                  // Gradient Mode - Organizado en una fila de 4 columnas
+                  <div className="space-y-4">
+                    {/* Primera fila: Tipo, Colores e Intercambiar */}
+                    <div className="grid grid-cols-4 gap-3">
+                      {/* Gradient Type */}
                       <div>
-                        <Label className="text-sm font-medium mb-2 block">Dirección</Label>
+                        <Label className="text-xs font-medium mb-1.5 block">Tipo</Label>
                         <Controller
-                          name="options.gradient_direction"
+                          name="options.gradient_type"
                           control={control}
-                          defaultValue="top-bottom"
+                          defaultValue="radial"
                           render={({ field }) => (
                             <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
                               <SelectTrigger className="h-9">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="top-bottom">↓ Vertical</SelectItem>
-                                <SelectItem value="left-right">→ Horizontal</SelectItem>
-                                <SelectItem value="diagonal">↘ Diagonal</SelectItem>
+                                <SelectItem value="radial">
+                                  <span className="flex items-center gap-2">
+                                    <span className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></span>
+                                    Radial
+                                  </span>
+                                </SelectItem>
+                                <SelectItem value="linear">
+                                  <span className="flex items-center gap-2">
+                                    <span className="w-4 h-4 bg-gradient-to-r from-blue-500 to-purple-500"></span>
+                                    Lineal
+                                  </span>
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           )}
                         />
                       </div>
+
+                      {/* Gradient Colors */}
+                      <ColorInput 
+                        name="options.gradient_color1" 
+                        label="Color 1" 
+                        defaultValue="#2563EB" 
+                      />
+                      <ColorInput 
+                        name="options.gradient_color2" 
+                        label="Color 2" 
+                        defaultValue="#000000" 
+                      />
+                      
+                      {/* Swap colors button */}
+                      <div>
+                        <Label className="text-xs font-medium mb-1.5 block opacity-0">Acción</Label>
+                        <button
+                          type="button"
+                          onClick={handleSwapColors}
+                          disabled={isLoading}
+                          className="w-full h-9 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md flex items-center justify-center gap-1 transition-all border border-blue-200 dark:border-blue-800"
+                          title="Intercambiar colores"
+                        >
+                          <ArrowLeftRight className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Intercambiar</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Segunda fila: Dirección (solo para linear) */}
+                    {watch('options.gradient_type') === 'linear' && (
+                      <div className="grid grid-cols-4 gap-3">
+                        <div>
+                          <Label className="text-xs font-medium mb-1.5 block">Dirección</Label>
+                          <Controller
+                            name="options.gradient_direction"
+                            control={control}
+                            defaultValue="top-bottom"
+                            render={({ field }) => (
+                              <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                                <SelectTrigger className="h-9">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="top-bottom">↓ Vertical</SelectItem>
+                                  <SelectItem value="left-right">→ Horizontal</SelectItem>
+                                  <SelectItem value="diagonal">↘ Diagonal</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                        </div>
+                        <div className="col-span-3"></div>
+                      </div>
                     )}
 
-                    {/* Gradient Borders - Simplified */}
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Bordes</Label>
+                    {/* Tercera fila: Aplicar bordes al gradiente */}
+                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                      <Label className="text-sm font-medium">Aplicar bordes al gradiente</Label>
                       <Controller
                         name="options.gradient_borders"
                         control={control}
@@ -426,6 +438,7 @@ export default function GenerationOptions({
                             checked={field.value || false}
                             onCheckedChange={field.onChange}
                             disabled={isLoading}
+                            className="data-[state=checked]:bg-blue-600"
                           />
                         )}
                       />
@@ -451,92 +464,30 @@ export default function GenerationOptions({
               </div>
             )}
           </div>
-        )}
-
-        {/* DESIGN Tab */}
-        {activeTab === 'design' && (
-          <div className="space-y-4 animate-in fade-in-50 duration-200">
-            {/* Height (if relevant) */}
-            {isHeightRelevant && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-sm font-medium">Altura</Label>
-                  <Badge variant="outline" className="text-xs">
-                    {watch('options.height')}px
-                  </Badge>
-                </div>
-                <Controller
-                  name="options.height"
-                  control={control}
-                  defaultValue={100}
-                  render={({ field }) => (
-                    <div className="space-y-1">
-                      <Slider
-                        min={10}
-                        max={500}
-                        step={10}
-                        value={[field.value ?? 100]}
-                        onValueChange={(value) => field.onChange(value[0])}
-                        disabled={isLoading}
-                      />
-                      <div className="flex justify-between text-xs text-slate-500">
-                        <span>10px</span>
-                        <span>500px</span>
-                      </div>
-                    </div>
-                  )}
-                />
-              </div>
-            )}
-
-            {/* Include Text (if 1D) */}
-            {is1DBarcode && (
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Mostrar Texto</Label>
-                <Controller
-                  name="options.includetext"
-                  control={control}
-                  defaultValue={true}
-                  render={({ field }) => (
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isLoading}
-                    />
-                  )}
-                />
-              </div>
-            )}
-
-            {/* ECL Level (if QR) */}
-            {isQrCode && (
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Corrección de Errores</Label>
-                <Controller
-                  name="options.ecl"
-                  control={control}
-                  defaultValue="M"
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                      <SelectTrigger className="h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="L">L - Bajo (~7%)</SelectItem>
-                        <SelectItem value="M">M - Medio (~15%)</SelectItem>
-                        <SelectItem value="Q">Q - Alto (~25%)</SelectItem>
-                        <SelectItem value="H">H - Máximo (~30%)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-            )}
+        );
+      
+      case 'shapes':
+        return (
+          <div className="animate-in fade-in-50 duration-200 space-y-4">
+            <div className="text-center py-8">
+              <Settings2 className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+              <p className="text-sm text-slate-500 dark:text-slate-400">Formas personalizadas próximamente</p>
+            </div>
           </div>
-        )}
-
-        {/* ADVANCED Tab */}
-        {activeTab === 'advanced' && (
+        );
+      
+      case 'logo':
+        return (
+          <div className="animate-in fade-in-50 duration-200 space-y-4">
+            <div className="text-center py-8">
+              <Settings2 className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+              <p className="text-sm text-slate-500 dark:text-slate-400">Agregar logo próximamente</p>
+            </div>
+          </div>
+        );
+      
+      case 'advanced':
+        return (
           <div className="animate-in fade-in-50 duration-200">
             <AdvancedBarcodeOptions
               control={control}
@@ -547,40 +498,60 @@ export default function GenerationOptions({
               reset={reset}
             />
           </div>
-        )}
+        );
+      
+      default:
+        return null;
+    }
+  }, [activeTab, control, errors, watch, isLoading, selectedType, reset, isQrCode, handleSwapColors]);
+
+  return (
+    <div className="space-y-4">
+      {/* Tabs Navigation */}
+      <div className="flex border-b border-slate-200 dark:border-slate-700">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => handleTabChange(tab.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 border-b-2 flex-1 justify-center",
+                isActive
+                  ? "border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20"
+                  : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              <span>{tab.name}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Action Buttons */}
-      <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-700">
-        {/* Primary Action - Regenerate */}
-        <Button
-          type="button"
-          variant="default"
-          size="sm"
-          onClick={() => {
-            const currentValues = getValues();
-            onSubmit(currentValues);
-          }}
-          disabled={isLoading || !watch('data')}
-          className="w-full h-9 bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <RefreshCw className={cn("h-3 w-3 mr-2", isLoading && "animate-spin")} />
-          {isLoading ? 'Generando...' : 'Regenerar'}
-        </Button>
-        
-        {/* Secondary Action - Reset */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleResetOptions}
-          disabled={isLoading}
-          className="w-full h-8 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-        >
-          <RotateCcw className="h-3 w-3 mr-2" />
-          Restablecer
-        </Button>
+      {/* Tab Content */}
+      <div className="min-h-[200px]">
+        {tabContent}
       </div>
     </div>
   );
 }
+
+// Función de comparación personalizada para React.memo
+const arePropsEqual = (prevProps: GenerationOptionsProps, nextProps: GenerationOptionsProps) => {
+  // Comparar solo las props que realmente deberían causar un re-render
+  return (
+    prevProps.isLoading === nextProps.isLoading &&
+    prevProps.selectedType === nextProps.selectedType &&
+    prevProps.expandedSection === nextProps.expandedSection &&
+    // No comparar funciones ni objetos complejos que cambian frecuentemente
+    // Las funciones watch, setValue, etc. son estables gracias a react-hook-form
+    true
+  );
+};
+
+// Exportar el componente memoizado con comparación personalizada
+export default React.memo(GenerationOptions, arePropsEqual);

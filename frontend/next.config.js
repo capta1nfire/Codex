@@ -9,6 +9,11 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   
+  // Disable experimental features for stability
+  experimental: {
+    instrumentationHook: false
+  },
+  
   // Image optimization configuration
   images: {
     // Allow images from these domains
