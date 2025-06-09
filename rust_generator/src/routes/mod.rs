@@ -1,2 +1,2 @@
-// TODO: Update qr_v2 to use new QR Engine API
+// QR Engine v2 module - TODO: Fix implementation to match actual engine API
 // pub mod qr_v2;
