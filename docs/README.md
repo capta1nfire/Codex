@@ -10,14 +10,26 @@
 - **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
 - **[E2E_TESTING_GUIDE.md](./E2E_TESTING_GUIDE.md)** - End-to-end testing procedures
 - **[PORT_MIGRATION_CHECKLIST.md](./PORT_MIGRATION_CHECKLIST.md)** - Port configuration management
+- **[technical/stability-improvements.md](./technical/stability-improvements.md)** - PM2 system stability solution
 
 ### **⚡ Performance & Features**
 - **[BATCH_PROCESSING_GUIDE.md](./BATCH_PROCESSING_GUIDE.md)** - Batch processing implementation
 - **[IMAGE_OPTIMIZATION_GUIDE.md](./IMAGE_OPTIMIZATION_GUIDE.md)** - Image optimization strategies
 - **[IMPLEMENTATION_SUMMARY_BATCH.md](./IMPLEMENTATION_SUMMARY_BATCH.md)** - Batch feature implementation summary
 
-### **📋 Implementation Logs**
-- **[UNDOCUMENTED_IMPROVEMENTS.md](./UNDOCUMENTED_IMPROVEMENTS.md)** - Recent undocumented improvements
+### **🚀 QR Engine v2**
+- **[qr-engine/](./qr-engine/)** - Next-generation QR code engine (Rust)
+  - **[Overview](./qr-engine/README.md)** - Status and quick links
+  - **[Technical Guide](./qr-engine/technical-guide.md)** - Complete technical documentation
+  - **[Changelog](./qr-engine/changelog.md)** - Development history
+
+### **🚀 Implementation Documentation**
+- **[implementation/](./implementation/)** - Major features and improvements
+  - **[Audit Jules Response](./implementation/audit-jules/)** - 97.5% performance improvements
+  - **[Features](./implementation/features/)** - Batch processing, profile enhancements
+  - **[Quality](./implementation/quality/)** - Undocumented improvements audit
+
+### **📋 Other Documentation**
 - **[CLIPBOARD_FIX.md](./CLIPBOARD_FIX.md)** - Clipboard functionality fixes
 
 ### **📦 Archive**

@@ -16,10 +16,13 @@ import random
 import string
 
 # Test configuration
-BASE_URL = "http://localhost:3002"
+# Use backend port since it proxies to Rust service
+BASE_URL = "http://localhost:3004"
 QR_ENDPOINT = f"{BASE_URL}/api/generate"
-CACHE_STATS_ENDPOINT = f"{BASE_URL}/api/qr/cache/stats"
-CACHE_CLEAR_ENDPOINT = f"{BASE_URL}/api/qr/cache/clear"
+# Cache endpoints are on Rust service directly
+RUST_URL = "http://localhost:3002"
+CACHE_STATS_ENDPOINT = f"{RUST_URL}/api/qr/cache/stats"
+CACHE_CLEAR_ENDPOINT = f"{RUST_URL}/api/qr/cache/clear"
 
 # Test data patterns
 TEST_PATTERNS = [
@@ -129,10 +132,10 @@ async def make_request(session: aiohttp.ClientSession, data: str, options: Dict)
             if response.status == 200:
                 result = await response.json()
                 return {
-                    "success": True,
+                    "success": result.get("success", False),
                     "response_time": response_time,
                     "cached": result.get("cached", False),
-                    "size": len(await response.text())
+                    "size": len(result.get("svgString", ""))
                 }
             else:
                 return {
@@ -217,9 +220,9 @@ async def run_load_test(total_requests: int, concurrent_requests: int,
             batch_results = await run_concurrent_batch(session, batch_size, batch_num)
             all_results.extend(batch_results)
             
-            # Small delay between batches to avoid overwhelming the server
+            # Delay between batches to avoid overwhelming the server and rate limits
             if batch_num < batch_count - 1:
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.5)  # Increased delay to respect rate limits
         
         end_time = time.time()
         total_time = end_time - start_time
@@ -239,7 +242,10 @@ async def run_load_test(total_requests: int, concurrent_requests: int,
         print(f"Total requests: {len(all_results)}")
         print(f"Successful: {len(successful)} ({len(successful)/len(all_results)*100:.1f}%)")
         print(f"Failed: {len(failed)} ({len(failed)/len(all_results)*100:.1f}%)")
-        print(f"Cache hits: {len(cached)} ({len(cached)/len(successful)*100:.1f}% of successful)")
+        if successful:
+            print(f"Cache hits: {len(cached)} ({len(cached)/len(successful)*100:.1f}% of successful)")
+        else:
+            print("Cache hits: N/A (no successful requests)")
         
         if successful:
             response_times = [r["response_time"] for r in successful]

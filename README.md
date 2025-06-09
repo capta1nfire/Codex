@@ -21,9 +21,19 @@
 - 📚 **Documentation**: 100% de cobertura de APIs con ejemplos prácticos
 - ⚙️ **CI/CD**: Pipeline completamente automatizado
 
+### 📖 **Documentation Hub**
+All project documentation has been organized in the **[docs/](./docs/)** directory:
+- **[QR Engine v2](./docs/qr-engine/)** - Next-generation QR code engine
+- **[Implementation Reports](./docs/implementation/)** - Feature implementations and audit responses
+- **[API Documentation](./docs/api/)** - Complete API reference
+- **[Database Documentation](./docs/database/)** - Schema and optimization guide
+- **[Technical Specs](./docs/technical/)** - Research and specifications
+
 ---
 
 ## 🛡️ **Mejoras de Estabilidad del Sistema (NEW - Jun 2025)**
+
+📖 **Para detalles completos, ver [docs/technical/stability-improvements.md](./docs/technical/stability-improvements.md)**
 
 ### **🚨 Problema Crítico Resuelto**
 El sistema experimentaba caídas constantes de servicios con cualquier cambio mínimo en archivos. Una auditoría profunda reveló:

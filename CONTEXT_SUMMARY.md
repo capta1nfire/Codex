@@ -14,9 +14,24 @@
 1. **🔥 PRIMERO**: `CONTEXT_SUMMARY.md` ← **ESTÁS AQUÍ** (orientación técnica inmediata)
 2. **👑 SEGUNDO**: `CODEX.md` (roadmap estratégico y fases de desarrollo) 
 3. **📖 TERCERO**: `README.md` (setup técnico detallado)
-4. **🎨 CUARTO**: `docs/CODEX_DESIGN_SYSTEM.md` ← **LECTURA OBLIGATORIA** (filosofía visual y patrones UI)
-5. **🚀 QUINTO**: `BARCODE_ROADMAP.md` ← **INVESTIGACIÓN ESTRATÉGICA OBLIGATORIA** (análisis técnico de códigos especializados)
-6. **🔧 OPCIONAL**: Documentación específica según necesidad
+4. **📚 CUARTO**: `docs/README.md` ← **ÍNDICE MAESTRO DE DOCUMENTACIÓN** (mapa completo de docs)
+5. **🎨 QUINTO**: `docs/CODEX_DESIGN_SYSTEM.md` ← **LECTURA OBLIGATORIA** (filosofía visual y patrones UI)
+6. **🚀 SEXTO**: `docs/technical/barcode-research.md` ← **INVESTIGACIÓN ESTRATÉGICA** (análisis técnico de códigos)
+7. **🔧 ESPECÍFICO**: Consultar `docs/` para documentación organizada por tema
+
+### **📂 Estructura de Documentación (IMPORTANTE)**
+- **`docs/README.md`** - Hub central con índice completo y navegación
+- **`docs/qr-engine/`** - QR Engine v2 (technical guide, changelog, status)
+- **`docs/implementation/`** - Auditorías e implementaciones mayores
+- **`docs/api/`** - Documentación API completa
+- **`docs/database/`** - Esquema y optimizaciones BD
+- **`docs/technical/`** - Especificaciones técnicas y research
+- **`docs/archive/`** - Documentos históricos (solo referencia)
+
+**⚠️ REGLAS CRÍTICAS**:
+1. **SIEMPRE** verificar en `docs/` antes de crear nueva documentación
+2. **NUNCA** crear documentos duplicados - actualizar existentes
+3. **CONSULTAR** `docs/DOCUMENTATION_AUDIT_20250608.md` para entender la consolidación
 
 > **⏰ Tiempo estimado**: 20 minutos para entender completamente el proyecto (incluyendo design system e investigación estratégica)
 
@@ -61,28 +76,26 @@
 ```
 ├── CODEX.md                     # 👑 DOCUMENTO MAESTRO - Roadmap/Estrategia
 ├── README.md                    # Overview técnico principal
-├── API_DOCUMENTATION.md         # Documentación completa de APIs
-├── BARCODE_ROADMAP.md           # 🚀 INVESTIGACIÓN ESTRATÉGICA - Análisis técnico de códigos especializados
-└── CHANGELOG.md                 # Historial oficial de versiones
+├── CLAUDE.md                    # 🤖 Guía para AI agents (actualizada)
+└── CHANGELOG.md                 # Referencias a documentación organizada
 ```
 
 ### **🟡 IMPORTANTES - CONSULTAR ANTES DE MODIFICAR**
 ```
 ├── CONTEXT_SUMMARY.md           # 📋 ESTE DOCUMENTO (transferencia IA)
 ├── docs/CODEX_DESIGN_SYSTEM.md  # 🎨 DESIGN SYSTEM v2.0 "Corporate Sophistication" (LECTURA OBLIGATORIA)
-├── IMPLEMENTATION_REPORT.md     # Reporte de auditoría Jules
-├── DATABASE_DOCUMENTATION.md    # 🗄️ DOCUMENTACIÓN CRÍTICA DE BASE DE DATOS
+├── docs/technical/stability-improvements.md  # 🛡️ Solución PM2 para estabilidad
 └── validate_implementation.js   # Script de validación crítico
 ```
 
 ### **🟢 TÉCNICOS - MODIFICABLES CON CUIDADO**
 ```
-├── docs/TROUBLESHOOTING.md      # Solución de problemas (muy útil)
-├── docs/PORT_MIGRATION_CHECKLIST.md  # Conflictos de puertos y archivos pendientes
-├── docs/TECHNICAL_IMPROVEMENTS_2025.md  # Mejoras técnicas recientes
-├── docs/BATCH_PROCESSING_GUIDE.md      # Guía de procesamiento en lotes
-├── docs/E2E_TESTING_GUIDE.md           # Guía de testing end-to-end
-├── docs/SVG_GRADIENT_SYSTEM.md         # 🎨 Sistema avanzado de gradientes SVG para QR (Documentación técnica completa)
+├── docs/                        # 📚 TODA LA DOCUMENTACIÓN ORGANIZADA
+│   ├── qr-engine/              # QR Engine v2 completo
+│   ├── implementation/         # Implementaciones y auditorías
+│   ├── api/                    # Documentación API
+│   ├── database/               # Documentación BD
+│   └── technical/              # Especificaciones técnicas
 ├── backend/README.md            # Documentación específica backend
 ├── frontend/README.md           # Documentación específica frontend
 └── rust_generator/README.md     # Documentación específica Rust
@@ -147,9 +160,9 @@ pm2 monit         # Monitor interactivo
 
 ---
 
-## 🎯 **INVESTIGACIÓN ESTRATÉGICA - BARCODE_ROADMAP.md** 
+## 🎯 **INVESTIGACIÓN ESTRATÉGICA - docs/technical/barcode-research.md** 
 
-> **🚨 LECTURA CRÍTICA**: El archivo `BARCODE_ROADMAP.md` contiene la **investigación exhaustiva de mercado 2025** que define completamente la **estrategia de especialización** de CODEX.
+> **🚨 LECTURA CRÍTICA**: El archivo `docs/technical/barcode-research.md` contiene la **investigación exhaustiva de mercado 2025** que define completamente la **estrategia de especialización** de CODEX.
 
 ### **📊 CONTENIDO ESTRATÉGICO FUNDAMENTAL**
 
@@ -188,7 +201,7 @@ ITF-14: barcoders                       // Bearer bars + cartón corrugado
 - **Arquitectura Rust**: Preparada para bibliotecas especializadas
 - **Documentación estratégica**: CODEX.md actualizado v1.3.0 con estrategia completa
 
-#### **🔄 EN DESARROLLO** (basado en BARCODE_ROADMAP.md)
+#### **🔄 EN DESARROLLO** (basado en docs/technical/barcode-research.md)
 - **QR Code avanzado**: Personalización con logos y gradientes corporativos  
 - **Validación EAN/UPC**: Cumplimiento GS1 perfecto para retail
 - **Data Matrix industrial**: Optimización para DPM y espacios pequeños
@@ -197,7 +210,7 @@ ITF-14: barcoders                       // Bearer bars + cartón corrugado
 
 ### **🚨 IMPORTANCIA CRÍTICA PARA AGENTES IA**
 
-**SI NO LEES BARCODE_ROADMAP.md, NO ENTENDERÁS**:
+**SI NO LEES docs/technical/barcode-research.md, NO ENTENDERÁS**:
 - ❌ **Por qué** CODEX se especializa en solo 5 códigos vs 50 genéricos
 - ❌ **Cómo** posicionarse como líder técnico premium vs competencia genérica  
 - ❌ **Cuáles** bibliotecas Rust usar para cada tipo de código específico
@@ -610,7 +623,9 @@ Si eres un nuevo agente IA trabajando en CODEX:
 
 ---
 
-*Última actualización: 24 de Mayo, 2025 - Post implementación de reglas de transferencia IA y cleanup de documentación* 
+*Última actualización: 8 de Junio, 2025 - Post consolidación masiva de documentación en estructura `/docs/` organizada*
+
+**📚 CAMBIO IMPORTANTE (Jun 8, 2025)**: Toda la documentación ha sido consolidada y organizada en el directorio `/docs/`. Los documentos originales fueron archivados con timestamp. Siempre verificar en `/docs/` antes de crear nueva documentación. 
 
 ## 🌐 **CONFIGURACIÓN DE PUERTOS** (REFERENCIA RÁPIDA)
 
@@ -1080,7 +1095,7 @@ El script `./dev.sh` ahora incluye validación automática que detecta:
 
 ## 🗄️ **DOCUMENTACIÓN CRÍTICA DE BASE DE DATOS**
 
-> **⚠️ INFORMACIÓN VITAL**: La base de datos sufrió un **problema complejo de múltiples volúmenes Docker** que causó mucha confusión y pérdida de datos aparente. Ver [`DATABASE_DOCUMENTATION.md`](./DATABASE_DOCUMENTATION.md) para detalles completos.
+> **⚠️ INFORMACIÓN VITAL**: La base de datos sufrió un **problema complejo de múltiples volúmenes Docker** que causó mucha confusión y pérdida de datos aparente. Ver [`docs/database/README.md`](./docs/database/README.md) para detalles completos.
 
 ### **🚨 Historia del Problema (Para Futuros Agentes IA)**
 
@@ -1151,7 +1166,7 @@ docker volume ls | grep postgres
 
 ### **🚨 SEÑALES DE PROBLEMAS SIMILARES EN EL FUTURO**
 
-**SI VES ESTOS SÍNTOMAS, REVISA `DATABASE_DOCUMENTATION.md` INMEDIATAMENTE**:
+**SI VES ESTOS SÍNTOMAS, REVISA `docs/database/README.md` INMEDIATAMENTE**:
 - Users pueden hacer login pero Prisma dice que DB está vacía
 - Múltiples volúmenes `postgres` en `docker volume ls`
 - Multiple servicios en puerto 5432 (`lsof -i :5432`)
@@ -1162,7 +1177,7 @@ docker volume ls | grep postgres
 - ✅ **Base de datos estable**: PostgreSQL 15 en Docker únicamente
 - ✅ **Datos migrados**: 4 usuarios con roles correctos
 - ✅ **Sistema de roles**: Jerarquía completa USER → SUPERADMIN
-- ✅ **Documentación completa**: Todo el proceso documentado en `DATABASE_DOCUMENTATION.md`
+- ✅ **Documentación completa**: Todo el proceso documentado en `docs/database/README.md`
 - ✅ **Ambiente validado**: No más conflictos de puertos o volúmenes
 
 ---

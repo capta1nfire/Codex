@@ -59,6 +59,12 @@ pub enum QrError {
     
     #[error("Error interno: {0}")]
     InternalError(String),
+    
+    #[error("Error de decodificación: {0}")]
+    DecodingError(String),
+    
+    #[error("Error de cache: {0}")]
+    CacheError(String),
 }
 
 impl QrError {
@@ -75,6 +81,7 @@ impl QrError {
             QrError::MaliciousUrl(_) => 403,
             QrError::GenerationTimeout(_) => 408,
             QrError::MemoryExceeded(_, _) => 413,
+            QrError::CacheError(_) => 503, // Service Unavailable
             _ => 500,
         }
     }

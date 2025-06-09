@@ -69,8 +69,15 @@ impl ComplexityRouter {
             (Some(_), _, true) => ComplexityLevel::Ultra,
             
             // Por número de características
-            (Some(_), count, false) => {
-                if count <= 1 && request.size <= self.thresholds.basic_max_size {
+            (Some(custom), count, false) => {
+                // Efectos siempre requieren nivel avanzado como mínimo
+                if custom.effects.is_some() && custom.effects.as_ref().unwrap().len() > 0 {
+                    if count > self.thresholds.advanced_features_count {
+                        ComplexityLevel::Ultra
+                    } else {
+                        ComplexityLevel::Advanced
+                    }
+                } else if count <= 1 && request.size <= self.thresholds.basic_max_size {
                     ComplexityLevel::Basic
                 } else if count <= self.thresholds.medium_features_count {
                     ComplexityLevel::Medium
@@ -119,7 +126,9 @@ impl ComplexityRouter {
             }
             
             // Efectos
-            count += custom.effects.len();
+            if let Some(effects) = &custom.effects {
+                count += effects.len();
+            }
         }
         
         // Tamaño grande cuenta como característica
@@ -139,8 +148,10 @@ impl ComplexityRouter {
     fn has_ultra_features(&self, request: &QrRequest) -> bool {
         if let Some(custom) = &request.customization {
             // Múltiples efectos
-            if custom.effects.len() > 2 {
-                return true;
+            if let Some(effects) = &custom.effects {
+                if effects.len() > 2 {
+                    return true;
+                }
             }
             
             // Marcos complejos
@@ -158,8 +169,12 @@ impl ComplexityRouter {
             }
             
             // Combinaciones complejas
-            if custom.logo.is_some() && custom.gradient.is_some() && custom.effects.len() > 0 {
-                return true;
+            if custom.logo.is_some() && custom.gradient.is_some() {
+                if let Some(effects) = &custom.effects {
+                    if !effects.is_empty() {
+                        return true;
+                    }
+                }
             }
         }
         
@@ -246,7 +261,7 @@ mod tests {
                 gradient: None,
                 logo: None,
                 frame: None,
-                effects: vec![],
+                effects: None,
                 error_correction: None,
             }),
         };
@@ -276,7 +291,7 @@ mod tests {
                     shape: LogoShape::Circle,
                 }),
                 frame: None,
-                effects: vec![],
+                effects: None,
                 error_correction: None,
             }),
         };

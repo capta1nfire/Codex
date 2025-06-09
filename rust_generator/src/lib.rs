@@ -2,6 +2,12 @@
 pub mod engine;
 pub mod shapes;
 pub mod processing;
+pub mod standards;
+pub mod cache;
+pub mod models;
+
+#[cfg(test)]
+mod test_effects_integration;
 
 // Imports
 use rxing::{common::BitMatrix, BarcodeFormat, MultiFormatWriter, Writer, EncodeHints};

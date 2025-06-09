@@ -34,6 +34,7 @@ import { generateRoutes } from './routes/generate.routes.js';
 import healthRoutes from './routes/health.js'; // ✅ Sistema robusto
 import { metricsRoutes } from './routes/metrics.routes.js';
 import { userRoutes } from './routes/user.routes.js';
+import { qrRoutes } from './routes/qr.routes.js';
 import { startServer } from './server-config.js'; // <--- Descomentar esta línea
 import {
   startDatabaseService,
@@ -432,6 +433,7 @@ app.post('/api/services/health-check', async (_req: Request, res: Response) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/generate', generateRoutes);
+app.use('/api/qr', qrRoutes); // QR Engine v2 routes
 app.use('/api/avatars', avatarRoutes);
 app.use('/api/users', userRoutes);
 

@@ -53,7 +53,7 @@ mod tests {
                 gradient: None,
                 logo: None,
                 frame: None,
-                effects: vec![],
+                effects: None,
                 error_correction: Some(ErrorCorrectionLevel::High),
             }),
         };
@@ -105,7 +105,7 @@ mod tests {
                     shape: LogoShape::Circle,
                 }),
                 frame: None,
-                effects: vec![],
+                effects: None,
                 error_correction: None,
             }),
         };

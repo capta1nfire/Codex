@@ -52,7 +52,19 @@ cargo fmt --check
 cargo fmt
 ```
 
+## QR Engine v2 - En Desarrollo
+
+Este servicio está siendo actualizado con un nuevo motor de generación QR de alto rendimiento. Ver [QR_ENGINE_V2_STATUS.md](QR_ENGINE_V2_STATUS.md) para el estado actual de implementación.
+
+### Estado Actual
+- ✅ **Fase 1**: Foundation (Completada)
+- ✅ **Fase 2**: Customization Core (Completada)
+- ✅ **Fase 3**: Advanced Features (Completada)
+- ✅ **Fase 4**: GS1 & Validation (Completada)
+- ⏳ **Fase 5**: Integration & Optimization (Pendiente)
+
 ## Documentación Adicional
 
 - [API_DOCS.md](API_DOCS.md): Detalles completos de los endpoints de la API.
+- [QR_ENGINE_V2_STATUS.md](QR_ENGINE_V2_STATUS.md): Estado detallado del nuevo QR Engine v2.
 - [README Raíz](../README.md): Visión general del proyecto Codex. 

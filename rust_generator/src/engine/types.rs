@@ -40,8 +40,8 @@ pub struct QrCustomization {
     /// Marco
     pub frame: Option<FrameOptions>,
     
-    /// Efectos especiales
-    pub effects: Vec<Effect>,
+    /// Efectos especiales con configuración
+    pub effects: Option<Vec<EffectOptions>>,
     
     /// Nivel de corrección de errores
     pub error_correction: Option<ErrorCorrectionLevel>,
@@ -184,8 +184,46 @@ pub enum Effect {
     Vintage,
 }
 
+/// Opciones de efectos con configuración
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffectOptions {
+    /// Tipo de efecto
+    pub effect_type: Effect,
+    
+    /// Configuración del efecto
+    #[serde(flatten)]
+    pub config: EffectConfiguration,
+}
+
+/// Configuración específica por tipo de efecto
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum EffectConfiguration {
+    Shadow {
+        offset_x: Option<f64>,
+        offset_y: Option<f64>,
+        blur_radius: Option<f64>,
+        color: Option<String>,
+        opacity: Option<f64>,
+    },
+    Glow {
+        intensity: Option<f64>,
+        color: Option<String>,
+    },
+    Blur {
+        radius: Option<f64>,
+    },
+    Noise {
+        intensity: Option<f64>,
+    },
+    Vintage {
+        sepia_intensity: Option<f64>,
+        vignette_intensity: Option<f64>,
+    },
+}
+
 /// Nivel de corrección de errores
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ErrorCorrectionLevel {
     Low,     // 7%
     Medium,  // 15%
@@ -328,7 +366,7 @@ mod tests {
                 gradient: None,
                 logo: None,
                 frame: None,
-                effects: vec![],
+                effects: None,
                 error_correction: Some(ErrorCorrectionLevel::Medium),
             }),
         };
