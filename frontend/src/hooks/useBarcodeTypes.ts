@@ -83,6 +83,10 @@ export const useBarcodeTypes = () => {
     return colors[color as keyof typeof colors] || colors.blue;
   };
 
+  const isBarcodeQR = useCallback((type: string) => {
+    return type === 'qrcode' || type === 'qr';
+  }, []);
+
   return {
     popularTypes,
     additionalTypes,
@@ -90,5 +94,6 @@ export const useBarcodeTypes = () => {
     setIsDropdownOpen,
     moveToPopular,
     getTypeColors,
+    isBarcodeQR,
   };
 };

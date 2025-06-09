@@ -70,7 +70,9 @@ interface GenerationOptionsProps {
   getValues: UseFormGetValues<GenerateFormData>;
   onSubmit: (data: GenerateFormData) => void;
   expandedSection: string;
-  setExpandedSection: (section: string) => void;
+  setExpandedSection?: (section: string) => void;
+  onToggleSection?: (section: string) => void;
+  showV2Features?: boolean;
 }
 
 function GenerationOptions({

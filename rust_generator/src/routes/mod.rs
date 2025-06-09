@@ -1,2 +1,2 @@
-// QR Engine v2 module - TODO: Fix implementation to match actual engine API
-// pub mod qr_v2;
+// QR Engine v2 module - Fixed implementation
+pub mod qr_v2_fixed;

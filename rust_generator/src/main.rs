@@ -615,11 +615,11 @@ async fn main() {
         .route("/cache/clear", post(clear_cache_handler))
         .route("/cache/config", post(configure_cache_handler))
         .route("/analytics/performance", get(performance_analytics_handler))
-        // QR Engine v2 endpoints - TODO: Fix implementation to match actual engine API
-        // .route("/api/qr/generate", post(routes::qr_v2::generate_handler))
-        // .route("/api/qr/batch", post(routes::qr_v2::batch_handler))
-        // .route("/api/qr/validate", post(routes::qr_v2::validate_handler))
-        // .route("/api/qr/preview", get(routes::qr_v2::preview_handler))
+        // QR Engine v2 endpoints - Fixed implementation
+        .route("/api/qr/generate", post(routes::qr_v2_fixed::generate_handler))
+        .route("/api/qr/batch", post(routes::qr_v2_fixed::batch_handler))
+        .route("/api/qr/validate", post(routes::qr_v2_fixed::validate_handler))
+        .route("/api/qr/preview", get(routes::qr_v2_fixed::preview_handler))
         // QR Engine v2 cache endpoints
         .route("/api/qr/cache/stats", get(qr_cache_stats_handler))
         .route("/api/qr/cache/clear", post(qr_cache_clear_handler))

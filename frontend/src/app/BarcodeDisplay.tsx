@@ -69,7 +69,7 @@ export default function BarcodeDisplay({ svgContent, type, data, gradientOptions
   const renderTextLabel = () => {
     // Mostramos texto para más tipos si es relevante, ajusta según necesidad
     if (['ean13', 'upca', 'code39', 'code128'].includes(type)) {
-      const displayText = data.length > 50 ? data.substring(0, 47) + '...' : data; // Acortar si es muy largo
+      const displayText = data && data.length > 50 ? data.substring(0, 47) + '...' : data || ''; // Acortar si es muy largo
       return (
         // Texto más oscuro para contraste
         <div className="mt-2 text-sm font-mono text-center text-gray-800 break-all w-full px-1">
@@ -85,7 +85,7 @@ export default function BarcodeDisplay({ svgContent, type, data, gradientOptions
     return (
       // Texto más oscuro para contraste
       <div className="mt-1 text-xs text-gray-700 font-medium">
-        {typeLabels[type] || type.toUpperCase()}
+        {typeLabels[type] || (type ? type.toUpperCase() : 'BARCODE')}
       </div>
     );
   };
@@ -99,7 +99,7 @@ export default function BarcodeDisplay({ svgContent, type, data, gradientOptions
         className={svgContainerClasses}
         dangerouslySetInnerHTML={{ __html: processedSvgContent }}
         role="img"
-        aria-label={`Código ${typeLabels[type] || type} generado para los datos: ${data.substring(0, 30)}${data.length > 30 ? '...' : ''}`}
+        aria-label={`Código ${typeLabels[type] || type} generado para los datos: ${data ? data.substring(0, 30) : ''}${data && data.length > 30 ? '...' : ''}`}
       />
       <style jsx>{`
         div :global(svg) {
