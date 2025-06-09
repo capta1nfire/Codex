@@ -21,6 +21,7 @@ image = "0.24"                 # Manipulación de imágenes
 resvg = "0.40"                 # SVG rendering de alta calidad
 tiny-skia = "0.11"             # Rasterización 2D rápida
 gif = "0.13"                   # Para QR animados (futuro)
+base64 = "0.22"                # Codificación base64 para logos
 
 # === VALIDATION ===
 # zbar pendiente - buscaremos alternativa Rust pura
@@ -35,7 +36,7 @@ axum = "0.6"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-chrono = "0.4.34"
+chrono = { version = "0.4.34", features = ["serde"] }
 dashmap = "5.5.3"
 tower = "0.4"
 tower-http = { version = "0.3", features = ["cors"] }
@@ -49,7 +50,20 @@ tracing-appender = "0.2"
 bincode = "1.3"                # Serialización binaria eficiente
 thiserror = "1.0"              # Error handling mejorado
 once_cell = "1.19"             # Para lazy statics más eficientes
+parking_lot = "0.12"           # Mutex/RwLock más eficientes
+regex = "1.10"                 # Para optimización de SVG
+uuid = { version = "1.6", features = ["v4", "serde"] }  # Para IDs únicos en reportes
+
+# === CACHING ===
+redis = { version = "0.25", features = ["cluster", "tokio-comp", "connection-manager"] }  # Redis con soporte para clustering
+sha2 = "0.10"  # Para generar cache keys
 
 [dev-dependencies]
 # Dependencias solo para desarrollo/tests
 console-subscriber = "0.2" # Para integración con tokio-console (opcional, desarrollo)
+criterion = { version = "0.5", features = ["html_reports"] } # Benchmarking
+proptest = "1.4" # Property-based testing
+
+[[bench]]
+name = "qr_benchmarks"
+harness = false

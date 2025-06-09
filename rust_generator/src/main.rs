@@ -28,9 +28,14 @@ use tower_http::cors::{Any, CorsLayer};
 use tracing::{debug, error, info};
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use serde_json;
 
 // Imports locales
 mod validators;
+mod routes;
+
+// Re-export types needed by main
+use rust_generator::engine;
 use validators::{
     validate_barcode_request, validate_batch_request, 
     BarcodeRequest, BarcodeRequestOptions, BatchBarcodeRequest
@@ -610,10 +615,16 @@ async fn main() {
         .route("/cache/clear", post(clear_cache_handler))
         .route("/cache/config", post(configure_cache_handler))
         .route("/analytics/performance", get(performance_analytics_handler))
-        // Nuevos endpoints del motor QR v2
-        .route("/api/qr/generate", post(qr_v2_generate_handler))
-        .route("/api/qr/validate", post(qr_v2_validate_handler))
-        .route("/api/qr/preview", get(qr_v2_preview_handler))
+        // QR Engine v2 endpoints
+        // TODO: Update routes/qr_v2.rs to use new QR Engine API
+        // .route("/api/qr/generate", post(routes::qr_v2::generate_handler))
+        // .route("/api/qr/batch", post(routes::qr_v2::batch_handler))
+        // .route("/api/qr/validate", post(routes::qr_v2::validate_handler))
+        // .route("/api/qr/preview", get(routes::qr_v2::preview_handler))
+        // QR Engine v2 cache endpoints
+        .route("/api/qr/cache/stats", get(qr_cache_stats_handler))
+        .route("/api/qr/cache/clear", post(qr_cache_clear_handler))
+        .route("/api/qr/cache/warm", post(qr_cache_warm_handler))
         .layer(cors); // Añadir la capa CORS
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3002));
@@ -1466,7 +1477,7 @@ async fn qr_v2_generate_handler(
 
 /// Handler para validación de QR
 async fn qr_v2_validate_handler(
-    Json(payload): Json<serde_json::Value>
+    Json(_payload): Json<serde_json::Value>
 ) -> impl IntoResponse {
     // TODO: Implementar validación en Fase 4
     (
@@ -1482,8 +1493,7 @@ async fn qr_v2_validate_handler(
 async fn qr_v2_preview_handler(
     Query(params): Query<HashMap<String, String>>
 ) -> impl IntoResponse {
-    use crate::engine::{QrEngine, QrRequest, OutputFormat, QrCustomization};
-    use crate::engine::types::{EyeShape, DataPattern, ColorOptions};
+    use rust_generator::engine::{QrRequest, types::{OutputFormat, QrCustomization, EyeShape, DataPattern, ColorOptions}};
     
     // Extraer parámetros del query string
     let data = params.get("data").cloned().unwrap_or_else(|| "https://codex.com".to_string());
@@ -1501,7 +1511,6 @@ async fn qr_v2_preview_handler(
             Some(ColorOptions {
                 foreground: fg.clone(),
                 background: bg.clone(),
-                gradient: None,
             })
         } else {
             None
@@ -1514,7 +1523,7 @@ async fn qr_v2_preview_handler(
             gradient: None,
             logo: None,
             frame: None,
-            effects: vec![],
+            effects: None,
             error_correction: None,
         })
     } else {
@@ -1529,8 +1538,8 @@ async fn qr_v2_preview_handler(
     };
     
     // Generar QR
-    let engine = QR_ENGINE.clone();
-    match engine.generate(&request) {
+    let engine = &rust_generator::engine::QR_ENGINE;
+    match engine.generate(request).await {
         Ok(output) => {
             // Devolver SVG directamente con content-type apropiado
             (
@@ -1545,12 +1554,10 @@ async fn qr_v2_preview_handler(
         Err(e) => {
             // Generar SVG de error
             let error_svg = format!(
-                r#"<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="200" height="200" fill="#fee2e2"/>
-                    <text x="100" y="100" text-anchor="middle" fill="#dc2626" font-size="14">
-                        Error: {}
-                    </text>
-                </svg>"#,
+                "<svg viewBox=\"0 0 200 200\" xmlns=\"http://www.w3.org/2000/svg\">\
+                    <rect width=\"200\" height=\"200\" fill=\"#fee2e2\"/>\
+                    <text x=\"100\" y=\"100\" text-anchor=\"middle\" fill=\"#dc2626\" font-size=\"14\">Error: {}</text>\
+                </svg>",
                 e.to_string()
             );
             
@@ -1562,6 +1569,125 @@ async fn qr_v2_preview_handler(
                 ],
                 error_svg
             ).into_response()
+        }
+    }
+}
+
+// ===== HANDLERS PARA CACHE DISTRIBUIDO QR V2 =====
+
+/// Handler para obtener estadísticas del cache distribuido
+async fn qr_cache_stats_handler() -> impl IntoResponse {
+    match engine::QR_ENGINE.get_cache_stats().await {
+        Ok(stats) => {
+            let json = serde_json::json!({
+                "success": true,
+                "stats": {
+                    "total_keys": stats.total_keys,
+                    "memory_bytes": stats.memory_bytes,
+                    "memory_mb": stats.memory_bytes as f64 / 1024.0 / 1024.0,
+                    "prefix": stats.prefix,
+                    "hits": stats.hits,
+                    "misses": stats.misses,
+                    "hit_rate": stats.hit_rate,
+                    "mode": stats.mode,
+                }
+            });
+            
+            (
+                StatusCode::OK,
+                [(header::CONTENT_TYPE, "application/json")],
+                serde_json::to_string(&json).unwrap(),
+            ).into_response()
+        }
+        Err(e) => {
+            error!("Error getting cache stats: {}", e);
+            handle_error(
+                format!("Error retrieving cache statistics: {}", e),
+                StatusCode::SERVICE_UNAVAILABLE,
+                Some("Check Redis connection and configuration".to_string()),
+                Some("CACHE_ERROR".to_string()),
+            )
+        }
+    }
+}
+
+/// Handler para limpiar el cache distribuido
+async fn qr_cache_clear_handler(Query(params): Query<std::collections::HashMap<String, String>>) -> impl IntoResponse {
+    let pattern = params.get("pattern").map(|s| s.as_str()).unwrap_or("");
+    
+    match engine::QR_ENGINE.clear_cache_pattern(pattern).await {
+        Ok(count) => {
+            info!("Cleared {} cache entries with pattern: {}", count, pattern);
+            
+            let json = serde_json::json!({
+                "success": true,
+                "message": format!("Cleared {} cache entries", count),
+                "pattern": pattern,
+                "count": count,
+            });
+            
+            (
+                StatusCode::OK,
+                [(header::CONTENT_TYPE, "application/json")],
+                serde_json::to_string(&json).unwrap(),
+            ).into_response()
+        }
+        Err(e) => {
+            error!("Error clearing cache: {}", e);
+            handle_error(
+                format!("Error clearing cache: {}", e),
+                StatusCode::SERVICE_UNAVAILABLE,
+                Some("Check Redis connection".to_string()),
+                Some("CACHE_ERROR".to_string()),
+            )
+        }
+    }
+}
+
+/// Handler para precalentar el cache
+async fn qr_cache_warm_handler(Json(payload): Json<serde_json::Value>) -> impl IntoResponse {
+    let patterns = if let Some(array) = payload.get("patterns").and_then(|v| v.as_array()) {
+        array.iter()
+            .filter_map(|v| v.as_str().map(String::from))
+            .collect()
+    } else {
+        vec![]
+    };
+    
+    if patterns.is_empty() {
+        return handle_error(
+            "No patterns provided for cache warming".to_string(),
+            StatusCode::BAD_REQUEST,
+            Some("Provide an array of patterns in the request body".to_string()),
+            Some("INVALID_REQUEST".to_string()),
+        );
+    }
+    
+    match engine::QR_ENGINE.warm_cache(patterns.clone()).await {
+        Ok(count) => {
+            info!("Warmed cache with {} entries", count);
+            
+            let json = serde_json::json!({
+                "success": true,
+                "message": format!("Warmed cache with {} entries", count),
+                "patterns": patterns,
+                "count": count,
+            });
+            
+            (
+                StatusCode::OK,
+                [(header::CONTENT_TYPE, "application/json")],
+                serde_json::to_string(&json).unwrap(),
+            ).into_response()
+        }
+        Err(e) => {
+            error!("Error warming cache: {}", e);
+            handle_error(
+                format!("Error warming cache: {}", e),
+                StatusCode::SERVICE_UNAVAILABLE,
+                Some("Check Redis connection and patterns".to_string()),
+                Some("CACHE_ERROR".to_string()),
+            )
         }
     }
 }
