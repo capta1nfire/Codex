@@ -264,7 +264,7 @@ function transformToRustFormat(request: QRGenerateRequest): any {
 export async function getQRv2Analytics() {
   try {
     // Get analytics from Rust service
-    const rustServiceUrl = getRustServiceUrl();
+    const rustServiceUrl = QR_ENGINE_URL;
     const [performanceResponse, cacheResponse] = await Promise.all([
       axios.get(`${rustServiceUrl}/analytics/performance`),
       axios.get(`${rustServiceUrl}/cache/stats`).catch(() => null)
@@ -332,7 +332,7 @@ export async function getQRv2Analytics() {
  */
 export async function getQRv2CacheStats() {
   try {
-    const rustServiceUrl = getRustServiceUrl();
+    const rustServiceUrl = QR_ENGINE_URL;
     
     // Try to get cache stats from Rust service
     try {
@@ -363,7 +363,7 @@ export async function getQRv2CacheStats() {
  */
 export async function clearQRv2Cache() {
   try {
-    const rustServiceUrl = getRustServiceUrl();
+    const rustServiceUrl = QR_ENGINE_URL;
     
     try {
       const response = await axios.post(`${rustServiceUrl}/cache/clear`);
