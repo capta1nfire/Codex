@@ -14,12 +14,14 @@
 1. **🔥 PRIMERO**: `CONTEXT_SUMMARY.md` ← **ESTÁS AQUÍ** (orientación técnica inmediata)
 2. **👑 SEGUNDO**: `CODEX.md` (roadmap estratégico y fases de desarrollo) 
 3. **📖 TERCERO**: `README.md` (setup técnico detallado)
-4. **📚 CUARTO**: `docs/README.md` ← **ÍNDICE MAESTRO DE DOCUMENTACIÓN** (mapa completo de docs)
-5. **🎨 QUINTO**: `docs/CODEX_DESIGN_SYSTEM.md` ← **LECTURA OBLIGATORIA** (filosofía visual y patrones UI)
-6. **🚀 SEXTO**: `docs/technical/barcode-research.md` ← **INVESTIGACIÓN ESTRATÉGICA** (análisis técnico de códigos)
-7. **🔧 ESPECÍFICO**: Consultar `docs/` para documentación organizada por tema
+4. **🛠️ CUARTO**: `CLAUDE.md` ← **GUÍA PRÁCTICA IA** (comandos y workflows para desarrollo)
+5. **📚 QUINTO**: `docs/README.md` ← **ÍNDICE MAESTRO DE DOCUMENTACIÓN** (mapa completo de docs)
+6. **🎨 SEXTO**: `docs/CODEX_DESIGN_SYSTEM.md` ← **LECTURA OBLIGATORIA** (filosofía visual y patrones UI)
+7. **🚀 SÉPTIMO**: `docs/technical/barcode-research.md` ← **INVESTIGACIÓN ESTRATÉGICA** (análisis técnico de códigos)
+8. **🔧 ESPECÍFICO**: Consultar `docs/` para documentación organizada por tema
 
 ### **📂 Estructura de Documentación (IMPORTANTE)**
+- **`CLAUDE.md`** - Guía práctica para agentes IA (comandos, workflows, tips)
 - **`docs/README.md`** - Hub central con índice completo y navegación
 - **`docs/qr-engine/`** - QR Engine v2 (technical guide, changelog, status)
 - **`docs/implementation/`** - Auditorías e implementaciones mayores
@@ -293,6 +295,12 @@ cd rust_generator && cargo run  # Puerto 3002 (CORRECTED)
 - ✅ **DOCKER**: Corregida configuración AlertManager webhook
 - ✅ **CONTEXT_SUMMARY.md ACTUALIZADO**: Agregado `docs/CODEX_DESIGN_SYSTEM.md` como lectura obligatoria (#4 en secuencia)
 - ✅ **DOCUMENTACIÓN MEJORADA**: Actualizada jerarquía, filosofía de diseño y checklist de transferencia IA
+- ✅ **CLAUDE.md REFERENCIADO**: Agregado a orden de lectura como #4 después de README.md
+- ✅ **OPTIMIZACIÓN FLUJO IA**: Implementada metodología completa para facilitar trabajo de agentes
+- ✅ **WORKSPACE CREADO**: Estructura `.workspace/` con templates y session logs
+- ✅ **SCRIPTS REORGANIZADOS**: Categorización temática en subdirectorios
+- ✅ **.NAV.MD CREADO**: Archivo de navegación rápida para workflows comunes
+- ✅ **AI HELPERS IMPLEMENTADOS**: 4 scripts especializados para sesiones de trabajo
 
 ### **🎯 SESIÓN ACTUAL - Optimización Visual y Reversión**
 **Fecha**: 24 de Mayo 2025  
@@ -366,6 +374,38 @@ cd rust_generator && cargo run  # Puerto 3002 (CORRECTED)
 - [ ] Mejoras de performance (índices BD, alertas)
 - [ ] Más simbologías + GS1 Digital Link
 - [ ] Panel de analíticas básicas
+
+### **⚡ OPTIMIZACIÓN DE RENDIMIENTO (June 9, 2025)**
+- ✅ **AUDITORÍA PROFUNDA**: Identificados cuellos de botella principales (72 req/s límite)
+- ✅ **HTTP CONNECTION POOLING**: Implementado con undici (100 conexiones persistentes)
+- ✅ **CONFIGURACIONES OPTIMIZADAS**: 
+  - Timeouts: 5s → 30s
+  - Rate limit: 100 → 10,000 requests
+  - Thread pool: default → 16
+  - Cache TTL: 5min → 10min
+- ✅ **INFRAESTRUCTURA DE TESTING**: Scripts de carga gradual con métricas detalladas
+- ⚠️ **BOTTLENECK IDENTIFICADO**: Arquitectura single-instance limita escalabilidad
+- 📝 **DOCUMENTACIÓN COMPLETA**: `/docs/technical/performance-optimization-session-20250609.md`
+- 🎯 **TARGET PENDIENTE**: 300-500 req/s requiere escalamiento horizontal
+
+### **🤖 METODOLOGÍA DE TRABAJO OPTIMIZADA PARA IA (June 10, 2025)**
+- ✅ **WORKSPACE STRUCTURE**: Creada estructura `.workspace/` para trabajo eficiente
+  - `temp/`: Archivos temporales (auto-limpiados)
+  - `session-logs/`: Logs estructurados de cada sesión
+  - `templates/`: Plantillas para consistencia
+- ✅ **AI HELPER SCRIPTS**: Scripts especializados para agentes IA
+  - `session-start.sh`: Inicializa sesión con contexto completo
+  - `project-status.sh`: Estado comprensivo del proyecto
+  - `recent-changes.sh`: Análisis de cambios recientes
+  - `session-cleanup.sh`: Limpieza post-sesión
+- ✅ **QUICK NAVIGATION**: Archivo `.nav.md` con rutas rápidas a workflows comunes
+- ✅ **SCRIPT ORGANIZATION**: Reorganización temática
+  - `scripts/ai-helpers/`: Herramientas para IA
+  - `scripts/dev/`: Utilidades de desarrollo
+  - `scripts/test/`: Scripts de testing
+  - `scripts/ops/`: Scripts operacionales
+- ✅ **SESSION TRACKING**: Sistema de logs estructurados para cada sesión
+- 📝 **DOCUMENTACIÓN**: Ver `.workspace/README.md` para detalles completos
 
 ### **📊 Dashboard - Partes Críticas Implementadas**
 

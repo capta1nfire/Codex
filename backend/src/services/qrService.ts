@@ -109,7 +109,7 @@ export async function generateQRv2(request: QRGenerateRequest): Promise<QRGenera
     throw new AppError(
       'Failed to generate QR code',
       500,
-      ErrorCode.INTERNAL_ERROR
+      ErrorCode.INTERNAL_SERVER
     );
   }
 }
@@ -145,7 +145,7 @@ export async function generateQRBatch(
     throw new AppError(
       'Failed to generate QR batch',
       500,
-      ErrorCode.INTERNAL_ERROR
+      ErrorCode.INTERNAL_SERVER
     );
   }
 }
@@ -164,7 +164,7 @@ export async function getQRPreview(params: any): Promise<{ svg: string }> {
     throw new AppError(
       'Failed to generate preview',
       500,
-      ErrorCode.INTERNAL_ERROR
+      ErrorCode.INTERNAL_SERVER
     );
   }
 }
@@ -183,7 +183,7 @@ export async function validateQRData(request: QRGenerateRequest): Promise<QRVali
     throw new AppError(
       'Failed to validate QR data',
       500,
-      ErrorCode.INTERNAL_ERROR
+      ErrorCode.INTERNAL_SERVER
     );
   }
 }
@@ -323,7 +323,7 @@ export async function getQRv2Analytics() {
     };
   } catch (error) {
     logger.error('[QR v2 Analytics] Error fetching analytics:', error);
-    throw new AppError('Failed to fetch QR v2 analytics', 500, ErrorCode.EXTERNAL_SERVICE_ERROR);
+    throw new AppError('Failed to fetch QR v2 analytics', 500, ErrorCode.SERVICE_UNAVAILABLE);
   }
 }
 
@@ -354,7 +354,7 @@ export async function getQRv2CacheStats() {
     }
   } catch (error) {
     logger.error('[QR v2 Cache] Error fetching cache stats:', error);
-    throw new AppError('Failed to fetch cache statistics', 500, ErrorCode.EXTERNAL_SERVICE_ERROR);
+    throw new AppError('Failed to fetch cache statistics', 500, ErrorCode.SERVICE_UNAVAILABLE);
   }
 }
 
@@ -378,6 +378,6 @@ export async function clearQRv2Cache() {
     }
   } catch (error) {
     logger.error('[QR v2 Cache] Error clearing cache:', error);
-    throw new AppError('Failed to clear cache', 500, ErrorCode.EXTERNAL_SERVICE_ERROR);
+    throw new AppError('Failed to clear cache', 500, ErrorCode.SERVICE_UNAVAILABLE);
   }
 }

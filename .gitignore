@@ -42,6 +42,8 @@ coverage/
 # Temporary files
 tmp/
 temp/
+.workspace/temp/
+.test-token.json
 
 # Database
 *.db

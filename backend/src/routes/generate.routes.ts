@@ -3,7 +3,7 @@ import express, { Request, Response, NextFunction } from 'express';
 
 import { config } from '../config.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
-import { generationRateLimit, rateLimitMonitor } from '../middleware/rateLimitMiddleware.js';
+import { generationRateLimit, rateLimitMonitor, authenticatedRateLimit } from '../middleware/rateLimitMiddleware.js';
 import { validateBody } from '../middleware/validationMiddleware.js';
 import { generateSchema } from '../schemas/generateSchemas.js'; // Esquema Plural
 import { generateBarcode, generateBarcodesBatch } from '../services/barcodeService.js'; // Servicio
@@ -49,7 +49,7 @@ router.post(
   '/',
   rateLimitMonitor,
   authMiddleware.optionalAuth, // Auth opcional que permite request sin auth pero reconoce usuarios logueados
-  generationRateLimit, // Mover DESPUÉS de auth para que pueda acceder a req.user
+  authenticatedRateLimit, // Usa authenticatedRateLimit que respeta roles SUPERADMIN
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { barcode_type, data, options } = req.body;

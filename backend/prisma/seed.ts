@@ -20,9 +20,9 @@ async function main() {
     update: {}, // No actualizar si ya existe
     create: {
       email: 'admin@codex.com',
-      name: 'Administrator',
+      firstName: 'Administrator',
       password: adminPassword,
-      role: Role.ADMIN,
+      role: Role.SUPERADMIN,
       isActive: true, // Asegurar que estén activos
     },
   });
@@ -33,7 +33,8 @@ async function main() {
     update: {},
     create: {
       email: 'user@codex.com',
-      name: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
       password: userPassword,
       role: Role.USER,
       isActive: true,
@@ -46,7 +47,8 @@ async function main() {
     update: {},
     create: {
       email: 'premium@codex.com',
-      name: 'Premium User',
+      firstName: 'Premium',
+      lastName: 'User',
       password: premiumPassword,
       role: Role.PREMIUM,
       isActive: true,

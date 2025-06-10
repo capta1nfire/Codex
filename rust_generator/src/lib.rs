@@ -5,6 +5,7 @@ pub mod processing;
 pub mod standards;
 pub mod cache;
 pub mod models;
+pub mod metrics;
 
 #[cfg(test)]
 mod test_effects_integration;

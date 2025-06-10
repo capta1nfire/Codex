@@ -124,8 +124,14 @@ export class AuthService {
    * Verifica si un usuario tiene el rol requerido
    */
   hasRole(userRole: UserRole, requiredRole: UserRole): boolean {
-    // Simplificado para el MVP - se podría implementar jerarquía de roles
-    if (userRole === UserRole.ADMIN) return true; // Admin puede hacer todo
+    // Implementar jerarquía de roles correcta
+    // SUPERADMIN puede hacer todo
+    if (userRole === 'SUPERADMIN') return true;
+    
+    // WEBADMIN puede hacer casi todo excepto funciones de SUPERADMIN
+    if (userRole === 'WEBADMIN' && requiredRole !== 'SUPERADMIN') return true;
+    
+    // Los demás roles solo pueden hacer lo que su rol permite
     return userRole === requiredRole;
   }
 

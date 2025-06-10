@@ -2,6 +2,8 @@
 
 > **🎯 Purpose**: This file provides Claude Code with project-specific context, commands, and workflows to maximize development efficiency and maintain consistency.
 
+> **📋 Note**: If you're a new AI agent, start with `CONTEXT_SUMMARY.md` first for project orientation. This file is your practical toolkit after understanding the project context.
+
 ---
 
 ## 🚀 Quick Start Commands

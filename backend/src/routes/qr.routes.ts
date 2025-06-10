@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { authMiddleware } from '../middleware/authMiddleware.js';
-import { generationRateLimit, rateLimitMonitor } from '../middleware/rateLimitMiddleware.js';
+import { generationRateLimit, rateLimitMonitor, authenticatedRateLimit } from '../middleware/rateLimitMiddleware.js';
 import { validateBody } from '../middleware/validationMiddleware.js';
 import { qrGenerateSchema, qrPreviewSchema } from '../schemas/qrSchemas.js';
 import { 
@@ -176,7 +176,6 @@ router.post(
 router.get(
   '/preview',
   rateLimitMonitor,
-  validateBody(qrPreviewSchema, 'query'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await getQRPreview(req.query);
@@ -239,6 +238,7 @@ router.post(
 router.get(
   '/analytics',
   authMiddleware.authenticateJwt,
+  authenticatedRateLimit,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const analytics = await getQRv2Analytics();
@@ -265,6 +265,7 @@ router.get(
 router.get(
   '/cache/stats',
   authMiddleware.authenticateJwt,
+  authenticatedRateLimit,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const stats = await getQRv2CacheStats();

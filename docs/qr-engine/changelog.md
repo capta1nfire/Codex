@@ -1,5 +1,14 @@
 # QR Engine v2 - Changelog
 
+## Performance Optimization (June 9, 2025)
+- 🔧 Implemented HTTP connection pooling with undici
+- 🔧 Increased service timeouts from 5s to 30s
+- 🔧 Optimized rate limiting for SUPERADMIN role
+- 🔧 Added performance monitoring scripts
+- 🔧 Created load testing infrastructure
+- ⚠️  Identified single-instance bottleneck (72 req/s limit)
+- 📝 Documented optimization strategies for 300-500 req/s target
+
 ## Phase 4: GS1 & Validation (Completed - June 8, 2025)
 - ✅ Implemented complete GS1 encoder/parser with 15+ Application Identifiers
 - ✅ Added 6 industry validation profiles (Retail, Healthcare, Logistics, etc.)

@@ -13,6 +13,7 @@
 - **[technical/stability-improvements.md](./technical/stability-improvements.md)** - PM2 system stability solution
 
 ### **⚡ Performance & Features**
+- **[technical/performance-optimization-session-20250609.md](./technical/performance-optimization-session-20250609.md)** - Performance optimization audit & improvements
 - **[BATCH_PROCESSING_GUIDE.md](./BATCH_PROCESSING_GUIDE.md)** - Batch processing implementation
 - **[IMAGE_OPTIMIZATION_GUIDE.md](./IMAGE_OPTIMIZATION_GUIDE.md)** - Image optimization strategies
 - **[IMPLEMENTATION_SUMMARY_BATCH.md](./IMPLEMENTATION_SUMMARY_BATCH.md)** - Batch feature implementation summary
@@ -70,6 +71,7 @@
 |----------|--------|--------------|-------|---------|
 | CODEX_DESIGN_SYSTEM.md | ✅ Complete | Jan 2025 | 993 | Design system authority |
 | TECHNICAL_IMPROVEMENTS_2025.md | ✅ Active | Jan 2025 | 292 | Recent technical work |
+| performance-optimization-session-20250609.md | ✅ Complete | Jun 2025 | 243 | Performance audit & fixes |
 | TROUBLESHOOTING.md | ✅ Active | Ongoing | 470 | Issue resolution |
 | E2E_TESTING_GUIDE.md | ✅ Complete | - | 356 | Testing procedures |
 | BATCH_PROCESSING_GUIDE.md | ✅ Complete | - | 338 | Batch features |
