@@ -79,6 +79,30 @@ const featureColors = {
   frames: 'text-pink-600 bg-pink-100 dark:bg-pink-900/20'
 };
 
+// Performance benchmarks based on industry standards
+const performanceBenchmarks = {
+  cacheHit: {
+    target: 5, // ms
+    label: 'Cache Hits',
+    description: 'Time to retrieve from cache'
+  },
+  generation: {
+    target: 50, // ms  
+    label: 'Generation Time',
+    description: 'Time to generate new QR code'
+  },
+  p95: {
+    target: 100, // ms
+    label: 'P95 Response',
+    description: '95th percentile response time'
+  },
+  cacheHitRate: {
+    target: 80, // percentage
+    label: 'Cache Hit Rate',
+    description: 'Percentage of requests served from cache'
+  }
+};
+
 export default function QRv2AnalyticsDisplay() {
   const [analytics, setAnalytics] = useState<QRv2Analytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -271,6 +295,43 @@ export default function QRv2AnalyticsDisplay() {
               </div>
             </div>
 
+            {/* Performance Benchmark Summary */}
+            <div className="p-4 bg-gradient-to-r from-slate-50 to-blue-50/30 dark:from-slate-900 dark:to-blue-950/20 rounded-lg border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-2 mb-3">
+                <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-semibold text-sm">Performance Status</h3>
+              </div>
+              <div className="grid grid-cols-3 gap-3 text-xs">
+                <div className={cn(
+                  "p-2 rounded-lg text-center",
+                  analytics.overview.avgCacheHitTime <= 5 
+                    ? "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300"
+                    : "bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300"
+                )}>
+                  <div className="font-medium">Cache Performance</div>
+                  <div>{analytics.overview.avgCacheHitTime <= 5 ? "Optimal" : "Needs Attention"}</div>
+                </div>
+                <div className={cn(
+                  "p-2 rounded-lg text-center",
+                  analytics.overview.avgResponseTime <= 50 
+                    ? "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300"
+                    : "bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300"
+                )}>
+                  <div className="font-medium">Generation Speed</div>
+                  <div>{analytics.overview.avgResponseTime <= 50 ? "Excellent" : "Slow"}</div>
+                </div>
+                <div className={cn(
+                  "p-2 rounded-lg text-center",
+                  analytics.overview.cacheHitRate >= 80 
+                    ? "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300"
+                    : "bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300"
+                )}>
+                  <div className="font-medium">Cache Efficiency</div>
+                  <div>{analytics.overview.cacheHitRate >= 80 ? "High" : "Low"}</div>
+                </div>
+              </div>
+            </div>
+
             {/* Performance Overview */}
             <Card className="border-slate-200/50 dark:border-slate-700/50">
               <CardHeader className="pb-3">
@@ -307,6 +368,60 @@ export default function QRv2AnalyticsDisplay() {
           </TabsContent>
 
           <TabsContent value="performance" className="p-4 space-y-4">
+            {/* Performance Benchmark Banner */}
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                      Performance Benchmarks
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <div className="text-blue-700 dark:text-blue-300 font-medium">Cache Hits</div>
+                        <div className="text-blue-600 dark:text-blue-400">
+                          Expected: &lt;5ms | Actual: {analytics.overview.avgCacheHitTime.toFixed(1)}ms
+                        </div>
+                        <div className={cn(
+                          "text-xs mt-1",
+                          analytics.overview.avgCacheHitTime <= 5 ? "text-green-600" : "text-amber-600"
+                        )}>
+                          {analytics.overview.avgCacheHitTime <= 5 ? "✓ Optimal" : "⚠ Above target"}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-blue-700 dark:text-blue-300 font-medium">Generation Time</div>
+                        <div className="text-blue-600 dark:text-blue-400">
+                          Expected: &lt;50ms | Actual: {analytics.overview.avgResponseTime.toFixed(1)}ms
+                        </div>
+                        <div className={cn(
+                          "text-xs mt-1",
+                          analytics.overview.avgResponseTime <= 50 ? "text-green-600" : "text-amber-600"
+                        )}>
+                          {analytics.overview.avgResponseTime <= 50 ? "✓ Excellent" : "⚠ Needs optimization"}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-blue-700 dark:text-blue-300 font-medium">P95 Response</div>
+                        <div className="text-blue-600 dark:text-blue-400">
+                          Expected: &lt;100ms | Actual: {analytics.performance.last24Hours.p95Time.toFixed(1)}ms
+                        </div>
+                        <div className={cn(
+                          "text-xs mt-1",
+                          analytics.performance.last24Hours.p95Time <= 100 ? "text-green-600" : "text-red-600"
+                        )}>
+                          {analytics.performance.last24Hours.p95Time <= 100 ? "✓ Good" : "✗ Investigate"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Performance Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
@@ -318,16 +433,32 @@ export default function QRv2AnalyticsDisplay() {
                     <div>
                       <div className="flex justify-between text-sm mb-1">
                         <span>Cache Hits</span>
-                        <span className="font-medium">{analytics.overview.avgCacheHitTime.toFixed(1)}ms</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{analytics.overview.avgCacheHitTime.toFixed(1)}ms</span>
+                          {analytics.overview.avgCacheHitTime <= 5 && (
+                            <CheckCircle2 className="h-3 w-3 text-green-500" />
+                          )}
+                        </div>
                       </div>
-                      <Progress value={20} className="h-2" />
+                      <div className="relative">
+                        <Progress value={(analytics.overview.avgCacheHitTime / 10) * 100} className="h-2" />
+                        <div className="absolute top-0 left-[50%] w-0.5 h-2 bg-blue-600 dark:bg-blue-400" title="5ms target" />
+                      </div>
                     </div>
                     <div>
                       <div className="flex justify-between text-sm mb-1">
                         <span>Cache Misses</span>
-                        <span className="font-medium">{analytics.overview.avgResponseTime.toFixed(1)}ms</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{analytics.overview.avgResponseTime.toFixed(1)}ms</span>
+                          {analytics.overview.avgResponseTime <= 50 && (
+                            <CheckCircle2 className="h-3 w-3 text-green-500" />
+                          )}
+                        </div>
                       </div>
-                      <Progress value={80} className="h-2" />
+                      <div className="relative">
+                        <Progress value={(analytics.overview.avgResponseTime / 100) * 100} className="h-2" />
+                        <div className="absolute top-0 left-[50%] w-0.5 h-2 bg-blue-600 dark:bg-blue-400" title="50ms target" />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
