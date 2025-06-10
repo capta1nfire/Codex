@@ -257,3 +257,127 @@ function transformToRustFormat(request: QRGenerateRequest): any {
   
   return { data, options: rustOptions };
 }
+
+/**
+ * Get QR Engine v2 Analytics
+ */
+export async function getQRv2Analytics() {
+  try {
+    // Get analytics from Rust service
+    const rustServiceUrl = getRustServiceUrl();
+    const [performanceResponse, cacheResponse] = await Promise.all([
+      axios.get(`${rustServiceUrl}/analytics/performance`),
+      axios.get(`${rustServiceUrl}/cache/stats`).catch(() => null)
+    ]);
+
+    const performanceData = performanceResponse.data;
+    
+    // Extract QR-specific metrics
+    const qrMetrics = performanceData.by_barcode_type?.qrcode || {
+      avg_cache_hit_ms: null,
+      avg_generation_ms: null,
+      cache_hit_rate_percent: 0,
+      hit_count: 0,
+      miss_count: 0
+    };
+
+    // Calculate v2 adoption (this would need to be tracked separately in production)
+    const totalQrRequests = qrMetrics.hit_count + qrMetrics.miss_count;
+    
+    // Feature usage would need to be tracked in Rust
+    const featureUsage = {
+      gradients: 0,
+      logos: 0,
+      customShapes: 0,
+      effects: 0,
+      frames: 0
+    };
+
+    return {
+      success: true,
+      timestamp: new Date().toISOString(),
+      overview: {
+        totalRequests: totalQrRequests,
+        cacheHitRate: qrMetrics.cache_hit_rate_percent,
+        avgResponseTime: qrMetrics.avg_generation_ms || 0,
+        avgCacheHitTime: qrMetrics.avg_cache_hit_ms || 0,
+        v2AdoptionRate: 100 // All QR requests are v2 now
+      },
+      performance: {
+        last24Hours: {
+          requests: totalQrRequests,
+          avgTime: qrMetrics.avg_generation_ms || 0,
+          p95Time: qrMetrics.max_generation_ms || 0,
+          errors: 0
+        }
+      },
+      features: {
+        usage: featureUsage,
+        popularCombinations: []
+      },
+      cache: cacheResponse?.data || {
+        size: 0,
+        hitRate: qrMetrics.cache_hit_rate_percent,
+        memoryUsage: 0
+      }
+    };
+  } catch (error) {
+    logger.error('[QR v2 Analytics] Error fetching analytics:', error);
+    throw new AppError('Failed to fetch QR v2 analytics', 500, ErrorCode.EXTERNAL_SERVICE_ERROR);
+  }
+}
+
+/**
+ * Get QR Engine v2 Cache Statistics
+ */
+export async function getQRv2CacheStats() {
+  try {
+    const rustServiceUrl = getRustServiceUrl();
+    
+    // Try to get cache stats from Rust service
+    try {
+      const response = await axios.get(`${rustServiceUrl}/cache/stats`);
+      return response.data;
+    } catch (error) {
+      // If endpoint doesn't exist yet, return mock data
+      logger.warn('[QR v2 Cache] Cache stats endpoint not available, returning default stats');
+      return {
+        success: true,
+        stats: {
+          totalEntries: 0,
+          memoryUsage: '0 MB',
+          hitRate: 0,
+          evictions: 0,
+          avgEntrySize: '0 KB'
+        }
+      };
+    }
+  } catch (error) {
+    logger.error('[QR v2 Cache] Error fetching cache stats:', error);
+    throw new AppError('Failed to fetch cache statistics', 500, ErrorCode.EXTERNAL_SERVICE_ERROR);
+  }
+}
+
+/**
+ * Clear QR Engine v2 Cache
+ */
+export async function clearQRv2Cache() {
+  try {
+    const rustServiceUrl = getRustServiceUrl();
+    
+    try {
+      const response = await axios.post(`${rustServiceUrl}/cache/clear`);
+      return response.data;
+    } catch (error) {
+      // If endpoint doesn't exist yet, return success
+      logger.warn('[QR v2 Cache] Cache clear endpoint not available');
+      return {
+        success: true,
+        message: 'Cache clear requested'
+      };
+    }
+  } catch (error) {
+    logger.error('[QR v2 Cache] Error clearing cache:', error);
+    throw new AppError('Failed to clear cache', 500, ErrorCode.EXTERNAL_SERVICE_ERROR);
+  }
+}

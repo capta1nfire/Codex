@@ -7,7 +7,10 @@ import {
   generateQRv2, 
   generateQRBatch, 
   getQRPreview,
-  validateQRData 
+  validateQRData,
+  getQRv2Analytics,
+  getQRv2CacheStats,
+  clearQRv2Cache
 } from '../services/qrService.js';
 import { AppError, ErrorCode } from '../utils/errors.js';
 import logger from '../utils/logger.js';
@@ -216,6 +219,84 @@ router.post(
       });
     } catch (error) {
       logger.error('[QR v2] Validation error:', error);
+      next(error);
+    }
+  }
+);
+
+/**
+ * @openapi
+ * /api/qr/analytics:
+ *   get:
+ *     tags: [QR Engine v2]
+ *     summary: Get QR Engine v2 analytics and metrics
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: QR v2 analytics data
+ */
+router.get(
+  '/analytics',
+  authMiddleware.authenticateJwt,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const analytics = await getQRv2Analytics();
+      res.status(200).json(analytics);
+    } catch (error) {
+      logger.error('[QR v2] Analytics error:', error);
+      next(error);
+    }
+  }
+);
+
+/**
+ * @openapi
+ * /api/qr/cache/stats:
+ *   get:
+ *     tags: [QR Engine v2]
+ *     summary: Get QR Engine v2 cache statistics
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cache statistics
+ */
+router.get(
+  '/cache/stats',
+  authMiddleware.authenticateJwt,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const stats = await getQRv2CacheStats();
+      res.status(200).json(stats);
+    } catch (error) {
+      logger.error('[QR v2] Cache stats error:', error);
+      next(error);
+    }
+  }
+);
+
+/**
+ * @openapi
+ * /api/qr/cache/clear:
+ *   post:
+ *     tags: [QR Engine v2]
+ *     summary: Clear QR Engine v2 cache
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cache cleared successfully
+ */
+router.post(
+  '/cache/clear',
+  authMiddleware.authenticateJwt,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await clearQRv2Cache();
+      res.status(200).json(result);
+    } catch (error) {
+      logger.error('[QR v2] Cache clear error:', error);
       next(error);
     }
   }
