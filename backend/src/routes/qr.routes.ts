@@ -56,11 +56,7 @@ router.post(
     try {
       const startTime = Date.now();
       
-      // Add deprecation warning
-      res.set('X-API-Deprecation', 'This endpoint is deprecated. Use /api/v2/qr instead.');
-      res.set('X-API-Deprecation-Date', '2025-06-01');
-      res.set('X-API-Alternative', '/api/v2/qr');
-      res.set('Sunset', 'Sat, 01 Jun 2025 00:00:00 GMT');
+      // No deprecation headers - this is the active v2 endpoint
       
       logger.info('[QR v2] Generate request received', {
         userId: req.user?.id,

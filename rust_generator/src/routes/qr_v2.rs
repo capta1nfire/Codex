@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use tracing::{info, error};
 use std::time::Instant;
 
-use crate::engine::{QrError, QR_ENGINE};
-use crate::engine::types::{QrRequest as EngineQrRequest, QrOutput, OutputFormat, QrCustomization};
+use crate::engine::QR_ENGINE;
+use crate::engine::types::{QrRequest as EngineQrRequest, OutputFormat, QrCustomization};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct QrGenerateRequest {
@@ -100,65 +100,194 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
     info!("QR v2 generation request: data_len={}", request.data.len());
     
     // Convert to engine request format
+    let customization = if let Some(options) = &request.options {
+        Some(QrCustomization {
+            eye_shape: options.eye_shape.as_ref().and_then(|s| {
+                // Convert string to EyeShape enum
+                match s.as_str() {
+                    "square" => Some(crate::engine::types::EyeShape::Square),
+                    "rounded-square" => Some(crate::engine::types::EyeShape::RoundedSquare),
+                    "circle" => Some(crate::engine::types::EyeShape::Circle),
+                    "dot" => Some(crate::engine::types::EyeShape::Dot),
+                    "leaf" => Some(crate::engine::types::EyeShape::Leaf),
+                    "bars-horizontal" => Some(crate::engine::types::EyeShape::BarsHorizontal),
+                    "bars-vertical" => Some(crate::engine::types::EyeShape::BarsVertical),
+                    "star" => Some(crate::engine::types::EyeShape::Star),
+                    "diamond" => Some(crate::engine::types::EyeShape::Diamond),
+                    "cross" => Some(crate::engine::types::EyeShape::Cross),
+                    "hexagon" => Some(crate::engine::types::EyeShape::Hexagon),
+                    "heart" => Some(crate::engine::types::EyeShape::Heart),
+                    "shield" => Some(crate::engine::types::EyeShape::Shield),
+                    "crystal" => Some(crate::engine::types::EyeShape::Crystal),
+                    "flower" => Some(crate::engine::types::EyeShape::Flower),
+                    "arrow" => Some(crate::engine::types::EyeShape::Arrow),
+                    _ => None
+                }
+            }),
+            data_pattern: options.data_pattern.as_ref().and_then(|s| {
+                // Convert string to DataPattern enum
+                match s.as_str() {
+                    "square" => Some(crate::engine::types::DataPattern::Square),
+                    "dots" => Some(crate::engine::types::DataPattern::Dots),
+                    "rounded" => Some(crate::engine::types::DataPattern::Rounded),
+                    "vertical" => Some(crate::engine::types::DataPattern::Vertical),
+                    "horizontal" => Some(crate::engine::types::DataPattern::Horizontal),
+                    "diamond" => Some(crate::engine::types::DataPattern::Diamond),
+                    "circular" => Some(crate::engine::types::DataPattern::Circular),
+                    "star" => Some(crate::engine::types::DataPattern::Star),
+                    "cross" => Some(crate::engine::types::DataPattern::Cross),
+                    "random" => Some(crate::engine::types::DataPattern::Random),
+                    "wave" => Some(crate::engine::types::DataPattern::Wave),
+                    "mosaic" => Some(crate::engine::types::DataPattern::Mosaic),
+                    _ => None
+                }
+            }),
+            colors: if options.foreground_color.is_some() || options.background_color.is_some() {
+                Some(crate::engine::types::ColorOptions {
+                    foreground: options.foreground_color.clone().unwrap_or_else(|| "#000000".to_string()),
+                    background: options.background_color.clone().unwrap_or_else(|| "#FFFFFF".to_string()),
+                })
+            } else {
+                None
+            },
+            gradient: options.gradient.as_ref().map(|g| {
+                crate::engine::types::GradientOptions {
+                    enabled: true,
+                    gradient_type: match g.gradient_type.as_str() {
+                        "linear" => crate::engine::types::GradientType::Linear,
+                        "radial" => crate::engine::types::GradientType::Radial,
+                        "conic" => crate::engine::types::GradientType::Conic,
+                        "diamond" => crate::engine::types::GradientType::Diamond,
+                        "spiral" => crate::engine::types::GradientType::Spiral,
+                        _ => crate::engine::types::GradientType::Linear,
+                    },
+                    colors: g.colors.clone(),
+                    angle: g.angle,
+                    apply_to_eyes: false, // Could be derived from options
+                    apply_to_data: true,  // Could be derived from options
+                }
+            }),
+            logo: options.logo.as_ref().map(|l| {
+                crate::engine::types::LogoOptions {
+                    data: l.data.clone(),
+                    size_percentage: l.size.unwrap_or(20.0),
+                    padding: l.padding.unwrap_or(2),
+                    background: l.background_color.clone(),
+                    shape: match l.background_color.as_ref().map(|s| s.as_str()) {
+                        Some("circle") => crate::engine::types::LogoShape::Circle,
+                        Some("rounded-square") => crate::engine::types::LogoShape::RoundedSquare,
+                        _ => crate::engine::types::LogoShape::Square,
+                    },
+                }
+            }),
+            frame: options.frame.as_ref().map(|f| {
+                crate::engine::types::FrameOptions {
+                    frame_type: match f.style.as_str() {
+                        "simple" => crate::engine::types::FrameType::Simple,
+                        "rounded" => crate::engine::types::FrameType::Rounded,
+                        "bubble" => crate::engine::types::FrameType::Bubble,
+                        "speech" => crate::engine::types::FrameType::Speech,
+                        "badge" => crate::engine::types::FrameType::Badge,
+                        _ => crate::engine::types::FrameType::Simple,
+                    },
+                    text: f.text.clone(),
+                    color: f.color.clone().unwrap_or_else(|| "#000000".to_string()),
+                    text_position: match f.text_position.as_ref().map(|s| s.as_str()) {
+                        Some("top") => crate::engine::types::TextPosition::Top,
+                        Some("bottom") => crate::engine::types::TextPosition::Bottom,
+                        Some("left") => crate::engine::types::TextPosition::Left,
+                        Some("right") => crate::engine::types::TextPosition::Right,
+                        _ => crate::engine::types::TextPosition::Bottom,
+                    },
+                }
+            }),
+            effects: options.effects.as_ref().map(|effects_vec| {
+                effects_vec.iter().filter_map(|e| {
+                    let effect_type = match e.effect_type.as_str() {
+                        "shadow" => crate::engine::types::Effect::Shadow,
+                        "glow" => crate::engine::types::Effect::Glow,
+                        "blur" => crate::engine::types::Effect::Blur,
+                        "noise" => crate::engine::types::Effect::Noise,
+                        "vintage" => crate::engine::types::Effect::Vintage,
+                        _ => return None,
+                    };
+                    
+                    let config = match e.effect_type.as_str() {
+                        "shadow" => crate::engine::types::EffectConfiguration::Shadow {
+                            offset_x: Some(2.0),
+                            offset_y: Some(2.0),
+                            blur_radius: e.intensity.map(|i| i as f64),
+                            color: e.color.clone(),
+                            opacity: Some(0.3),
+                        },
+                        "glow" => crate::engine::types::EffectConfiguration::Glow {
+                            intensity: e.intensity.map(|i| i as f64),
+                            color: e.color.clone(),
+                        },
+                        "blur" => crate::engine::types::EffectConfiguration::Blur {
+                            radius: e.intensity.map(|i| i as f64),
+                        },
+                        "noise" => crate::engine::types::EffectConfiguration::Noise {
+                            intensity: e.intensity.map(|i| i as f64),
+                        },
+                        "vintage" => crate::engine::types::EffectConfiguration::Vintage {
+                            sepia_intensity: e.intensity.map(|i| i as f64),
+                            vignette_intensity: Some(0.4),
+                        },
+                        _ => return None,
+                    };
+                    
+                    Some(crate::engine::types::EffectOptions {
+                        effect_type,
+                        config,
+                    })
+                }).collect()
+            }),
+            error_correction: options.error_correction.as_ref().and_then(|ec| {
+                match ec.as_str() {
+                    "L" => Some(crate::engine::types::ErrorCorrectionLevel::Low),
+                    "M" => Some(crate::engine::types::ErrorCorrectionLevel::Medium),
+                    "Q" => Some(crate::engine::types::ErrorCorrectionLevel::Quartile),
+                    "H" => Some(crate::engine::types::ErrorCorrectionLevel::High),
+                    _ => None
+                }
+            }),
+        })
+    } else {
+        None
+    };
+
     let engine_request = EngineQrRequest {
         data: request.data.clone(),
         size: request.options.as_ref().and_then(|o| o.size).unwrap_or(300),
-        margin: request.options.as_ref().and_then(|o| o.margin).unwrap_or(4),
-        error_correction: request.options.as_ref()
-            .and_then(|o| o.error_correction.as_ref())
-            .map(|s| s.as_str())
-            .unwrap_or("M"),
-        eye_shape: request.options.as_ref()
-            .and_then(|o| o.eye_shape.as_ref())
-            .map(|s| s.as_str())
-            .unwrap_or("square"),
-        data_pattern: request.options.as_ref()
-            .and_then(|o| o.data_pattern.as_ref())
-            .map(|s| s.as_str())
-            .unwrap_or("square"),
-        gradient: request.options.as_ref().and_then(|o| o.gradient.as_ref()).map(|g| {
-            crate::engine::types::GradientOptions {
-                gradient_type: g.gradient_type.clone(),
-                colors: g.colors.clone(),
-                angle: g.angle,
-                center_x: g.center_x,
-                center_y: g.center_y,
-            }
-        }),
-        logo: request.options.as_ref().and_then(|o| o.logo.as_ref()).map(|l| {
-            crate::engine::types::LogoOptions {
-                data: l.data.clone(),
-                size: l.size,
-                padding: l.padding,
-                background_color: l.background_color.clone(),
-            }
-        }),
-        effects: request.options.as_ref().and_then(|o| o.effects.as_ref()).map(|effects| {
-            effects.iter().map(|e| {
-                crate::engine::types::EffectOptions {
-                    effect_type: e.effect_type.clone(),
-                    intensity: e.intensity,
-                    color: e.color.clone(),
-                }
-            }).collect()
-        }),
+        format: OutputFormat::Svg, // Default to SVG
+        customization: customization.clone(),
     };
     
     // Use the global QR engine
     match QR_ENGINE.generate(engine_request).await {
         Ok(output) => {
-            let processing_time = start.elapsed().as_millis() as u64;
+            let _processing_time = start.elapsed().as_millis() as u64;
             
             let response = QrGenerateResponse {
-                svg: output.svg,
+                svg: output.data,  // output.data contains the SVG string
                 metadata: QrMetadata {
-                    version: output.metadata.version,
-                    modules: output.metadata.modules,
-                    error_correction: output.metadata.error_correction.to_string(),
+                    version: 4,  // Default version, could be calculated based on data size
+                    modules: 29, // Default for version 4
+                    error_correction: customization.as_ref()
+                        .and_then(|c| c.error_correction.as_ref())
+                        .map(|ec| match ec {
+                            crate::engine::types::ErrorCorrectionLevel::Low => "L",
+                            crate::engine::types::ErrorCorrectionLevel::Medium => "M",
+                            crate::engine::types::ErrorCorrectionLevel::Quartile => "Q",
+                            crate::engine::types::ErrorCorrectionLevel::High => "H",
+                        })
+                        .unwrap_or("M")
+                        .to_string(),
                     data_capacity: request.data.len(),
-                    processing_time_ms: processing_time,
+                    processing_time_ms: output.metadata.generation_time_ms,
                 },
-                cached: output.cached,
+                cached: false, // Engine doesn't provide this field, default to false
             };
             
             (StatusCode::OK, Json(response))

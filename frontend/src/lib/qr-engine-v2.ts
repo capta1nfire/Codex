@@ -149,7 +149,7 @@ export class QREngineV2Client {
    * Generate a QR code with v2 engine
    */
   async generate(request: QRv2GenerateRequest): Promise<QRv2GenerateResponse> {
-    const response = await fetch(`${this.baseURL}/api/v2/qr`, {
+    const response = await fetch(`${this.baseURL}/api/v2/qr/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

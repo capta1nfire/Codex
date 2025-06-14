@@ -32,7 +32,7 @@ use serde_json;
 
 // Imports locales
 mod validators;
-// mod routes; // Temporarily disabled due to compatibility issues
+mod routes; // Re-enabled for v2 endpoint support
 
 // Re-export types needed by main
 use rust_generator::engine;
@@ -639,11 +639,11 @@ async fn main() {
         .route("/analytics/performance", get(performance_analytics_handler))
         .route("/metrics/test", get(test_metrics_handler))
         .route("/metrics/debug", get(debug_metrics_handler))
-        // QR Engine v2 endpoints - temporarily disabled due to type compatibility issues
-        // .route("/api/qr/generate", post(routes::qr_v2::generate_handler))
-        // .route("/api/qr/batch", post(routes::qr_v2::batch_handler))
-        // .route("/api/qr/validate", post(routes::qr_v2::validate_handler))
-        // .route("/api/qr/preview", get(routes::qr_v2::preview_handler))
+        // QR Engine v2 endpoints
+        .route("/api/qr/generate", post(routes::qr_v2::generate_handler))
+        .route("/api/qr/batch", post(routes::qr_v2::batch_handler))
+        .route("/api/qr/validate", post(routes::qr_v2::validate_handler))
+        .route("/api/qr/preview", get(routes::qr_v2::preview_handler))
         // QR Engine v2 cache endpoints
         .route("/api/qr/cache/stats", get(qr_cache_stats_handler))
         .route("/api/qr/cache/clear", post(qr_cache_clear_handler))

@@ -14,6 +14,7 @@
 
 ### **⚡ Performance & Features**
 - **[technical/performance-optimization-session-20250609.md](./technical/performance-optimization-session-20250609.md)** - Performance optimization audit & improvements
+- **[technical/endpoint-restructuring-challenges-20250614.md](./technical/endpoint-restructuring-challenges-20250614.md)** - API v1/v2 migration technical decisions
 - **[BATCH_PROCESSING_GUIDE.md](./BATCH_PROCESSING_GUIDE.md)** - Batch processing implementation
 - **[IMAGE_OPTIMIZATION_GUIDE.md](./IMAGE_OPTIMIZATION_GUIDE.md)** - Image optimization strategies
 - **[IMPLEMENTATION_SUMMARY_BATCH.md](./IMPLEMENTATION_SUMMARY_BATCH.md)** - Batch feature implementation summary

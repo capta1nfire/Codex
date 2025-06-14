@@ -3,6 +3,8 @@
 ## Overview
 As of January 2025, CODEX has restructured its API endpoints to provide clearer versioning and better separation between legacy and new engines.
 
+> **Technical Deep Dive**: For detailed information about the challenges and solutions during this migration, see [Endpoint Restructuring Challenges](../technical/endpoint-restructuring-challenges-20250614.md).
+
 ## New Endpoint Structure
 
 ### API v2 - QR Engine (Recommended)
@@ -10,7 +12,7 @@ High-performance QR code generation with advanced features:
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/v2/qr` | POST | Generate QR code with v2 engine |
+| `/api/v2/qr/generate` | POST | Generate QR code with v2 engine |
 | `/api/v2/qr/batch` | POST | Batch QR generation |
 | `/api/v2/qr/preview` | GET | Real-time QR preview |
 | `/api/v2/qr/validate` | POST | Validate QR data |
@@ -71,8 +73,8 @@ const response = await fetch('http://localhost:3004/api/generate', {
 
 **New (Recommended):**
 ```javascript
-// Using /api/v2/qr
-const response = await fetch('http://localhost:3004/api/v2/qr', {
+// Using /api/v2/qr/generate
+const response = await fetch('http://localhost:3004/api/v2/qr/generate', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({

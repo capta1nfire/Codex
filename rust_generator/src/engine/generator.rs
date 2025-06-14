@@ -164,10 +164,39 @@ impl QrCode {
             image_size, image_size, image_size, image_size
         );
         
+        // Inicializar sección de definiciones
+        let mut has_defs = false;
+        let mut defs_content = String::new();
+        
+        // Añadir definiciones de gradiente si existen
+        let gradient_fill = if let Some(custom) = customization {
+            if let Some(gradient_opts) = &custom.gradient {
+                if gradient_opts.enabled {
+                    has_defs = true;
+                    let gradient_processor = crate::processing::GradientProcessor::new();
+                    let gradient = self.create_gradient_from_options(&gradient_processor, gradient_opts);
+                    defs_content.push_str(&gradient.svg_definition);
+                    Some(gradient.fill_reference)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+        
         // Añadir definiciones de filtros si existen
         if let Some(effects) = effects_info {
+            has_defs = true;
+            defs_content.push_str(&effects.filter_definitions);
+        }
+        
+        // Escribir sección defs si hay contenido
+        if has_defs {
             svg.push_str("<defs>");
-            svg.push_str(&effects.filter_definitions);
+            svg.push_str(&defs_content);
             svg.push_str("</defs>");
         }
         
@@ -182,11 +211,15 @@ impl QrCode {
             image_size, image_size, bg_color
         ));
         
-        // Color de módulos
-        let fg_color = customization
-            .and_then(|c| c.colors.as_ref())
-            .map(|c| c.foreground.as_str())
-            .unwrap_or("black");
+        // Color o gradiente para módulos
+        let fill_color = if let Some(ref grad_fill) = gradient_fill {
+            grad_fill.as_str()
+        } else {
+            customization
+                .and_then(|c| c.colors.as_ref())
+                .map(|c| c.foreground.as_str())
+                .unwrap_or("black")
+        };
         
         // Aplicar filtros al grupo si existen
         let filter_attr = if let Some(effects) = effects_info {
@@ -203,31 +236,62 @@ impl QrCode {
             String::new()
         };
         
-        // Grupo principal para los módulos del QR
-        svg.push_str(&format!(r#"<g fill="{}"{}>"#, fg_color, filter_attr));
+        // Verificar si tenemos formas de ojos personalizadas
+        let has_custom_eyes = customization
+            .and_then(|c| c.eye_shape.as_ref())
+            .is_some();
         
-        // Módulos del QR
-        if use_optimized_rendering && self.size > 100 {
-            // Renderizado optimizado para QRs grandes
-            svg.push_str(&self.render_modules_optimized(module_size, quiet_zone_size));
+        // Verificar si tenemos patrones personalizados
+        let data_pattern = customization.and_then(|c| c.data_pattern);
+        
+        // Si hay formas de ojos personalizadas o patrones, renderizar por separado
+        if has_custom_eyes || data_pattern.is_some() {
+            // Renderizar módulos de datos con patrón (excluyendo ojos)
+            svg.push_str(&format!(r#"<g fill="{}"{}>"#, fill_color, filter_attr));
+            self.render_data_modules_with_pattern(&mut svg, module_size, quiet_zone_size, data_pattern);
+            svg.push_str("</g>");
+            
+            // Renderizar ojos personalizados
+            if let Some(eye_shape) = customization.and_then(|c| c.eye_shape.as_ref()) {
+                let eye_color = customization
+                    .and_then(|c| c.colors.as_ref())
+                    .map(|c| c.foreground.as_str())
+                    .unwrap_or(fill_color);
+                    
+                svg.push_str(&self.render_custom_eyes(
+                    *eye_shape, 
+                    eye_color, 
+                    module_size, 
+                    quiet_zone_size
+                ));
+            }
         } else {
-            // Renderizado estándar para QRs pequeños
-            for (y, row) in self.matrix.iter().enumerate() {
-                for (x, &module) in row.iter().enumerate() {
-                    if module {
-                        let x_pos = (x * module_size) + quiet_zone_size;
-                        let y_pos = (y * module_size) + quiet_zone_size;
-                        
-                        svg.push_str(&format!(
-                            r#"<rect x="{}" y="{}" width="{}" height="{}"/>"#,
-                            x_pos, y_pos, module_size, module_size
-                        ));
+            // Renderizado normal sin ojos personalizados
+            svg.push_str(&format!(r#"<g fill="{}"{}>"#, fill_color, filter_attr));
+            
+            // Módulos del QR
+            if use_optimized_rendering && self.size > 100 {
+                // Renderizado optimizado para QRs grandes
+                svg.push_str(&self.render_modules_optimized(module_size, quiet_zone_size));
+            } else {
+                // Renderizado estándar para QRs pequeños
+                for (y, row) in self.matrix.iter().enumerate() {
+                    for (x, &module) in row.iter().enumerate() {
+                        if module {
+                            let x_pos = (x * module_size) + quiet_zone_size;
+                            let y_pos = (y * module_size) + quiet_zone_size;
+                            
+                            svg.push_str(&format!(
+                                r#"<rect x="{}" y="{}" width="{}" height="{}"/>"#,
+                                x_pos, y_pos, module_size, module_size
+                            ));
+                        }
                     }
                 }
             }
+            
+            svg.push_str("</g>");
         }
-        
-        svg.push_str("</g>");
         
         // Renderizar logo si existe
         if let Some(logo_info) = logo_result {
@@ -352,6 +416,223 @@ impl QrCode {
         
         // Combinar todos los chunks
         chunks.join("")
+    }
+    
+    /// Crea un gradiente desde las opciones de personalización
+    fn create_gradient_from_options(
+        &self,
+        processor: &crate::processing::GradientProcessor,
+        options: &GradientOptions,
+    ) -> crate::engine::types::Gradient {
+        use crate::engine::types::Color;
+        
+        // Convertir colores hex a struct Color
+        let colors: Vec<Color> = options.colors.iter()
+            .map(|hex| self.hex_to_color(hex))
+            .collect();
+        
+        if colors.len() < 2 {
+            // Fallback si no hay suficientes colores
+            let black = Color { r: 0, g: 0, b: 0, a: 255 };
+            let gray = Color { r: 128, g: 128, b: 128, a: 255 };
+            return processor.create_linear_gradient(&black, &gray, 0.0);
+        }
+        
+        match options.gradient_type {
+            GradientType::Linear => {
+                processor.create_linear_gradient(
+                    &colors[0],
+                    &colors[1],
+                    options.angle.unwrap_or(90.0) as f64,
+                )
+            },
+            GradientType::Radial => {
+                processor.create_radial_gradient(
+                    &colors[0],
+                    &colors[1],
+                    0.5, // center_x - valor por defecto
+                    0.5, // center_y - valor por defecto
+                    0.5, // radius - valor por defecto
+                )
+            },
+            GradientType::Diamond => {
+                // Diamond usa diagonal (45 grados)
+                processor.create_diagonal_gradient(
+                    &colors[0],
+                    &colors[1],
+                )
+            },
+            GradientType::Conic | GradientType::Spiral => {
+                // Usar todos los colores para gradiente cónico
+                processor.create_conical_gradient(
+                    &colors,
+                    0.5, // center_x - valor por defecto
+                    0.5, // center_y - valor por defecto
+                )
+            },
+        }
+    }
+    
+    /// Convierte color hex a struct Color
+    fn hex_to_color(&self, hex: &str) -> crate::engine::types::Color {
+        use crate::engine::types::Color;
+        
+        let hex = hex.trim_start_matches('#');
+        let r = u8::from_str_radix(&hex[0..2], 16).unwrap_or(0);
+        let g = u8::from_str_radix(&hex[2..4], 16).unwrap_or(0);
+        let b = u8::from_str_radix(&hex[4..6], 16).unwrap_or(0);
+        let a = if hex.len() >= 8 {
+            u8::from_str_radix(&hex[6..8], 16).unwrap_or(255)
+        } else {
+            255
+        };
+        
+        Color { r, g, b, a }
+    }
+    
+    /// Renderiza los módulos de datos (excluyendo áreas de ojos)
+    fn render_data_modules(&self, svg: &mut String, module_size: usize, quiet_zone_size: usize) {
+        self.render_data_modules_with_pattern(svg, module_size, quiet_zone_size, None);
+    }
+    
+    /// Renderiza los módulos de datos con patrón personalizado
+    fn render_data_modules_with_pattern(
+        &self, 
+        svg: &mut String, 
+        module_size: usize, 
+        quiet_zone_size: usize,
+        pattern: Option<DataPattern>
+    ) {
+        // Si hay un patrón personalizado, usar PatternRenderer
+        if let Some(data_pattern) = pattern {
+            use crate::shapes::PatternRenderer;
+            
+            let pattern_renderer = PatternRenderer::new(module_size as u32);
+            let pattern_svg = pattern_renderer.render_matrix_with_pattern(
+                &self.matrix,
+                data_pattern,
+                "", // El color se aplicará en el grupo padre
+                true // Excluir ojos
+            );
+            
+            // Aplicar transformación para el quiet zone
+            svg.push_str(&format!(
+                r#"<g transform="translate({}, {})">{}</g>"#,
+                quiet_zone_size, quiet_zone_size, pattern_svg
+            ));
+        } else {
+            // Renderizado estándar con cuadrados
+            let eye_size = 7;
+            let qr_size = self.size;
+            
+            for (y, row) in self.matrix.iter().enumerate() {
+                for (x, &module) in row.iter().enumerate() {
+                    if module {
+                        // Verificar si está en el área de un ojo
+                        let in_top_left = x < eye_size && y < eye_size;
+                        let in_top_right = x >= qr_size - eye_size && y < eye_size;
+                        let in_bottom_left = x < eye_size && y >= qr_size - eye_size;
+                        
+                        if !in_top_left && !in_top_right && !in_bottom_left {
+                            let x_pos = (x * module_size) + quiet_zone_size;
+                            let y_pos = (y * module_size) + quiet_zone_size;
+                            
+                            svg.push_str(&format!(
+                                r#"<rect x="{}" y="{}" width="{}" height="{}"/>"#,
+                                x_pos, y_pos, module_size, module_size
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /// Renderiza ojos personalizados
+    fn render_custom_eyes(
+        &self, 
+        eye_shape: EyeShape, 
+        color: &str, 
+        module_size: usize, 
+        quiet_zone_size: usize
+    ) -> String {
+        use crate::shapes::eyes::{EyeShapeRenderer, EyePosition, EyeComponent};
+        
+        let mut svg = String::new();
+        let eye_renderer = EyeShapeRenderer::new(module_size as u32);
+        let qr_size = self.size;
+        
+        // Calcular posiciones reales de los ojos
+        let eye_positions = [
+            (EyePosition::TopLeft, 0, 0),
+            (EyePosition::TopRight, qr_size - 7, 0),
+            (EyePosition::BottomLeft, 0, qr_size - 7),
+        ];
+        
+        svg.push_str(&format!(r#"<g transform="translate({}, {})">"#, quiet_zone_size, quiet_zone_size));
+        
+        for (position, x_offset, y_offset) in &eye_positions {
+            // Renderizar marco exterior del ojo directamente
+            let outer_x = *x_offset as f32 * module_size as f32;
+            let outer_y = *y_offset as f32 * module_size as f32;
+            let outer_size = 7.0 * module_size as f32;
+            
+            // Usar la forma específica para el marco exterior
+            let outer_path = match eye_shape {
+                EyeShape::Square => format!("M {} {} h {} v {} h -{} Z", outer_x, outer_y, outer_size, outer_size, outer_size),
+                EyeShape::RoundedSquare => {
+                    let radius = outer_size * 0.2;
+                    format!(
+                        "M {} {} h {} a {} {} 0 0 1 {} {} v {} a {} {} 0 0 1 -{} {} h -{} a {} {} 0 0 1 -{} -{} v -{} a {} {} 0 0 1 {} -{} Z",
+                        outer_x + radius, outer_y,
+                        outer_size - 2.0 * radius,
+                        radius, radius, radius, radius,
+                        outer_size - 2.0 * radius,
+                        radius, radius, radius, radius,
+                        outer_size - 2.0 * radius,
+                        radius, radius, radius, radius,
+                        outer_size - 2.0 * radius,
+                        radius, radius, radius, radius
+                    )
+                },
+                EyeShape::Circle => {
+                    let center_x = outer_x + outer_size / 2.0;
+                    let center_y = outer_y + outer_size / 2.0;
+                    let radius = outer_size / 2.0;
+                    format!(
+                        "M {} {} m -{} 0 a {} {} 0 1 0 {} 0 a {} {} 0 1 0 -{} 0",
+                        center_x, center_y, radius, radius, radius, radius * 2.0, radius, radius, radius * 2.0
+                    )
+                },
+                _ => format!("M {} {} h {} v {} h -{} Z", outer_x, outer_y, outer_size, outer_size, outer_size), // Default to square
+            };
+            svg.push_str(&format!(r#"<path d="{}" fill="{}" />"#, outer_path, color));
+            
+            // Renderizar punto interior del ojo
+            let inner_x = outer_x + 2.0 * module_size as f32;
+            let inner_y = outer_y + 2.0 * module_size as f32;
+            let inner_size = 3.0 * module_size as f32;
+            
+            let inner_path = match eye_shape {
+                EyeShape::Square | EyeShape::RoundedSquare => {
+                    format!("M {} {} h {} v {} h -{} Z", inner_x, inner_y, inner_size, inner_size, inner_size)
+                },
+                EyeShape::Circle => {
+                    let center_x = inner_x + inner_size / 2.0;
+                    let center_y = inner_y + inner_size / 2.0;
+                    let radius = inner_size / 2.0;
+                    format!(
+                        "M {} {} m -{} 0 a {} {} 0 1 0 {} 0 a {} {} 0 1 0 -{} 0",
+                        center_x, center_y, radius, radius, radius, radius * 2.0, radius, radius, radius * 2.0
+                    )
+                },
+                _ => format!("M {} {} h {} v {} h -{} Z", inner_x, inner_y, inner_size, inner_size, inner_size),
+            };
+            svg.push_str(&format!(r#"<path d="{}" fill="{}" />"#, inner_path, color));
+        }
+        
+        svg.push_str("</g>");
+        svg
     }
 }
 

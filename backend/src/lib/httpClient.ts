@@ -1,4 +1,4 @@
-import { Agent, fetch } from 'undici';
+import { Agent, fetch as undiciFetch } from 'undici';
 
 // Configurar agente HTTP con connection pooling
 export const httpAgent = new Agent({
@@ -15,7 +15,7 @@ export const httpAgent = new Agent({
 
 // Función wrapper para fetch con connection pooling
 export async function fetchWithPool(url: string, options: any = {}) {
-  return fetch(url, {
+  return undiciFetch(url, {
     ...options,
     dispatcher: httpAgent,
   });

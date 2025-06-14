@@ -105,6 +105,26 @@ pm2 monit         # Monitor interactivo
 
 ---
 
+## 🧭 **Project Navigation**
+
+> **TIP**: Use `.nav.md` as your GPS for the project - find files, workflows, and commands instantly.
+
+```bash
+# View the navigation guide
+cat .nav.md
+
+# Check if navigation needs update
+node scripts/validate-nav-freshness.js
+```
+
+The `.nav.md` file contains:
+- 📍 Quick paths to all important directories
+- 🎯 Common workflows with exact file sequences
+- 🔧 Ready-to-use commands for testing
+- 🔍 Search patterns to find code quickly
+
+---
+
 ## 🛠️ **Stack Tecnológico Optimizado**
 
 ### **Backend (Enterprise-Grade)**

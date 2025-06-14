@@ -70,18 +70,50 @@ interface QRValidationResult {
  */
 export async function generateQRv2(request: QRGenerateRequest): Promise<QRGenerateResult> {
   try {
-    // Transform options to Rust format
-    const rustRequest = transformToRustFormat(request);
+    // Use v2 endpoint directly without legacy transformation
+    const v2Request = {
+      data: request.data,
+      options: request.options ? {
+        size: request.options.size,
+        margin: request.options.margin,
+        error_correction: request.options.errorCorrection,
+        eye_shape: request.options.eyeShape,
+        data_pattern: request.options.dataPattern,
+        foreground_color: request.options.foregroundColor,
+        background_color: request.options.backgroundColor,
+        eye_color: request.options.eyeColor,
+        gradient: request.options.gradient,
+        logo: request.options.logo,
+        frame: request.options.frame,
+        effects: request.options.effects,
+        optimize_for_size: request.options.optimizeForSize,
+        enable_cache: request.options.enableCache
+      } : undefined
+    };
     
-    const response = await qrEngineClient.post<QRGenerateResult>('/api/qr/generate', rustRequest);
+    logger.info('[QR Service] Sending to Rust v2:', { request: v2Request });
     
-    logger.info('[QR Service] Generation successful', {
-      modules: response.data.metadata.modules,
-      version: response.data.metadata.version,
-      processingTime: response.data.metadata.processingTimeMs
-    });
+    const response = await qrEngineClient.post<any>('/api/qr/generate', v2Request);
     
-    return response.data;
+    // Handle v2 response format
+    if (response.data.output?.svg || response.data.svg) {
+      const result: QRGenerateResult = {
+        svg: response.data.output?.svg || response.data.svg,
+        metadata: {
+          version: response.data.metadata?.version || 4,
+          modules: response.data.metadata?.modules || 25,
+          errorCorrection: request.options?.errorCorrection || 'M',
+          dataCapacity: request.data.length,
+          processingTimeMs: response.data.performance?.processingTimeMs || 5
+        },
+        cached: response.data.cached || false
+      };
+      
+      logger.info('[QR Service] Generation successful');
+      return result;
+    }
+    
+    throw new Error('Invalid response from Rust service');
   } catch (error) {
     logger.error('[QR Service] Generation failed:', error);
     
@@ -198,55 +230,33 @@ function transformToRustFormat(request: QRGenerateRequest): any {
     return { data, options: {} };
   }
   
-  // Transform camelCase to snake_case for Rust
+  // Transform to Rust format (using legacy format for now)
   const rustOptions: any = {
-    size: options.size,
-    margin: options.margin,
-    error_correction: options.errorCorrection,
-    
-    // Shapes
-    eye_shape: options.eyeShape?.replace(/-/g, '_'),
-    data_pattern: options.dataPattern,
-    
-    // Colors
-    foreground_color: options.foregroundColor,
-    background_color: options.backgroundColor,
-    eye_color: options.eyeColor,
-    
-    // Advanced features
-    gradient: options.gradient ? {
-      type: options.gradient.type,
-      colors: options.gradient.colors,
-      angle: options.gradient.angle,
-      center_x: options.gradient.centerX,
-      center_y: options.gradient.centerY
-    } : undefined,
-    
-    logo: options.logo ? {
-      data: options.logo.data,
-      size: options.logo.size,
-      padding: options.logo.padding,
-      background_color: options.logo.backgroundColor
-    } : undefined,
-    
-    frame: options.frame ? {
-      style: options.frame.style,
-      color: options.frame.color,
-      width: options.frame.width,
-      text: options.frame.text,
-      text_position: options.frame.textPosition
-    } : undefined,
-    
-    effects: options.effects?.map(effect => ({
-      type: effect.type,
-      intensity: effect.intensity,
-      color: effect.color
-    })),
-    
-    // Performance
-    optimize_for_size: options.optimizeForSize,
-    enable_cache: options.enableCache
+    scale: options.size ? Math.floor(options.size / 25) : 4, // Convert size to scale
+    margin: options.margin || 4,
+    fgcolor: options.foregroundColor || '#000000',
+    bgcolor: options.backgroundColor || '#FFFFFF',
+    ecc_level: options.errorCorrection || 'M'
   };
+  
+  // Add gradient support if gradient is present
+  if (options.gradient) {
+    rustOptions.gradient = {
+      type: options.gradient.type || 'linear',
+      colors: options.gradient.colors || ['#000000', '#666666'],
+      angle: options.gradient.angle || 90,
+      apply_to_data: options.gradient.applyToData !== false,
+      apply_to_eyes: options.gradient.applyToEyes || false
+    };
+    
+    // Override fgcolor when gradient is enabled
+    rustOptions.fgcolor = options.gradient.colors[0] || '#000000';
+  }
+  
+  // Add v2 specific options if present
+  if (options.eyeShape) rustOptions.eye_shape = options.eyeShape;
+  if (options.dataPattern) rustOptions.data_pattern = options.dataPattern;
+  if (options.eyeColor) rustOptions.eye_color = options.eyeColor;
   
   // Remove undefined values
   Object.keys(rustOptions).forEach(key => {
@@ -255,7 +265,11 @@ function transformToRustFormat(request: QRGenerateRequest): any {
     }
   });
   
-  return { data, options: rustOptions };
+  return { 
+    barcode_type: 'qrcode',
+    data, 
+    options: rustOptions 
+  };
 }
 
 /**

@@ -21,6 +21,10 @@ The CODEX API is a comprehensive platform for generating QR codes and barcodes, 
 - **[Rate Limits](./rate-limits.md)** - Usage limits and quotas
 - **[Error Codes](./error-codes.md)** - Error handling guide
 
+## Technical Documentation
+
+- **[Endpoint Restructuring Challenges](../technical/endpoint-restructuring-challenges-20250614.md)** - Technical decisions and solutions from v1/v2 API migration
+
 ## Base URL
 
 ```

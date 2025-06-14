@@ -74,7 +74,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
         setIsUsingV2(true);
         
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
-        const requestUrl = `${backendUrl}/api/v2/qr`;
+        const requestUrl = `${backendUrl}/api/v2/qr/generate`;
         
         // Convert old format to v2 format
         const v2Request = migrateQRRequest(payload);
@@ -93,14 +93,46 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
                      opts.gradient_direction === 'diagonal' ? 45 : 
                      opts.gradient_direction === 'center-out' ? 0 : 90,
               applyToData: true,
-              applyToEyes: false
+              applyToEyes: opts.gradient_borders || false // Map gradient_borders to applyToEyes
             };
+            
+            // Override colors when gradient is enabled
+            if (v2Request.options.gradient.colors && v2Request.options.gradient.colors.length > 0) {
+              v2Request.options.foregroundColor = v2Request.options.gradient.colors[0];
+            }
           }
           
           // Map additional v2 options
           if (opts.eyeShape) v2Request.options!.eyeShape = opts.eyeShape;
           if (opts.dataPattern) v2Request.options!.dataPattern = opts.dataPattern;
           if (opts.eyeColor) v2Request.options!.eyeColor = opts.eyeColor;
+          
+          // Map effects if present
+          if (opts.effects) {
+            v2Request.options!.effects = [];
+            
+            // Check each effect type
+            ['shadow', 'glow', 'blur', 'noise', 'vintage'].forEach((effectType) => {
+              const effect = opts.effects?.[effectType];
+              if (effect?.enabled) {
+                v2Request.options!.effects!.push({
+                  type: effectType,
+                  intensity: effect.intensity || 1.0,
+                  ...(effect.color && { color: effect.color })
+                });
+              }
+            });
+          }
+          
+          // Map frame options
+          if (opts.frame?.style && opts.frame.style !== 'none') {
+            v2Request.options!.frame = {
+              style: opts.frame.style,
+              text: opts.frame.text,
+              color: opts.frame.color || '#000000',
+              text_position: opts.frame.text_position || 'bottom'
+            };
+          }
         }
         
         const token = user?.token || localStorage.getItem('authToken');

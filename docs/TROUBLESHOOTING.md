@@ -1,6 +1,6 @@
 # 🔧 **CODEX - Guía de Resolución de Problemas**
 
-**Última Actualización**: 15 de Enero, 2024
+**Última Actualización**: 14 de Junio, 2025
 
 ---
 
@@ -452,6 +452,121 @@ npm run test:e2e:debug
 
 # Ver traces de errores
 npx playwright show-trace test-results/trace.zip
+```
+
+---
+
+## 🗄️ **Problema: Múltiples PostgreSQL (Docker + Local)**
+
+### **❌ Error: "User 'codex_user' was denied access"**
+
+**CAUSA**: Múltiples instancias de PostgreSQL corriendo (local + Docker)
+
+**SÍNTOMAS**:
+```
+Error: P1010: User `codex_user` was denied access on the database `codex_db.public`
+```
+
+**SOLUCIÓN**:
+```bash
+# 1. Detener PostgreSQL local
+brew services stop postgresql@14
+
+# 2. Verificar que Docker PostgreSQL esté corriendo
+docker ps | grep postgres
+
+# 3. Si no está corriendo, iniciar infraestructura
+docker-compose up -d
+```
+
+## QR Code Gradients Not Working
+
+**Issue**: QR codes generated with gradient options only show solid color (color1), gradients are not applied.
+
+**Root Cause**: 
+- Frontend and backend correctly pass gradient options
+- Rust service receives gradient data in the request
+- However, the legacy `/generate` endpoint doesn't process gradient options
+- The v2 endpoint that supports gradients is commented out in Rust service (line 643 in main.rs)
+
+**Current Status** (June 14, 2025):
+- Frontend ✅ sends gradient options correctly
+- Backend ✅ transforms and forwards gradient options  
+- Rust ❌ receives but ignores gradient options in legacy endpoint
+
+**Solution**: 
+1. Enable the v2 endpoint in Rust service by uncommenting line 643
+2. Update backend to use `/api/qr/generate` instead of `/generate`
+3. Or update the legacy handler to process gradient options
+
+# 4. Verificar conectividad
+docker exec codex_postgres psql -U codex_user -d codex_db -c "SELECT 1;"
+
+# 5. Ejecutar migraciones si es necesario
+cd backend && npx prisma migrate deploy
+```
+
+**PREVENCIÓN**: Usar `./dev.sh` que ahora valida automáticamente el entorno
+
+---
+
+## 🛡️ **Sistema de Observabilidad Robusto**
+
+### **Problema Resuelto**
+Dashboard se caía completamente cuando fallaban servicios, dejando al usuario sin información crítica.
+
+### **Solución Implementada**
+
+#### 1. **Health Checks Robustos** (`/health`, `/health/db`, `/health/quick`)
+- NUNCA fallan completamente - siempre responden con información útil
+- Detectan problemas específicos (DB, Redis, Rust service)
+- Timeouts y graceful degradation
+- Información detallada de errores
+
+#### 2. **Sistema de Alertas Proactivo** (`useSystemAlerts`)
+- Monitoreo cada 15 segundos
+- Notificaciones del navegador para errores críticos
+- Alertas persistentes vs. temporales
+- Detección de cambios de estado del sistema
+
+#### 3. **Dashboard que NUNCA se cae** (`SystemStatus.tsx`)
+- Graceful degradation cuando servicios fallan
+- Siempre muestra información útil
+- Estados visuales claros (operativo/degradado/caído)
+- Información de errores específicos
+
+#### 4. **Alertas Siempre Visibles** (`SystemAlerts.tsx`)
+- Indicador de estado en tiempo real (esquina superior derecha)
+- Alertas categorizadas (error/warning/info)
+- Auto-dismiss para alertas no críticas
+- Contador de alertas críticas
+
+### **Archivos Clave**
+```
+frontend/src/components/SystemStatus.tsx     # Dashboard robusto
+frontend/src/components/SystemAlerts.tsx     # Alertas siempre visibles
+frontend/src/hooks/useSystemAlerts.ts        # Lógica de alertas
+backend/src/routes/health.ts                 # Health checks robustos
+frontend/src/app/layout.tsx                  # Integración global
+```
+
+---
+
+## 🔧 **Validación Automática del Entorno**
+
+El script `./dev.sh` ahora incluye validación automática que detecta:
+- Conflictos de múltiples PostgreSQL
+- Problemas de conectividad de BD
+- Archivos de configuración faltantes
+- Servicios Docker requeridos
+
+**Uso**:
+```bash
+# Validación manual del entorno
+./scripts/validate-environment.sh
+
+# Inicio automático con validación
+./dev.sh
 ```
 
 ---
