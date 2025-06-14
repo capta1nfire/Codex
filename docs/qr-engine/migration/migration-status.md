@@ -166,6 +166,53 @@ The system automatically detects and converts between formats using the migratio
 - Frontend console: Browser DevTools
 - Metrics endpoint: `http://localhost:3004/metrics`
 
+## Implementation Details
+
+### Backend Status
+**Current Phase**: Post-Phase 5
+
+#### Completed:
+- Core QR generation engine
+- Customization features (17 eye shapes, 12 patterns)
+- Advanced features (logos, gradients, effects, frames)
+- Performance optimization and caching
+- Performance testing (36.67ms avg, 340 RPS)
+
+#### Issues:
+1. **API Mismatch**: QR v2 routes expect different structure than engine provides
+2. **Missing Adapter**: Need translation layer between frontend and engine API
+3. **Inactive Routes**: v2 endpoints commented out due to compilation errors
+
+### Statistics Integration
+
+#### Working:
+- General analytics through `/analytics/performance`
+- Mixed metrics (v1 + v2) in Rust generator stats
+- Basic dashboard visualization via `RustAnalyticsDisplay`
+
+#### Missing:
+1. **v2-Specific Stats**: No differentiation between v1/v2 usage
+2. **Feature Tracking**: No metrics for gradients, logos, effects usage
+3. **Dedicated Endpoints**: `/api/qr/stats`, `/api/qr/cache/stats` not implemented
+4. **Performance Comparison**: No v1 vs v2 benchmarking
+
+### Recommended Actions
+
+1. **Fix v2 Routes** (Priority: High)
+   - Update route types to match engine API
+   - Create adapter layer for compatibility
+   - Enable v2 endpoints in main.rs
+
+2. **Implement v2 Analytics**
+   - Separate v2 metrics from general stats
+   - Track feature usage (gradients, logos, etc.)
+   - Create dedicated analytics endpoints
+
+3. **Update Dashboard**
+   - Add QRv2Analytics component
+   - Show v1 vs v2 adoption rate
+   - Display feature usage statistics
+
 ## Contact
 
 For questions or issues with the v2 migration, please refer to the technical documentation or create an issue in the project repository.

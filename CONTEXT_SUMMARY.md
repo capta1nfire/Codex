@@ -12,15 +12,17 @@
 
 ### **📚 Secuencia de Lectura Obligatoria:**
 1. **🔥 PRIMERO**: `CONTEXT_SUMMARY.md` ← **ESTÁS AQUÍ** (orientación técnica inmediata)
-2. **👑 SEGUNDO**: `CODEX.md` (roadmap estratégico y fases de desarrollo) 
-3. **📖 TERCERO**: `README.md` (setup técnico detallado)
-4. **🛠️ CUARTO**: `CLAUDE.md` ← **GUÍA PRÁCTICA IA** (comandos y workflows para desarrollo)
-5. **📚 QUINTO**: `docs/README.md` ← **ÍNDICE MAESTRO DE DOCUMENTACIÓN** (mapa completo de docs)
-6. **🎨 SEXTO**: `docs/CODEX_DESIGN_SYSTEM.md` ← **LECTURA OBLIGATORIA** (filosofía visual y patrones UI)
-7. **🚀 SÉPTIMO**: `docs/technical/barcode-research.md` ← **INVESTIGACIÓN ESTRATÉGICA** (análisis técnico de códigos)
-8. **🔧 ESPECÍFICO**: Consultar `docs/` para documentación organizada por tema
+2. **🧭 SEGUNDO**: `.nav.md` ← **NAVEGACIÓN RÁPIDA** (guía de referencia para navegar el proyecto eficientemente)
+3. **👑 TERCERO**: `CODEX.md` (roadmap estratégico y fases de desarrollo) 
+4. **📖 CUARTO**: `README.md` (setup técnico detallado)
+5. **🛠️ QUINTO**: `CLAUDE.md` ← **GUÍA PRÁCTICA IA** (comandos y workflows para desarrollo)
+6. **📚 SEXTO**: `docs/README.md` ← **ÍNDICE MAESTRO DE DOCUMENTACIÓN** (mapa completo de docs)
+7. **🎨 SÉPTIMO**: `docs/CODEX_DESIGN_SYSTEM.md` ← **LECTURA OBLIGATORIA** (filosofía visual y patrones UI)
+8. **🚀 OCTAVO**: `docs/technical/barcode-research.md` ← **INVESTIGACIÓN ESTRATÉGICA** (análisis técnico de códigos)
+9. **🔧 ESPECÍFICO**: Consultar `docs/` para documentación organizada por tema
 
 ### **📂 Estructura de Documentación (IMPORTANTE)**
+- **`.nav.md`** - Navegación rápida del proyecto (directorios, workflows, comandos)
 - **`CLAUDE.md`** - Guía práctica para agentes IA (comandos, workflows, tips)
 - **`docs/README.md`** - Hub central con índice completo y navegación
 - **`docs/qr-engine/`** - QR Engine v2 (technical guide, changelog, status)
@@ -35,7 +37,7 @@
 2. **NUNCA** crear documentos duplicados - actualizar existentes
 3. **CONSULTAR** `docs/DOCUMENTATION_AUDIT_20250608.md` para entender la consolidación
 
-> **⏰ Tiempo estimado**: 20 minutos para entender completamente el proyecto (incluyendo design system e investigación estratégica)
+> **⏰ Tiempo estimado**: 25 minutos para entender completamente el proyecto (incluyendo navegación rápida, design system e investigación estratégica)
 
 ---
 

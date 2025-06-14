@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Controller, Control, FieldErrors, UseFormWatch, UseFormReset, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
 import {
   Select,
@@ -11,24 +11,15 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GenerateFormData } from '@/schemas/generate.schema';
 import { cn } from '@/lib/utils';
-import { toast } from 'react-hot-toast';
 import dynamic from 'next/dynamic';
 import { 
   Palette, 
   Settings2, 
-  RotateCcw, 
-  ChevronDown,
-  ChevronRight,
-  Eye,
-  ArrowLeftRight,
-  RefreshCw
+  ArrowLeftRight
 } from 'lucide-react';
 
 // Importar dinámicamente AdvancedBarcodeOptions
@@ -69,8 +60,6 @@ interface GenerationOptionsProps {
   setValue: UseFormSetValue<GenerateFormData>;
   getValues: UseFormGetValues<GenerateFormData>;
   onSubmit: (data: GenerateFormData) => void;
-  expandedSection: string;
-  setExpandedSection?: (section: string) => void;
   onToggleSection?: (section: string) => void;
   showV2Features?: boolean;
 }
@@ -85,8 +74,6 @@ function GenerationOptions({
   setValue,
   getValues,
   onSubmit,
-  expandedSection,
-  setExpandedSection,
 }: GenerationOptionsProps) {
   
   // Estado para el tab activo - aislado para evitar re-renders del padre
@@ -99,98 +86,8 @@ function GenerationOptions({
   }, []);
   
   // Calculate conditional visibility
-  const is1DBarcode = selectedType
-    ? !['qrcode', 'pdf417', 'datamatrix', 'aztec'].includes(selectedType)
-    : false;
-  const isHeightRelevant = selectedType
-    ? !['qrcode', 'datamatrix', 'aztec'].includes(selectedType)
-    : false;
   const isQrCode = selectedType === 'qrcode';
 
-  const handleResetOptions = useCallback(() => {
-    reset(
-      { ...watch(), options: defaultFormValues.options },
-      { keepDefaultValues: false, keepValues: false }
-    );
-    toast.success('Opciones restablecidas', {
-      icon: '✨',
-      style: {
-        background: '#f0f9ff',
-        color: '#0369a1',
-        border: '1px solid #0284c7',
-      },
-    });
-  }, [reset, watch]);
-
-  const SectionCard = ({ 
-    id, 
-    title, 
-    subtitle, 
-    icon: Icon, 
-    children, 
-    isOpen, 
-    badgeText 
-  }: {
-    id: string;
-    title: string;
-    subtitle: string;
-    icon: any;
-    children: React.ReactNode;
-    isOpen: boolean;
-    badgeText?: string;
-  }) => (
-    <Card className={cn(
-      "transition-all duration-200 hover:shadow-md",
-      isOpen ? "border-blue-200 dark:border-blue-700 bg-blue-50/30 dark:bg-blue-950/20" : "hover:border-slate-300 dark:hover:border-slate-600"
-    )}>
-      <CardHeader 
-        className="pb-2 cursor-pointer"
-        onClick={() => handleTabChange(id)}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              "p-2 rounded-lg transition-colors duration-200",
-              isOpen 
-                ? "bg-blue-100 dark:bg-blue-900/30" 
-                : "bg-slate-100 dark:bg-slate-800"
-            )}>
-              <Icon className={cn(
-                "h-4 w-4 transition-colors duration-200",
-                isOpen 
-                  ? "text-blue-600 dark:text-blue-400" 
-                  : "text-slate-600 dark:text-slate-400"
-              )} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-base">{title}</CardTitle>
-                {badgeText && (
-                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                    {badgeText}
-                  </Badge>
-                )}
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{subtitle}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {isOpen ? (
-              <ChevronDown className="h-4 w-4 text-slate-400 transition-transform duration-200" />
-            ) : (
-              <ChevronRight className="h-4 w-4 text-slate-400 transition-transform duration-200" />
-            )}
-          </div>
-        </div>
-      </CardHeader>
-      
-      {isOpen && (
-        <CardContent className="pt-0 pb-2 px-4 animate-in slide-in-from-top-2 duration-200">
-          {children}
-        </CardContent>
-      )}
-    </Card>
-  );
 
   // ColorInput como componente interno memoizado
   const ColorInput = React.memo(({ 
@@ -519,7 +416,6 @@ function GenerationOptions({
               watch={watch}
               isLoading={isLoading}
               selectedType={selectedType}
-              reset={reset}
             />
           </div>
         );
@@ -569,11 +465,9 @@ const arePropsEqual = (prevProps: GenerationOptionsProps, nextProps: GenerationO
   // Comparar solo las props que realmente deberían causar un re-render
   return (
     prevProps.isLoading === nextProps.isLoading &&
-    prevProps.selectedType === nextProps.selectedType &&
-    prevProps.expandedSection === nextProps.expandedSection &&
+    prevProps.selectedType === nextProps.selectedType
     // No comparar funciones ni objetos complejos que cambian frecuentemente
     // Las funciones watch, setValue, etc. son estables gracias a react-hook-form
-    true
   );
 };
 

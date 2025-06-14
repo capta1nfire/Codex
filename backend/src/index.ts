@@ -35,6 +35,7 @@ import healthRoutes from './routes/health.js'; // ✅ Sistema robusto
 import { metricsRoutes } from './routes/metrics.routes.js';
 import { userRoutes } from './routes/user.routes.js';
 import { qrRoutes } from './routes/qr.routes.js';
+
 import { startServer } from './server-config.js'; // <--- Descomentar esta línea
 import {
   startDatabaseService,
@@ -431,9 +432,16 @@ app.post('/api/services/health-check', async (_req: Request, res: Response) => {
   }
 });
 
-app.use('/api/auth', authRoutes);
-app.use('/api/generate', generateRoutes);
+// Current routes with deprecation warnings
+app.use('/api/generate', generateRoutes); // Legacy - use new endpoints
 app.use('/api/qr', qrRoutes); // QR Engine v2 routes
+
+// New v1/v2 routes (alias to existing routes for now)
+app.use('/api/v1/barcode', generateRoutes); // v1 barcode generation
+app.use('/api/v2/qr', qrRoutes); // v2 QR generation
+
+// Other routes
+app.use('/api/auth', authRoutes);
 app.use('/api/avatars', avatarRoutes);
 app.use('/api/users', userRoutes);
 

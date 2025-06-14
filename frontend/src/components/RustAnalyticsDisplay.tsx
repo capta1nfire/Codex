@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { RefreshCw, AlertTriangle, Activity, Clock, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Activity, TrendingUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 // import {
@@ -90,8 +90,6 @@ export default function RustAnalyticsDisplay() {
   });
   const [lastTotalRequests, setLastTotalRequests] = useState<number>(0);
   const [alertLevel, setAlertLevel] = useState<'none' | 'warning' | 'critical'>('none');
-
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setIsMounted(true);

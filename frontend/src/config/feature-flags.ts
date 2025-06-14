@@ -1,6 +1,9 @@
 /**
  * Feature flags for QR Engine v2 rollout
- * Allows gradual migration and A/B testing
+ * 
+ * V2 ENGINE IS NOW 100% ACTIVE - All QR generation uses v2
+ * Note: v1 remains functional but is disabled for QR codes
+ * These flags now control UI features rather than engine selection
  */
 
 // Check if running in development mode
@@ -56,12 +59,12 @@ export const FEATURE_FLAGS = {
   },
   
   QR_V2_EFFECTS: {
-    enabled: getLocalOverride('qr_v2_effects') ?? isDevelopment,
+    enabled: getLocalOverride('qr_v2_effects') ?? true,  // Enabled for all
     description: 'Enable visual effects (shadow, glow, etc)',
   },
   
   QR_V2_FRAMES: {
-    enabled: getLocalOverride('qr_v2_frames') ?? isDevelopment,
+    enabled: getLocalOverride('qr_v2_frames') ?? true,   // Enabled for all
     description: 'Enable decorative frames',
   },
   
@@ -77,7 +80,7 @@ export const FEATURE_FLAGS = {
   },
   
   QR_V2_PERFORMANCE_METRICS: {
-    enabled: getLocalOverride('qr_v2_performance_metrics') ?? isDevelopment,
+    enabled: getLocalOverride('qr_v2_performance_metrics') ?? true,  // Enabled for all
     description: 'Show performance metrics in UI',
   },
   
@@ -88,8 +91,8 @@ export const FEATURE_FLAGS = {
   },
   
   QR_V2_FALLBACK: {
-    enabled: getLocalOverride('qr_v2_fallback') ?? true,
-    description: 'Enable automatic fallback to v1 on v2 errors',
+    enabled: getLocalOverride('qr_v2_fallback') ?? false,  // No fallback - v2 only
+    description: 'Enable automatic fallback to v1 on v2 errors (DISABLED - v2 mandatory)',
   },
 };
 

@@ -3,10 +3,27 @@
 ## Overview
 QR Engine v2 is a complete reimplementation of the QR code generation system, designed for high performance and advanced customization. Built in 100% Rust, it achieves 10x better performance than the previous implementation.
 
-## Quick Links
-- [Technical Guide](./technical-guide.md) - Complete technical documentation
-- [API Reference](./api-reference.md) - API usage and examples
-- [Changelog](./changelog.md) - Development history and decisions
+## Documentation Structure
+
+### Core Documentation
+- [Technical Guide](./core/technical-guide.md) - Complete technical documentation
+- [API Reference](./core/api-reference.md) - API usage and examples
+- [Changelog](./core/changelog.md) - Development history and decisions
+
+### Migration
+- [Migration Guide](./migration/guide.md) - Step-by-step migration instructions
+- [Compatibility Guide](./migration/compatibility-guide.md) - TypeScript types and patterns
+- [Migration Status](./migration/status.md) - Current status and known issues
+
+### Performance
+- [Benchmarks](./performance/benchmarks.md) - Performance standards and targets
+- [Test Results](./performance/test-results.md) - Phase 5 performance test results
+
+### Implementation
+- [Redis Cache](./implementation/redis-cache.md) - Distributed cache implementation
+- [Analytics Dashboard](./implementation/analytics-dashboard.md) - v2 analytics architecture
+- [Integration Complete](./implementation/INTEGRATION_COMPLETE.md) - Final integration summary
+- [Troubleshooting](./implementation/troubleshooting-fixes.md) - Common fixes and solutions
 
 ## Current Status: Phase 5 of 5 In Progress (95%)
 
@@ -48,4 +65,12 @@ processing/      # Effects and colors
 ```
 
 ---
-*For detailed technical information, see the [Technical Guide](./technical-guide.md)*
+## Summary
+
+The QR Engine v2 documentation is organized into four main sections:
+- **Core**: Essential technical documentation and API reference
+- **Migration**: Guides for migrating from v1 to v2
+- **Performance**: Benchmarks and test results
+- **Implementation**: Technical implementation details and troubleshooting
+
+*For detailed technical information, see the [Technical Guide](./core/technical-guide.md)*

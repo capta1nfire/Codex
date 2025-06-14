@@ -14,10 +14,30 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+// Extend Window interface to include PasswordCredential
+declare global {
+  interface Window {
+    PasswordCredential?: {
+      new(data: {
+        id: string;
+        password: string;
+        name?: string;
+        iconURL?: string;
+      }): Credential;
+    };
+  }
+}
+
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => {
+    // Check if user previously chose to be remembered
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('rememberMePreference') === 'true';
+    }
+    return false;
+  });
   const { login, isLoading } = useAuth();
   const router = useRouter();
 
@@ -33,15 +53,36 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginFormData) => {
     setServerError('');
 
-    const result = await login(data.email, data.password);
+    console.log('[LoginForm] onSubmit - rememberMe state:', rememberMe);
+    
+    // Save remember me preference
+    localStorage.setItem('rememberMePreference', rememberMe.toString());
+    console.log('[LoginForm] Saved rememberMe preference:', rememberMe);
 
-    console.log('Resultado de login:', result);
+    const result = await login(data.email, data.password, rememberMe);
+
+    console.log('[LoginForm] Login result:', result);
 
     if (result.success) {
       const welcomeMessage = result.user
         ? `¡Bienvenido ${result.user.username}!`
         : '¡Inicio de sesión exitoso!';
       toast.success(welcomeMessage);
+
+      // Trigger Chrome password manager by submitting a hidden form
+      // This helps Chrome detect successful login
+      if (typeof window !== 'undefined' && window.PasswordCredential) {
+        try {
+          const cred = new window.PasswordCredential({
+            id: data.email,
+            password: data.password,
+            name: result.user?.username || data.email,
+          });
+          await navigator.credentials.store(cred);
+        } catch (e) {
+          console.log('Password manager not available or user declined');
+        }
+      }
 
       setTimeout(() => {
         router.push('/');
@@ -101,7 +142,6 @@ export default function LoginForm() {
                 <div className="relative group">
                   <Input
                     id="email"
-                    name="email"
                     type="email"
                     autoComplete="email"
                     {...register('email')}
@@ -127,7 +167,6 @@ export default function LoginForm() {
                 <div className="relative group">
                   <Input
                     id="password"
-                    name="password"
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
                     {...register('password')}
@@ -160,7 +199,10 @@ export default function LoginForm() {
                     name="remember"
                     type="checkbox"
                     checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
+                    onChange={(e) => {
+                      console.log('[LoginForm] Checkbox changed:', e.target.checked);
+                      setRememberMe(e.target.checked);
+                    }}
                     className="h-4 w-4 rounded border-border text-blue-600 focus:ring-blue-500 focus:ring-offset-0 transition-colors"
                   />
                   <Label htmlFor="remember" className="text-muted-foreground cursor-pointer hover:text-foreground transition-colors">

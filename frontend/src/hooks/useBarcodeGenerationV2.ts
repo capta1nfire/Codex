@@ -1,6 +1,12 @@
 /**
- * Enhanced barcode generation hook with QR Engine v2 integration
- * Provides backward compatibility while leveraging v2 features for QR codes
+ * Enhanced barcode generation hook with API v1/v2 integration
+ * 
+ * API Structure:
+ * - QR CODES: /api/v2/qr (high-performance v2 engine)
+ * - OTHER BARCODES: /api/v1/barcode (legacy engine)
+ * 
+ * Legacy endpoints (/api/generate, /api/qr) remain functional
+ * with deprecation warnings for backward compatibility.
  */
 
 import { useState, useCallback } from 'react';
@@ -62,60 +68,82 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
       const useV2 = shouldUseV2(payload);
       setIsUsingV2(useV2);
 
-      if (useV2 && (payload.barcode_type === 'qrcode' || payload.barcode_type === 'qr')) {
-        // Use QR Engine v2
+      if (payload.barcode_type === 'qrcode' || payload.barcode_type === 'qr') {
+        // ALWAYS use QR Engine v2 for QR codes
         console.log(`[generateBarcode-${requestId}] Using QR Engine v2`);
+        setIsUsingV2(true);
         
-        const qrClient = getQREngineV2(user?.token || localStorage.getItem('authToken') || undefined);
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+        const requestUrl = `${backendUrl}/api/v2/qr`;
         
         // Convert old format to v2 format
         const v2Request = migrateQRRequest(payload);
         
-        // Add any v2-specific options if they exist in formData
+        // Add gradient options if present
         if (formData.options) {
           const opts = formData.options as any;
-          const v2Options: Partial<QRv2Options> = {};
+          
+          // Handle gradients properly
+          if (opts.gradient_enabled) {
+            v2Request.options = v2Request.options || {};
+            v2Request.options.gradient = {
+              type: opts.gradient_type || 'linear',
+              colors: [opts.gradient_color1 || '#000000', opts.gradient_color2 || '#666666'],
+              angle: opts.gradient_direction === 'left-right' ? 0 : 
+                     opts.gradient_direction === 'diagonal' ? 45 : 
+                     opts.gradient_direction === 'center-out' ? 0 : 90,
+              applyToData: true,
+              applyToEyes: false
+            };
+          }
           
           // Map additional v2 options
-          if (opts.eyeShape) v2Options.eyeShape = opts.eyeShape;
-          if (opts.dataPattern) v2Options.dataPattern = opts.dataPattern;
-          if (opts.eyeColor) v2Options.eyeColor = opts.eyeColor;
-          
-          // Effects
-          if (opts.effects && Array.isArray(opts.effects)) {
-            v2Options.effects = opts.effects;
-          }
-          
-          // Frame
-          if (opts.frame) {
-            v2Options.frame = opts.frame;
-          }
-          
-          // Merge with migrated options
-          v2Request.options = { ...v2Request.options, ...v2Options };
+          if (opts.eyeShape) v2Request.options!.eyeShape = opts.eyeShape;
+          if (opts.dataPattern) v2Request.options!.dataPattern = opts.dataPattern;
+          if (opts.eyeColor) v2Request.options!.eyeColor = opts.eyeColor;
         }
         
-        const v2Response = await qrClient.generate(v2Request);
+        const token = user?.token || localStorage.getItem('authToken');
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
         
-        if (v2Response.success) {
-          setSvgContent(v2Response.svg);
-          setMetadata({
-            generationTimeMs: v2Response.metadata.processingTimeMs,
-            fromCache: v2Response.cached,
-            engineVersion: '2.0.0',
-            complexityLevel: v2Response.metadata.complexityLevel,
-            qualityScore: v2Response.metadata.qualityScore,
-          });
-          setServerError(null);
-        } else {
-          throw new Error('QR generation failed');
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
         }
+        
+        console.log(`[generateBarcode-${requestId}] V2 Request:`, v2Request);
+        
+        const response = await fetch(requestUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(v2Request),
+          signal: AbortSignal.timeout(10000),
+        });
+
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'QR generation failed');
+        }
+        
+        setSvgContent(result.svg);
+        setMetadata({
+          generationTimeMs: result.metadata?.processingTimeMs || result.performance?.processingTimeMs,
+          fromCache: result.cached || false,
+          engineVersion: '2.0.0',
+          complexityLevel: result.metadata?.complexityLevel,
+          qualityScore: result.metadata?.qualityScore,
+        });
+        setServerError(null);
+        
       } else {
-        // Use old API for non-QR codes or if v2 is disabled
-        console.log(`[generateBarcode-${requestId}] Using legacy API`);
+        // Use old API for non-QR codes
+        console.log(`[generateBarcode-${requestId}] Using legacy API for non-QR`);
+        setIsUsingV2(false);
         
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
-        const requestUrl = `${backendUrl}/api/generate`;
+        const requestUrl = `${backendUrl}/api/v1/barcode`;
         
         const token = user?.token || localStorage.getItem('authToken');
         

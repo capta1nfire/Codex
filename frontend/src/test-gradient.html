@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Gradient</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .test-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>QR Code Gradient Test</h1>
+    <div class="container">
+        <div class="test-box">
+            <h3>Original QR (No Gradient)</h3>
+            <div id="original"></div>
+        </div>
+        <div class="test-box">
+            <h3>Linear Gradient (Top-Bottom)</h3>
+            <div id="linear-tb"></div>
+        </div>
+        <div class="test-box">
+            <h3>Linear Gradient (Left-Right)</h3>
+            <div id="linear-lr"></div>
+        </div>
+        <div class="test-box">
+            <h3>Radial Gradient</h3>
+            <div id="radial"></div>
+        </div>
+    </div>
+
+    <script>
+        // Test SVG QR code
+        const testSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+            <rect x="0" y="0" width="100" height="100" fill="#FFFFFF"/>
+            <rect x="10" y="10" width="20" height="20" fill="#000000"/>
+            <rect x="40" y="10" width="20" height="20" fill="#000000"/>
+            <rect x="70" y="10" width="20" height="20" fill="#000000"/>
+            <rect x="10" y="40" width="20" height="20" fill="#000000"/>
+            <rect x="70" y="40" width="20" height="20" fill="#000000"/>
+            <rect x="10" y="70" width="20" height="20" fill="#000000"/>
+            <rect x="40" y="70" width="20" height="20" fill="#000000"/>
+            <rect x="70" y="70" width="20" height="20" fill="#000000"/>
+        </svg>`;
+
+        // Display original
+        document.getElementById('original').innerHTML = testSVG;
+
+        // Apply gradients
+        function applyGradient(svgString, gradientOptions) {
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgString, 'image/svg+xml');
+            const svgElement = svgDoc.querySelector('svg');
+            
+            // Create defs
+            let defs = svgElement.querySelector('defs');
+            if (!defs) {
+                defs = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                svgElement.insertBefore(defs, svgElement.firstChild);
+            }
+
+            // Create gradient
+            const gradientId = `gradient-${Date.now()}`;
+            let gradientElement;
+            
+            if (gradientOptions.type === 'radial') {
+                gradientElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+                gradientElement.setAttribute('id', gradientId);
+                gradientElement.setAttribute('cx', '50%');
+                gradientElement.setAttribute('cy', '50%');
+                gradientElement.setAttribute('r', '50%');
+            } else {
+                gradientElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+                gradientElement.setAttribute('id', gradientId);
+                
+                if (gradientOptions.direction === 'left-right') {
+                    gradientElement.setAttribute('x1', '0%');
+                    gradientElement.setAttribute('y1', '0%');
+                    gradientElement.setAttribute('x2', '100%');
+                    gradientElement.setAttribute('y2', '0%');
+                } else {
+                    gradientElement.setAttribute('x1', '0%');
+                    gradientElement.setAttribute('y1', '0%');
+                    gradientElement.setAttribute('x2', '0%');
+                    gradientElement.setAttribute('y2', '100%');
+                }
+            }
+
+            // Add color stops
+            const stop1 = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop1.setAttribute('offset', '0%');
+            stop1.setAttribute('stop-color', gradientOptions.color1);
+            
+            const stop2 = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop2.setAttribute('offset', '100%');
+            stop2.setAttribute('stop-color', gradientOptions.color2);
+            
+            gradientElement.appendChild(stop1);
+            gradientElement.appendChild(stop2);
+            defs.appendChild(gradientElement);
+
+            // Apply gradient to black elements
+            const blackElements = svgElement.querySelectorAll('[fill="#000000"]');
+            blackElements.forEach(element => {
+                element.setAttribute('fill', `url(#${gradientId})`);
+            });
+
+            // Remove white background
+            const whiteBackground = svgElement.querySelector('rect[fill="#FFFFFF"]');
+            if (whiteBackground) {
+                whiteBackground.remove();
+            }
+
+            return new XMLSerializer().serializeToString(svgDoc);
+        }
+
+        // Test different gradients
+        document.getElementById('linear-tb').innerHTML = applyGradient(testSVG, {
+            type: 'linear',
+            direction: 'top-bottom',
+            color1: '#2563EB',
+            color2: '#000000'
+        });
+
+        document.getElementById('linear-lr').innerHTML = applyGradient(testSVG, {
+            type: 'linear',
+            direction: 'left-right',
+            color1: '#2563EB',
+            color2: '#DC2626'
+        });
+
+        document.getElementById('radial').innerHTML = applyGradient(testSVG, {
+            type: 'radial',
+            color1: '#10B981',
+            color2: '#000000'
+        });
+
+        console.log('Gradient tests loaded. Check the visual output above.');
+    </script>
+</body>
+</html>

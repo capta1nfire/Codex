@@ -39,14 +39,14 @@ export interface UseQREngineV2Return {
  * Hook for using QR Engine v2
  */
 export function useQREngineV2(options: UseQREngineV2Options = {}): UseQREngineV2Return {
-  const { autoGenerate = false, debounceMs = 300, onSuccess, onError } = options;
+  const { debounceMs = 300, onSuccess, onError } = options;
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [result, setResult] = useState<QRv2GenerateResponse | null>(null);
   
   // Get QR Engine client
-  const client = getQREngineV2(user?.token);
+  const client = getQREngineV2(localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || undefined);
   
   // Debounce timer
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
@@ -201,7 +201,7 @@ export function useQRBatch() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   
-  const client = getQREngineV2(user?.token);
+  const client = getQREngineV2(localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || undefined);
   
   const generateBatch = useCallback(async (
     codes: Array<{ data: string; options?: QRv2Options }>,

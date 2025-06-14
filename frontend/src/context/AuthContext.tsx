@@ -45,7 +45,7 @@ interface LoginResult {
 
 // 2. Definir las acciones que el contexto proveerá
 interface AuthContextActions {
-  login: (email: string, password: string) => Promise<LoginResult>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<LoginResult>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void; // <-- Acepta datos parciales para actualizar solo campos específicos
   // Podríamos añadir más acciones: register, loadUserFromToken, etc.
@@ -68,6 +68,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true); // Empezar cargando (para verificar token inicial?)
+  const [isInitialized, setIsInitialized] = useState<boolean>(false); // Track if initial check is done
   const router = useRouter();
 
   // Función para obtener datos del usuario basado en token
@@ -82,6 +83,15 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (!response.ok) {
+        // Only clear tokens on authentication errors (401)
+        if (response.status === 401) {
+          console.log('[AuthContext] 401 error - clearing tokens');
+          localStorage.removeItem('authToken');
+          sessionStorage.removeItem('authToken');
+          setIsAuthenticated(false);
+          setUser(null);
+          setToken(null);
+        }
         throw new Error(`Error fetching user: ${response.status}`);
       }
 
@@ -104,8 +114,12 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(true);
         setToken(token);
       } else {
-        // Si /me falla pero el token existe, lo limpiamos igual
-        localStorage.removeItem('authToken');
+        // Only clear tokens if it's an authentication issue
+        if (data.error?.code === 'UNAUTHORIZED' || data.error?.code === 'INVALID_TOKEN') {
+          console.log('[AuthContext] Auth error - clearing tokens');
+          localStorage.removeItem('authToken');
+          sessionStorage.removeItem('authToken');
+        }
         setIsAuthenticated(false);
         setUser(null);
         setToken(null);
@@ -113,7 +127,8 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('Failed to fetch user:', error);
-      localStorage.removeItem('authToken'); // Asegurar limpieza en cualquier error
+      // Don't clear tokens on network errors or other non-auth issues
+      // Only clear if explicitly handled above (401 or auth error codes)
       setUser(null);
       setIsAuthenticated(false);
       setToken(null);
@@ -124,17 +139,32 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   // Verificar token al montar el proveedor
   useEffect(() => {
-    const storedToken = localStorage.getItem('authToken');
+    const initializeAuth = async () => {
+      console.log('[AuthContext] Initializing auth check...');
+      const storedToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      
+      if (storedToken) {
+        console.log('[AuthContext] Token found, fetching user...');
+        try {
+          await fetchUser(storedToken);
+        } catch (error) {
+          console.error('[AuthContext] Error during initial auth check:', error);
+        }
+      } else {
+        console.log('[AuthContext] No token found');
+        setIsLoading(false);
+      }
+      
+      // Mark as initialized after check completes
+      setIsInitialized(true);
+    };
     
-    if (storedToken) {
-      void fetchUser(storedToken);
-    } else {
-      setIsLoading(false);
-    }
+    initializeAuth();
   }, [fetchUser]);
 
   // Función de Login
-  const login = async (email: string, password: string): Promise<LoginResult> => {
+  const login = async (email: string, password: string, rememberMe: boolean = false): Promise<LoginResult> => {
+    console.log('[AuthContext] Login called with rememberMe:', rememberMe);
     setIsLoading(true);
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
@@ -157,7 +187,14 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
       // Si tenemos token
       if (data.success && data.token) {
-        localStorage.setItem('authToken', data.token);
+        // Use sessionStorage for temporary login, localStorage for persistent
+        if (rememberMe) {
+          console.log('[AuthContext] Storing token in localStorage');
+          localStorage.setItem('authToken', data.token);
+        } else {
+          console.log('[AuthContext] Storing token in sessionStorage');
+          sessionStorage.setItem('authToken', data.token);
+        }
 
         if (data.user) {
           // Map backend field names to frontend names for consistency
@@ -203,7 +240,9 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   // Función de Logout
   const logout = () => {
+    // Clear from both storage locations
     localStorage.removeItem('authToken');
+    sessionStorage.removeItem('authToken');
     setIsAuthenticated(false);
     setUser(null);
     setToken(null);
@@ -229,6 +268,20 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     logout,
     updateUser,
   };
+
+  // Show loading state until initial auth check is complete
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50/30 via-slate-50/20 to-blue-50/30">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 mb-4">
+            <div className="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+          </div>
+          <p className="text-lg font-medium text-slate-700">Verificando autenticación...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Envolver a los hijos con el Provider y el valor del contexto
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

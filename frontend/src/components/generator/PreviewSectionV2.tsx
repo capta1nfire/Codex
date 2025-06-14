@@ -12,6 +12,13 @@ interface PreviewSectionProps {
   barcodeType?: string;
   isUsingV2?: boolean;
   showCacheIndicator?: boolean;
+  gradientOptions?: {
+    enabled: boolean;
+    type?: string;
+    direction?: string;
+    colors?: string[];
+    applyBorders?: boolean;
+  };
 }
 
 export const PreviewSection: React.FC<PreviewSectionProps> = ({
@@ -20,6 +27,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   barcodeType = 'qrcode',
   isUsingV2 = false,
   showCacheIndicator = false,
+  gradientOptions,
 }) => {
   const { handleDownload } = useBarcodeActions(svgContent, barcodeType);
 
@@ -81,6 +89,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
                     svgContent={svgContent}
                     type={barcodeType}
                     data=""
+                    gradientOptions={gradientOptions}
                   />
                 </div>
               </div>
@@ -88,7 +97,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
               {/* Actions */}
               <div className="flex flex-col sm:flex-row gap-2 pt-4">
                 <Button
-                  onClick={handleDownload}
+                  onClick={() => handleDownload()}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                   disabled={!svgContent}
                 >

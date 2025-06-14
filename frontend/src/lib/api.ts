@@ -28,11 +28,12 @@ class ApiClient {
   }
 
   /**
-   * Obtiene el token JWT del localStorage
+   * Obtiene el token JWT del localStorage o sessionStorage
    */
   private getAuthToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('authToken');
+    // Check both localStorage (remember me) and sessionStorage (temporary)
+    return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
   }
 
   /**
@@ -218,11 +219,18 @@ export const userApi = {
 };
 
 export const generatorApi = {
+  // Legacy v1 endpoint for all barcode types
   generateCode: (payload: {
     barcode_type: string;
     data: string;
     options?: Record<string, any>;
-  }) => api.post('/api/generate', payload, false),
+  }) => api.post('/api/v1/barcode', payload, false),
+  
+  // v2 endpoint specifically for QR codes
+  generateQRv2: (payload: {
+    data: string;
+    options?: Record<string, any>;
+  }) => api.post('/api/v2/qr', payload, false),
 };
 
 export const systemApi = {

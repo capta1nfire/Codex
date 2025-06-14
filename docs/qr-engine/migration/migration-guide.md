@@ -227,12 +227,86 @@ previewUrl.searchParams.set('fgColor', '#000000');
 - **Phase 2** (3 months): Old endpoint marked deprecated
 - **Phase 3** (6 months): Old endpoint removed
 
+## Frontend Migration Plan
+
+### Phase 1: Preparation and Analysis
+**Objective**: Map all integration points and prepare migration
+
+**Tasks**:
+1. **Audit current code**
+   - Identify all uses of `/api/generate`
+   - Map components using QR generation
+   - Document current request/response structure
+   - Review current dashboard statistics
+
+2. **Compatibility analysis**
+   - Compare old vs v2 schemas
+   - Identify breaking changes
+   - Plan gradual migration strategy
+
+### Phase 2: API Client Update
+**Objective**: Create new API layer for QR Engine v2
+
+1. **Create new API module** (`frontend/src/lib/api/qrEngineV2.ts`)
+2. **Define TypeScript interfaces** for all v2 types
+3. **Implement error handling** with fallback to v1
+4. **Add request interceptors** for authentication
+
+### Phase 3: Hook Migration
+**Objective**: Update React hooks to use v2 API
+
+1. Update `useBarcodeGenerationV2` hook
+2. Create `useQREngineV2` specialized hook
+3. Implement feature detection
+4. Add performance tracking
+
+### Phase 4: UI Components Update
+**Objective**: Expose new v2 features in UI
+
+1. Update `GenerationOptions` component
+2. Create new customization panels
+3. Implement real-time preview
+4. Add visual feedback for performance
+
+### Phase 5: Dashboard Migration
+**Objective**: Replace old statistics with v2 metrics
+
+1. Update analytics components
+2. Implement new performance charts
+3. Add cache statistics
+4. Create feature usage tracking
+
+### Phase 6: Testing & Validation
+**Objective**: Ensure migration quality
+
+1. Unit tests for all v2 functions
+2. Integration tests with backend
+3. Performance benchmarks
+4. User acceptance testing
+
+### Phase 7: Deployment
+**Objective**: Safe production rollout
+
+1. Feature flag implementation
+2. Gradual rollout (10% → 50% → 100%)
+3. Monitor error rates
+4. Rollback plan ready
+
+### Phase 8: Cleanup
+**Objective**: Remove old code
+
+1. Remove v1 API calls
+2. Delete unused components
+3. Update documentation
+4. Archive old code
+
 ## Support
 
 For migration assistance:
 - Check the [API Reference](./api-reference.md)
-- Review [examples](./examples/)
+- Review [Technical Guide](./technical-guide.md)
+- See [Migration Compatibility Guide](./migration-compatibility-guide.md)
 - Contact support for complex migrations
 
 ---
-*Last updated: June 2025*
+*Last updated: January 2025*

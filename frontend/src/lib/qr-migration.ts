@@ -59,17 +59,29 @@ export function migrateQRRequest(oldRequest: OldQRRequest): QRv2GenerateRequest 
       options.backgroundColor = old.bgcolor;
     }
 
-    // Gradient
-    if (old.gradient_enabled && old.gradient_colors && old.gradient_colors.length >= 2) {
-      options.gradient = {
-        type: (old.gradient_type as any) || 'linear',
-        colors: old.gradient_colors,
-        angle: old.gradient_direction === 'horizontal' ? 0 : 
-               old.gradient_direction === 'vertical' ? 90 :
-               old.gradient_direction === 'diagonal' ? 45 : 0,
-        applyToData: true,
-        applyToEyes: false,
-      };
+    // Gradient - Handle both old format with gradient_colors and new format with individual colors
+    if (old.gradient_enabled) {
+      const colors = [];
+      
+      // Support both formats
+      if (old.gradient_colors && old.gradient_colors.length >= 2) {
+        colors.push(...old.gradient_colors);
+      } else if ((old as any).gradient_color1 && (old as any).gradient_color2) {
+        colors.push((old as any).gradient_color1, (old as any).gradient_color2);
+      }
+      
+      if (colors.length >= 2) {
+        options.gradient = {
+          type: ((old.gradient_type || (old as any).gradient_type) as any) || 'linear',
+          colors: colors,
+          angle: old.gradient_direction === 'horizontal' || old.gradient_direction === 'left-right' ? 0 : 
+                 old.gradient_direction === 'vertical' || old.gradient_direction === 'top-bottom' ? 90 :
+                 old.gradient_direction === 'diagonal' ? 45 : 
+                 old.gradient_direction === 'center-out' ? 0 : 90,
+          applyToData: true,
+          applyToEyes: false,
+        };
+      }
     }
 
     // Logo
@@ -109,18 +121,22 @@ export function convertV2ResponseToOld(v2Response: any): any {
 
 /**
  * Feature flags for gradual migration
+ * 
+ * V1 ENGINE DISABLED - All QR generation now uses v2 engine
+ * Note: v1 code remains functional and can be re-enabled if needed
+ * by setting USE_V2_FOR_* flags to false
  */
 export const QR_MIGRATION_FLAGS = {
-  // Enable v2 engine for specific features
+  // Enable v2 engine for ALL features (100% v2)
   USE_V2_FOR_BASIC_QR: true,
   USE_V2_FOR_CUSTOMIZED_QR: true,
   USE_V2_FOR_BATCH: true,
   USE_V2_FOR_PREVIEW: true,
   
-  // Enable v2 UI features
+  // Enable ALL v2 UI features
   SHOW_V2_CUSTOMIZATION: true,
-  SHOW_V2_EFFECTS: false, // Gradual rollout
-  SHOW_V2_FRAMES: false,  // Gradual rollout
+  SHOW_V2_EFFECTS: true,  // Enabled
+  SHOW_V2_FRAMES: true,   // Enabled
   
   // Performance features
   ENABLE_V2_CACHE: true,
@@ -129,15 +145,22 @@ export const QR_MIGRATION_FLAGS = {
 
 /**
  * Check if should use v2 based on request
+ * 
+ * ALWAYS RETURNS TRUE FOR QR CODES - v2 is now mandatory
+ * Legacy v1 logic preserved but commented for potential future use
  */
 export function shouldUseV2(request: any): boolean {
+  // v2 only supports QR codes
+  if (request.barcode_type !== 'qrcode' && request.barcode_type !== 'qr') {
+    return false;
+  }
+  
+  // ALWAYS use v2 for QR codes
+  return true;
+  
+  /* LEGACY V1 LOGIC - Preserved for reference
   // Always use v2 if explicitly requested
   if (request.useV2) return true;
-  
-  // Check barcode type
-  if (request.barcode_type !== 'qrcode' && request.barcode_type !== 'qr') {
-    return false; // v2 only supports QR codes
-  }
   
   // Check feature flags
   const hasCustomization = request.options && (
@@ -152,6 +175,7 @@ export function shouldUseV2(request: any): boolean {
   }
   
   return QR_MIGRATION_FLAGS.USE_V2_FOR_BASIC_QR;
+  */
 }
 
 /**

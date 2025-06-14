@@ -322,7 +322,6 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
                 <AdvancedAvatarEditor
                   user={user}
                   isLoading={isLoading}
-                  defaultProfilePictures={defaultProfilePictures}
                   onFileUpload={handleFileUpload}
                   onSetDefaultPicture={handleSetDefaultProfilePicture}
                   onResetPicture={handleResetProfilePicture}

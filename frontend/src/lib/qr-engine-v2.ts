@@ -1,6 +1,12 @@
 /**
  * QR Engine v2 API Client
  * Provides a clean interface to interact with the new high-performance QR generation engine
+ * 
+ * API Endpoints:
+ * - POST /api/v2/qr - Generate QR code
+ * - POST /api/v2/qr/batch - Batch generation
+ * - GET /api/v2/qr/preview - Real-time preview
+ * - POST /api/v2/qr/validate - Validate data
  */
 
 import { env } from '@/config/env';
@@ -143,7 +149,7 @@ export class QREngineV2Client {
    * Generate a QR code with v2 engine
    */
   async generate(request: QRv2GenerateRequest): Promise<QRv2GenerateResponse> {
-    const response = await fetch(`${this.baseURL}/api/qr/generate`, {
+    const response = await fetch(`${this.baseURL}/api/v2/qr`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -164,7 +170,7 @@ export class QREngineV2Client {
    * Validate QR data and options
    */
   async validate(request: QRv2GenerateRequest): Promise<QRv2ValidateResponse> {
-    const response = await fetch(`${this.baseURL}/api/qr/validate`, {
+    const response = await fetch(`${this.baseURL}/api/v2/qr/validate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -185,7 +191,7 @@ export class QREngineV2Client {
    * Generate multiple QR codes in batch
    */
   async batch(request: QRv2BatchRequest): Promise<QRv2BatchResponse> {
-    const response = await fetch(`${this.baseURL}/api/qr/batch`, {
+    const response = await fetch(`${this.baseURL}/api/v2/qr/batch`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -222,14 +228,14 @@ export class QREngineV2Client {
       ...(params.size && { size: params.size.toString() }),
     });
 
-    return `${this.baseURL}/api/qr/preview?${queryParams.toString()}`;
+    return `${this.baseURL}/api/v2/qr/preview?${queryParams.toString()}`;
   }
 
   /**
    * Get cache statistics (admin only)
    */
   async getCacheStats(): Promise<any> {
-    const response = await fetch(`${this.baseURL}/api/qr/cache/stats`, {
+    const response = await fetch(`${this.baseURL}/api/v2/qr/cache/stats`, {
       headers: {
         ...(this.authToken && { Authorization: `Bearer ${this.authToken}` }),
       },
@@ -247,7 +253,7 @@ export class QREngineV2Client {
    * Clear cache (admin only)
    */
   async clearCache(): Promise<{ success: boolean; message: string }> {
-    const response = await fetch(`${this.baseURL}/api/qr/cache/clear`, {
+    const response = await fetch(`${this.baseURL}/api/v2/qr/cache/clear`, {
       method: 'POST',
       headers: {
         ...(this.authToken && { Authorization: `Bearer ${this.authToken}` }),

@@ -40,7 +40,7 @@ export const useBarcodeGeneration = (): UseBarcodeGenerationReturn => {
       const requestUrl = `${backendUrl}/api/generate`;
       
       // Obtener token de autenticación
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
       
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',

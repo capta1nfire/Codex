@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Server, Database, Zap, CheckCircle2, AlertCircle, XCircle, Clock, RefreshCw, Play, Pause, Square, Settings } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
 
 interface ServiceStatus {
   service: string;
@@ -319,9 +318,6 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ isAdvancedMode: externalAdv
 
   const overallStatus = getStatusDisplay(health.overall);
   const OverallIcon = overallStatus.icon;
-
-  // ✅ Auth & Authorization
-  const { user } = useAuth();
 
   // ✅ Enhanced Service Control Functions with Better Feedback
   const [serviceActions, setServiceActions] = useState<Record<string, string>>({});

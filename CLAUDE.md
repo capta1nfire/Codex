@@ -228,22 +228,41 @@ className="w-full md:w-1/2 lg:w-1/3"
 ## 🎯 Common Tasks & Solutions
 
 ### Generate a Barcode
+
+#### NEW API Structure (v1/v2)
 ```bash
-# QR Code
-curl -X POST http://localhost:3004/api/generate \
+# QR Code (v2 - High Performance)
+curl -X POST http://localhost:3004/api/v2/qr \
   -H "Content-Type: application/json" \
   -d '{
-    "barcode_type": "qrcode",
     "data": "https://example.com",
     "options": {
-      "scale": 4,
-      "margin": 2,
-      "fgcolor": "#000000",
-      "bgcolor": "#FFFFFF"
+      "size": 400,
+      "eyeShape": "rounded",
+      "gradient": {
+        "type": "linear",
+        "colors": ["#000000", "#666666"]
+      }
     }
   }'
 
-# Other types: datamatrix, code128, ean13, etc.
+# Other Barcodes (v1)
+curl -X POST http://localhost:3004/api/v1/barcode \
+  -H "Content-Type: application/json" \
+  -d '{
+    "barcode_type": "code128",
+    "data": "123456789",
+    "options": {
+      "scale": 2
+    }
+  }'
+```
+
+#### Legacy Endpoints (Deprecated - Remove June 2025)
+```bash
+# Old endpoints still work but show deprecation headers
+# /api/generate - All barcode types
+# /api/qr/* - QR specific endpoints
 ```
 
 ### Add a New API Endpoint

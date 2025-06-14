@@ -8,23 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Save, 
   User, 
   Mail, 
   Lock, 
   Check, 
   AtSign,
-  Building2,
-  MapPin,
-  Calendar,
-  Briefcase,
-  X,
-  Edit,
-  Shield,
-  AlertTriangle,
-  Info,
-  CheckCircle,
-  UserCog,
   Pencil,
   Smartphone
 } from 'lucide-react';

@@ -79,30 +79,6 @@ const featureColors = {
   frames: 'text-pink-600 bg-pink-100 dark:bg-pink-900/20'
 };
 
-// Performance benchmarks based on industry standards
-const performanceBenchmarks = {
-  cacheHit: {
-    target: 5, // ms
-    label: 'Cache Hits',
-    description: 'Time to retrieve from cache'
-  },
-  generation: {
-    target: 50, // ms  
-    label: 'Generation Time',
-    description: 'Time to generate new QR code'
-  },
-  p95: {
-    target: 100, // ms
-    label: 'P95 Response',
-    description: '95th percentile response time'
-  },
-  cacheHitRate: {
-    target: 80, // percentage
-    label: 'Cache Hit Rate',
-    description: 'Percentage of requests served from cache'
-  }
-};
-
 export default function QRv2AnalyticsDisplay() {
   const [analytics, setAnalytics] = useState<QRv2Analytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -113,13 +89,13 @@ export default function QRv2AnalyticsDisplay() {
 
   const fetchAnalytics = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
       if (!token) {
         setError('Authentication required');
         return;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/qr/analytics`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v2/qr/analytics`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -149,8 +125,8 @@ export default function QRv2AnalyticsDisplay() {
   const handleClearCache = async () => {
     setClearingCache(true);
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/qr/cache/clear`, {
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v2/qr/cache/clear`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
