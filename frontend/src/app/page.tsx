@@ -165,7 +165,7 @@ export default function Home() {
   }, [setIsDropdownOpen]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-corporate-blue-50 to-slate-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-6">
         {/* Tabs de tipos de código */}
         <BarcodeTypeTabs 
