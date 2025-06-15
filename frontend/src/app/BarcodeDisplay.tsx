@@ -1,13 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { applySvgGradient, GradientOptions } from '@/lib/svg-gradient-processor';
 
 interface BarcodeDisplayProps {
   svgContent: string;
   type: string;
   data: string;
-  gradientOptions?: GradientOptions;
 }
 
 const typeLabels: Record<string, string> = {
@@ -20,27 +18,9 @@ const typeLabels: Record<string, string> = {
   datamatrix: 'Data Matrix',
 };
 
-export default function BarcodeDisplay({ svgContent, type, data, gradientOptions }: BarcodeDisplayProps) {
-  // Procesar SVG con gradientes si está habilitado
-  const processedSvgContent = useMemo(() => {
-    if (!svgContent) return '';
-    
-    // Solo aplicar gradientes si están habilitados y tenemos opciones
-    if (gradientOptions?.enabled && (type === 'qrcode' || type === 'datamatrix')) {
-      console.log('[BarcodeDisplay] 🎨 Aplicando gradiente:', gradientOptions);
-      try {
-        const result = applySvgGradient(svgContent, gradientOptions);
-        console.log('[BarcodeDisplay] ✅ Gradiente aplicado exitosamente');
-        return result;
-      } catch (error) {
-        console.error('[BarcodeDisplay] ❌ Error aplicando gradiente:', error);
-        console.log('[BarcodeDisplay] 🔄 Fallback al SVG original');
-        return svgContent; // Fallback al SVG original
-      }
-    }
-    
-    return svgContent;
-  }, [svgContent, gradientOptions, type]);
+export default function BarcodeDisplay({ svgContent, type, data }: BarcodeDisplayProps) {
+  // SVG ya viene con gradientes aplicados desde el backend Rust
+  const processedSvgContent = useMemo(() => svgContent || '', [svgContent]);
 
   // Calculamos clases de Tailwind condicionales para el contenedor/wrapper principal
   const wrapperClasses = useMemo(() => {

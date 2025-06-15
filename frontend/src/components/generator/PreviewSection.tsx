@@ -72,7 +72,6 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
                       svgContent={svgContent}
                       type={selectedType}
                       data={data}
-                      gradientOptions={gradientOptions}
                     />
                   </div>
 

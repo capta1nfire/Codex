@@ -89,7 +89,6 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
                     svgContent={svgContent}
                     type={barcodeType}
                     data=""
-                    gradientOptions={gradientOptions}
                   />
                 </div>
               </div>
