@@ -101,6 +101,11 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
     
     // Convert to engine request format
     let customization = if let Some(options) = &request.options {
+        // Debug log para verificar gradiente
+        if let Some(ref gradient) = options.gradient {
+            info!("Gradient received: type={}, colors={:?}", gradient.gradient_type, gradient.colors);
+        }
+        
         Some(QrCustomization {
             eye_shape: options.eye_shape.as_ref().and_then(|s| {
                 // Convert string to EyeShape enum
@@ -142,13 +147,20 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
                     _ => None
                 }
             }),
-            colors: if options.foreground_color.is_some() || options.background_color.is_some() {
+            colors: {
+                // When using gradients, use the first gradient color as foreground
+                let foreground = if let Some(ref gradient) = options.gradient {
+                    gradient.colors.first().cloned().unwrap_or_else(|| "#000000".to_string())
+                } else {
+                    options.foreground_color.clone().unwrap_or_else(|| "#000000".to_string())
+                };
+                
+                let background = options.background_color.clone().unwrap_or_else(|| "#FFFFFF".to_string());
+                
                 Some(crate::engine::types::ColorOptions {
-                    foreground: options.foreground_color.clone().unwrap_or_else(|| "#000000".to_string()),
-                    background: options.background_color.clone().unwrap_or_else(|| "#FFFFFF".to_string()),
+                    foreground,
+                    background,
                 })
-            } else {
-                None
             },
             gradient: options.gradient.as_ref().map(|g| {
                 crate::engine::types::GradientOptions {

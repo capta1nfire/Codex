@@ -10,6 +10,22 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
+### 2025-06-15
+
+#### Fixed
+- 🔧 **QR v2 Gradient Bug Resolved** - QR codes with gradients now render correctly
+  - Fixed color initialization in `qr_v2.rs` to use first gradient color when no foreground_color provided
+  - Fixed `to_svg()` method in `generator.rs` to pass customization options
+  - Gradients (linear, radial) now display properly instead of defaulting to black
+  - See [QR_ENGINE_V2_REFERENCE.md](./docs/qr-engine/QR_ENGINE_V2_REFERENCE.md#-flujo-completo-de-generación-qr-v2) for complete flow documentation
+
+#### Updated
+- 📝 **QR Engine v2 Reference** - Added complete flow documentation
+  - Step-by-step flow from user input to SVG output with gradients
+  - Bug analysis and solutions documented
+  - Flow integrated into existing reference document
+  - Location: `docs/qr-engine/QR_ENGINE_V2_REFERENCE.md`
+
 ### 2025-06-14
 
 #### Added

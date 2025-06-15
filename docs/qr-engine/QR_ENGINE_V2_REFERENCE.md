@@ -218,11 +218,14 @@ GET    /api/qr/*               → DEPRECATED, usa v2/qr/*
 
 ## 🐛 Problemas Conocidos y Soluciones
 
-### 1. **Gradientes NO se visualizan**
-- **Causa**: El procesador de gradientes existe pero NO está integrado en generator.rs
-- **Archivo**: `rust_generator/src/engine/generator.rs` línea 207
-- **Problema**: Usa `fill="{color}"` en lugar de `fill="url(#gradient_id)"`
-- **Solución pendiente**: Integrar GradientProcessor en el método to_svg
+### 1. **Gradientes NO se visualizan** ✅ RESUELTO (15 Junio 2025)
+- **Causa**: Dos bugs separados en el flujo de generación
+- **Bug 1**: `qr_v2.rs` línea 145 - No creaba colors cuando había gradiente
+- **Bug 2**: `generator.rs` línea 143 - `to_svg()` no pasaba customization
+- **Solución aplicada**: 
+  - Usar primer color del gradiente como foreground en qr_v2.rs
+  - Pasar `self.customization` en to_svg() para incluir gradientes
+- **Estado**: FUNCIONANDO - Gradientes lineales y radiales renderizando correctamente
 
 ### 2. **Analytics muestra 0 para features**
 - **Causa**: Rust no trackea qué features se usan
@@ -249,6 +252,63 @@ GET    /api/qr/*               → DEPRECATED, usa v2/qr/*
 | Tasa de error | 0% |
 | P95 response time | 50.73ms |
 | P99 response time | 55.14ms |
+
+## 🔄 Flujo Completo de Generación QR v2
+
+### Flujo de Datos para Gradientes (Text → QR con Gradiente)
+
+1. **Frontend** (ColorOptions.tsx)
+   - Usuario activa toggle de gradiente
+   - Selecciona tipo (linear/radial) y colores
+
+2. **Frontend Hook** (useBarcodeGenerationV2.ts)
+   - Detecta tipo 'qrcode' → usa endpoint v2
+   - Transforma formato UI a API:
+   ```typescript
+   gradient: {
+     type: 'linear',
+     colors: ['#FF0000', '#0000FF'],
+     angle: 45,
+     applyToData: true,
+     applyToEyes: false
+   }
+   ```
+
+3. **Backend Express** (qr.routes.ts)
+   - Recibe en `/api/v2/qr/generate`
+   - Valida con Zod schema
+   - Envía a qrEngineV2Service
+
+4. **Backend Service** (qrEngineV2Service.ts)
+   - Transforma a formato Rust legacy
+   - POST a `http://localhost:3002/api/qr/generate`
+
+5. **Rust Routes** (qr_v2.rs) ✅ CORREGIDO
+   - Mapea opciones a QrCustomization
+   - Si hay gradiente, usa primer color como foreground
+   - Crea GradientOptions con todos los parámetros
+
+6. **Rust Generator** (generator.rs) ✅ CORREGIDO
+   - Genera matriz QR
+   - Crea SVG con definiciones de gradiente
+   - `to_svg()` ahora pasa customization correctamente
+
+7. **SVG Output**
+   ```xml
+   <svg viewBox="0 0 330 330">
+     <defs>
+       <linearGradient id="qr_gradient_0">
+         <stop offset="0%" stop-color="#FF0000"/>
+         <stop offset="100%" stop-color="#0000FF"/>
+       </linearGradient>
+     </defs>
+     <g fill="url(#qr_gradient_0)">
+       <!-- módulos QR -->
+     </g>
+   </svg>
+   ```
+
+8. **Frontend Preview** - Renderiza SVG con gradiente visible
 
 ## 📁 Estructura de Archivos de Documentación
 
@@ -279,7 +339,7 @@ docs/qr-engine/
 
 1. **QR Engine v2 está 100% activo** desde el 13 de junio 2025
 2. **Todas las features están implementadas** en el backend Rust
-3. **Los gradientes NO funcionan** por falta de integración en generator.rs
+3. **Los gradientes YA FUNCIONAN** - Bug corregido el 15 de junio 2025
 4. **La UI tiene features deshabilitadas** pero el backend las soporta
 5. **Performance excepcional**: 10x más rápido que v1
 6. **No hay fallback a v1** para códigos QR
@@ -293,5 +353,5 @@ docs/qr-engine/
 
 ---
 
-*Última actualización: 14 de Junio 2025*  
-*Documento creado después de auditoría forense exhaustiva*
+*Última actualización: 15 de Junio 2025*  
+*Documento actualizado con corrección de bug de gradientes*

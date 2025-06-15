@@ -141,7 +141,8 @@ impl QrGenerator {
 impl QrCode {
     /// Convierte el QR a SVG básico
     pub fn to_svg(&self) -> String {
-        self.to_svg_with_options(10, None, None, None, None)
+        // Usar la customización almacenada en el QrCode
+        self.to_svg_with_options(10, None, None, None, self.customization.as_ref())
     }
     
     /// Convierte el QR a SVG con opciones avanzadas
@@ -157,7 +158,7 @@ impl QrCode {
         let image_size = (self.size * module_size) + (2 * quiet_zone_size);
         
         // Para tamaños grandes, usar renderizado optimizado
-        let use_optimized_rendering = image_size > 1000;
+        let use_optimized_rendering = self.size > 25; // Optimizar QRs con más de 25 módulos
         
         let mut svg = format!(
             r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {} {}" width="{}" height="{}">"#,
@@ -171,19 +172,28 @@ impl QrCode {
         // Añadir definiciones de gradiente si existen
         let gradient_fill = if let Some(custom) = customization {
             if let Some(gradient_opts) = &custom.gradient {
+                tracing::info!("Processing gradient: enabled={}, type={:?}, colors={:?}", 
+                    gradient_opts.enabled, gradient_opts.gradient_type, gradient_opts.colors);
+                
                 if gradient_opts.enabled {
                     has_defs = true;
                     let gradient_processor = crate::processing::GradientProcessor::new();
                     let gradient = self.create_gradient_from_options(&gradient_processor, gradient_opts);
+                    
+                    tracing::info!("Created gradient with fill_reference: {}", gradient.fill_reference);
+                    
                     defs_content.push_str(&gradient.svg_definition);
                     Some(gradient.fill_reference)
                 } else {
+                    tracing::info!("Gradient not enabled");
                     None
                 }
             } else {
+                tracing::info!("No gradient options found");
                 None
             }
         } else {
+            tracing::info!("No customization found");
             None
         };
         
@@ -270,7 +280,7 @@ impl QrCode {
             svg.push_str(&format!(r#"<g fill="{}"{}>"#, fill_color, filter_attr));
             
             // Módulos del QR
-            if use_optimized_rendering && self.size > 100 {
+            if use_optimized_rendering {
                 // Renderizado optimizado para QRs grandes
                 svg.push_str(&self.render_modules_optimized(module_size, quiet_zone_size));
             } else {
