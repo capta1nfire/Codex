@@ -10,7 +10,7 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true); // Cambiado a true para iniciar contraído
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   
   // Sidebar universal - disponible para todos los usuarios
