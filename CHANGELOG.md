@@ -19,12 +19,35 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Gradients (linear, radial) now display properly instead of defaulting to black
   - See [QR_ENGINE_V2_REFERENCE.md](./docs/qr-engine/QR_ENGINE_V2_REFERENCE.md#-flujo-completo-de-generación-qr-v2) for complete flow documentation
 
+- 🔧 **Gradient Module-level Rendering Fixed** - Gradients now apply to entire QR code
+  - Implemented `gradientUnits="userSpaceOnUse"` for continuous gradient across all modules
+  - Added absolute coordinate calculation based on canvas size
+  - Both linear and radial gradients now render as single continuous effect
+  - Complete technical documentation in [Troubleshooting Guide](./docs/qr-engine/implementation/troubleshooting-fixes.md)
+
+#### Fixed
+- ✅ **White borders for gradient QR modules** - Feature fully implemented
+  - ✅ Frontend correctly sends `gradient_borders` toggle as `strokeStyle` object
+  - ✅ Backend v2 service transforms camelCase to snake_case for Rust API
+  - ✅ Rust generator applies stroke attributes to SVG group element
+  - ✅ Visual effect: White semi-transparent (0.3 opacity) borders on QR modules when gradients enabled
+  - ✅ Controlled by "Aplicar bordes al gradiente" toggle in Advanced Options
+  - 🔍 **Discovery**: Found hidden SVG optimization that merged modules when size > 25
+  - 🔧 **Solution**: Disable optimization when stroke enabled to preserve borders
+
 #### Updated
 - 📝 **QR Engine v2 Reference** - Added complete flow documentation
   - Step-by-step flow from user input to SVG output with gradients
   - Bug analysis and solutions documented
   - Flow integrated into existing reference document
   - Location: `docs/qr-engine/QR_ENGINE_V2_REFERENCE.md`
+
+#### In Progress
+- 🔧 **White borders for gradient QR modules** - Backend implementation ready
+  - ✅ Rust types and generator support StrokeStyle
+  - ✅ Backend validation and service layer handle strokeStyle
+  - ❌ Frontend sends `gradient_borders` but API expects `gradient.strokeStyle`
+  - Next: Map frontend toggle to correct API field
 
 ### 2025-06-14
 

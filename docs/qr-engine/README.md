@@ -9,6 +9,8 @@ QR Engine v2 is a complete reimplementation of the QR code generation system, de
 - [Technical Guide](./core/technical-guide.md) - Complete technical documentation
 - [API Reference](./core/api-reference.md) - API usage and examples
 - [Changelog](./core/changelog.md) - Development history and decisions
+- 🆕 [Internal Capabilities Map](./core/internal-capabilities-map.md) - **CRITICAL** - Hidden behaviors and gotchas
+- 🆕 [Audit Action Plan](./core/audit-action-plan.md) - Post-audit findings and recommendations
 
 ### Migration
 - [Migration Guide](./migration/guide.md) - Step-by-step migration instructions
@@ -25,7 +27,7 @@ QR Engine v2 is a complete reimplementation of the QR code generation system, de
 - [Integration Complete](./implementation/INTEGRATION_COMPLETE.md) - Final integration summary
 - [100% Feature Integration](./QR_ENGINE_V2_INTEGRATION_COMPLETE.md) - June 14, 2025 milestone
 - [Frontend Integration Status](./FRONTEND_INTEGRATION_STATUS.md) - Current frontend status
-- [Troubleshooting](./implementation/troubleshooting-fixes.md) - Common fixes and solutions
+- 🔧 [Troubleshooting & Critical Fixes](./implementation/troubleshooting-fixes.md) - **MUST READ** - Gradient solutions & optimization discoveries
 - [Progress Reports](./implementation/progress-reports/) - Historical implementation reports
 
 ## Current Status: 100% FEATURE INTEGRATION COMPLETE (June 15, 2025)
@@ -38,10 +40,12 @@ QR Engine v2 is a complete reimplementation of the QR code generation system, de
 5. **Integration & Optimization** - API migration, performance, caching
 
 ### ✅ Latest Updates:
-#### June 15, 2025 - Gradient Bug Fixed
-- 🔧 **Fixed**: QR codes with gradients now render correctly
-- 🔧 **Root Cause**: Two separate bugs in Rust code flow
-- ✅ **Status**: Gradients (linear, radial) fully functional
+#### June 15, 2025 - Multiple Gradient Issues Resolved
+- 🔧 **Fixed #1**: Gradients not showing (customization not passed to SVG)
+- 🔧 **Fixed #2**: Per-module gradient effect (changed to userSpaceOnUse)
+- 🔧 **Fixed #3**: Missing vertical borders (disabled SVG optimization with stroke)
+- 📝 **Documented**: Complete technical solutions in [Troubleshooting Guide](./implementation/troubleshooting-fixes.md)
+- ✅ **Status**: Gradients fully functional with continuous rendering
 
 #### June 14, 2025 - 100% Feature Integration
 - ✅ **Gradients**: Fully integrated (linear, radial, conic, diamond, spiral)

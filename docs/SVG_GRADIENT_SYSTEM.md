@@ -1,5 +1,13 @@
 # Sistema de Gradientes SVG para Códigos QR
 
+> ⚠️ **IMPORTANTE - DOCUMENTO DEPRECADO**  
+> **Fecha**: June 15, 2025  
+> **Estado**: Este documento describe una solución ANTERIOR implementada en frontend que YA NO SE USA.  
+> **Solución Actual**: Los gradientes ahora se implementan completamente en el backend Rust.  
+> **Ver**: [Troubleshooting Guide](./qr-engine/implementation/troubleshooting-fixes.md) para la implementación actual.
+
+---
+
 ## Resumen Ejecutivo
 
 El Sistema de Gradientes SVG es una implementación avanzada que permite aplicar gradientes continuos a códigos QR manteniendo la funcionalidad de escaneo. El sistema resuelve múltiples desafíos técnicos relacionados con el procesamiento SVG, la aplicación de gradientes globales y la preservación de la legibilidad del código.
