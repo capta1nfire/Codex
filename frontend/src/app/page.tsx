@@ -179,18 +179,7 @@ export default function Home() {
             <section className="lg:col-span-2 space-y-4" id="form-content">
               <Card className="shadow-sm border border-slate-200 dark:border-slate-700">
                 <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base font-semibold">Configuración</CardTitle>
-                    {expandedSection === 'advanced' && (
-                      <button
-                        type="button"
-                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                        onClick={() => setExpandedSection('')}
-                      >
-                        Ocultar avanzadas
-                      </button>
-                    )}
-                  </div>
+                  <CardTitle className="text-base font-semibold">Configuración</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   
