@@ -177,9 +177,22 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Columna de configuración */}
             <section className="lg:col-span-2 space-y-4" id="form-content">
-              <div className="shadow-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950">
-                <div className="px-6 py-4">
-                  <h3 className="text-base font-semibold mb-3">Datos</h3>
+              <Card className="shadow-sm border border-slate-200 dark:border-slate-700">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-semibold">Configuración</CardTitle>
+                    {expandedSection === 'advanced' && (
+                      <button
+                        type="button"
+                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        onClick={() => setExpandedSection('')}
+                      >
+                        Ocultar avanzadas
+                      </button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   
                   {/* Selector de tipo de contenido QR */}
                   {selectedType === 'qrcode' && (
@@ -253,53 +266,41 @@ export default function Home() {
                       {errors.data.message}
                     </p>
                   )}
-                </div>
-              </div>
-
-              {/* Opciones Avanzadas */}
-              {expandedSection === 'advanced' ? (
-                <Card className="shadow-sm border border-slate-200 dark:border-slate-700">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base font-semibold">Opciones Avanzadas</CardTitle>
+                  
+                  {/* Separador */}
+                  {expandedSection === 'advanced' && (
+                    <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+                      <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">Opciones Avanzadas</h4>
+                      <GenerationOptions
+                        control={control}
+                        errors={errors}
+                        watch={watch}
+                        isLoading={isLoading}
+                        selectedType={selectedType}
+                        reset={reset}
+                        setValue={setValue}
+                        getValues={getValues}
+                        onSubmit={onSubmit}
+                        expandedSection={expandedSection}
+                        setExpandedSection={setExpandedSection}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Botón para mostrar opciones avanzadas */}
+                  {expandedSection !== 'advanced' && (
+                    <div className="pt-2">
                       <button
                         type="button"
                         className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                        onClick={() => setExpandedSection('')}
+                        onClick={() => setExpandedSection('advanced')}
                       >
-                        Ocultar
+                        + Mostrar opciones avanzadas
                       </button>
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <GenerationOptions
-                      control={control}
-                      errors={errors}
-                      watch={watch}
-                      isLoading={isLoading}
-                      selectedType={selectedType}
-                      reset={reset}
-                      setValue={setValue}
-                      getValues={getValues}
-                      onSubmit={onSubmit}
-                      expandedSection={expandedSection}
-                      setExpandedSection={setExpandedSection}
-                    />
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="shadow-sm border border-slate-200 dark:border-slate-700">
-                  <CardContent className="p-4">
-                    <button
-                      type="button"
-                      className="w-full text-left text-blue-600 dark:text-blue-400 hover:underline text-sm"
-                      onClick={() => setExpandedSection('advanced')}
-                    >
-                      + Mostrar opciones avanzadas
-                    </button>
-                  </CardContent>
-                </Card>
-              )}
+                  )}
+                </CardContent>
+              </Card>
             </section>
 
             {/* Columna de vista previa con v2 */}
