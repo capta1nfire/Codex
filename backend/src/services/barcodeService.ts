@@ -1,9 +1,9 @@
 import { config } from '../config.js';
+import { fetchWithPool } from '../lib/httpClient.js';
 import { redis } from '../lib/redis.js';
 import { AppError, ErrorCode } from '../utils/errors.js';
 import logger from '../utils/logger.js';
 import { rustCallDurationSeconds } from '../utils/metrics.js';
-import { fetchWithPool } from '../lib/httpClient.js';
 
 // Mapeo de tipos de códigos de barras (movido desde index.ts)
 const barcodeTypeMapping: Record<string, string> = {
@@ -127,8 +127,8 @@ export const generateBarcode = async (
 
   try {
     // --- Llamada HTTP al Microservicio Rust ---
-    const rustUrl = config.RUST_SERVICE_URL.endsWith('/generate') 
-      ? config.RUST_SERVICE_URL 
+    const rustUrl = config.RUST_SERVICE_URL.endsWith('/generate')
+      ? config.RUST_SERVICE_URL
       : `${config.RUST_SERVICE_URL}/generate`;
     const rustResponse = await fetchWithPool(rustUrl, {
       method: 'POST',
@@ -259,14 +259,17 @@ export const generateBarcodesBatch = async (
 
   try {
     // Llamada HTTP al microservicio Rust
-    const rustResponse = await fetchWithPool(`${config.RUST_SERVICE_URL.replace('/generate', '/batch')}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-      signal: AbortSignal.timeout((config.RUST_SERVICE_TIMEOUT_MS || 5000) * 2), // Timeout más largo para batch
-    });
+    const rustResponse = await fetchWithPool(
+      `${config.RUST_SERVICE_URL.replace('/generate', '/batch')}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout((config.RUST_SERVICE_TIMEOUT_MS || 5000) * 2), // Timeout más largo para batch
+      }
+    );
 
     if (!rustResponse.ok) {
       let errorBody = {

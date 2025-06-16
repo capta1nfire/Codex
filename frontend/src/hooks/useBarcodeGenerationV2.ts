@@ -50,7 +50,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
 
   const generateBarcode = useCallback(async (formData: GenerateFormData) => {
     const requestId = Date.now();
-    console.log(`[generateBarcode-${requestId}] 🚀 INICIO - Datos validados recibidos:`, formData);
+    // Generate barcode with validated data
     
     setServerError(null);
     setIsLoading(true);
@@ -70,7 +70,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
 
       if (payload.barcode_type === 'qrcode' || payload.barcode_type === 'qr') {
         // ALWAYS use QR Engine v2 for QR codes
-        console.log(`[generateBarcode-${requestId}] Using QR Engine v2`);
+        // Use QR Engine v2 for QR codes
         setIsUsingV2(true);
         
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
@@ -83,9 +83,15 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
         if (formData.options) {
           const opts = formData.options as any;
           
+          // Process gradient options if enabled
+          
           // Handle gradients properly
           if (opts.gradient_enabled) {
             v2Request.options = v2Request.options || {};
+            
+            // Default gradient borders to true if not specified
+            const gradientBorders = opts.gradient_borders !== undefined ? opts.gradient_borders : true;
+            
             v2Request.options.gradient = {
               type: opts.gradient_type || 'linear',
               colors: [opts.gradient_color1 || '#000000', opts.gradient_color2 || '#666666'],
@@ -93,7 +99,13 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
                      opts.gradient_direction === 'diagonal' ? 45 : 
                      opts.gradient_direction === 'center-out' ? 0 : 90,
               applyToData: true,
-              applyToEyes: opts.gradient_borders || false // Map gradient_borders to applyToEyes
+              applyToEyes: false,
+              strokeStyle: gradientBorders ? {
+                enabled: true,
+                color: '#FFFFFF',
+                width: 0.5,
+                opacity: 0.3
+              } : undefined
             };
             
             // Override colors when gradient is enabled
@@ -144,7 +156,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
           headers['Authorization'] = `Bearer ${token}`;
         }
         
-        console.log(`[generateBarcode-${requestId}] V2 Request:`, v2Request);
+        // Send request to v2 API
         
         const response = await fetch(requestUrl, {
           method: 'POST',
@@ -171,7 +183,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
         
       } else {
         // Use old API for non-QR codes
-        console.log(`[generateBarcode-${requestId}] Using legacy API for non-QR`);
+        // Use legacy API for non-QR barcodes
         setIsUsingV2(false);
         
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';

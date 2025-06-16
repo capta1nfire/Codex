@@ -139,7 +139,7 @@ PostgreSQL Database + Redis Cache
 - ✅ **Dashboard**: Responsive con métricas tiempo real
 - ✅ **QR Engine v2**: 100% activo en producción, performance 10x mejor (Jun 2025)
   - ⚠️ **IMPORTANTE**: Ver `docs/qr-engine/QR_ENGINE_V2_REFERENCE.md` para estado real
-  - ❌ **Gradientes NO funcionan** - Procesador existe pero no integrado en SVG
+  - ✅ **Gradientes funcionan** - Linear y radial aplicados a todo el QR (Jun 15, 2025)
 - ✅ **PM2 Process Manager**: Sistema robusto con auto-restart y monitoreo (Jun 2025)
 
 ### **🛡️ Sistema de Gestión de Servicios PM2 (NUEVO)**

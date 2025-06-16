@@ -3,7 +3,11 @@ import express, { Request, Response, NextFunction } from 'express';
 
 import { config } from '../config.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
-import { generationRateLimit, rateLimitMonitor, authenticatedRateLimit } from '../middleware/rateLimitMiddleware.js';
+import {
+  generationRateLimit,
+  rateLimitMonitor,
+  authenticatedRateLimit,
+} from '../middleware/rateLimitMiddleware.js';
 import { validateBody } from '../middleware/validationMiddleware.js';
 import { generateSchema } from '../schemas/generateSchemas.js'; // Esquema Plural
 import { generateBarcode, generateBarcodesBatch } from '../services/barcodeService.js'; // Servicio
@@ -65,7 +69,10 @@ router.post(
 
       // Add deprecation warning for QR codes
       if (barcode_type === 'qrcode' || barcode_type === 'qr') {
-        res.set('X-API-Deprecation', 'This endpoint is deprecated for QR codes. Use /api/v2/qr instead.');
+        res.set(
+          'X-API-Deprecation',
+          'This endpoint is deprecated for QR codes. Use /api/v2/qr instead.'
+        );
         res.set('X-API-Deprecation-Date', '2025-06-01');
         res.set('X-API-Alternative', '/api/v2/qr');
         res.set('Sunset', 'Sat, 01 Jun 2025 00:00:00 GMT');
@@ -76,7 +83,7 @@ router.post(
         res.set('X-API-Alternative', '/api/v1/barcode');
         res.set('Sunset', 'Sat, 01 Jun 2025 00:00:00 GMT');
       }
-      
+
       logger.info(`[Route:/] Solicitud recibida para tipo: ${barcode_type}`);
       const svgString = await generateBarcode(barcode_type, data, options);
       res.set('Cache-Control', `public, max-age=${config.CACHE_MAX_AGE}`);

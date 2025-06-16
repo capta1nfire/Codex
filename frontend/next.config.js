@@ -13,6 +13,21 @@ const nextConfig = {
   experimental: {
     instrumentationHook: false
   },
+
+  // Allow access from local network IPs
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
+    ];
+  },
   
   // Image optimization configuration
   images: {

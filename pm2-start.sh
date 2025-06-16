@@ -56,7 +56,7 @@ fi
 
 # Iniciar con PM2
 echo -e "${GREEN}🚀 Iniciando servicios con PM2...${NC}"
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.cjs
 
 # Esperar a que los servicios inicien
 echo -e "${YELLOW}⏳ Esperando que los servicios inicien...${NC}"

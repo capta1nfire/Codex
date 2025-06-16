@@ -158,7 +158,20 @@ impl QrCode {
         let image_size = (self.size * module_size) + (2 * quiet_zone_size);
         
         // Para tamaños grandes, usar renderizado optimizado
-        let use_optimized_rendering = self.size > 25; // Optimizar QRs con más de 25 módulos
+        // PERO: Si hay stroke habilitado, usar renderizado estándar para que cada módulo tenga bordes visibles
+        let has_stroke = if let Some(custom) = customization {
+            let stroke_enabled = custom.gradient.as_ref()
+                .and_then(|g| g.stroke_style.as_ref())
+                .map(|s| s.enabled)
+                .unwrap_or(false);
+            tracing::info!("Checking stroke: customization present, stroke_enabled = {}", stroke_enabled);
+            stroke_enabled
+        } else {
+            tracing::info!("Checking stroke: no customization present");
+            false
+        };
+        let use_optimized_rendering = self.size > 25 && !has_stroke; // No optimizar si hay bordes
+        tracing::info!("QR size: {}, has_stroke: {}, use_optimized_rendering: {}", self.size, has_stroke, use_optimized_rendering);
         
         let mut svg = format!(
             r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {} {}" width="{}" height="{}">"#,
@@ -178,7 +191,7 @@ impl QrCode {
                 if gradient_opts.enabled {
                     has_defs = true;
                     let gradient_processor = crate::processing::GradientProcessor::new();
-                    let gradient = self.create_gradient_from_options(&gradient_processor, gradient_opts);
+                    let gradient = self.create_gradient_from_options(&gradient_processor, gradient_opts, Some(image_size));
                     
                     tracing::info!("Created gradient with fill_reference: {}", gradient.fill_reference);
                     
@@ -257,7 +270,29 @@ impl QrCode {
         // Si hay formas de ojos personalizadas o patrones, renderizar por separado
         if has_custom_eyes || data_pattern.is_some() {
             // Renderizar módulos de datos con patrón (excluyendo ojos)
-            svg.push_str(&format!(r#"<g fill="{}"{}>"#, fill_color, filter_attr));
+            // Aplicar bordes si están configurados en el gradiente
+            let stroke_attrs = if let Some(custom) = customization {
+                if let Some(gradient_opts) = &custom.gradient {
+                    if let Some(stroke_style) = &gradient_opts.stroke_style {
+                        if stroke_style.enabled && gradient_fill.is_some() {
+                            let color = stroke_style.color.as_deref().unwrap_or("white");
+                            let width = stroke_style.width.unwrap_or(0.5);
+                            let opacity = stroke_style.opacity.unwrap_or(0.3);
+                            format!(r#" stroke="{}" stroke-width="{}" stroke-opacity="{}""#, color, width, opacity)
+                        } else {
+                            String::new()
+                        }
+                    } else {
+                        String::new()
+                    }
+                } else {
+                    String::new()
+                }
+            } else {
+                String::new()
+            };
+            
+            svg.push_str(&format!(r#"<g fill="{}"{}{}>"#, fill_color, filter_attr, stroke_attrs));
             self.render_data_modules_with_pattern(&mut svg, module_size, quiet_zone_size, data_pattern);
             svg.push_str("</g>");
             
@@ -277,7 +312,29 @@ impl QrCode {
             }
         } else {
             // Renderizado normal sin ojos personalizados
-            svg.push_str(&format!(r#"<g fill="{}"{}>"#, fill_color, filter_attr));
+            // Aplicar bordes si están configurados en el gradiente
+            let stroke_attrs = if let Some(custom) = customization {
+                if let Some(gradient_opts) = &custom.gradient {
+                    if let Some(stroke_style) = &gradient_opts.stroke_style {
+                        if stroke_style.enabled && gradient_fill.is_some() {
+                            let color = stroke_style.color.as_deref().unwrap_or("white");
+                            let width = stroke_style.width.unwrap_or(0.5);
+                            let opacity = stroke_style.opacity.unwrap_or(0.3);
+                            format!(r#" stroke="{}" stroke-width="{}" stroke-opacity="{}""#, color, width, opacity)
+                        } else {
+                            String::new()
+                        }
+                    } else {
+                        String::new()
+                    }
+                } else {
+                    String::new()
+                }
+            } else {
+                String::new()
+            };
+            
+            svg.push_str(&format!(r#"<g fill="{}"{}{}>"#, fill_color, filter_attr, stroke_attrs));
             
             // Módulos del QR
             if use_optimized_rendering {
@@ -433,6 +490,7 @@ impl QrCode {
         &self,
         processor: &crate::processing::GradientProcessor,
         options: &GradientOptions,
+        canvas_size: Option<usize>,
     ) -> crate::engine::types::Gradient {
         use crate::engine::types::Color;
         
@@ -450,19 +508,21 @@ impl QrCode {
         
         match options.gradient_type {
             GradientType::Linear => {
-                processor.create_linear_gradient(
+                processor.create_linear_gradient_with_size(
                     &colors[0],
                     &colors[1],
                     options.angle.unwrap_or(90.0) as f64,
+                    canvas_size,
                 )
             },
             GradientType::Radial => {
-                processor.create_radial_gradient(
+                processor.create_radial_gradient_with_size(
                     &colors[0],
                     &colors[1],
                     0.5, // center_x - valor por defecto
                     0.5, // center_y - valor por defecto
                     0.5, // radius - valor por defecto
+                    canvas_size,
                 )
             },
             GradientType::Diamond => {

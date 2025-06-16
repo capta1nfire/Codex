@@ -39,6 +39,17 @@ impl GradientProcessor {
         end_color: &Color,
         angle: f64,
     ) -> Gradient {
+        self.create_linear_gradient_with_size(start_color, end_color, angle, None)
+    }
+    
+    /// Crea un gradiente lineal SVG con tamaño absoluto opcional
+    pub fn create_linear_gradient_with_size(
+        &self,
+        start_color: &Color,
+        end_color: &Color,
+        angle: f64,
+        canvas_size: Option<usize>,
+    ) -> Gradient {
         let id = self.generate_gradient_id();
         
         // Calcular coordenadas basadas en el ángulo
@@ -61,16 +72,36 @@ impl GradientProcessor {
             }
         };
         
-        let svg_def = format!(
-            r#"<linearGradient id="{}" x1="{:.2}%" y1="{:.2}%" x2="{:.2}%" y2="{:.2}%">
+        let svg_def = if let Some(size) = canvas_size {
+            // Usar coordenadas absolutas para gradiente continuo
+            let abs_x1 = x1 * size as f64;
+            let abs_y1 = y1 * size as f64;
+            let abs_x2 = x2 * size as f64;
+            let abs_y2 = y2 * size as f64;
+            
+            format!(
+                r#"<linearGradient id="{}" x1="{:.2}" y1="{:.2}" x2="{:.2}" y2="{:.2}" gradientUnits="userSpaceOnUse">
   <stop offset="0%" style="stop-color:{};stop-opacity:1" />
   <stop offset="100%" style="stop-color:{};stop-opacity:1" />
 </linearGradient>"#,
-            id,
-            x1 * 100.0, y1 * 100.0, x2 * 100.0, y2 * 100.0,
-            ColorProcessor::to_hex(start_color),
-            ColorProcessor::to_hex(end_color)
-        );
+                id,
+                abs_x1, abs_y1, abs_x2, abs_y2,
+                ColorProcessor::to_hex(start_color),
+                ColorProcessor::to_hex(end_color)
+            )
+        } else {
+            // Usar porcentajes (comportamiento anterior)
+            format!(
+                r#"<linearGradient id="{}" x1="{:.2}%" y1="{:.2}%" x2="{:.2}%" y2="{:.2}%">
+  <stop offset="0%" style="stop-color:{};stop-opacity:1" />
+  <stop offset="100%" style="stop-color:{};stop-opacity:1" />
+</linearGradient>"#,
+                id,
+                x1 * 100.0, y1 * 100.0, x2 * 100.0, y2 * 100.0,
+                ColorProcessor::to_hex(start_color),
+                ColorProcessor::to_hex(end_color)
+            )
+        };
         
         Gradient {
             id: id.clone(),
@@ -91,18 +122,50 @@ impl GradientProcessor {
         cy: f64,
         radius: f64,
     ) -> Gradient {
+        self.create_radial_gradient_with_size(center_color, edge_color, cx, cy, radius, None)
+    }
+    
+    /// Crea un gradiente radial SVG con tamaño absoluto opcional
+    pub fn create_radial_gradient_with_size(
+        &self,
+        center_color: &Color,
+        edge_color: &Color,
+        cx: f64,
+        cy: f64,
+        radius: f64,
+        canvas_size: Option<usize>,
+    ) -> Gradient {
         let id = self.generate_gradient_id();
         
-        let svg_def = format!(
-            r#"<radialGradient id="{}" cx="{:.2}%" cy="{:.2}%" r="{:.2}%">
+        let svg_def = if let Some(size) = canvas_size {
+            // Usar coordenadas absolutas para gradiente continuo
+            let abs_cx = cx * size as f64;
+            let abs_cy = cy * size as f64;
+            let abs_r = radius * size as f64;
+            
+            format!(
+                r#"<radialGradient id="{}" cx="{:.2}" cy="{:.2}" r="{:.2}" gradientUnits="userSpaceOnUse">
   <stop offset="0%" style="stop-color:{};stop-opacity:1" />
   <stop offset="100%" style="stop-color:{};stop-opacity:1" />
 </radialGradient>"#,
-            id,
-            cx * 100.0, cy * 100.0, radius * 100.0,
-            ColorProcessor::to_hex(center_color),
-            ColorProcessor::to_hex(edge_color)
-        );
+                id,
+                abs_cx, abs_cy, abs_r,
+                ColorProcessor::to_hex(center_color),
+                ColorProcessor::to_hex(edge_color)
+            )
+        } else {
+            // Usar porcentajes (comportamiento anterior)
+            format!(
+                r#"<radialGradient id="{}" cx="{:.2}%" cy="{:.2}%" r="{:.2}%">
+  <stop offset="0%" style="stop-color:{};stop-opacity:1" />
+  <stop offset="100%" style="stop-color:{};stop-opacity:1" />
+</radialGradient>"#,
+                id,
+                cx * 100.0, cy * 100.0, radius * 100.0,
+                ColorProcessor::to_hex(center_color),
+                ColorProcessor::to_hex(edge_color)
+            )
+        };
         
         Gradient {
             id: id.clone(),

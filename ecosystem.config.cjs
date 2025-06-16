@@ -32,7 +32,8 @@ module.exports = {
       env: {
         NODE_ENV: 'development',
         PORT: 3000,
-        NODE_OPTIONS: '--max-old-space-size=2048'
+        NODE_OPTIONS: '--max-old-space-size=2048',
+        HOSTNAME: '0.0.0.0'
       },
       error_file: '../logs/frontend-error.log',
       out_file: '../logs/frontend-out.log',

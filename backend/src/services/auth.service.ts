@@ -127,10 +127,10 @@ export class AuthService {
     // Implementar jerarquía de roles correcta
     // SUPERADMIN puede hacer todo
     if (userRole === 'SUPERADMIN') return true;
-    
+
     // WEBADMIN puede hacer casi todo excepto funciones de SUPERADMIN
     if (userRole === 'WEBADMIN' && requiredRole !== 'SUPERADMIN') return true;
-    
+
     // Los demás roles solo pueden hacer lo que su rol permite
     return userRole === requiredRole;
   }

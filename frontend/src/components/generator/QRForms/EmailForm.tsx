@@ -1,5 +1,6 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
+import { qrPlaceholders } from '@/constants/qrPlaceholders';
 
 interface EmailFormProps {
   data: {
@@ -12,10 +13,6 @@ interface EmailFormProps {
 }
 
 export const EmailForm: React.FC<EmailFormProps> = ({ data, onChange, isLoading }) => {
-  const isDefaultEmail = data.email === 'correo@ejemplo.com';
-  const isDefaultSubject = data.subject === 'Asunto';
-  const isDefaultMessage = data.message === 'Mensaje';
-  
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
@@ -24,8 +21,8 @@ export const EmailForm: React.FC<EmailFormProps> = ({ data, onChange, isLoading 
           <Input
             value={data.email}
             onChange={(e) => onChange('email', e.target.value)}
-            placeholder="Your Email Address"
-            className={`h-9 ${isDefaultEmail ? 'text-slate-400 dark:text-slate-600' : ''}`}
+            placeholder={qrPlaceholders.email.email}
+            className="h-9"
             disabled={isLoading}
           />
         </div>
@@ -34,8 +31,8 @@ export const EmailForm: React.FC<EmailFormProps> = ({ data, onChange, isLoading 
           <Input
             value={data.subject}
             onChange={(e) => onChange('subject', e.target.value)}
-            placeholder="Subject Of Email"
-            className={`h-9 ${isDefaultSubject ? 'text-slate-400 dark:text-slate-600' : ''}`}
+            placeholder={qrPlaceholders.email.subject}
+            className="h-9"
             disabled={isLoading}
           />
         </div>
@@ -45,8 +42,8 @@ export const EmailForm: React.FC<EmailFormProps> = ({ data, onChange, isLoading 
         <textarea
           value={data.message}
           onChange={(e) => onChange('message', e.target.value)}
-          placeholder="Message"
-          className={`w-full min-h-[80px] px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-950 resize-none placeholder:text-slate-400 dark:placeholder:text-slate-600 ${isDefaultMessage ? 'text-slate-400 dark:text-slate-600' : ''}`}
+          placeholder={qrPlaceholders.email.message}
+          className="w-full min-h-[80px] px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-950 resize-none placeholder:text-slate-400 dark:placeholder:text-slate-600"
           disabled={isLoading}
         />
       </div>

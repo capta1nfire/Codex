@@ -51,6 +51,15 @@ pub struct GradientOptions {
     pub angle: Option<f32>,
     pub center_x: Option<f32>,
     pub center_y: Option<f32>,
+    pub stroke_style: Option<StrokeStyle>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct StrokeStyle {
+    pub enabled: bool,
+    pub color: Option<String>,
+    pub width: Option<f32>,
+    pub opacity: Option<f32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -104,6 +113,12 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
         // Debug log para verificar gradiente
         if let Some(ref gradient) = options.gradient {
             info!("Gradient received: type={}, colors={:?}", gradient.gradient_type, gradient.colors);
+            if let Some(stroke_style) = &gradient.stroke_style {
+                info!("StrokeStyle received: enabled={}, color={:?}, width={:?}, opacity={:?}", 
+                    stroke_style.enabled, stroke_style.color, stroke_style.width, stroke_style.opacity);
+            } else {
+                info!("No StrokeStyle received in gradient");
+            }
         }
         
         Some(QrCustomization {
@@ -177,6 +192,14 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
                     angle: g.angle,
                     apply_to_eyes: false, // Could be derived from options
                     apply_to_data: true,  // Could be derived from options
+                    stroke_style: g.stroke_style.as_ref().map(|s| {
+                        crate::engine::types::StrokeStyle {
+                            enabled: s.enabled,
+                            color: s.color.clone(),
+                            width: s.width,
+                            opacity: s.opacity,
+                        }
+                    }),
                 }
             }),
             logo: options.logo.as_ref().map(|l| {

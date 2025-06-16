@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { qrDefaultValues } from '@/constants/qrDefaultValues';
 
 interface QRFormData {
   email: { email: string; subject: string; message: string };
@@ -20,50 +21,91 @@ interface QRFormData {
   link: { url: string };
 }
 
-const defaultQRFormData: QRFormData = {
-  email: { email: 'correo@ejemplo.com', subject: 'Asunto', message: 'Mensaje' },
-  call: { countryCode: '+1', phoneNumber: '1234567890' },
-  sms: { countryCode: '+1', phoneNumber: '1234567890', message: 'Tu mensaje aquí' },
-  whatsapp: { countryCode: '+1', phoneNumber: '1234567890', message: 'Hola!' },
-  wifi: { networkName: 'NombreRed', password: 'contraseña', security: 'WPA', hidden: false },
+// Initial form data with default URL for link type
+const emptyQRFormData: QRFormData = {
+  email: { email: '', subject: '', message: '' },
+  call: { countryCode: '+1', phoneNumber: '' },
+  sms: { countryCode: '+1', phoneNumber: '', message: '' },
+  whatsapp: { countryCode: '+1', phoneNumber: '', message: '' },
+  wifi: { networkName: '', password: '', security: 'WPA', hidden: false },
   vcard: { 
-    firstName: 'Juan', lastName: 'Pérez', organization: 'Tu Empresa', title: 'Cargo',
-    phone: '+1234567890', email: 'juan@ejemplo.com', website: 'https://ejemplo.com', address: 'Tu Dirección' 
+    firstName: '', lastName: '', organization: '', title: '',
+    phone: '', email: '', website: '', address: '' 
   },
-  text: { message: 'Tu mensaje personalizado aquí' },
+  text: { message: '' },
   link: { url: 'https://tu-sitio-web.com' }
 };
 
 export const useQRContentGeneration = () => {
   const [selectedQRType, setSelectedQRType] = useState<string>('link');
-  const [qrFormData, setQrFormData] = useState<Record<string, any>>(defaultQRFormData);
+  const [qrFormData, setQrFormData] = useState<Record<string, any>>(emptyQRFormData);
 
   const generateQRContent = useCallback((type: string, data: any): string => {
-    if (!data) return '';
+    // If no data provided, use empty form data
+    if (!data) {
+      data = emptyQRFormData[type as keyof QRFormData];
+    }
+    
+    // Get default values for this type
+    const defaults = qrDefaultValues[type as keyof typeof qrDefaultValues];
+    
+    // Helper to get value with fallback to default
+    const getValueWithDefault = (field: string) => {
+      const value = data[field];
+      return value && value.trim() !== '' ? value : defaults?.[field as keyof typeof defaults] || '';
+    };
     
     switch (type) {
       case 'email':
-        return `mailto:${data.email || ''}?subject=${encodeURIComponent(data.subject || '')}&body=${encodeURIComponent(data.message || '')}`;
+        const email = getValueWithDefault('email');
+        const subject = getValueWithDefault('subject');
+        const message = getValueWithDefault('message');
+        return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+        
       case 'call':
-        return `tel:${data.countryCode || ''}${data.phoneNumber || ''}`;
+        const callPhone = getValueWithDefault('phoneNumber');
+        const callCountry = data.countryCode || defaults?.countryCode || '+1';
+        return `tel:${callCountry}${callPhone}`;
+        
       case 'sms':
-        return `sms:${data.countryCode || ''}${data.phoneNumber || ''}?body=${encodeURIComponent(data.message || '')}`;
+        const smsPhone = getValueWithDefault('phoneNumber');
+        const smsMessage = getValueWithDefault('message');
+        const smsCountry = data.countryCode || defaults?.countryCode || '+1';
+        return `sms:${smsCountry}${smsPhone}?body=${encodeURIComponent(smsMessage)}`;
+        
       case 'whatsapp':
-        const countryCode = data?.countryCode || '';
-        const phoneNumber = data?.phoneNumber || '';
-        const message = data?.message || '';
-        const whatsappNumber = `${countryCode}${phoneNumber}`.replace(/\D/g, '');
-        return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+        const waPhone = getValueWithDefault('phoneNumber');
+        const waMessage = getValueWithDefault('message');
+        const waCountry = data.countryCode || defaults?.countryCode || '+1';
+        const whatsappNumber = `${waCountry}${waPhone}`.replace(/\D/g, '');
+        return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(waMessage)}`;
+        
       case 'wifi':
-        return `WIFI:T:${data.security || 'WPA'};S:${data.networkName || ''};P:${data.password || ''};H:${data.hidden ? 'true' : 'false'};;`;
+        const networkName = getValueWithDefault('networkName');
+        const password = getValueWithDefault('password');
+        const security = data.security || defaults?.security || 'WPA';
+        const hidden = data.hidden !== undefined ? data.hidden : defaults?.hidden || false;
+        return `WIFI:T:${security};S:${networkName};P:${password};H:${hidden ? 'true' : 'false'};;`;
+        
       case 'vcard':
-        return `BEGIN:VCARD\nVERSION:3.0\nFN:${data.firstName || ''} ${data.lastName || ''}\nORG:${data.organization || ''}\nTITLE:${data.title || ''}\nTEL:${data.phone || ''}\nEMAIL:${data.email || ''}\nURL:${data.website || ''}\nADR:;;${data.address || ''};;;;\nEND:VCARD`;
+        const firstName = getValueWithDefault('firstName');
+        const lastName = getValueWithDefault('lastName');
+        const organization = getValueWithDefault('organization');
+        const title = getValueWithDefault('title');
+        const phone = getValueWithDefault('phone');
+        const vcardEmail = getValueWithDefault('email');
+        const website = getValueWithDefault('website');
+        const address = getValueWithDefault('address');
+        return `BEGIN:VCARD\nVERSION:3.0\nFN:${firstName} ${lastName}\nORG:${organization}\nTITLE:${title}\nTEL:${phone}\nEMAIL:${vcardEmail}\nURL:${website}\nADR:;;${address};;;;\nEND:VCARD`;
+        
       case 'text':
-        return data.message || '';
+        return getValueWithDefault('message');
+        
       case 'link':
-        return data.url || '';
+        return getValueWithDefault('url');
+        
       default:
-        return '';
+        return 'CODEX QR Generator';
     }
   }, []);
 

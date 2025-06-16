@@ -87,13 +87,13 @@ async function checkUrlResponds(url: string): Promise<UrlMetadata> {
     
     const options = {
       method: 'HEAD',
-      timeout: 5000,
+      timeout: 3000, // Reducir timeout
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': '*/*'
-      },
-      // Seguir redirecciones
-      maxRedirects: 5
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'close' // Cerrar conexión inmediatamente
+      }
     };
 
     const req = protocol.request(urlObj, options, (res) => {
@@ -111,6 +111,10 @@ async function checkUrlResponds(url: string): Promise<UrlMetadata> {
       if (exists && !domainExists) {
         result.title = domain; // DNS falló pero HTTP respondió
       }
+      
+      // Cerrar conexión inmediatamente para evitar hanging
+      res.destroy();
+      req.destroy();
       
       resolve(result);
     });
@@ -148,6 +152,11 @@ async function checkUrlResponds(url: string): Promise<UrlMetadata> {
           error: 'Timeout'
         });
       }
+    });
+
+    // Timeout manual más agresivo para casos como x.com
+    req.setTimeout(3000, () => {
+      req.abort();
     });
 
     req.end();

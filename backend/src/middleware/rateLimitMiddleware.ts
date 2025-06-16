@@ -50,26 +50,26 @@ export const generationRateLimit = rateLimit({
     // Skip rate limiting para SUPERADMIN
     const user = req.user as any;
     const isSkipped = user?.role === 'SUPERADMIN';
-    
+
     // Debug logging para SUPERADMIN
     if (user?.role === 'SUPERADMIN') {
       logger.info('[Rate Limit] SUPERADMIN detected - skipping rate limit', {
         userId: user.id,
         userEmail: user.email,
-        path: req.path
+        path: req.path,
       });
     }
-    
+
     return isSkipped;
   },
   message: (req: Request) => {
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
     return {
       success: false,
       error: {
         code: ErrorCode.RATE_LIMIT_EXCEEDED,
-        message: isProduction 
+        message: isProduction
           ? 'Has alcanzado el límite de códigos gratuitos.'
           : 'Límite de generación de códigos alcanzado.',
         suggestion: isProduction
@@ -108,7 +108,7 @@ export const authenticatedRateLimit = rateLimit({
   message: (req: Request) => {
     const isProduction = process.env.NODE_ENV === 'production';
     const user = req.user as any;
-    
+
     return {
       success: false,
       error: {
@@ -140,9 +140,11 @@ export const strictRateLimit = rateLimit({
   skip: (req: Request) => {
     // Skip rate limiting para SUPERADMIN y ADMIN
     const user = req.user as any;
-    return user?.role === 'SUPERADMIN' || 
-           user?.role === 'ADMIN' ||
-           (process.env.NODE_ENV === 'development' && user?.role === 'ADMIN');
+    return (
+      user?.role === 'SUPERADMIN' ||
+      user?.role === 'ADMIN' ||
+      (process.env.NODE_ENV === 'development' && user?.role === 'ADMIN')
+    );
   },
 });
 

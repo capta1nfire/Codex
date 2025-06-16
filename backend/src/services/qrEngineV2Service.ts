@@ -1,6 +1,7 @@
 import axios from 'axios';
-import logger from '../utils/logger.js';
+
 import { AppError, ErrorCode } from '../utils/errors.js';
+import logger from '../utils/logger.js';
 
 const QR_ENGINE_V2_URL = process.env.QR_ENGINE_V2_URL || 'http://localhost:3002';
 
@@ -19,6 +20,12 @@ export interface QrV2Options {
     angle?: number;
     applyToEyes?: boolean;
     applyToData?: boolean;
+    strokeStyle?: {
+      enabled: boolean;
+      color?: string;
+      width?: number;
+      opacity?: number;
+    };
   };
   logo?: {
     data: string;
@@ -90,9 +97,15 @@ class QrEngineV2Service {
         hasOptions: !!request.options,
       });
 
+      // Transform camelCase to snake_case for Rust API
+      const rustRequest = {
+        data: request.data,
+        options: request.options ? this.transformOptionsToRust(request.options) : undefined,
+      };
+
       const response = await axios.post<QrV2GenerateResponse>(
         `${QR_ENGINE_V2_URL}/api/qr/generate`,
-        request,
+        rustRequest,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -116,10 +129,7 @@ class QrEngineV2Service {
       });
 
       if (error.response?.status === 429) {
-        throw new AppError(
-          ErrorCode.RATE_LIMIT_EXCEEDED,
-          'QR generation rate limit exceeded'
-        );
+        throw new AppError(ErrorCode.RATE_LIMIT_EXCEEDED, 'QR generation rate limit exceeded');
       }
 
       throw new AppError(
@@ -151,10 +161,7 @@ class QrEngineV2Service {
         error: error.message,
       });
 
-      throw new AppError(
-        ErrorCode.VALIDATION_ERROR,
-        'Failed to validate QR code data'
-      );
+      throw new AppError(ErrorCode.VALIDATION_ERROR, 'Failed to validate QR code data');
     }
   }
 
@@ -226,10 +233,7 @@ class QrEngineV2Service {
         codesCount: codes.length,
       });
 
-      throw new AppError(
-        ErrorCode.QR_GENERATION_FAILED,
-        'Failed to batch generate QR codes'
-      );
+      throw new AppError(ErrorCode.QR_GENERATION_FAILED, 'Failed to batch generate QR codes');
     }
   }
 
@@ -322,6 +326,73 @@ class QrEngineV2Service {
         data_size: v2Response.metadata.dataCapacity,
       },
     };
+  }
+
+  /**
+   * Transform options from camelCase to snake_case for Rust API
+   */
+  private transformOptionsToRust(options: QrV2Options): any {
+    const rustOptions: any = {};
+
+    // Simple field mappings
+    if (options.size !== undefined) rustOptions.size = options.size;
+    if (options.margin !== undefined) rustOptions.margin = options.margin;
+    if (options.errorCorrection !== undefined) rustOptions.error_correction = options.errorCorrection;
+    if (options.eyeShape !== undefined) rustOptions.eye_shape = options.eyeShape;
+    if (options.dataPattern !== undefined) rustOptions.data_pattern = options.dataPattern;
+    if (options.foregroundColor !== undefined) rustOptions.foreground_color = options.foregroundColor;
+    if (options.backgroundColor !== undefined) rustOptions.background_color = options.backgroundColor;
+    if (options.eyeColor !== undefined) rustOptions.eye_color = options.eyeColor;
+
+    // Transform gradient object
+    if (options.gradient) {
+      rustOptions.gradient = {
+        type: options.gradient.type,
+        colors: options.gradient.colors,
+        angle: options.gradient.angle,
+        apply_to_eyes: options.gradient.applyToEyes,
+        apply_to_data: options.gradient.applyToData,
+      };
+
+      // Transform strokeStyle
+      if (options.gradient.strokeStyle) {
+        rustOptions.gradient.stroke_style = {
+          enabled: options.gradient.strokeStyle.enabled,
+          color: options.gradient.strokeStyle.color,
+          width: options.gradient.strokeStyle.width,
+          opacity: options.gradient.strokeStyle.opacity,
+        };
+      }
+    }
+
+    // Transform logo object
+    if (options.logo) {
+      rustOptions.logo = {
+        data: options.logo.data,
+        size: options.logo.size,
+        padding: options.logo.padding,
+        background_color: options.logo.backgroundColor,
+        shape: options.logo.shape,
+      };
+    }
+
+    // Transform frame object
+    if (options.frame) {
+      rustOptions.frame = {
+        style: options.frame.style,
+        color: options.frame.color,
+        width: options.frame.width,
+        text: options.frame.text,
+        text_position: options.frame.textPosition,
+      };
+    }
+
+    // Effects array can be passed as-is
+    if (options.effects) {
+      rustOptions.effects = options.effects;
+    }
+
+    return rustOptions;
   }
 }
 

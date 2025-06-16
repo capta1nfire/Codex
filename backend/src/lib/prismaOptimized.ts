@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+
 import logger from '../utils/logger.js';
 
 // Configuración optimizada de Prisma con pool de conexiones explícito
@@ -54,11 +55,11 @@ prisma.$use(async (params, next) => {
   const before = Date.now();
   const result = await next(params);
   const after = Date.now();
-  
+
   if (after - before > 100) {
     logger.debug(`Query ${params.model}.${params.action} took ${after - before}ms`);
   }
-  
+
   return result;
 });
 

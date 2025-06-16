@@ -18,5 +18,6 @@ export const defaultFormValues: GenerateFormData = {
     gradient_color1: '#2563EB', // CODEX Corporate Blue en el centro
     gradient_color2: '#000000', // Negro en los costados para máximo contraste
     gradient_direction: 'top-bottom', // No se usa en radial pero mantenemos por consistencia
+    gradient_borders: true, // White semi-transparent borders for gradient modules
   },
 };

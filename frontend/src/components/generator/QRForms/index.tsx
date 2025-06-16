@@ -13,9 +13,10 @@ interface QRFormProps {
   data: any;
   onChange: (type: string, field: string, value: any) => void;
   isLoading: boolean;
+  validationError?: string | null;
 }
 
-export const QRForm: React.FC<QRFormProps> = ({ type, data, onChange, isLoading }) => {
+export const QRForm: React.FC<QRFormProps> = ({ type, data, onChange, isLoading, validationError }) => {
   const handleChange = (field: string, value: any) => {
     onChange(type, field, value);
   };
@@ -34,7 +35,7 @@ export const QRForm: React.FC<QRFormProps> = ({ type, data, onChange, isLoading 
     case 'text':
       return <TextForm data={data} onChange={handleChange} isLoading={isLoading} />;
     case 'link':
-      return <LinkForm data={data} onChange={handleChange} isLoading={isLoading} />;
+      return <LinkForm data={data} onChange={handleChange} isLoading={isLoading} validationError={validationError} />;
     case 'vcard':
       return <VCardForm data={data} onChange={handleChange} isLoading={isLoading} />;
     default:

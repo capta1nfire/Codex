@@ -115,6 +115,16 @@ pub struct GradientOptions {
     pub angle: Option<f32>,   // Para linear
     pub apply_to_eyes: bool,
     pub apply_to_data: bool,
+    pub stroke_style: Option<StrokeStyle>,
+}
+
+/// Estilo de borde para gradientes
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StrokeStyle {
+    pub enabled: bool,
+    pub color: Option<String>,
+    pub width: Option<f32>,
+    pub opacity: Option<f32>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]

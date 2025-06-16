@@ -1,5 +1,6 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
+import { qrPlaceholders } from '@/constants/qrPlaceholders';
 
 interface VCardFormProps {
   data: {
@@ -17,15 +18,6 @@ interface VCardFormProps {
 }
 
 export const VCardForm: React.FC<VCardFormProps> = ({ data, onChange, isLoading }) => {
-  // Check if values are defaults
-  const isFirstNameDefault = data.firstName === 'Juan';
-  const isLastNameDefault = data.lastName === 'Pérez';
-  const isOrganizationDefault = data.organization === 'Tu Empresa';
-  const isTitleDefault = data.title === 'Cargo';
-  const isPhoneDefault = data.phone === '+1234567890';
-  const isEmailDefault = data.email === 'juan@ejemplo.com';
-  const isWebsiteDefault = data.website === 'https://ejemplo.com';
-  const isAddressDefault = data.address === 'Tu Dirección';
 
   return (
     <div className="space-y-3">
@@ -35,8 +27,8 @@ export const VCardForm: React.FC<VCardFormProps> = ({ data, onChange, isLoading 
           <Input
             value={data.firstName}
             onChange={(e) => onChange('firstName', e.target.value)}
-            placeholder="Juan"
-            className={`h-9 ${isFirstNameDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
+            placeholder={qrPlaceholders.vcard.firstName}
+            className="h-9"
             disabled={isLoading}
           />
         </div>
@@ -45,8 +37,8 @@ export const VCardForm: React.FC<VCardFormProps> = ({ data, onChange, isLoading 
           <Input
             value={data.lastName}
             onChange={(e) => onChange('lastName', e.target.value)}
-            placeholder="Pérez"
-            className={`h-9 ${isLastNameDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
+            placeholder={qrPlaceholders.vcard.lastName}
+            className="h-9"
             disabled={isLoading}
           />
         </div>
@@ -57,8 +49,8 @@ export const VCardForm: React.FC<VCardFormProps> = ({ data, onChange, isLoading 
           <Input
             value={data.organization}
             onChange={(e) => onChange('organization', e.target.value)}
-            placeholder="Tu Empresa"
-            className={`h-9 ${isOrganizationDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
+            placeholder={qrPlaceholders.vcard.organization}
+            className="h-9"
             disabled={isLoading}
           />
         </div>
@@ -67,8 +59,8 @@ export const VCardForm: React.FC<VCardFormProps> = ({ data, onChange, isLoading 
           <Input
             value={data.title}
             onChange={(e) => onChange('title', e.target.value)}
-            placeholder="Cargo"
-            className={`h-9 ${isTitleDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
+            placeholder={qrPlaceholders.vcard.title}
+            className="h-9"
             disabled={isLoading}
           />
         </div>
@@ -79,8 +71,8 @@ export const VCardForm: React.FC<VCardFormProps> = ({ data, onChange, isLoading 
           <Input
             value={data.phone}
             onChange={(e) => onChange('phone', e.target.value)}
-            placeholder="+1234567890"
-            className={`h-9 ${isPhoneDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
+            placeholder={qrPlaceholders.vcard.phone}
+            className="h-9"
             disabled={isLoading}
           />
         </div>
@@ -89,8 +81,8 @@ export const VCardForm: React.FC<VCardFormProps> = ({ data, onChange, isLoading 
           <Input
             value={data.email}
             onChange={(e) => onChange('email', e.target.value)}
-            placeholder="juan@ejemplo.com"
-            className={`h-9 ${isEmailDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
+            placeholder={qrPlaceholders.vcard.email}
+            className="h-9"
             disabled={isLoading}
           />
         </div>
@@ -101,8 +93,8 @@ export const VCardForm: React.FC<VCardFormProps> = ({ data, onChange, isLoading 
           <Input
             value={data.website}
             onChange={(e) => onChange('website', e.target.value)}
-            placeholder="https://ejemplo.com"
-            className={`h-9 ${isWebsiteDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
+            placeholder={qrPlaceholders.vcard.website}
+            className="h-9"
             disabled={isLoading}
           />
         </div>
@@ -111,8 +103,8 @@ export const VCardForm: React.FC<VCardFormProps> = ({ data, onChange, isLoading 
           <Input
             value={data.address}
             onChange={(e) => onChange('address', e.target.value)}
-            placeholder="Tu Dirección"
-            className={`h-9 ${isAddressDefault ? 'text-slate-400 dark:text-slate-600' : ''}`}
+            placeholder={qrPlaceholders.vcard.address}
+            className="h-9"
             disabled={isLoading}
           />
         </div>

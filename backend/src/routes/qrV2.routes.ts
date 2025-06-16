@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import qrEngineV2Service from '../services/qrEngineV2Service.js';
+
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { generationRateLimit } from '../middleware/rateLimitMiddleware.js';
-import { validationMiddleware } from '../middleware/validationMiddleware.js';
-import { metrics } from '../utils/metrics.js';
+import { validateBody as validationMiddleware } from '../middleware/validationMiddleware.js';
+import qrEngineV2Service from '../services/qrEngineV2Service.js';
 import logger from '../utils/logger.js';
+// import { metrics } from '../utils/metrics.js';
 
 const router = Router();
 
@@ -16,38 +17,77 @@ const qrV2OptionsSchema = z.object({
   errorCorrection: z.enum(['L', 'M', 'Q', 'H']).optional(),
   eyeShape: z.string().optional(),
   dataPattern: z.string().optional(),
-  foregroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-  backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-  eyeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-  gradient: z.object({
-    type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']),
-    colors: z.array(z.string().regex(/^#[0-9A-Fa-f]{6}$/)).min(2).max(5),
-    angle: z.number().min(0).max(360).optional(),
-    applyToEyes: z.boolean().optional(),
-    applyToData: z.boolean().optional(),
-  }).optional(),
-  logo: z.object({
-    data: z.string(), // Base64
-    size: z.number().min(10).max(50).optional(),
-    padding: z.number().min(0).max(20).optional(),
-    backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-    shape: z.enum(['square', 'circle', 'rounded']).optional(),
-  }).optional(),
-  frame: z.object({
-    style: z.enum(['simple', 'rounded', 'bubble', 'speech', 'badge']),
-    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-    width: z.number().min(1).max(10).optional(),
-    text: z.string().max(50).optional(),
-    textPosition: z.enum(['top', 'bottom', 'left', 'right']).optional(),
-  }).optional(),
-  effects: z.array(z.object({
-    type: z.enum(['shadow', 'glow', 'blur', 'noise', 'vintage']),
-    intensity: z.number().min(0).max(1).optional(),
-    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-    offsetX: z.number().optional(),
-    offsetY: z.number().optional(),
-    blurRadius: z.number().optional(),
-  })).optional(),
+  foregroundColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
+  backgroundColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
+  eyeColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
+  gradient: z
+    .object({
+      type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']),
+      colors: z
+        .array(z.string().regex(/^#[0-9A-Fa-f]{6}$/))
+        .min(2)
+        .max(5),
+      angle: z.number().min(0).max(360).optional(),
+      applyToEyes: z.boolean().optional(),
+      applyToData: z.boolean().optional(),
+      strokeStyle: z
+        .object({
+          enabled: z.boolean(),
+          color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+          width: z.number().min(0).max(5).optional(),
+          opacity: z.number().min(0).max(1).optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+  logo: z
+    .object({
+      data: z.string(), // Base64
+      size: z.number().min(10).max(50).optional(),
+      padding: z.number().min(0).max(20).optional(),
+      backgroundColor: z
+        .string()
+        .regex(/^#[0-9A-Fa-f]{6}$/)
+        .optional(),
+      shape: z.enum(['square', 'circle', 'rounded']).optional(),
+    })
+    .optional(),
+  frame: z
+    .object({
+      style: z.enum(['simple', 'rounded', 'bubble', 'speech', 'badge']),
+      color: z
+        .string()
+        .regex(/^#[0-9A-Fa-f]{6}$/)
+        .optional(),
+      width: z.number().min(1).max(10).optional(),
+      text: z.string().max(50).optional(),
+      textPosition: z.enum(['top', 'bottom', 'left', 'right']).optional(),
+    })
+    .optional(),
+  effects: z
+    .array(
+      z.object({
+        type: z.enum(['shadow', 'glow', 'blur', 'noise', 'vintage']),
+        intensity: z.number().min(0).max(1).optional(),
+        color: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+        offsetX: z.number().optional(),
+        offsetY: z.number().optional(),
+        blurRadius: z.number().optional(),
+      })
+    )
+    .optional(),
 });
 
 const qrV2GenerateSchema = z.object({
@@ -57,16 +97,18 @@ const qrV2GenerateSchema = z.object({
 
 const qrV2BatchSchema = z.object({
   codes: z.array(qrV2GenerateSchema).min(1).max(100),
-  options: z.object({
-    maxConcurrent: z.number().min(1).max(20).optional(),
-    includeMetadata: z.boolean().optional(),
-  }).optional(),
+  options: z
+    .object({
+      maxConcurrent: z.number().min(1).max(20).optional(),
+      includeMetadata: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 // Generate QR code with v2 engine
 router.post(
   '/generate',
-  authMiddleware.optional,
+  authMiddleware.optionalAuth,
   generationRateLimit,
   validationMiddleware(qrV2GenerateSchema),
   async (req, res, next) => {
@@ -81,19 +123,19 @@ router.post(
       });
 
       // Track metrics
-      metrics.increment('qr_v2.generation.requests');
+      // metrics.increment('qr_v2.generation.requests');
 
       const result = await qrEngineV2Service.generate({ data, options });
 
       // Track success metrics
-      metrics.increment('qr_v2.generation.success');
-      metrics.timing('qr_v2.generation.duration', Date.now() - startTime);
-      metrics.gauge('qr_v2.generation.processing_time', result.metadata.processingTimeMs);
+      // metrics.increment('qr_v2.generation.success');
+      // metrics.timing('qr_v2.generation.duration', Date.now() - startTime);
+      // metrics.gauge('qr_v2.generation.processing_time', result.metadata.processingTimeMs);
 
       if (result.cached) {
-        metrics.increment('qr_v2.cache.hits');
+        // metrics.increment('qr_v2.cache.hits');
       } else {
-        metrics.increment('qr_v2.cache.misses');
+        // metrics.increment('qr_v2.cache.misses');
       }
 
       res.json({
@@ -101,7 +143,7 @@ router.post(
         ...result,
       });
     } catch (error) {
-      metrics.increment('qr_v2.generation.errors');
+      // metrics.increment('qr_v2.generation.errors');
       next(error);
     }
   }
@@ -110,7 +152,7 @@ router.post(
 // Validate QR code data and options
 router.post(
   '/validate',
-  authMiddleware.optional,
+  authMiddleware.optionalAuth,
   validationMiddleware(qrV2GenerateSchema),
   async (req, res, next) => {
     try {
@@ -131,7 +173,7 @@ router.post(
 // Batch generate QR codes (authenticated only)
 router.post(
   '/batch',
-  authMiddleware.required,
+  authMiddleware.authenticateJwt,
   validationMiddleware(qrV2BatchSchema),
   async (req, res, next) => {
     try {
@@ -143,22 +185,22 @@ router.post(
         codesCount: codes.length,
       });
 
-      metrics.increment('qr_v2.batch.requests');
-      metrics.gauge('qr_v2.batch.size', codes.length);
+      // metrics.increment('qr_v2.batch.requests');
+      // metrics.gauge('qr_v2.batch.size', codes.length);
 
       const result = await qrEngineV2Service.batch(codes);
 
-      metrics.increment('qr_v2.batch.success');
-      metrics.timing('qr_v2.batch.duration', Date.now() - startTime);
-      metrics.gauge('qr_v2.batch.successful', result.summary.successful);
-      metrics.gauge('qr_v2.batch.failed', result.summary.failed);
+      // metrics.increment('qr_v2.batch.success');
+      // metrics.timing('qr_v2.batch.duration', Date.now() - startTime);
+      // metrics.gauge('qr_v2.batch.successful', result.summary.successful);
+      // metrics.gauge('qr_v2.batch.failed', result.summary.failed);
 
       res.json({
         success: true,
         ...result,
       });
     } catch (error) {
-      metrics.increment('qr_v2.batch.errors');
+      // metrics.increment('qr_v2.batch.errors');
       next(error);
     }
   }
@@ -193,8 +235,8 @@ router.get('/preview-url', (req, res) => {
 // Cache management (admin only)
 router.get(
   '/cache/stats',
-  authMiddleware.required,
-  authMiddleware.requireRole(['ADMIN', 'SUPERADMIN']),
+  authMiddleware.authenticateJwt,
+  authMiddleware.checkRole(['ADMIN', 'SUPERADMIN']),
   async (req, res, next) => {
     try {
       const stats = await qrEngineV2Service.getCacheStats();
@@ -210,8 +252,8 @@ router.get(
 
 router.post(
   '/cache/clear',
-  authMiddleware.required,
-  authMiddleware.requireRole(['ADMIN', 'SUPERADMIN']),
+  authMiddleware.authenticateJwt,
+  authMiddleware.checkRole(['ADMIN', 'SUPERADMIN']),
   async (req, res, next) => {
     try {
       const cleared = await qrEngineV2Service.clearCache();
@@ -228,7 +270,7 @@ router.post(
 // Compatibility endpoint - converts old format to v2
 router.post(
   '/generate-compat',
-  authMiddleware.optional,
+  authMiddleware.optionalAuth,
   generationRateLimit,
   async (req, res, next) => {
     try {
@@ -247,12 +289,12 @@ router.post(
       // Convert v2 response to old format
       const oldFormatResponse = qrEngineV2Service.convertToOldFormat(v2Response);
 
-      metrics.increment('qr_v2.compat.requests');
-      metrics.timing('qr_v2.compat.duration', Date.now() - startTime);
+      // metrics.increment('qr_v2.compat.requests');
+      // metrics.timing('qr_v2.compat.duration', Date.now() - startTime);
 
       res.json(oldFormatResponse);
     } catch (error) {
-      metrics.increment('qr_v2.compat.errors');
+      // metrics.increment('qr_v2.compat.errors');
       next(error);
     }
   }

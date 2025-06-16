@@ -1,15 +1,14 @@
 /**
- * @deprecated MARCADO PARA ELIMINACIÓN
+ * Main QR/Barcode Generator Page
  * 
- * Este archivo (page-optimized.tsx) está marcado para eliminación futura.
- * Fue la versión anterior del generador (v1) que ha sido actualizada para usar v2.
- * El contenido de este archivo ya fue copiado a page.tsx con las actualizaciones necesarias.
+ * Features:
+ * - QR Engine v2 with high performance generation
+ * - Smart auto-generation with debouncing
+ * - Progressive validation with helpful messages
+ * - Initial QR display with default URL
+ * - Smooth placeholder transitions while typing
  * 
- * Razón: Este archivo ya no es necesario ya que su funcionalidad mejorada 
- * (con generador v2) ahora vive en page.tsx
- * 
- * Fecha de marcado: 11 de Diciembre, 2025
- * NO ELIMINAR AÚN - Mantener como respaldo temporal
+ * Updated: June 16, 2025
  */
 
 'use client';
@@ -30,20 +29,29 @@ import { cn } from '@/lib/utils';
 import { useBarcodeGenerationV2 } from '@/hooks/useBarcodeGenerationV2';
 import { useQRContentGeneration } from '@/hooks/useQRContentGeneration';
 import { useBarcodeTypes } from '@/hooks/useBarcodeTypes';
+import { useSmartAutoGeneration } from '@/hooks/useSmartAutoGeneration';
 
 // Componentes modulares
 import { BarcodeTypeTabs } from '@/components/generator/BarcodeTypeTabs';
 import { QRContentSelector } from '@/components/generator/QRContentSelector';
 import { QRForm } from '@/components/generator/QRForms';
-import { PreviewSection } from '@/components/generator/PreviewSection';
+import { PreviewSection } from '@/components/generator/PreviewSectionV3';
+import { useTypingTracker } from '@/hooks/useTypingTracker';
 
 // Constantes
 import { getDefaultDataForType } from '@/constants/barcodeTypes';
 import { defaultFormValues } from '@/constants/defaultFormValues';
 
+// Validación
+import { SmartValidators } from '@/lib/smartValidation';
+
 export default function Home() {
   // Estados principales
   const [expandedSection, setExpandedSection] = useState<string>('advanced');
+  const [isInitialMount, setIsInitialMount] = useState(true);
+  const [realTimeValidationError, setRealTimeValidationError] = useState<string | null>(null);
+  const [hasUserStartedTyping, setHasUserStartedTyping] = useState(false);
+  const [isFirstChange, setIsFirstChange] = useState(true);
 
   // Hooks personalizados con v2
   const { 
@@ -55,6 +63,19 @@ export default function Home() {
     clearError,
     isUsingV2 
   } = useBarcodeGenerationV2();
+  
+  // Typing tracker for sophisticated placeholder system
+  const { isTyping, trackInput, resetTyping } = useTypingTracker({
+    typingDebounceMs: 150,
+    onStopTyping: () => {
+      // Generar cuando el usuario deja de escribir
+      if (selectedType === 'qrcode' && hasUserStartedTyping) {
+        const currentFormValues = getValues();
+        const currentQRData = qrFormData[selectedQRType];
+        validateAndGenerate(currentFormValues, selectedQRType, currentQRData);
+      }
+    }
+  });
   
   // Usar serverError para evitar warning
   if (serverError) {
@@ -68,6 +89,17 @@ export default function Home() {
     generateQRContent, 
     updateQRFormData 
   } = useQRContentGeneration();
+
+  // Hook de auto-generación inteligente
+  const autoGenerationEnabled = true; // Feature flag for auto-generation
+  
+  const {
+    validateAndGenerate,
+    isAutoGenerating,
+    validationError
+  } = useSmartAutoGeneration({
+    enabled: autoGenerationEnabled
+  });
 
   // react-hook-form
   const {
@@ -96,6 +128,9 @@ export default function Home() {
   }, [generateBarcode]);
 
   const handleTypeChange = useCallback(async (newType: string) => {
+    // Reset typing state when changing types
+    resetTyping();
+    
     const newData = getDefaultDataForType(newType);
     setValue('barcode_type', newType, { shouldValidate: true });
     setValue('data', newData, { shouldValidate: true });
@@ -112,10 +147,17 @@ export default function Home() {
       }
     };
     await onSubmit(completeFormValues);
-  }, [setValue, onSubmit, getValues, clearError]);
+  }, [setValue, onSubmit, getValues, clearError, resetTyping]);
 
   const handleQRTypeChange = useCallback(async (newQRType: string) => {
     setSelectedQRType(newQRType);
+    
+    // Reset typing state when changing QR types
+    if (newQRType === 'link') {
+      setHasUserStartedTyping(false);
+      setIsFirstChange(true);
+    }
+    resetTyping();
     
     const initialData = qrFormData[newQRType];
     const qrContent = generateQRContent(newQRType, initialData);
@@ -132,21 +174,79 @@ export default function Home() {
       }
     };
     await onSubmit(completeFormValues);
-  }, [setValue, getValues, onSubmit, qrFormData, generateQRContent, setSelectedQRType]);
+  }, [setValue, getValues, onSubmit, qrFormData, generateQRContent, setSelectedQRType, resetTyping]);
 
   const handleQRFormChange = useCallback((type: string, field: string, value: any) => {
+    // Mark that user has started typing
+    if (!hasUserStartedTyping && type === 'link' && field === 'url') {
+      setHasUserStartedTyping(true);
+      setIsFirstChange(false);
+    }
+    
+    // Track typing for UI feedback
+    trackInput(value.toString());
+    
     const newQRContent = updateQRFormData(type, field, value);
     setValue('data', newQRContent, { shouldValidate: true });
-  }, [updateQRFormData, setValue]);
+    
+    // Validate in real-time without generating
+    const updatedFormData = { ...qrFormData[selectedQRType], [field]: value };
+    const validator = SmartValidators[selectedQRType as keyof typeof SmartValidators];
+    
+    if (validator) {
+      const result = validator(updatedFormData);
+      if (!result.isValid) {
+        // Only show error if there's a message (not empty string)
+        const errorMessage = result.message || '';
+        setRealTimeValidationError(errorMessage === '' ? null : errorMessage);
+      } else {
+        setRealTimeValidationError(null);
+      }
+    }
+  }, [updateQRFormData, setValue, trackInput, qrFormData, selectedQRType, hasUserStartedTyping]);
 
   const handleScaleChange = useCallback((newScale: number) => {
     setValue('options.scale', newScale);
   }, [setValue]);
 
-  // Generar al montar
+  // Generate initial QR on mount
   useEffect(() => {
-    onSubmit(defaultFormValues);
+    const generateInitialBarcode = async () => {
+      if (selectedType === 'qrcode') {
+        // Generate QR with default URL on initial load
+        const defaultURL = 'https://tu-sitio-web.com';
+        const initialFormData = {
+          ...defaultFormValues,
+          barcode_type: 'qrcode',
+          data: defaultURL,
+          options: {
+            ...defaultFormValues.options,
+          }
+        };
+        await onSubmit(initialFormData);
+      } else {
+        // Generate other barcode types normally
+        await onSubmit(defaultFormValues);
+      }
+    };
+    
+    generateInitialBarcode();
+    
+    // Mark that initial mount is complete after a delay
+    const timer = setTimeout(() => {
+      setIsInitialMount(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, []);
+
+  // Auto-generación para códigos lineales y 2D (no QR)
+  useEffect(() => {
+    if (selectedType !== 'qrcode' && watchedData && watchedData.length > 0) {
+      const currentFormValues = getValues();
+      validateAndGenerate(currentFormValues);
+    }
+  }, [watchedData, selectedType, getValues, validateAndGenerate]);
 
   // Cerrar dropdown al hacer clic fuera
   const { setIsDropdownOpen } = useBarcodeTypes();
@@ -183,111 +283,106 @@ export default function Home() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   
-                  {/* Selector de tipo de contenido QR */}
-                  {selectedType === 'qrcode' && (
-                    <QRContentSelector
-                      selectedQRType={selectedQRType}
-                      onQRTypeChange={handleQRTypeChange}
+                  {/* Tarjeta 1: Datos */}
+                  <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                    {/* Selector de tipo de contenido QR */}
+                    {selectedType === 'qrcode' && (
+                      <QRContentSelector
+                        selectedQRType={selectedQRType}
+                        onQRTypeChange={handleQRTypeChange}
+                        isLoading={isLoading}
+                      />
+                    )}
+                    
+                    {/* Formularios dinámicos para QR Code */}
+                    {selectedType === 'qrcode' ? (
+                      <div className="space-y-4">
+                        <QRForm
+                          type={selectedQRType}
+                          data={qrFormData[selectedQRType]}
+                          onChange={handleQRFormChange}
+                          isLoading={isLoading}
+                          validationError={selectedQRType === 'link' ? realTimeValidationError : null}
+                        />
+                        
+                        {/* Botón para generar - oculto cuando auto-generación está habilitada */}
+                        {!autoGenerationEnabled && (
+                          <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full h-10 bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600"
+                          >
+                            {isLoading ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Generando...
+                              </div>
+                            ) : (
+                              "Generar"
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      /* Formulario simple para códigos que no son QR */
+                      <div className="flex gap-3">
+                        <Input
+                          {...register('data', {
+                            onChange: (e) => trackInput(e.target.value)
+                          })}
+                          placeholder="Ingresa el contenido..."
+                          className={cn(
+                            "h-10 flex-1",
+                            errors.data && "border-red-400 dark:border-red-600"
+                          )}
+                        />
+                        {!autoGenerationEnabled && (
+                          <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className={cn(
+                              "h-10 px-6 font-medium flex-shrink-0",
+                              "bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600",
+                              "transition-all duration-200"
+                            )}
+                          >
+                            {isLoading ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Generando...
+                              </div>
+                            ) : (
+                              "Generar"
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                    
+                    {errors.data && (
+                      <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                        {errors.data.message}
+                      </p>
+                    )}
+                    
+                    {/* Indicador de validación - Movido dentro de LinkForm con nuevo estilo */}
+                  </div>
+                  
+                  {/* Tarjeta 2: Opciones Avanzadas - Always visible */}
+                  <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">Opciones Avanzadas</h4>
+                    <GenerationOptions
+                      control={control}
+                      errors={errors}
+                      watch={watch}
                       isLoading={isLoading}
+                      selectedType={selectedType}
+                      reset={reset}
+                      setValue={setValue}
+                      getValues={getValues}
+                      onSubmit={onSubmit}
                     />
-                  )}
-                  
-                  {/* Formularios dinámicos para QR Code */}
-                  {selectedType === 'qrcode' ? (
-                    <div className="space-y-4">
-                      <QRForm
-                        type={selectedQRType}
-                        data={qrFormData[selectedQRType]}
-                        onChange={handleQRFormChange}
-                        isLoading={isLoading}
-                      />
-                      
-                      {/* Botón para generar */}
-                      <Button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full h-10 bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600"
-                      >
-                        {isLoading ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            Generando...
-                          </div>
-                        ) : (
-                          "Generar"
-                        )}
-                      </Button>
-                    </div>
-                  ) : (
-                    /* Formulario simple para códigos que no son QR */
-                    <div className="flex gap-3">
-                      <Input
-                        {...register('data')}
-                        placeholder="Ingresa el contenido..."
-                        className={cn(
-                          "h-10 flex-1",
-                          errors.data && "border-red-400 dark:border-red-600"
-                        )}
-                      />
-                      <Button
-                        type="submit"
-                        disabled={isLoading}
-                        className={cn(
-                          "h-10 px-6 font-medium flex-shrink-0",
-                          "bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600",
-                          "transition-all duration-200"
-                        )}
-                      >
-                        {isLoading ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            Generando...
-                          </div>
-                        ) : (
-                          "Generar"
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                  
-                  {errors.data && (
-                    <p className="mt-2 text-xs text-red-600 dark:text-red-400">
-                      {errors.data.message}
-                    </p>
-                  )}
-                  
-                  {/* Separador */}
-                  {expandedSection === 'advanced' && (
-                    <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
-                      <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">Opciones Avanzadas</h4>
-                      <GenerationOptions
-                        control={control}
-                        errors={errors}
-                        watch={watch}
-                        isLoading={isLoading}
-                        selectedType={selectedType}
-                        reset={reset}
-                        setValue={setValue}
-                        getValues={getValues}
-                        onSubmit={onSubmit}
-                        expandedSection={expandedSection}
-                        setExpandedSection={setExpandedSection}
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Botón para mostrar opciones avanzadas */}
-                  {expandedSection !== 'advanced' && (
-                    <div className="pt-2">
-                      <button
-                        type="button"
-                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                        onClick={() => setExpandedSection('advanced')}
-                      >
-                        + Mostrar opciones avanzadas
-                      </button>
-                    </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
             </section>
@@ -300,6 +395,9 @@ export default function Home() {
                 barcodeType={selectedType}
                 isUsingV2={isUsingV2}
                 showCacheIndicator={metadata?.fromCache}
+                isUserTyping={isTyping && hasUserStartedTyping}
+                validationError={realTimeValidationError || validationError}
+                isInitialDisplay={!hasUserStartedTyping && selectedType === 'qrcode'}
               />
             </section>
           </div>

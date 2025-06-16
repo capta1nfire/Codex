@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
+import { exec } from 'child_process';
 import * as os from 'os';
 import { promisify } from 'util';
-import { exec } from 'child_process';
 
 const execAsync = promisify(exec);
 
@@ -17,15 +17,18 @@ async function getProcessInfo(): Promise<ProcessInfo[]> {
     const { stdout } = await execAsync(
       'ps aux | grep -E "(tsx|node.*backend)" | grep -v grep | grep -v monitorBackend'
     );
-    
-    const lines = stdout.trim().split('\n').filter(line => line.length > 0);
-    return lines.map(line => {
+
+    const lines = stdout
+      .trim()
+      .split('\n')
+      .filter((line) => line.length > 0);
+    return lines.map((line) => {
       const parts = line.split(/\s+/);
       return {
         pid: parseInt(parts[1]),
         cpu: parseFloat(parts[2]),
         memory: parseFloat(parts[3]),
-        command: parts.slice(10).join(' ')
+        command: parts.slice(10).join(' '),
       };
     });
   } catch {
@@ -46,38 +49,42 @@ async function getMemoryUsage(): Promise<any> {
   const totalMem = os.totalmem();
   const freeMem = os.freemem();
   const usedMem = totalMem - freeMem;
-  
+
   return {
     total: Math.round(totalMem / 1024 / 1024),
     free: Math.round(freeMem / 1024 / 1024),
     used: Math.round(usedMem / 1024 / 1024),
-    percentage: Math.round((usedMem / totalMem) * 100)
+    percentage: Math.round((usedMem / totalMem) * 100),
   };
 }
 
 async function monitor() {
   console.log('🔍 Backend Service Monitor');
   console.log('=========================\n');
-  
+
   // Check processes
   const processes = await getProcessInfo();
   console.log('📊 Backend Processes:');
   if (processes.length === 0) {
     console.log('   ❌ No backend processes found');
   } else {
-    processes.forEach(p => {
-      console.log(`   PID: ${p.pid} | CPU: ${p.cpu}% | MEM: ${p.memory}% | CMD: ${p.command.substring(0, 80)}...`);
+    processes.forEach((p) => {
+      console.log(
+        `   PID: ${p.pid} | CPU: ${p.cpu}% | MEM: ${p.memory}% | CMD: ${p.command.substring(0, 80)}...`
+      );
     });
   }
-  
+
   console.log('\n🌐 Port Status:');
   const port3004 = await checkPortStatus(3004);
   console.log(`   Port 3004 (Backend): ${port3004 ? '✅ Occupied' : '❌ Free'}`);
-  
+
   console.log('\n💾 System Memory:');
   const mem = await getMemoryUsage();
-  console.log(`   Total: ${mem.total} MB | Used: ${mem.used} MB (${mem.percentage}%) | Free: ${mem.free} MB`);
-  
+  console.log(
+    `   Total: ${mem.total} MB | Used: ${mem.used} MB (${mem.percentage}%) | Free: ${mem.free} MB`
+  );
+
   // Check for file changes that might trigger restarts
   console.log('\n📁 Recent File Changes:');
   try {
@@ -88,7 +95,7 @@ async function monitor() {
   } catch (error) {
     console.log('   Unable to check file changes');
   }
-  
+
   // Check logs for errors
   console.log('\n📝 Recent Error Log Entries:');
   try {

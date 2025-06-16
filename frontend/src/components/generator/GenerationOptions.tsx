@@ -278,12 +278,19 @@ function GenerationOptions({
                               control={control}
                               defaultValue={true}
                               render={({ field }) => (
-                                <Switch
-                                  checked={field.value || false}
-                                  onCheckedChange={field.onChange}
-                                  disabled={isLoading}
-                                  className="data-[state=checked]:bg-blue-600"
-                                />
+                                  <Switch
+                                    checked={field.value ?? true}
+                                    onCheckedChange={(checked) => {
+                                      field.onChange(checked);
+                                      // Trigger form re-generation
+                                      setTimeout(() => {
+                                        const currentFormValues = getValues();
+                                        onSubmit(currentFormValues);
+                                      }, 100);
+                                    }}
+                                    disabled={isLoading}
+                                    className="data-[state=checked]:bg-blue-600"
+                                  />
                               )}
                             />
                           </div>
