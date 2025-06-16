@@ -177,7 +177,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Columna de configuración */}
             <section className="lg:col-span-2 space-y-4" id="form-content">
-              <Card className="shadow-sm border border-slate-200 dark:border-slate-700">
+              <Card className="shadow-sm border-2 border-blue-400 dark:border-blue-600">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-base font-semibold">Configuración</CardTitle>
                 </CardHeader>
@@ -293,13 +293,15 @@ export default function Home() {
             </section>
 
             {/* Columna de vista previa con v2 */}
-            <PreviewSection
-              svgContent={svgContent}
-              isLoading={isLoading}
-              barcodeType={selectedType}
-              isUsingV2={isUsingV2}
-              showCacheIndicator={metadata?.fromCache}
-            />
+            <section className="border-2 border-green-400 dark:border-green-600 rounded-lg">
+              <PreviewSection
+                svgContent={svgContent}
+                isLoading={isLoading}
+                barcodeType={selectedType}
+                isUsingV2={isUsingV2}
+                showCacheIndicator={metadata?.fromCache}
+              />
+            </section>
           </div>
         </form>
       </main>
