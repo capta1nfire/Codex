@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Download, QrCode, Zap, Database, Keyboard } from 'lucide-react';
+import { Download, QrCode, Zap, Database, Keyboard, CheckCircle } from 'lucide-react';
 import BarcodeDisplay from '@/app/BarcodeDisplay';
 import { useBarcodeActions } from '@/hooks/useBarcodeActions';
 import { QRPlaceholder } from './QRPlaceholder';
@@ -48,7 +48,12 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   const showLoadingState = isLoading && !isUserTyping;
 
   return (
-    <Card className="shadow-sm border-slate-200 dark:border-slate-800 overflow-hidden">
+    <Card className="shadow-sm border-slate-200 dark:border-slate-800 overflow-hidden relative">
+      {/* Step 3 indicator */}
+      <div className="absolute -left-8 top-8 hidden lg:flex items-center justify-center w-6 h-6 rounded-full bg-corporate-blue-100 border border-corporate-blue-300 text-corporate-blue-700 text-xs font-medium">
+        3
+      </div>
+      
       <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 p-4 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -56,11 +61,12 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
               <QrCode className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 Vista Previa
+                <span className="text-xs text-slate-500 font-normal">Descarga tu código</span>
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                {isUserTyping ? 'Escribiendo...' : 'Resultado en tiempo real'}
+                {isUserTyping ? 'Escribiendo...' : svgContent ? 'Listo para descargar' : 'Resultado en tiempo real'}
               </p>
             </div>
           </div>
@@ -139,25 +145,37 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                <Button
-                  onClick={() => handleDownload()}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-                  disabled={!svgContent || isUserTyping}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Descargar PNG
-                </Button>
-                <Button
-                  onClick={() => handleDownload('svg')}
-                  variant="outline"
-                  className="flex-1"
-                  disabled={!svgContent || isUserTyping}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Descargar SVG
-                </Button>
+              {/* Actions with enhanced status */}
+              <div className="space-y-3">
+                {/* Ready indicator */}
+                {svgContent && !isUserTyping && (
+                  <div className="flex items-center justify-center gap-2 text-sm text-green-600 py-2">
+                    <CheckCircle className="w-4 h-4" />
+                    <span className="font-medium">¡Código listo para descargar!</span>
+                  </div>
+                )}
+                
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    onClick={() => handleDownload()}
+                    className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all duration-200 ${
+                      svgContent && !isUserTyping ? 'animate-pulse-subtle' : ''
+                    }`}
+                    disabled={!svgContent || isUserTyping}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Descargar PNG
+                  </Button>
+                  <Button
+                    onClick={() => handleDownload('svg')}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={!svgContent || isUserTyping}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Descargar SVG
+                  </Button>
+                </div>
               </div>
 
               {/* Quality indicator */}

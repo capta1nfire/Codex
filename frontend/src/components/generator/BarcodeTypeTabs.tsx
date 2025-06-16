@@ -27,7 +27,11 @@ export const BarcodeTypeTabs: React.FC<BarcodeTypeTabsProps> = ({
   };
 
   return (
-    <div className="mb-3">
+    <div className="mb-3 relative">
+      {/* Step 1 indicator */}
+      <div className="absolute -left-8 top-1/2 -translate-y-1/2 hidden lg:flex items-center justify-center w-6 h-6 rounded-full bg-corporate-blue-100 border border-corporate-blue-300 text-corporate-blue-700 text-xs font-medium">
+        1
+      </div>
       <div className="flex items-center gap-1 w-full">
         {/* Contenedor de tabs principales distribuidos uniformemente */}
         <div className="flex items-center justify-between flex-1 gap-2">

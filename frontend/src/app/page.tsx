@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { generateFormSchema, GenerateFormData } from '@/schemas/generate.schema';
-import { QrCode } from 'lucide-react';
+import { QrCode, Check } from 'lucide-react';
 import GenerationOptions from '@/components/generator/GenerationOptions';
 
 import { useForm } from 'react-hook-form';
@@ -264,8 +264,84 @@ export default function Home() {
     };
   }, [setIsDropdownOpen]);
 
+  // Calculate current step based on state
+  const currentStep = (() => {
+    if (!selectedType) return 1;
+    if (watchedData === getDefaultDataForType(selectedType) && watchedScale === 2) return 2;
+    return 3;
+  })();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-corporate-blue-50 to-slate-50">
+      {/* Progress indicator bar */}
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-40 hidden lg:block">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-3">
+            {/* Step indicators */}
+            <div className="flex items-center space-x-8">
+              <div className={cn(
+                "flex items-center gap-2",
+                currentStep >= 1 ? "text-corporate-blue-700" : "text-slate-400"
+              )}>
+                <div className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium",
+                  currentStep >= 1 
+                    ? "bg-corporate-blue-100 border border-corporate-blue-300 text-corporate-blue-700" 
+                    : "bg-slate-100 border border-slate-300"
+                )}>
+                  1
+                </div>
+                <span className="text-sm font-medium">Selecciona tipo</span>
+              </div>
+              
+              <div className="h-px w-16 bg-slate-300" />
+              
+              <div className={cn(
+                "flex items-center gap-2",
+                currentStep >= 2 ? "text-corporate-blue-700" : "text-slate-400"
+              )}>
+                <div className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium",
+                  currentStep >= 2 
+                    ? "bg-corporate-blue-100 border border-corporate-blue-300 text-corporate-blue-700" 
+                    : "bg-slate-100 border border-slate-300"
+                )}>
+                  2
+                </div>
+                <span className="text-sm font-medium">Personaliza</span>
+              </div>
+              
+              <div className="h-px w-16 bg-slate-300" />
+              
+              <div className={cn(
+                "flex items-center gap-2",
+                currentStep >= 3 ? "text-green-600" : "text-slate-400"
+              )}>
+                <div className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium",
+                  currentStep >= 3 
+                    ? "bg-green-100 border border-green-300 text-green-700" 
+                    : "bg-slate-100 border border-slate-300"
+                )}>
+                  3
+                </div>
+                <span className="text-sm font-medium">Descarga</span>
+              </div>
+            </div>
+            
+            {/* Progress bar */}
+            <div className="hidden xl:block">
+              <div className="w-48 h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-corporate-blue-400 to-corporate-blue-600 transition-all duration-500 ease-out"
+                  style={{ width: `${(currentStep / 3) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-6">
         {/* Tabs de tipos de código */}
         <BarcodeTypeTabs 
@@ -277,9 +353,25 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Columna de configuración */}
             <section className="lg:col-span-2 space-y-4" id="form-content">
-              <Card className="hero-card border-2 border-corporate-blue-200 shadow-corporate-lg">
+              <Card className="hero-card border-2 border-corporate-blue-200 shadow-corporate-lg relative">
+                {/* Step 2 indicator */}
+                <div className="absolute -left-8 top-8 hidden lg:flex items-center justify-center w-6 h-6 rounded-full bg-corporate-blue-100 border border-corporate-blue-300 text-corporate-blue-700 text-xs font-medium">
+                  2
+                </div>
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-base font-semibold">Configuración</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      Configuración
+                      <span className="text-xs text-slate-500 font-normal">Personaliza tu código</span>
+                    </CardTitle>
+                    {/* Configuration status indicator */}
+                    {(watchedData !== getDefaultDataForType(selectedType) || watchedScale !== 2) && (
+                      <div className="flex items-center gap-1 text-xs text-green-600">
+                        <Check className="h-3 w-3" />
+                        <span>Personalizado</span>
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   
@@ -388,7 +480,7 @@ export default function Home() {
             </section>
 
             {/* Columna de vista previa con v2 */}
-            <section className="border-2 border-green-400 dark:border-green-600 rounded-lg">
+            <section className="border-2 border-green-400 dark:border-green-600 rounded-lg relative">
               <PreviewSection
                 svgContent={svgContent}
                 isLoading={isLoading}

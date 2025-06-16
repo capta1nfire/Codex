@@ -117,6 +117,22 @@
   }
 }
 
+@layer utilities {
+  /* Subtle pulse animation for download button */
+  @keyframes pulse-subtle {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.85;
+    }
+  }
+  
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
