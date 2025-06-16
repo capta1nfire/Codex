@@ -177,7 +177,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Columna de configuración */}
             <section className="lg:col-span-2 space-y-4" id="form-content">
-              <Card className="shadow-sm border-2 border-blue-400 dark:border-blue-600">
+              <Card className="hero-card border-2 border-corporate-blue-200 shadow-corporate-lg">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-base font-semibold">Configuración</CardTitle>
                 </CardHeader>
