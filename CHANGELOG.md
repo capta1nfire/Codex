@@ -10,6 +10,49 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
+### 2025-01-16
+
+#### Added
+- ✨ **Sophisticated QR Mockup System** - Enhanced preview with typing-aware placeholder
+  - High-fidelity QR placeholder shows while user is typing
+  - Sophisticated typing tracker with 150ms debounce for responsive UI
+  - Smooth transitions between placeholder and real QR code
+  - Placeholder includes realistic QR patterns (finder patterns, timing patterns)
+  - Visual indicators for typing and generation states
+  - Test page available at `/test-mockup` for demonstration
+  - Engineered for performance with minimal re-renders
+
+- ✨ **Smart Auto-Generation System** - Intelligent automatic barcode generation
+  - Type-specific validation prevents invalid API calls
+  - Optimized debounce delays (200-500ms) based on input complexity
+  - Request cancellation for better performance
+  - Subtle visual feedback with validation messages
+  - Generate button hidden during auto-generation
+  - ~70-80% requests hit Redis cache for common values
+  - Full documentation in [SMART_AUTO_GENERATION.md](./frontend/docs/SMART_AUTO_GENERATION.md)
+
+- ✨ **Improved QR Form UX** - Separated visual placeholders from default values
+  - Empty input fields show placeholder text instead of default values
+  - Users don't need to delete pre-filled content
+  - Internal default values generate QR codes when fields are empty
+  - Centralized placeholder management in `qrPlaceholders.ts`
+  - Cleaner visual presentation with true placeholder behavior
+
+- ✨ **Enhanced URL Input with Material Design** - Professional floating label interface
+  - Material Design floating label that animates on focus
+  - Three visual states: blue (initial), red (error), amber (warning for unavailable sites)
+  - Clickable badge shows validated URLs with external link functionality
+  - Clear button (X) overlaid on badge for quick reset
+  - Enter key support for immediate URL confirmation
+  - Badge state persistence when clicking away after editing
+
+#### Fixed
+- 🔧 **Auto-generation not triggering** - Fixed QR form data passing wrong parameter
+- 🔧 **URL validation too strict** - Simplified to allow generation while typing
+- 🔧 **Generate button confusion** - Now hidden when auto-generation is active
+- 🔧 **URL validation flexibility** - Now accepts URLs without "www" prefix
+- 🔧 **Validation speed** - Reduced debounce from 1500ms to 800ms for faster feedback
+
 ### 2025-06-15
 
 #### Fixed
