@@ -48,12 +48,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   const showLoadingState = isLoading && !isUserTyping;
 
   return (
-    <Card className="shadow-sm border-slate-200 dark:border-slate-800 overflow-hidden relative">
-      {/* Step 3 indicator */}
-      <div className="absolute -left-8 top-8 hidden lg:flex items-center justify-center w-6 h-6 rounded-full bg-corporate-blue-100 border border-corporate-blue-300 text-corporate-blue-700 text-xs font-medium">
-        3
-      </div>
-      
+    <Card className="shadow-sm border-slate-200 dark:border-slate-800 overflow-hidden">
       <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 p-4 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -61,9 +56,8 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
               <QrCode className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100">
                 Vista Previa
-                <span className="text-xs text-slate-500 font-normal">Descarga tu código</span>
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
                 {isUserTyping ? 'Escribiendo...' : svgContent ? 'Listo para descargar' : 'Resultado en tiempo real'}
