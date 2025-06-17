@@ -37,6 +37,7 @@ interface UseBarcodeGenerationReturn {
   metadata: GenerationMetadata | null;
   generateBarcode: (formData: GenerateFormData) => Promise<void>;
   clearError: () => void;
+  clearContent: () => void;
   isUsingV2: boolean;
 }
 
@@ -254,6 +255,11 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
 
   const clearError = useCallback(() => {
     setServerError(null);
+    // No limpiar svgContent aquí, solo limpiar errores
+  }, []);
+  
+  const clearContent = useCallback(() => {
+    setSvgContent('');
   }, []);
 
   return {
@@ -263,6 +269,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
     metadata,
     generateBarcode,
     clearError,
+    clearContent,
     isUsingV2,
   };
 };

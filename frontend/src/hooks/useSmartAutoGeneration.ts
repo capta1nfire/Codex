@@ -52,6 +52,7 @@ export interface AutoGenerationOptions {
   onValidationError?: (error: string | null) => void;
   onGenerationStart?: () => void;
   onGenerationEnd?: () => void;
+  onGenerate?: (formData: GenerateFormData) => void | Promise<void>;
 }
 
 export interface SmartAutoGenerationResult {
@@ -76,7 +77,8 @@ export function useSmartAutoGeneration(options: AutoGenerationOptions = {}): Sma
     customDelay,
     onValidationError,
     onGenerationStart,
-    onGenerationEnd
+    onGenerationEnd,
+    onGenerate
   } = options;
 
   const { generateBarcode } = useBarcodeGenerationV2();
@@ -129,8 +131,17 @@ export function useSmartAutoGeneration(options: AutoGenerationOptions = {}): Sma
         ? qrFormData
         : formData.data;
 
+      console.log('[DEBUG] Validating data:', {
+        validator: qrType || formData.barcode_type,
+        dataToValidate,
+        isQRCode: formData.barcode_type === 'qrcode',
+        hasQRFormData: !!qrFormData
+      });
+
       // Validate
       const validationResult = validator(dataToValidate);
+
+      console.log('[DEBUG] Validation result:', validationResult);
 
       if (!validationResult.isValid) {
         const error = validationResult.message || 'Datos incompletos';
@@ -145,6 +156,7 @@ export function useSmartAutoGeneration(options: AutoGenerationOptions = {}): Sma
     onValidationError?.(null);
 
     // Start generation
+    console.log('[DEBUG] Starting generation with formData:', formData);
     setIsAutoGenerating(true);
     onGenerationStart?.();
 
@@ -152,16 +164,25 @@ export function useSmartAutoGeneration(options: AutoGenerationOptions = {}): Sma
     abortControllerRef.current = new AbortController();
 
     try {
-      await generateBarcode(formData);
+      if (onGenerate) {
+        console.log('[DEBUG] Calling onGenerate...');
+        await onGenerate(formData);
+        console.log('[DEBUG] onGenerate completed successfully');
+      } else {
+        console.log('[DEBUG] Calling generateBarcode...');
+        await generateBarcode(formData);
+        console.log('[DEBUG] generateBarcode completed successfully');
+      }
     } catch (error: any) {
       if (error.name !== 'AbortError') {
-        console.error('Auto-generation error:', error);
+        console.error('[DEBUG] Auto-generation error:', error);
       }
     } finally {
+      console.log('[DEBUG] Generation finished');
       setIsAutoGenerating(false);
       onGenerationEnd?.();
     }
-  }, [enabled, generateBarcode, cancelGeneration, onValidationError, onGenerationStart, onGenerationEnd]);
+  }, [enabled, generateBarcode, cancelGeneration, onValidationError, onGenerationStart, onGenerationEnd, onGenerate]);
 
   /**
    * Get or create debounced function for specific type

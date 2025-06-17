@@ -14,9 +14,23 @@ interface QRFormProps {
   onChange: (type: string, field: string, value: any) => void;
   isLoading: boolean;
   validationError?: string | null;
+  onUrlValidationComplete?: (exists: boolean, error: string | null, url?: string) => void;
+  urlExists?: boolean | null;
+  onGenerateAnyway?: () => void;
+  shouldShowGenerateAnywayButton?: boolean;
 }
 
-export const QRForm: React.FC<QRFormProps> = ({ type, data, onChange, isLoading, validationError }) => {
+export const QRForm: React.FC<QRFormProps> = ({ 
+  type, 
+  data, 
+  onChange, 
+  isLoading, 
+  validationError,
+  onUrlValidationComplete,
+  urlExists,
+  onGenerateAnyway,
+  shouldShowGenerateAnywayButton
+}) => {
   const handleChange = (field: string, value: any) => {
     onChange(type, field, value);
   };
@@ -35,7 +49,18 @@ export const QRForm: React.FC<QRFormProps> = ({ type, data, onChange, isLoading,
     case 'text':
       return <TextForm data={data} onChange={handleChange} isLoading={isLoading} />;
     case 'link':
-      return <LinkForm data={data} onChange={handleChange} isLoading={isLoading} validationError={validationError} />;
+      return (
+        <LinkForm 
+          data={data} 
+          onChange={handleChange} 
+          isLoading={isLoading} 
+          validationError={validationError}
+          onUrlValidationComplete={onUrlValidationComplete}
+          urlExists={urlExists}
+          onGenerateAnyway={onGenerateAnyway}
+          shouldShowGenerateAnywayButton={shouldShowGenerateAnywayButton}
+        />
+      );
     case 'vcard':
       return <VCardForm data={data} onChange={handleChange} isLoading={isLoading} />;
     default:

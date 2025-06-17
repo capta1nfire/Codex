@@ -12,15 +12,30 @@ interface LinkFormProps {
   onChange: (field: string, value: string) => void;
   isLoading: boolean;
   validationError?: string | null;
+  onUrlValidationComplete?: (exists: boolean, error: string | null, url?: string) => void;
+  urlExists?: boolean | null;
+  onGenerateAnyway?: () => void;
+  shouldShowGenerateAnywayButton?: boolean;
 }
 
-export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, validationError }) => {
+export const LinkForm: React.FC<LinkFormProps> = ({ 
+  data, 
+  onChange, 
+  isLoading, 
+  validationError,
+  onUrlValidationComplete,
+  urlExists,
+  onGenerateAnyway,
+  shouldShowGenerateAnywayButton
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = React.useState(false);
   const [showBadge, setShowBadge] = React.useState(false);
   const badgeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasValue = data.url && data.url.length > 0;
-  const isValidUrl = hasValue && !validationError && data.url !== '' && data.url !== 'https://tu-sitio-web.com';
+  const hasRealValue = hasValue && data.url !== 'https://tu-sitio-web.com';
+  const isValidUrl = hasRealValue && !validationError && data.url !== '';
+  
   
   // Hook de validación de URL
   const { isValidating, metadata, error: validationUrlError, validateUrl } = useUrlValidation({
@@ -32,8 +47,12 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
   // Ahora también muestra el warning cuando está enfocado si ya se validó
   const showWarning = !isValidating && isValidUrl && metadata && !metadata.exists;
   
-  // Determinar si es el mensaje inicial (azul) o un error real (rojo)
-  const isInitialMessage = validationError === 'Ingresa el enlace de tu sitio web o página' && !hasValue;
+  // Determinar si es un mensaje de guía (azul) o un error real (rojo)
+  const isGuidanceMessage = 
+    validationError === 'Ingresa el enlace de tu sitio web o página' ||
+    validationError === 'Continúa escribiendo...' ||
+    validationError?.includes('Añade') ||
+    validationError?.includes('Completa');
   
   // Validar URL cuando cambie y sea válida según validación local
   useEffect(() => {
@@ -41,6 +60,23 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
       validateUrl(data.url);
     }
   }, [data.url, isValidUrl, validateUrl]);
+  
+  // Notificar cuando la validación se complete
+  // CRITICAL: This coordination between LinkForm and page.tsx is essential
+  // LinkForm validates URL existence, then notifies parent via callback
+  // Parent then decides whether to generate QR or show warning
+  const lastNotifiedUrl = useRef<string>('');
+  useEffect(() => {
+    if (onUrlValidationComplete && metadata && !isValidating) {
+      // Solo notificar si es una URL diferente para evitar loops
+      // Without this check, we'd notify repeatedly for the same URL
+      const currentUrl = data.url;
+      if (currentUrl !== lastNotifiedUrl.current) {
+        lastNotifiedUrl.current = currentUrl;
+        onUrlValidationComplete(metadata.exists, validationUrlError, currentUrl);
+      }
+    }
+  }, [metadata, isValidating, validationUrlError, onUrlValidationComplete, data.url]);
   
   // Auto-mostrar badge después de 3 segundos si la URL es válida
   useEffect(() => {
@@ -114,7 +150,8 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
   };
 
   return (
-    <div className="mt-5"> {/* Extra spacing for floating label */}
+    <div>
+      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Sitio Web</label>
       <div 
         className="relative cursor-text"
         onClick={handleContainerClick}
@@ -127,14 +164,14 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
           {/* Border - now part of the input container */}
           <div className={cn(
             "absolute inset-0 border rounded-lg transition-all duration-200 pointer-events-none",
-            isInitialMessage ? [
+            isGuidanceMessage ? [
               "border-corporate-blue-400 dark:border-corporate-blue-400",
               "rounded-b-none border-b-0" // Remove bottom border and corners
             ] : validationError ? [
               "border-[#D52E4C] dark:border-[#D52E4C]",
               "rounded-b-none border-b-0" // Remove bottom border and corners
             ] : showWarning ? [
-              "border-[#E0541C] dark:border-[#E0541C]",
+              "border-[#D52E4C] dark:border-[#D52E4C]",
               "rounded-b-none border-b-0" // Remove bottom border and corners for warning
             ] : [
               "border-slate-300 dark:border-slate-700"
@@ -142,28 +179,13 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
             ]
           )} />
           
-          {/* Floating label - Material Design style */}
-          <label
-            className={cn(
-              "absolute left-2.5 transition-all duration-200 pointer-events-none z-10",
-              isInitialMessage ? "text-corporate-blue-700 dark:text-corporate-blue-700" : validationError ? "text-[#D52E4C]" : showWarning ? "text-[#E0541C]" : "text-slate-500 dark:text-slate-400",
-              (isFocused || hasValue) ? [
-                "-top-2.5 text-xs px-2", // Floating position with more padding
-                "bg-gradient-to-b from-white to-white dark:from-slate-950 dark:to-slate-950", // Solid background to cover border
-                !validationError && !showWarning && "text-slate-600 dark:text-slate-300" // Only apply gray when no error or warning
-              ] : [
-                "top-1/2 -translate-y-1/2 text-base" // Perfectly centered when inside
-              ]
-            )}
-          >
-            Sitio Web
-          </label>
-          
           {/* Input area - always visible */}
           <Input
             ref={inputRef}
             value={data.url}
-            onChange={(e) => onChange('url', e.target.value)}
+            onChange={(e) => {
+              onChange('url', e.target.value);
+            }}
             onFocus={() => {
               setIsFocused(true);
               // Clear on focus if empty or has default value
@@ -180,11 +202,12 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
             }}
             onClick={handleInputClick}
             onKeyDown={handleKeyDown}
+            placeholder="https://tu-sitio-web.com"
             className={cn(
-              "h-12 w-full px-3 border-0 rounded-lg transition-all duration-200",
+              "h-10 w-full px-3 border-0 rounded-lg transition-all duration-200",
               "focus:outline-none focus:ring-0",
               "focus-visible:outline-none focus-visible:ring-0 focus-visible:border-transparent", // Remove all focus effects
-              "placeholder-transparent", // Hide placeholder when using floating label
+              "placeholder:text-slate-400 dark:placeholder:text-slate-600",
               "bg-white dark:bg-slate-950",
               // Text color based on state
               validationError ? "text-slate-900 dark:text-white" : isValidUrl ? "text-corporate-blue-700 dark:text-corporate-blue-300" : "text-slate-900 dark:text-white",
@@ -224,7 +247,7 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
                     <Check className="h-4 w-4 text-green-600" />
                   )}
                   {!isValidating && validationUrlError && (
-                    <CircleX className="h-3.5 w-3.5 text-[#E0541C]" />
+                    <CircleX className="h-3.5 w-3.5 text-[#D52E4C]" />
                   )}
                   
                   {/* Tooltip mejorado */}
@@ -264,8 +287,8 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
               "text-xs font-medium",
               "animate-in slide-in-from-top-1 fade-in duration-200",
               "cursor-text",
-              isInitialMessage ? "text-corporate-blue-700 dark:text-corporate-blue-700" : "text-white",
-              isInitialMessage ? [
+              isGuidanceMessage ? "text-corporate-blue-700 dark:text-corporate-blue-700" : "text-white",
+              isGuidanceMessage ? [
                 "border-corporate-blue-400 dark:border-corporate-blue-400",
                 "bg-gradient-to-br from-corporate-blue-50 to-corporate-blue-100/50"
               ] : [
@@ -286,22 +309,36 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
         {showWarning && (
           <div 
             className={cn(
-              "border border-[#E0541C] dark:border-[#E0541C]",
+              "border border-[#D52E4C] dark:border-[#D52E4C]",
               "border-t-0 rounded-b-lg", // Connect to input with bottom corners
               "px-3 py-1.5",
-              "bg-[#E0541C] dark:bg-[#E0541C]",
+              "bg-[#D52E4C] dark:bg-[#D52E4C]",
               "text-white text-xs font-medium",
               "animate-in slide-in-from-top-1 fade-in duration-200",
               "cursor-text",
-              "flex items-center gap-1.5"
+              "flex items-center justify-between gap-1.5"
             )}
             onClick={(e) => {
               e.stopPropagation();
               handleContainerClick();
             }}
           >
-            <CircleX className="h-3.5 w-3.5 flex-shrink-0" />
-            <span>Verifica que el sitio web esté disponible</span>
+            <div className="flex items-center gap-1.5">
+              <CircleX className="h-3.5 w-3.5 flex-shrink-0" />
+              <span>Verifica que el sitio web esté disponible</span>
+            </div>
+            {shouldShowGenerateAnywayButton && onGenerateAnyway && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onGenerateAnyway();
+                }}
+                className="px-2 py-0.5 text-xs font-medium text-[#D52E4C] bg-white hover:bg-gray-100 rounded transition-colors duration-200"
+              >
+                Generar de todas formas
+              </button>
+            )}
           </div>
         )}
       </div>

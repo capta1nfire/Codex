@@ -42,6 +42,37 @@ private getAuthToken(): string | null {
 2. La llamada a `/api/auth/api-key` debe incluir el header `Authorization: Bearer <token>`
 3. No más errores 401 en la generación de API Keys
 
+### **🔄 Problema: Maximum Update Depth Exceeded en LinkForm**
+
+#### **Síntomas**
+```
+Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate.
+```
+
+#### **Causa Raíz**
+El componente entraba en un loop infinito al validar URLs porque:
+- `onUrlValidationComplete` se llamaba repetidamente para la misma URL
+- Cada llamada actualizaba el estado padre, causando re-render
+- El re-render disparaba otra validación
+
+#### **Solución Implementada** ✅
+Agregados refs para trackear URLs procesadas:
+
+```typescript
+// En LinkForm.tsx
+const lastNotifiedUrl = useRef<string>('');
+if (currentUrl !== lastNotifiedUrl.current) {
+  lastNotifiedUrl.current = currentUrl;
+  onUrlValidationComplete(metadata.exists, validationUrlError);
+}
+
+// En page.tsx
+const lastValidatedUrl = useRef<string>('');
+if (currentUrl === lastValidatedUrl.current) {
+  return; // Evitar procesar la misma URL
+}
+```
+
 ### **📝 Problema: Campos del Perfil Aparecen Vacíos**
 
 #### **Síntomas**

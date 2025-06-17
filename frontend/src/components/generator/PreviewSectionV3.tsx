@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Download, QrCode, Zap, Database, Keyboard, CheckCircle } from 'lucide-react';
+import { Download, QrCode, Zap, Database, Keyboard, CheckCircle, Sparkles } from 'lucide-react';
 import BarcodeDisplay from '@/app/BarcodeDisplay';
 import { useBarcodeActions } from '@/hooks/useBarcodeActions';
-import { QRPlaceholder } from './QRPlaceholder';
 
 interface PreviewSectionProps {
   svgContent: string;
@@ -16,6 +15,7 @@ interface PreviewSectionProps {
   isUserTyping?: boolean;
   validationError?: string | null;
   isInitialDisplay?: boolean;
+  className?: string;
   gradientOptions?: {
     enabled: boolean;
     type?: string;
@@ -38,175 +38,180 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   isUserTyping = false,
   validationError = null,
   isInitialDisplay = false,
+  className = '',
   gradientOptions,
 }) => {
   const { handleDownload } = useBarcodeActions(svgContent, barcodeType);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [showHeroMoment, setShowHeroMoment] = useState(false);
+  const [previousSvgContent, setPreviousSvgContent] = useState(svgContent);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
   
-  // Determine what to show
-  const showPlaceholder = isUserTyping && barcodeType === 'qrcode' && !isInitialDisplay;
-  const showRealBarcode = svgContent && (!isUserTyping || isInitialDisplay) && !isLoading;
-  const showLoadingState = isLoading && !isUserTyping;
+  // Determine what to show - simplified logic
+  const showLoadingState = isLoading;
+  const showRealBarcode = !showLoadingState && svgContent && !isLoading;
+  const showEmptyState = !showLoadingState && !showRealBarcode && !svgContent;
+  
+  // Detect when new QR code is generated
+  useEffect(() => {
+    if (svgContent && svgContent !== previousSvgContent && !isLoading) {
+      // Don't show hero moment on first load
+      if (!isFirstLoad) {
+        setShowHeroMoment(true);
+        
+        // Note: Audio is now played from page.tsx when QR generation starts
+        // This ensures better sync with the 2-second validation delay
+        
+        // Hide hero moment after animation completes
+        const timer = setTimeout(() => {
+          setShowHeroMoment(false);
+        }, 4000); // Extended to 4 seconds for better visibility
+        
+        return () => clearTimeout(timer);
+      }
+      setPreviousSvgContent(svgContent);
+      setIsFirstLoad(false);
+    }
+  }, [svgContent, previousSvgContent, isLoading, isFirstLoad]);
+  
+  // VIDEO LOOP LOGIC: Creates a sophisticated placeholder experience
+  // The 2-second video loops from 1s mark, creating seamless animation
+  // Pattern: Play 2s → Pause 3s → Repeat (5s total cycle)
+  useEffect(() => {
+    if (!showEmptyState) return;
+    
+    const video = videoRef.current;
+    if (!video) return;
+    
+    let playTimeoutId: NodeJS.Timeout;
+    let pauseTimeoutId: NodeJS.Timeout;
+    
+    const startCycle = () => {
+      // Enable loop and start from second 1 to avoid jarring start
+      video.loop = true;
+      video.currentTime = 1.0;
+      
+      // Handle play promise to avoid errors
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          // Ignore AbortError as it's expected when component unmounts
+          if (error.name !== 'AbortError') {
+            console.error('Video play error:', error);
+          }
+        });
+      }
+      
+      // After 2 seconds (1->2->0->1), pause the video
+      playTimeoutId = setTimeout(() => {
+        video.pause();
+        video.loop = false;
+        
+        // Wait 3 seconds, then restart
+        pauseTimeoutId = setTimeout(() => {
+          startCycle();
+        }, 3000);
+      }, 2000); // 2 seconds of playback
+    };
+    
+    // Start the first cycle
+    startCycle();
+    
+    return () => {
+      clearTimeout(playTimeoutId);
+      clearTimeout(pauseTimeoutId);
+      if (video) {
+        video.pause();
+        video.loop = false;
+      }
+    };
+  }, [showEmptyState]);
 
   return (
-    <Card className="shadow-sm border-slate-200 dark:border-slate-800 overflow-hidden">
-      <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 p-4 border-b border-slate-200 dark:border-slate-800">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm">
-              <QrCode className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+    <>
+      {/* Loading state */}
+      {showLoadingState && (
+        <div className={`${className} flex items-center justify-center min-h-[300px] bg-transparent`}>
+          <div className="text-center space-y-4">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-slate-200 dark:border-slate-700 rounded-full"></div>
+              <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
             </div>
-            <div>
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                Vista Previa
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {isUserTyping ? 'Escribiendo...' : svgContent ? 'Listo para descargar' : 'Resultado en tiempo real'}
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {isUserTyping && (
-              <Badge variant="outline" className="gap-1 text-amber-600 border-amber-600">
-                <Keyboard className="w-3 h-3" />
-                Typing
-              </Badge>
-            )}
-            {isUsingV2 && (
-              <Badge variant="secondary" className="gap-1">
-                <Zap className="w-3 h-3" />
-                v2
-              </Badge>
-            )}
-            {showCacheIndicator && (
-              <Badge variant="outline" className="gap-1 text-green-600 border-green-600">
-                <Database className="w-3 h-3" />
-                Cached
-              </Badge>
-            )}
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+              Generando código...
+            </p>
           </div>
         </div>
-      </div>
-
-      <CardContent className="p-0">
-        <div className="bg-white dark:bg-slate-950 p-8">
-          {/* Loading state */}
-          {showLoadingState && (
-            <div className="flex items-center justify-center min-h-[300px]">
-              <div className="text-center space-y-4">
-                <div className="relative">
-                  <div className="w-16 h-16 border-4 border-slate-200 dark:border-slate-700 rounded-full"></div>
-                  <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
-                </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                  Generando código...
-                </p>
-              </div>
-            </div>
-          )}
+      )}
           
-          {/* Placeholder while typing */}
-          {showPlaceholder && (
-            <div className="flex flex-col items-center justify-center min-h-[300px] transition-all duration-300">
-              <QRPlaceholder 
-                size={256} 
-                isTyping={isUserTyping}
-                className="mb-4"
+      {/* Real barcode display */}
+      {showRealBarcode && (
+        <div className={`${className} mx-auto w-fit`}>
+          {/* QR Code */}
+          <div className="p-6 pb-4 flex justify-center">
+            <div className="bg-white dark:bg-white rounded-lg p-3 shadow-sm relative">
+              <BarcodeDisplay
+                svgContent={svgContent}
+                type={barcodeType}
+                data=""
               />
               
-              {/* Validation feedback */}
-              {validationError && (
-                <div className="mt-4 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                  <p className="text-xs text-amber-600 dark:text-amber-400">
-                    {validationError}
-                  </p>
+              {/* Subtle hero moment - just a checkmark */}
+              {showHeroMoment && (
+                <div className="absolute -top-2 -right-2 animate-subtleSuccess">
+                  <div className="bg-green-500 text-white rounded-full p-1 shadow-md">
+                    <CheckCircle className="w-5 h-5" />
+                  </div>
                 </div>
               )}
             </div>
-          )}
+          </div>
           
-          {/* Real barcode display */}
-          {showRealBarcode && (
-            <div className="space-y-4 transition-all duration-300 animate-fadeIn">
-              {/* Barcode display with better centering */}
-              <div className="flex justify-center">
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800">
-                  <BarcodeDisplay
-                    svgContent={svgContent}
-                    type={barcodeType}
-                    data=""
-                  />
-                </div>
-              </div>
-
-              {/* Actions with enhanced status */}
-              <div className="space-y-3">
-                {/* Ready indicator */}
-                {svgContent && !isUserTyping && (
-                  <div className="flex items-center justify-center gap-2 text-sm text-green-600 py-2">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="font-medium">¡Código listo para descargar!</span>
-                  </div>
-                )}
-                
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button
-                    onClick={() => handleDownload()}
-                    className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all duration-200 ${
-                      svgContent && !isUserTyping ? 'animate-pulse-subtle' : ''
-                    }`}
-                    disabled={!svgContent || isUserTyping}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Descargar PNG
-                  </Button>
-                  <Button
-                    onClick={() => handleDownload('svg')}
-                    variant="outline"
-                    className="flex-1"
-                    disabled={!svgContent || isUserTyping}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Descargar SVG
-                  </Button>
-                </div>
-              </div>
-
-              {/* Quality indicator */}
-              <div className="flex items-center justify-center pt-2">
-                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  </div>
-                  <span>Alta calidad</span>
-                </div>
+          {/* Actions in subcard */}
+          <div className="px-6 pb-6">
+            <div className="flex flex-col sm:flex-row gap-2 max-w-[320px] mx-auto">
+                <Button
+                  onClick={() => handleDownload()}
+                  className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all duration-200 ${
+                    svgContent ? 'animate-pulse-subtle' : ''
+                  }`}
+                  disabled={!svgContent}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Descargar PNG
+                </Button>
+                <Button
+                  onClick={() => handleDownload('svg')}
+                  variant="outline"
+                  className="flex-1"
+                  disabled={!svgContent}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Descargar SVG
+                </Button>
               </div>
             </div>
-          )}
-          
-          {/* Empty state (no content, not typing) */}
-          {!svgContent && !isLoading && !isUserTyping && (
-            <div className="flex items-center justify-center min-h-[300px]">
-              <div className="text-center space-y-4">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full">
-                  <QrCode className="w-8 h-8 text-slate-400 dark:text-slate-600" />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                    Sin vista previa
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-500">
-                    Configura las opciones para generar
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-      </CardContent>
-    </Card>
+      )}
+      
+      {/* Empty state (no content, not typing) - Show video placeholder */}
+      {showEmptyState && (
+        <div className={`${className} mx-auto w-fit`}>
+          <div className="p-6 pb-4 flex justify-center">
+            <div className="bg-white dark:bg-white rounded-lg p-3 shadow-sm">
+              <video
+                ref={videoRef}
+                muted
+                playsInline
+                loop
+                className="w-[300px] h-[300px] rounded"
+                src="/assets/videos/qr-placeholder.mp4"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

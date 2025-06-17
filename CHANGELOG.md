@@ -10,6 +10,71 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
+### 2025-01-17
+
+#### Added
+- ✨ **Video Placeholder for QR Preview** - Dynamic video loop while no QR is displayed
+  - 28KB MP4 video plays 2 seconds, pauses 3 seconds in continuous cycle
+  - Replaces static "Sin vista previa" text with engaging visual
+  
+- ✨ **Smart URL Validation Flow** - Validate before generate with user control
+  - URL existence validation BEFORE QR generation (was generating prematurely)
+  - "Generate anyway" button for non-existent URLs
+  - 2-second post-validation delay for better UX
+  - Prevents loops with proper ref management
+  
+- ✨ **Subtle Hero Moment** - Professional success feedback
+  - Green checkmark appears with smooth rotation animation
+  - Border briefly highlights in green
+  - Subtle success sound at 10% volume
+  - 2-second duration for non-intrusive confirmation
+  
+- ✨ **Animated Gradient Background** - Modern SaaS-style visual
+  - Three animated blob gradients with 20s animation cycle
+  - Soft blur effect for depth
+  - Inspired by Capta.co aesthetic
+
+#### Fixed
+- 🔧 **URL Validation Timing** - Fixed premature validation while typing
+  - Changed typing pattern from `[\w]{1,3}` to `[\w]{1,2}` to allow complete extensions
+  - Improved progressive validation messages
+  
+- 🔧 **QR Generation Order** - Fixed QR generating before validation completes
+  - Separated data update from validation for link type
+  - QR only generates after successful validation or user override
+  
+- 🔧 **Infinite Render Loop** - Fixed maximum update depth exceeded
+  - Added lastNotifiedUrl and lastValidatedUrl refs
+  - Proper cleanup of timeouts on unmount
+
+#### UI Refinements
+- 🎨 **Visual Consistency** - Aligned column styles and transparency
+  - Fixed transparency levels in hero-card backgrounds (5% opacity)
+  - Ensured both columns have same shadow and border styles
+  - Consistent margin/padding between containers and subcards
+  
+- 🎨 **QR Preview Improvements**
+  - Increased QR code size from scale 2 to 4
+  - Implemented sticky functionality for preview column
+  - Made QR background transparent with glassmorphism effect
+  - Added rounded corners to white QR container
+  - Hero check animation now inside QR container
+  
+- 🎨 **Validation Messages** - Improved color coding
+  - Guidance messages (blue): "Continúa escribiendo", "Añade .com", etc.
+  - Error messages (red): "Verifica que el sitio esté disponible"
+  - Fixed initial message display on empty state
+  
+- 🎨 **Form Refinements**
+  - Changed floating label to standard label for URL input
+  - Added proper spacing between QR type selector and form
+  - Adjusted button width to match QR code width
+  - Video placeholder sized to match QR dimensions (300x300px)
+  
+- 🔧 **Audio Sync** - Fixed hero moment sound delay
+  - Audio now plays when validation completes (before 2s delay)
+  - Better synchronization with visual feedback
+
 ### 2025-01-16
 
 #### Added

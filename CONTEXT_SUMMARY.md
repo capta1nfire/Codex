@@ -224,7 +224,14 @@ cd rust_generator && cargo run  # Puerto 3002 (CORRECTED)
 ### **📋 Logros Técnicos Recientes** 
 > **Nota**: Ver historial completo en `CHANGELOG.md`
 
-#### **Hoy (14 Junio 2025)**
+#### **Hoy (17 Junio 2025)**
+- ✅ **UI Refinements**: Mejoras visuales en generador QR
+  - Sticky preview column implementado
+  - Transparencia y consistencia visual entre columnas
+  - Mensajes de validación con código de colores mejorado
+  - Audio sincronizado con feedback visual
+
+#### **14 Junio 2025**
 - ✅ **API v1/v2**: Reestructuración completa con endpoints especializados
 - ✅ **`.nav.md`**: Actualizado con workflows modernos y validación automática
 - ✅ **Documentación**: Reorganización de CONTEXT_SUMMARY.md para claridad

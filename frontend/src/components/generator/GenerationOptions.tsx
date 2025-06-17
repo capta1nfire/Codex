@@ -107,10 +107,17 @@ function GenerationOptions({
         defaultValue={defaultValue}
         render={({ field }) => (
           <div className="flex gap-2 items-center">
-            <Input
+            <input
               type="color"
               value={field.value || defaultValue}
-              onChange={(e) => field.onChange(e.target.value)}
+              onChange={(e) => {
+                field.onChange(e.target.value);
+                // Trigger form re-generation
+                setTimeout(() => {
+                  const currentFormValues = getValues();
+                  onSubmit(currentFormValues);
+                }, 100);
+              }}
               className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
               disabled={isLoading}
               aria-label={`Seleccionar ${label.toLowerCase()}`}
@@ -120,7 +127,14 @@ function GenerationOptions({
               value={field.value || defaultValue}
               disabled={isLoading}
               placeholder={defaultValue}
-              onChange={(e) => field.onChange(e.target.value)}
+              onChange={(e) => {
+                field.onChange(e.target.value);
+                // Trigger form re-generation
+                setTimeout(() => {
+                  const currentFormValues = getValues();
+                  onSubmit(currentFormValues);
+                }, 100);
+              }}
               className={cn(
                 "h-8 text-sm flex-1",
                 errors.options?.[name.split('.')[1] as keyof typeof errors.options] 
@@ -245,7 +259,18 @@ function GenerationOptions({
                           control={control}
                           defaultValue="radial"
                           render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                            <Select 
+                              value={field.value} 
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                // Trigger form re-generation
+                                setTimeout(() => {
+                                  const currentFormValues = getValues();
+                                  onSubmit(currentFormValues);
+                                }, 100);
+                              }} 
+                              disabled={isLoading}
+                            >
                               <SelectTrigger className="h-8">
                                 <SelectValue />
                               </SelectTrigger>
@@ -298,11 +323,47 @@ function GenerationOptions({
                       </div>
 
                       {/* Primera columna, segunda fila - Color 1 */}
-                      <ColorInput 
-                        name="options.gradient_color1" 
-                        label="Color 1" 
-                        defaultValue="#2563EB" 
-                      />
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium text-slate-600 dark:text-slate-400">Color 1</Label>
+                        <Controller
+                          name="options.gradient_color1"
+                          control={control}
+                          defaultValue="#2563EB"
+                          render={({ field }) => (
+                            <div className="flex gap-2 items-center">
+                              <input
+                                type="color"
+                                value={field.value || "#2563EB"}
+                                onChange={(e) => {
+                                  field.onChange(e.target.value);
+                                  // Trigger form re-generation
+                                  setTimeout(() => {
+                                    const currentFormValues = getValues();
+                                    onSubmit(currentFormValues);
+                                  }, 100);
+                                }}
+                                className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+                                disabled={isLoading}
+                              />
+                              <Input
+                                type="text"
+                                value={field.value || "#2563EB"}
+                                disabled={isLoading}
+                                placeholder="#2563EB"
+                                onChange={(e) => {
+                                  field.onChange(e.target.value);
+                                  // Trigger form re-generation
+                                  setTimeout(() => {
+                                    const currentFormValues = getValues();
+                                    onSubmit(currentFormValues);
+                                  }, 100);
+                                }}
+                                className="h-8 text-sm flex-1"
+                              />
+                            </div>
+                          )}
+                        />
+                      </div>
 
                       {/* Segunda columna, segunda fila - Color 2 con botón intercambiar */}
                       <div className="space-y-1">
@@ -315,10 +376,17 @@ function GenerationOptions({
                               defaultValue="#000000"
                               render={({ field }) => (
                                 <div className="flex gap-2 items-center">
-                                  <Input
+                                  <input
                                     type="color"
                                     value={field.value || "#000000"}
-                                    onChange={(e) => field.onChange(e.target.value)}
+                                    onChange={(e) => {
+                                      field.onChange(e.target.value);
+                                      // Trigger form re-generation
+                                      setTimeout(() => {
+                                        const currentFormValues = getValues();
+                                        onSubmit(currentFormValues);
+                                      }, 100);
+                                    }}
                                     className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
                                     disabled={isLoading}
                                   />
@@ -327,7 +395,14 @@ function GenerationOptions({
                                     value={field.value || "#000000"}
                                     disabled={isLoading}
                                     placeholder="#000000"
-                                    onChange={(e) => field.onChange(e.target.value)}
+                                    onChange={(e) => {
+                                      field.onChange(e.target.value);
+                                      // Trigger form re-generation
+                                      setTimeout(() => {
+                                        const currentFormValues = getValues();
+                                        onSubmit(currentFormValues);
+                                      }, 100);
+                                    }}
                                     className="h-8 text-sm flex-1"
                                   />
                                 </div>
@@ -356,7 +431,18 @@ function GenerationOptions({
                           control={control}
                           defaultValue="top-bottom"
                           render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                            <Select 
+                              value={field.value} 
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                // Trigger form re-generation
+                                setTimeout(() => {
+                                  const currentFormValues = getValues();
+                                  onSubmit(currentFormValues);
+                                }, 100);
+                              }} 
+                              disabled={isLoading}
+                            >
                               <SelectTrigger className="h-8">
                                 <SelectValue />
                               </SelectTrigger>

@@ -27,7 +27,7 @@ export const SmartValidators = {
   
   /** URL validation - must be a valid URL format */
   url: (data: any): ValidationResult => {
-    if (!data.url || data.url.trim().length === 0) {
+    if (!data.url || data.url.trim().length === 0 || data.url === 'https://tu-sitio-web.com') {
       return { isValid: false, message: 'Ingresa el enlace de tu sitio web o página' };
     }
     
@@ -83,6 +83,14 @@ export const SmartValidators = {
       return { isValid: false, message: 'Completa el dominio' };
     }
     
+    // Check if user is in the middle of typing an extension
+    // Only consider it "typing" if it's a single character after the dot
+    const typingExtensionPattern = /^(https?:\/\/)?(www\.)?([\w-]+\.)+[\w]{1}$/i;
+    if (typingExtensionPattern.test(url)) {
+      // User is typing an extension (only 1 character), don't show error yet
+      return { isValid: false, message: '' };
+    }
+    
     // Check for domain without extension
     const domainWithoutExtPattern = /^(https?:\/\/)?(www\.)?[\w-]+$/i;
     if (domainWithoutExtPattern.test(url)) {
@@ -90,16 +98,30 @@ export const SmartValidators = {
     }
     
     // Basic URL pattern check - más flexible
-    // Acepta: google.com, www.google.com, https://google.com, etc.
-    const urlPattern = /^(https?:\/\/)?([\w-]+\.)*[\w-]+\.[\w-]+(\/.*)?$/i;
+    // Acepta: google.com, www.google.com, https://google.com, capta.co, etc.
+    // Permite extensiones de 2 o más caracteres (.co, .com, .org, etc.)
+    const urlPattern = /^(https?:\/\/)?([\w-]+\.)*[\w-]+\.[\w-]{2,}(\/.*)?$/i;
     
     if (!urlPattern.test(url)) {
+      // Check for common typing patterns before showing error
+      const partialDomainPattern = /^(https?:\/\/)?(www\.)?([\w-]+\.)+$/i;
+      if (partialDomainPattern.test(url)) {
+        // User just typed a dot, waiting for extension
+        return { isValid: false, message: 'Completa la extensión del dominio' };
+      }
+      
       if (url.includes('..')) {
         return { isValid: false, message: 'URL inválida (doble punto)' };
       }
       if (url.includes(' ')) {
         return { isValid: false, message: 'Ingresa el enlace de tu sitio web o página' };
       }
+      
+      // Don't show "invalid format" for short partial domains
+      if (url.length < 6) {
+        return { isValid: false, message: '' };
+      }
+      
       return { isValid: false, message: 'Formato de URL inválido' };
     }
     
