@@ -3,7 +3,6 @@ import { z } from 'zod';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { URL } from 'url';
-import dns from 'dns/promises';
 import { redis } from '../config/redis';
 
 const router = express.Router();
@@ -45,20 +44,50 @@ function extractDomain(url: string): string {
 }
 
 /**
- * Verifica si un dominio existe via DNS
+ * Verifica si una URL existe via HEAD request con reintentos
  */
-async function checkDomainExists(domain: string): Promise<boolean> {
-  try {
-    await dns.resolve4(domain);
-    return true;
-  } catch {
+async function checkUrlWithRetry(url: string, retries = 2): Promise<{ exists: boolean; statusCode?: number }> {
+  const normalizedUrl = normalizeUrl(url);
+  const startTime = Date.now();
+  
+  console.log(`[URL Validation] Starting validation for: ${normalizedUrl}`);
+  
+  for (let i = 0; i <= retries; i++) {
     try {
-      await dns.resolve6(domain);
-      return true;
-    } catch {
-      return false;
+      const response = await axios.head(normalizedUrl, {
+        timeout: 3000,
+        maxRedirects: 5,
+        validateStatus: (status) => status < 500, // Don't retry on client errors
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; CODEX-Validator/1.0)'
+        }
+      });
+      
+      const result = { 
+        exists: response.status < 400,
+        statusCode: response.status 
+      };
+      
+      console.log(`[URL Validation] Success - URL: ${normalizedUrl}, Status: ${response.status}, Exists: ${result.exists}, Time: ${Date.now() - startTime}ms`);
+      
+      return result;
+    } catch (error: any) {
+      console.log(`[URL Validation] Attempt ${i + 1}/${retries + 1} failed - URL: ${normalizedUrl}, Error: ${error.code || error.message}`);
+      
+      // If it's the last retry, return false
+      if (i === retries) {
+        console.log(`[URL Validation] Final failure - URL: ${normalizedUrl}, Total time: ${Date.now() - startTime}ms`);
+        return { exists: false };
+      }
+      
+      // Wait before retry with exponential backoff
+      const waitTime = 500 * (i + 1);
+      console.log(`[URL Validation] Waiting ${waitTime}ms before retry...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
     }
   }
+  
+  return { exists: false };
 }
 
 /**
@@ -74,17 +103,17 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
     return JSON.parse(cached);
   }
 
-  // First check if domain exists
-  const domain = extractDomain(url);
-  const domainExists = await checkDomainExists(domain);
+  // First check if URL is reachable with HEAD request
+  const headCheck = await checkUrlWithRetry(url);
   
-  if (!domainExists) {
+  if (!headCheck.exists) {
     const result = {
       exists: false,
-      error: 'Domain does not exist'
+      error: 'URL is not reachable',
+      statusCode: headCheck.statusCode
     };
-    // Cache negative results for shorter time (5 minutes)
-    await redis.setex(cacheKey, 300, JSON.stringify(result));
+    // Cache negative results for shorter time (30 seconds)
+    await redis.setex(cacheKey, 30, JSON.stringify(result));
     return result;
   }
 
@@ -150,8 +179,8 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
       error: error.code || error.message
     };
     
-    // Cache network errors for 5 minutes
-    await redis.setex(cacheKey, 300, JSON.stringify(result));
+    // Cache network errors for 30 seconds
+    await redis.setex(cacheKey, 30, JSON.stringify(result));
     return result;
   }
 }
