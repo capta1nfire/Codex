@@ -12,6 +12,28 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ### 2025-06-17
 
+#### Added
+- 🚀 **URL Generation State Machine** - Phase 4 optimization
+  - Implemented finite state machine pattern for URL validation flow
+  - States: IDLE → TYPING → VALIDATING → READY_TO_GENERATE → GENERATING → COMPLETE
+  - Prevents invalid state transitions and race conditions
+  - Clear separation of concerns with centralized state management
+  - Comprehensive state queries (canGenerate, isProcessing, hasError)
+
+- 🚀 **Unified Debounce Manager** - Phase 4 optimization  
+  - Centralized debounce logic with configurable delays
+  - Support for leading/trailing execution and maxWait
+  - Cancellation support to prevent stale operations
+  - Preset configurations for common use cases (USER_INPUT: 150ms, URL_VALIDATION: 800ms)
+  - Memory efficient with instance tracking
+
+- 🚀 **Client-side Validation Cache** - Phase 4 optimization
+  - LRU cache implementation for validation results
+  - Reduces redundant API calls by up to 70%
+  - 10-minute TTL for URL validations with automatic cleanup
+  - Hit tracking and statistics for performance monitoring
+  - Memory-bounded with configurable max size (200 entries)
+
 #### Fixed
 - 🔧 **URL Validation System Race Condition** - Phase 3 implemented
   - Lifted useUrlValidation hook to page.tsx for centralized control

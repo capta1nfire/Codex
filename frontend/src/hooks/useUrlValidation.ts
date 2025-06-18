@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
+import { urlValidationCache } from '@/lib/validationCache';
 
 // Simple debounce implementation
 function debounce<T extends (...args: any[]) => any>(
@@ -80,6 +81,16 @@ export function useUrlValidation({
       return;
     }
 
+    // Check cache first
+    const cachedResult = urlValidationCache.get(url);
+    if (cachedResult) {
+      console.log('URL validation cache hit:', url);
+      setMetadata(cachedResult);
+      setError(cachedResult.exists ? null : cachedResult.error || 'El sitio web no pudo ser verificado');
+      lastValidatedUrl.current = url;
+      return;
+    }
+
     // Cancelar request anterior si existe
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -104,6 +115,9 @@ export function useUrlValidation({
       );
 
       const data = response.data as UrlMetadata;
+      
+      // Cache the result
+      urlValidationCache.set(url, data);
       
       // Solo actualizar si no fue cancelado
       if (!abortControllerRef.current.signal.aborted) {

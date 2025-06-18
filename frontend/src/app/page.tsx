@@ -45,6 +45,7 @@ import { defaultFormValues } from '@/constants/defaultFormValues';
 // Validación
 import { SmartValidators } from '@/lib/smartValidation';
 import { useUrlValidation } from '@/hooks/useUrlValidation';
+import { useUrlGenerationState } from '@/hooks/useUrlGenerationState';
 
 export default function Home() {
   // Estados principales
@@ -77,6 +78,22 @@ export default function Home() {
     debounceMs: 800
   });
   
+  // State machine for URL generation flow
+  const {
+    state: urlGenerationState,
+    startTyping,
+    startValidating,
+    validationComplete,
+    startGenerating,
+    generationComplete,
+    reset: resetUrlState,
+    canGenerate
+  } = useUrlGenerationState({
+    onStateChange: (newState, oldState) => {
+      console.log(`URL Generation State: ${oldState} -> ${newState}`);
+    }
+  });
+  
   // Typing tracker for sophisticated placeholder system
   const { isTyping, trackInput, resetTyping } = useTypingTracker({
     typingDebounceMs: 150,
@@ -86,13 +103,14 @@ export default function Home() {
         const currentFormValues = getValues();
         const currentQRData = qrFormData[selectedQRType];
         
-        // Wait for URL validation to complete before generating
-        if (selectedQRType === 'link' && isValidatingUrl) {
-          // URL validation is in progress, wait for it
-          return;
+        // Use state machine to coordinate validation and generation
+        if (selectedQRType === 'link') {
+          // Transition to validating state
+          startValidating();
+        } else {
+          // Non-URL QR types can generate immediately
+          validateAndGenerate(currentFormValues, selectedQRType, currentQRData);
         }
-        
-        validateAndGenerate(currentFormValues, selectedQRType, currentQRData);
       }
     }
   });
@@ -183,9 +201,11 @@ export default function Home() {
       setHasUserStartedTyping(false);
       setIsFirstChange(true);
       clearUrlValidation(); // Clear any pending URL validation
+      resetUrlState(); // Reset state machine
     } else {
       // Clear URL validation when switching away from link
       clearUrlValidation();
+      resetUrlState(); // Reset state machine
     }
     resetTyping();
     
@@ -204,13 +224,14 @@ export default function Home() {
       }
     };
     await onSubmit(completeFormValues);
-  }, [setValue, getValues, onSubmit, qrFormData, generateQRContent, setSelectedQRType, resetTyping, clearUrlValidation]);
+  }, [setValue, getValues, onSubmit, qrFormData, generateQRContent, setSelectedQRType, resetTyping, clearUrlValidation, resetUrlState]);
 
   const handleQRFormChange = useCallback((type: string, field: string, value: any) => {
     // Mark that user has started typing
     if (!hasUserStartedTyping && type === 'link' && field === 'url') {
       setHasUserStartedTyping(true);
       setIsFirstChange(false);
+      startTyping(); // Update state machine
     }
     
     // Track typing for UI feedback
@@ -238,7 +259,7 @@ export default function Home() {
         }
       }
     }
-  }, [updateQRFormData, setValue, trackInput, qrFormData, selectedQRType, hasUserStartedTyping, validateUrl]);
+  }, [updateQRFormData, setValue, trackInput, qrFormData, selectedQRType, hasUserStartedTyping, validateUrl, startTyping]);
 
   const handleScaleChange = useCallback((newScale: number) => {
     setValue('options.scale', newScale);
@@ -290,13 +311,37 @@ export default function Home() {
         !isValidatingUrl && 
         urlMetadata && 
         hasUserStartedTyping &&
-        !isTyping) {
-      // URL validation completed, now safe to generate
+        !isTyping &&
+        urlGenerationState === 'VALIDATING') {
+      // URL validation completed successfully
+      validationComplete(true);
+      
+      // Now safe to generate
       const currentFormValues = getValues();
       const currentQRData = qrFormData[selectedQRType];
+      startGenerating();
       validateAndGenerate(currentFormValues, selectedQRType, currentQRData);
     }
-  }, [isValidatingUrl, urlMetadata, selectedType, selectedQRType, hasUserStartedTyping, isTyping, getValues, qrFormData, validateAndGenerate]);
+  }, [isValidatingUrl, urlMetadata, selectedType, selectedQRType, hasUserStartedTyping, isTyping, getValues, qrFormData, validateAndGenerate, urlGenerationState, validationComplete, startGenerating]);
+  
+  // Monitor URL validation errors
+  useEffect(() => {
+    if (selectedType === 'qrcode' && 
+        selectedQRType === 'link' && 
+        !isValidatingUrl && 
+        urlValidationError && 
+        urlGenerationState === 'VALIDATING') {
+      // URL validation failed
+      validationComplete(false);
+    }
+  }, [isValidatingUrl, urlValidationError, selectedType, selectedQRType, urlGenerationState, validationComplete]);
+  
+  // Monitor generation completion
+  useEffect(() => {
+    if (!isLoading && svgContent && urlGenerationState === 'GENERATING') {
+      generationComplete();
+    }
+  }, [isLoading, svgContent, urlGenerationState, generationComplete]);
 
   // Cerrar dropdown al hacer clic fuera
   const { setIsDropdownOpen } = useBarcodeTypes();
