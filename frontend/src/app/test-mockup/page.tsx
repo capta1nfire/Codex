@@ -27,7 +27,6 @@ export default function TestMockupPage() {
     svgContent, 
     isLoading, 
     metadata, 
-    generateBarcode,
     isUsingV2 
   } = useBarcodeGenerationV2();
   
@@ -51,8 +50,7 @@ export default function TestMockupPage() {
         barcode_type: 'qrcode',
         data: value,
         options: {
-          scale: 2,
-          margin: 1
+          scale: 2
         }
       }, 'url');
     }

@@ -8,7 +8,7 @@ export const generateFormSchema = z.object({
   barcode_type: z.string().nonempty('Por favor, selecciona un tipo de código'),
   data: z
     .string()
-    .nonempty('Por favor, introduce los datos a codificar')
+    .nonempty('')  // No message, handled by smart validation
     .max(1000, 'Los datos no pueden exceder los 1000 caracteres')
     .transform((str: string) => str.trim()),
   options: z

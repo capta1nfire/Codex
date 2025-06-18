@@ -6,7 +6,7 @@ export const defaultFormValues: GenerateFormData = {
   barcode_type: 'qrcode',
   data: getDefaultDataForType('qrcode'),
   options: {
-    scale: 2,
+    scale: 4,
     fgcolor: '#000000',
     bgcolor: undefined, // undefined para SVG transparente que permita gradientes
     height: 100,
