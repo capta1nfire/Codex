@@ -10,6 +10,24 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
+### 2025-06-17
+
+#### Fixed
+- 🔧 **URL Validation System Race Condition** - Phase 3 implemented
+  - Lifted useUrlValidation hook to page.tsx for centralized control
+  - Synchronized URL validation with auto-generation to prevent race conditions
+  - Added validation state monitoring to wait for completion before generating
+  - Clear validation on QR type changes to prevent stale data
+  - LinkForm now receives validation state from parent for consistency
+  - Prevents duplicate generations and inconsistent validation results
+
+- 🔧 **Backend URL Validation Improvements** - Phase 2 completed
+  - Replaced unreliable DNS resolution with HEAD request approach
+  - Implemented retry logic with exponential backoff (2 retries, 500ms initial wait)
+  - Reduced cache TTL from 300s to 30s for failed validations
+  - Added comprehensive logging for debugging false positives
+  - Improved reliability detecting valid URLs that DNS missed
+
 ### 2025-01-16
 
 #### Added

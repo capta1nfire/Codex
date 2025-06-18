@@ -2,7 +2,6 @@ import React, { useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { qrPlaceholders } from '@/constants/qrPlaceholders';
 import { cn } from '@/lib/utils';
-import { useUrlValidation } from '@/hooks/useUrlValidation';
 import { Check, CircleX, RefreshCw, X } from 'lucide-react';
 
 interface LinkFormProps {
@@ -12,9 +11,14 @@ interface LinkFormProps {
   onChange: (field: string, value: string) => void;
   isLoading: boolean;
   validationError?: string | null;
+  urlValidation?: {
+    isValidating: boolean;
+    metadata: any;
+    error: string | null;
+  };
 }
 
-export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, validationError }) => {
+export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, validationError, urlValidation }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = React.useState(false);
   const [showBadge, setShowBadge] = React.useState(false);
@@ -22,11 +26,10 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
   const hasValue = data.url && data.url.length > 0;
   const isValidUrl = hasValue && !validationError && data.url !== '' && data.url !== 'https://tu-sitio-web.com';
   
-  // Hook de validación de URL
-  const { isValidating, metadata, error: validationUrlError, validateUrl } = useUrlValidation({
-    enabled: true,
-    debounceMs: 800 // Reducido para respuesta más rápida
-  });
+  // Use URL validation from parent component
+  const isValidating = urlValidation?.isValidating || false;
+  const metadata = urlValidation?.metadata || null;
+  const validationUrlError = urlValidation?.error || null;
   
   // Determinar si mostrar warning de sitio no disponible
   // Ahora también muestra el warning cuando está enfocado si ya se validó
@@ -35,12 +38,7 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
   // Determinar si es el mensaje inicial (azul) o un error real (rojo)
   const isInitialMessage = validationError === 'Ingresa el enlace de tu sitio web o página' && !hasValue;
   
-  // Validar URL cuando cambie y sea válida según validación local
-  useEffect(() => {
-    if (isValidUrl) {
-      validateUrl(data.url);
-    }
-  }, [data.url, isValidUrl, validateUrl]);
+  // Note: URL validation is now handled by the parent component
   
   // Auto-mostrar badge después de 3 segundos si la URL es válida
   useEffect(() => {
@@ -97,11 +95,6 @@ export const LinkForm: React.FC<LinkFormProps> = ({ data, onChange, isLoading, v
         setShowBadge(true);
         // Blur the input to complete the action
         inputRef.current?.blur();
-        
-        // If validation hasn't completed yet, wait for it
-        if (!metadata && !isValidating) {
-          validateUrl(data.url);
-        }
       }
     }
   };
