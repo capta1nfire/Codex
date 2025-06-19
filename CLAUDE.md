@@ -107,6 +107,10 @@ npm run test:e2e          # E2E tests (services must be running)
 
 # Validate implementation
 node validate_implementation.js  # From root directory
+
+# FLODEX Architecture Validation
+./scripts/validate-flodex.sh    # Check FLODEX compliance
+./scripts/flodex-metrics        # View architecture metrics
 ```
 
 ---
@@ -130,10 +134,13 @@ git checkout -b feature/your-feature-name
 cd backend && npm test
 cd frontend && npm test
 
-# 5. Check logs for errors
+# 5. Validate FLODEX compliance
+./scripts/validate-flodex.sh
+
+# 6. Check logs for errors
 pm2 logs
 
-# 6. Commit with meaningful message
+# 7. Commit with meaningful message
 git add .
 git commit -m "feat: your feature description
 
@@ -237,6 +244,29 @@ npm test -- --testNamePattern="your test"
 # 4. Final polish
 # Fine-tune spacing, colors, animations
 # Verify responsive behavior
+```
+
+### 7. FLODEX Architecture Workflow
+```bash
+# 1. Before starting any feature
+./scripts/validate-flodex.sh
+# Ensure clean baseline
+
+# 2. For cross-service features
+# Read the guide first
+cat docs/flodex/CROSS_SERVICE_FEATURES_GUIDE.md
+
+# 3. During development
+# Keep services independent
+# Document in service READMEs
+
+# 4. Before committing
+./scripts/validate-flodex.sh
+# Fix any violations
+
+# 5. Track metrics over time
+./scripts/flodex-metrics
+# Monitor architecture health
 ```
 
 ---
@@ -625,6 +655,7 @@ cargo build --release
 - [ ] ✅ **Remove obsolete comments**: Old TODOs, commented code, temporary notes
 - [ ] ✅ **Verify builds**: `npm run build` (frontend/backend), `cargo build` (rust)
 - [ ] ✅ **Verify tests**: `npm test` (frontend/backend), `cargo test` (rust)
+- [ ] ✅ **Validate FLODEX**: `./scripts/validate-flodex.sh` - Ensure architecture compliance
 
 #### 📝 2. CRITICAL CHANGE DOCUMENTATION
 - [ ] ✅ **Architecture changes**: Update `CODEX.md` if applicable

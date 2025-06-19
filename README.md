@@ -66,6 +66,23 @@ docker-compose up -d # PostgreSQL + Redis
 
 ---
 
+## 🛠️ **Herramientas FLODEX**
+
+### **Validación y Métricas**
+```bash
+# Validar arquitectura FLODEX
+./scripts/validate-flodex.sh
+
+# Dashboard de métricas
+./scripts/flodex-metrics
+```
+
+### **Desarrollo Cross-Service**
+- Ver [Guía Cross-Service](./docs/flodex/CROSS_SERVICE_FEATURES_GUIDE.md) para features complejas
+- Usar [PR Template](./.github/pull_request_template.md) en cada contribución
+
+---
+
 ## 📖 **Documentación Global**
 
 ### **Para Nuevos Desarrolladores**

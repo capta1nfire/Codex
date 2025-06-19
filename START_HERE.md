@@ -58,6 +58,23 @@ http://localhost:3002  # Rust Engine
 
 ---
 
+## 🛠️ **Herramientas FLODEX**
+
+### **Validación de Arquitectura**
+```bash
+# Verificar cumplimiento FLODEX
+./scripts/validate-flodex.sh
+
+# Ver métricas y tendencias
+./scripts/flodex-metrics
+```
+
+### **Documentación Avanzada**
+- **[Cross-Service Guide](./docs/flodex/CROSS_SERVICE_FEATURES_GUIDE.md)** - Para features que afectan múltiples servicios
+- **[PR Template](./.github/pull_request_template.md)** - Checklist automático en cada PR
+
+---
+
 ## 🆘 **¿Bloqueado?**
 
 ```bash
@@ -69,6 +86,9 @@ pm2 restart [servicio]
 
 # Base de datos
 docker-compose up -d
+
+# Validar arquitectura
+./scripts/validate-flodex.sh
 ```
 
 Para más ayuda: consulta el README del servicio específico.

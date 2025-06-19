@@ -2,6 +2,8 @@
 
 This directory contains utility scripts for the CODEX project.
 
+> **💡 TIP**: Looking for a specific file or workflow? Check [.nav.md](../.nav.md) for quick navigation.
+
 ## 🏗️ FLODEX Architecture Scripts
 
 ### `validate-flodex.sh`
