@@ -10,8 +10,6 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
-<<<<<<< HEAD
-=======
 ### 2025-06-18
 
 #### Merged
@@ -39,7 +37,11 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Implemented simplest solution following Manus's pragmatic approach
   - AbortController already handles request cancellation internally
 
->>>>>>> 788d469 (fix: Remove sound on URL validation, keep only on QR generation)
+- 🔇 **Sound Playback Optimization** - Removed duplicate sound on URL validation
+  - Eliminated audio playback from handleUrlValidationComplete
+  - Sound now only plays once during QR generation (hero moment)
+  - Better UX with single completion sound instead of two
+
 ### 2025-06-17
 
 #### Added
@@ -140,7 +142,6 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 - 🔧 **Audio Sync** - Fixed hero moment sound delay
   - Audio now plays when validation completes (before 2s delay)
   - Better synchronization with visual feedback
->>>>>>> feature/guided-visual-flow
 
 ### 2025-01-16
 
