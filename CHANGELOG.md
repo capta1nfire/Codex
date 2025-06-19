@@ -10,6 +10,36 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
+<<<<<<< HEAD
+=======
+### 2025-06-18
+
+#### Merged
+- 🔀 **Merged visual improvements with validation fixes** - Combined feature/guided-visual-flow with fix/url-validation-system
+  - Preserved all visual enhancements: transparent backgrounds, sticky preview, scale 4, video placeholder
+  - Maintained all validation improvements: state machine, lifted state, race condition prevention
+  - Successfully integrated both feature sets without conflicts
+
+#### Fixed
+- 🔧 **Double QR Generation** - Fixed duplicate QR code generation after URL validation
+  - Removed redundant generation call in useEffect monitoring URL validation
+  - State machine now properly coordinates validation and generation flow
+  - Prevented invalid state transitions (VALIDATING -> VALIDATING)
+  - Generation now occurs only once after 2-second post-validation delay
+
+- 🔧 **IDLE->COMPLETE Warning** - Resolved invalid state transition with 10x engineering approach
+  - Created useInitialGeneration hook to separate initial load from user flows
+  - Enhanced state machine with edge case detection and suppression
+  - Added StateDebugger utility for production-grade observability
+  - Documented engineering decisions for maintainability
+
+- 🔧 **URL Validation Check Persistence** - Fixed disappearing check icon after QR generation
+  - Removed unnecessary clearUrlValidation() call in onGenerationStart
+  - Metadata now persists correctly keeping the check icon visible
+  - Implemented simplest solution following Manus's pragmatic approach
+  - AbortController already handles request cancellation internally
+
+>>>>>>> 788d469 (fix: Remove sound on URL validation, keep only on QR generation)
 ### 2025-06-17
 
 #### Added

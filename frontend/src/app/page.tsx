@@ -410,14 +410,8 @@ export default function Home() {
       
       console.log(`[page.tsx] Site exists, waiting ${POST_VALIDATION_DELAY}ms before generating QR...`);
       
-      // Play success sound anticipating QR generation
-      if (typeof window !== 'undefined' && 'Audio' in window) {
-        try {
-          const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQYGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fDTgjMGHm7A7+OZURE');
-          audio.volume = 0.1;
-          audio.play().catch(() => {});
-        } catch (e) {}
-      }
+      // REMOVED: Sound on URL validation - only play sound on actual QR generation
+      // The sound should only play once when the QR is generated (in onSubmit)
       
       // Agregar delay antes de generar el QR
       postValidationTimeoutRef.current = setTimeout(() => {
