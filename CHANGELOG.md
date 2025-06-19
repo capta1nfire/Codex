@@ -36,6 +36,13 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Script validates: service structure, documentation placement, independence, ports
   - PR template enforces FLODEX principles on every contribution
 
+- ✅ **FLODEX Metrics Dashboard** - Quantitative architecture tracking
+  - Created flodex-metrics script to measure FLODEX effectiveness
+  - Tracks 5 key metrics: documentation ratio, independence, features, compliance, velocity
+  - Stores historical data for trend analysis over time
+  - Visual dashboard with color-coded results
+  - Helps identify architecture drift and improvement areas
+
 #### Fixed
 - 🔧 **URL Validation Metadata** - Backend now returns complete metadata (title, description, favicon)
   - Fixed import from validateSimple.ts to validate.ts route

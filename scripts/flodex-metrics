@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# FLODEX Metrics Launcher
+# This script runs the FLODEX metrics dashboard
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR/.."
+
+node scripts/flodex-metrics.cjs "$@"

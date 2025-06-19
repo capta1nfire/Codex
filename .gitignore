@@ -4,6 +4,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# FLODEX metrics data
+.flodex-metrics.json
+
 # Production builds
 build/
 dist/
