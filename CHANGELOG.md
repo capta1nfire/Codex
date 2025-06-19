@@ -43,6 +43,13 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Visual dashboard with color-coded results
   - Helps identify architecture drift and improvement areas
 
+- ✅ **Documentation Policy Centralization** - Single source of truth for all doc rules
+  - Created DOCUMENTATION_POLICY.md consolidating scattered policies
+  - Covers creation, update, and deletion policies
+  - Includes FOCUS methodology (80/20 rule) details
+  - Provides templates and anti-patterns
+  - Referenced from CLAUDE.md and docs/README.md
+
 #### Fixed
 - 🔧 **URL Validation Metadata** - Backend now returns complete metadata (title, description, favicon)
   - Fixed import from validateSimple.ts to validate.ts route

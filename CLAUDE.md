@@ -383,14 +383,14 @@ className="w-full md:w-1/2 lg:w-1/3"
 - ✅ Document significant changes in CHANGELOG.md
 - ✅ Use TypeScript strict mode
 
-### 🧪 REGLA DE DOCUMENTACIÓN DE FEATURES:
-- ❌ NUNCA documentar features sin probar
-- ❌ NUNCA asumir que "conectar cables" = funcional
-- ✅ Documentar SOLO después de:
-  - Test ejecutado exitosamente
-  - Resultado verificado visualmente o con logs
-  - Confirmación de que funciona como se espera
-- ⚠️ Si no probaste = NO está hecho = NO documentes en CHANGELOG
+### 📚 DOCUMENTATION POLICIES:
+For comprehensive documentation rules, see **[DOCUMENTATION_POLICY.md](./docs/flodex/DOCUMENTATION_POLICY.md)**
+
+Quick reminder:
+- 80% Code, 20% Documentation
+- Always update existing docs before creating new ones
+- Test features before documenting them
+- When in doubt, ASK
 
 ---
 
@@ -803,6 +803,8 @@ Remember: Context is key. Read relevant files before making changes.
 ---
 
 ## ⚡ FOCUS Methodology - Preventing Documentation Overload
+
+> **📚 NOTE**: This is a summary. For complete documentation policies, see **[DOCUMENTATION_POLICY.md](./docs/flodex/DOCUMENTATION_POLICY.md)**
 
 ### The Problem
 AI agents spend 50%+ time creating unnecessary documentation, forcing humans to waste time cleaning up.

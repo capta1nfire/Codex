@@ -15,6 +15,10 @@ Under the FLODEX architecture, each service maintains its own comprehensive docu
 - **[/CLAUDE.md](/CLAUDE.md)** - AI agent development guide
 
 ### **FLODEX Architecture Guides**
+- **[flodex/DOCUMENTATION_POLICY.md](./flodex/DOCUMENTATION_POLICY.md)** - Single source of truth for all documentation rules
+  - When to create, update, or delete documentation
+  - 80/20 rule (FOCUS methodology)
+  - Templates and anti-patterns
 - **[flodex/CROSS_SERVICE_FEATURES_GUIDE.md](./flodex/CROSS_SERVICE_FEATURES_GUIDE.md)** - How to implement features across services
   - Required reading for multi-service features
   - Templates and best practices included
