@@ -29,6 +29,13 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Cleaner visual layout with ASCII diagram
   - Updated all references across project files
 
+- ✅ **FLODEX Governance Tools** - Enhanced architecture enforcement
+  - Created validate-flodex.sh script for architecture compliance checking
+  - Added .github/pull_request_template.md with FLODEX checklist
+  - Created comprehensive Cross-Service Features Guide
+  - Script validates: service structure, documentation placement, independence, ports
+  - PR template enforces FLODEX principles on every contribution
+
 #### Fixed
 - 🔧 **URL Validation Metadata** - Backend now returns complete metadata (title, description, favicon)
   - Fixed import from validateSimple.ts to validate.ts route

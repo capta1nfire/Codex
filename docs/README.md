@@ -14,6 +14,13 @@ Under the FLODEX architecture, each service maintains its own comprehensive docu
 - **[/CHANGELOG.md](/CHANGELOG.md)** - Project change history
 - **[/CLAUDE.md](/CLAUDE.md)** - AI agent development guide
 
+### **FLODEX Architecture Guides**
+- **[flodex/CROSS_SERVICE_FEATURES_GUIDE.md](./flodex/CROSS_SERVICE_FEATURES_GUIDE.md)** - How to implement features across services
+  - Required reading for multi-service features
+  - Templates and best practices included
+- **[flodex/features/](./flodex/features/)** - Cross-service feature documentation
+  - Design documents for features affecting multiple services
+
 ### **QR Engine v2 (Cross-Service Module)**
 - **[qr-engine/](./qr-engine/)** - QR Engine v2 documentation
   - Active development module affecting all services
