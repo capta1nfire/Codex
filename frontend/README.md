@@ -1,203 +1,252 @@
-# Codex Frontend
+# Frontend Service - CODEX Web Application
 
-Frontend moderno para la plataforma Codex de generación de códigos de barras y QR, desarrollado con Next.js y Tailwind CSS.
+## 1. Propósito del Servicio
 
-## Características
+El frontend de CODEX es una aplicación web moderna construida con Next.js 14 que proporciona una interfaz intuitiva y profesional para la generación de códigos QR y códigos de barras. Implementa una experiencia de usuario fluida con generación en tiempo real, validación inteligente y un sistema de diseño corporativo sofisticado.
 
-- **Generación de Códigos**: Interfaz intuitiva para la generación de múltiples tipos de códigos:
-  - QR Code
-  - Code 128
-  - PDF417
-  - EAN-13
-  - UPC-A
-  - Code 39
-  - DataMatrix
-- **Personalización**: Opciones para personalizar la generación de códigos:
-  - Escala (tamaño)
-  - Nivel de corrección de errores para QR
-  - **Sistema de Gradientes SVG**: Gradientes continuos para códigos QR con bordes opcionales
-- **Visualización en Tiempo Real**: Previsualización inmediata de los códigos generados
-- **Exportación**: Descarga de códigos en formato SVG
-- **Diseño Responsivo**: Interfaz adaptable a dispositivos móviles y de escritorio
-- **Dashboard de Métricas**: Visualización detallada del rendimiento del sistema:
-  - Estadísticas de caché
-  - Métricas por tipo de código
-  - Tiempos de respuesta
-- **Sistema de Monitoreo**: Componente para visualizar el estado de los servicios
-- **Interfaz Moderna**: Diseño atractivo con Tailwind CSS y componentes UI personalizados
-- **Navegación Mejorada**: Barra de navegación con alto contraste y disposición optimizada
-- **Corrección de Errores:** Solucionado problema crítico de visualización al cambiar tipos de código.
-- **Mejoras UI:** Añadidos botones de descarga/impresión, mejorada alineación visual.
-- **UI Adaptativa por Perfil:** Implementada interfaz del generador que muestra diferentes opciones según el perfil de usuario (Gratuito/Pro/Enterprise).
-- **Monitoreo de Errores**: Integrado con Sentry para la detección y diagnóstico de errores en tiempo real.
+### Responsabilidades Principales
+- Interfaz de usuario para generación de códigos QR/barras
+- Autenticación y gestión de sesiones de usuario
+- Validación y preprocesamiento de datos antes de enviar al backend
+- Visualización en tiempo real con preview siempre visible
+- Sistema de auto-generación inteligente con debouncing
+- Dashboard de monitoreo y analytics
+- Gestión de perfiles y planes de usuario
 
-## Estructura del Proyecto
+### Lo que NO hace este servicio
+- Generación directa de códigos (delegado al backend/Rust)
+- Almacenamiento de datos (solo caché temporal)
+- Procesamiento de pagos
+- Envío de emails o notificaciones
 
-```
-frontend/
-├── src/                      # Código fuente principal
-│   ├── app/                  # Rutas y layouts (App Router de Next.js)
-│   │   ├── layout.tsx        # Layout principal de la aplicación
-│   │   ├── page.tsx          # Página principal (Generador de Códigos)
-│   │   ├── dashboard/        # Sección de Dashboard (métricas, etc.)
-│   │   ├── login/            # Página de Inicio de Sesión
-│   │   ├── profile/          # Página de Perfil de Usuario
-│   │   ├── register/         # Página de Registro
-│   │   ├── status/           # Página de Estado del Sistema
-│   │   ├── global-error.tsx  # Manejador global de errores (instrumentado con Sentry)
-│   │   └── globals.css       # Estilos globales (importados en layout.tsx)
-│   ├── components/           # Componentes React reutilizables
-│   │   ├── ui/               # Componentes base de Shadcn UI (Button, Input, etc.)
-│   │   ├── Navbar.tsx
-│   │   ├── ProfilePicture.tsx
-│   │   └── SystemStatus.tsx
-│   │   └── ... (otros componentes específicos)
-│   ├── context/              # Contextos React para gestión de estado global
-│   │   └── AuthContext.tsx   # Contexto para manejar autenticación y datos del usuario
-│   ├── lib/                  # Utilidades, hooks personalizados, etc.
-│   │   └── utils.ts          # Funciones de utilidad generales
-│   ├── instrumentation.ts    # Configuración de Sentry para Server/Edge (Next.js Instrumentation Hook, exporta 'register' y 'onRequestError')
-│   └── instrumentation-client.ts # Configuración de Sentry para Client (Next.js Client Instrumentation, exporta 'onRouterTransitionStart')
-├── public/                   # Archivos estáticos (imágenes, fuentes, etc.)
-├── .env.local.example        # Archivo de ejemplo para variables de entorno
-├── components.json           # Configuración de Shadcn UI
-├── next.config.ts            # Configuración de Next.js
-├── tailwind.config.js        # Configuración de Tailwind CSS
-├── postcss.config.js         # Configuración de PostCSS
-├── tsconfig.json             # Configuración de TypeScript
-├── package.json              # Dependencias y scripts
-└── README.md                 # Este archivo
-```
+---
 
-## Tecnologías Utilizadas
+## 2. Stack Tecnológico
 
-- **Next.js 15**: Framework React con App Router
-- **React 18**: Biblioteca UI con hooks y componentes funcionales
-- **Tailwind CSS**: Framework CSS utility-first
-- **Headless UI**: Componentes accesibles y sin estilos predefinidos
-- **Lucide Icons**: Iconos SVG modernos y personalizables
-- **TypeScript**: Tipado estático para mayor robustez
-- **Sentry**: Plataforma de monitoreo de errores y rendimiento.
+| Categoría | Tecnología | Versión | Propósito |
+|-----------|-----------|---------|-----------|
+| Framework | Next.js | 14.2.18 | Framework React con SSR/SSG |
+| UI Library | React | 18.3.1 | Biblioteca de componentes |
+| Lenguaje | TypeScript | 5.x | Tipado estático |
+| Estilos | Tailwind CSS | 3.4.17 | Framework CSS utility-first |
+| Componentes | Radix UI | Última | Componentes accesibles |
+| Formularios | React Hook Form | 7.56.3 | Gestión de formularios |
+| Validación | Zod | 3.24.4 | Esquemas de validación |
+| HTTP | Axios | 1.7.9 | Cliente HTTP |
+| Iconos | Lucide React | 0.487.0 | Biblioteca de iconos |
+| Testing | Vitest + Playwright | 3.1.4 / 1.52.0 | Testing unitario y E2E |
 
-## Componentes Principales
+### Dependencias Críticas
+- **Backend API**: Sin él no hay funcionalidad (puerto 3004)
+- **Next.js**: Framework core de la aplicación
+- **AuthContext**: Sistema de autenticación global
 
-### `AuthContext` (`src/context/AuthContext.tsx`)
+---
 
-- Gestiona el estado global de autenticación, los datos del usuario logueado y el token JWT.
-- Proporciona funciones para login, logout, registro y actualización de datos del usuario.
-- Envuelve la aplicación en `src/app/layout.tsx` para dar acceso al estado de autenticación en toda la app.
+## 3. Cómo Ejecutar y Probar
 
-### Generador de Códigos (`src/app/page.tsx`)
-
-- Interfaz principal para seleccionar tipo de código, ingresar datos y configurar opciones.
-- Muestra previsualización en tiempo real y permite descargar el SVG.
-
-### Dashboard de Métricas (`src/app/dashboard/...`)
-
-- Visualiza métricas de rendimiento obtenidas del backend y del servicio Rust.
-- Incluye estadísticas de caché, tasa de aciertos, tiempos de respuesta, etc.
-
-### Perfil de Usuario (`src/components/UserProfile.tsx`)
-
-- Permite al usuario ver y editar su información de perfil (nombre, apellido, username).
-- Gestiona la subida y selección de imágenes de perfil (avatares).
-- Permite generar y visualizar la API Key.
-
-### Estado del Sistema (`src/app/status/page.tsx` y `src/components/SystemStatus.tsx`)
-
-- Muestra el estado de conectividad y salud del API Gateway y el servicio Rust.
-
-### `Navbar` (`src/components/Navbar.tsx`)
-
-- Barra de navegación principal.
-- Muestra enlaces diferentes según el estado de autenticación del usuario.
-- Incluye el menú desplegable del perfil de usuario.
-
-### `ProfilePicture` (`src/components/ui/ProfilePicture.tsx`)
-
-- Componente reutilizable para mostrar la imagen de perfil del usuario (avatar personalizado, predeterminado o iniciales).
-
-### Detalles de Componentes del Generador (`src/components/generator/`)
-
-Esta sección detalla los componentes React responsables de la interfaz de generación de códigos de barras y QR.
-
-#### 1. `BarcodeTypeSelector.tsx`
-   - **Propósito:** Renderiza el selector desplegable para que el usuario elija el tipo de código de barras a generar (ej. QR Code, Code 128, etc.).
-   - **Lógica de Roles:** Actualmente, este componente muestra **todos** los tipos de códigos de barras disponibles (`ALL_BARCODE_TYPES`) a todos los usuarios, independientemente de su rol. La constante `BASIC_BARCODE_TYPES` existe en el código pero no se utiliza activamente para restringir la lista por rol.
-   - **Props Clave:** `control` (de react-hook-form), `isLoading`, `handleTypeChange`, `errors`.
-
-#### 2. `GenerationOptions.tsx`
-   - **Propósito:** Es el **componente contenedor principal** para todas las opciones de personalización del código de barras. Organiza las opciones en una estructura de pestañas.
-   - **Estructura de Pestañas:**
-      - **Pestaña "Apariencia":** Contiene opciones comunes como Escala (`scale`), Color de Frente (`fgcolor`), y Color de Fondo (`bgcolor`). Estas opciones están definidas directamente dentro de `GenerationOptions.tsx` en la constante `appearanceOptions`.
-      - **Pestaña "Visualización":** Contiene opciones como Altura (`height` para códigos 1D), Mostrar Texto (`includetext` para códigos 1D), y Nivel de Corrección de Errores (`ecl` para QR Code). Estas opciones están definidas directamente dentro de `GenerationOptions.tsx` en la constante `displayOptions`. La visibilidad de algunas de estas opciones (ej. Altura) depende del `selectedType` de código.
-      - **Pestaña "Avanzado":** Renderiza dinámicamente el componente `AdvancedBarcodeOptions.tsx`.
-   - **Lógica de Roles:** Actualmente, este componente muestra la estructura completa de pestañas ("Apariencia", "Visualización", "Avanzado") y todas las opciones contenidas en ellas a **todos los usuarios**, independientemente de su `userRole`. La prop `userRole` se recibe (para compatibilidad con `page.tsx`) pero no se utiliza para condicionar la visibilidad de las opciones o pestañas.
-   - **Props Clave:** `control`, `errors`, `watch`, `isLoading`, `userRole` (recibida pero no usada para lógica de UI), `selectedType`, `reset`.
-
-#### 3. `AdvancedBarcodeOptions.tsx`
-   - **Propósito:** Renderiza las opciones de personalización **específicas y avanzadas** para cada tipo de código de barras (ej. Versión QR, Code Set para Code128, etc.). Se carga dinámicamente y se muestra dentro de la pestaña "Avanzado" de `GenerationOptions.tsx`.
-   - **Lógica de Roles:** Este componente **no contiene lógica de roles** interna. Muestra diferentes conjuntos de opciones únicamente basándose en la prop `selectedType`.
-   - **Props Clave:** `control`, `errors`, `watch`, `isLoading`, `selectedType`, `reset`.
-
-#### Flujo de Datos y Lógica de Roles (Actual) en el Generador
-
-1.  `frontend/src/app/page.tsx` (la página principal del generador) obtiene el `userRole`.
-2.  `page.tsx` renderiza `BarcodeTypeSelector` (que muestra todos los tipos a todos los roles).
-3.  `page.tsx` renderiza `GenerationOptions`, pasándole el `userRole`.
-4.  `GenerationOptions` (actualmente):
-    *   **No usa `userRole`** para restringir la visibilidad de las pestañas "Apariencia", "Visualización" o "Avanzado". Todas son visibles para todos.
-    *   Muestra directamente las opciones de "Apariencia" y "Visualización".
-    *   En la pestaña "Avanzado", renderiza `AdvancedBarcodeOptions`.
-5.  `AdvancedBarcodeOptions` muestra las opciones detalladas según el `selectedType`, sin depender del `userRole`.
-
-**Conclusión sobre Roles y Opciones Visibles (Actual) en el Generador:**
-A fecha de esta documentación, **todos los tipos de códigos de barras y todas sus opciones de personalización (básicas y avanzadas) son visibles y accesibles para todos los roles de usuario** a través de la estructura de pestañas en `GenerationOptions.tsx`. La diferenciación por roles para estas características ha sido neutralizada.
-
-## Configuración
-
-El frontend utiliza variables de entorno para la configuración:
-
+### Requisitos Previos
 ```bash
-# .env.local (Crear este archivo en la raíz de /frontend si no existe)
-NEXT_PUBLIC_BACKEND_URL=http://localhost:3004 # Puerto actualizado
-NEXT_PUBLIC_RUST_SERVICE_URL=http://localhost:3002
-
-# Nota sobre Sentry:
-# La integración con Sentry (incluyendo el DSN) se configura a través de los archivos
-# `sentry.server.config.ts`, `sentry.edge.config.ts`, `src/instrumentation.ts`, 
-# y `src/instrumentation-client.ts`, gestionados inicialmente por el Sentry Wizard.
-# No se requiere la variable NEXT_PUBLIC_SENTRY_DSN en .env.local con la configuración actual.
+# Versiones requeridas
+node --version  # >= 18.0.0
+npm --version   # >= 9.0.0
 ```
 
-## Instalación y Desarrollo
-
-Consulta el [README principal](../README.md) para instrucciones detalladas sobre cómo instalar dependencias, configurar variables de entorno y ejecutar el frontend junto con el resto de componentes del sistema.
-
-Los comandos básicos para el desarrollo del frontend (una vez instaladas las dependencias) son:
-
+### Instalación
 ```bash
-# Iniciar servidor de desarrollo (normalmente en http://localhost:3000)
+cd frontend
+npm install
+```
+
+### Configuración
+1. Copiar `.env.example` a `.env.local`
+2. Configurar las variables requeridas (ver sección 5)
+3. Asegurar que el backend está corriendo en puerto 3004
+
+### Ejecución
+```bash
+# Desarrollo con hot-reload
 npm run dev
 
-# Compilar para producción
+# Build para producción
 npm run build
 
-# Iniciar servidor de producción (después de compilar)
+# Producción
 npm start
+
+# Con PM2 (RECOMENDADO)
+pm2 start ecosystem.config.js --only codex-frontend
 ```
 
-## Próximas Mejoras
+### Testing
+```bash
+# Tests unitarios
+npm test
+npm run test:coverage
+npm run test:ui
 
-- Implementación de selección de colores para los códigos
-- Exportación a formato PNG
-- Modo oscuro para la interfaz
-- Mejoras de accesibilidad
-- Integración con sistemas de autenticación
-- Generación de códigos por lotes
+# Tests E2E
+npm run test:e2e
+npm run test:e2e:ui
+npm run test:e2e:headed
+npm run test:e2e:report
 
-## Documentación Relacionada
+# Linting y formato
+npm run lint
+npm run format
+```
 
-- [README principal](../README.md): Documentación general del proyecto
-- [CHANGELOG.md](../CHANGELOG.md): Historial de cambios
-- [Sistema de Gradientes SVG](../docs/SVG_GRADIENT_SYSTEM.md): Documentación técnica completa del sistema de gradientes
+---
+
+## 4. Contrato de API (Interfaces principales)
+
+### Rutas Públicas
+- `/` - Generador principal
+- `/login` - Página de login
+- `/register` - Registro de usuarios
+- `/about` - Información del proyecto
+
+### Rutas Protegidas
+- `/dashboard` - Dashboard de usuario
+- `/profile` - Perfil y configuración
+- `/monitoring` - Dashboard de monitoreo (admin)
+
+### Tipos Compartidos con Backend
+```typescript
+// Tipos de códigos soportados
+type BarcodeType = 'qrcode' | 'code128' | 'pdf417' | 'ean13' | 'upca' | 'code39' | 'datamatrix';
+
+// Opciones de generación
+interface GenerateOptions {
+  size?: number;
+  margin?: number;
+  darkColor?: string;
+  lightColor?: string;
+  errorCorrection?: 'L' | 'M' | 'Q' | 'H';
+  gradient?: {
+    type: 'linear' | 'radial';
+    colors: string[];
+  };
+}
+
+// Tipos de QR
+type QRType = 'link' | 'text' | 'email' | 'phone' | 'sms' | 'wifi' | 'vcard' | 'whatsapp';
+```
+
+### Hooks Principales
+```typescript
+// Generación de códigos
+useBarcodeGenerationV2() - Motor v2 de generación
+useSmartAutoGeneration() - Auto-generación inteligente
+useUrlValidation() - Validación de URLs con metadata
+
+// UI/UX
+useTypingTracker() - Tracking de escritura con debounce
+useClipboard() - Copiar al portapapeles
+useTheme() - Gestión de tema claro/oscuro
+```
+
+---
+
+## 5. Variables de Entorno
+
+### Requeridas
+| Variable | Descripción | Ejemplo |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_BACKEND_URL` | URL del backend API | `http://localhost:3004` |
+| `NEXT_PUBLIC_RUST_SERVICE_URL` | URL del servicio Rust | `http://localhost:3002` |
+
+### Opcionales
+| Variable | Descripción | Default |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_SENTRY_DSN` | DSN de Sentry para monitoreo | `""` |
+| `NODE_OPTIONS` | Opciones de Node.js | `--max-old-space-size=4096` |
+| `SENTRY_AUTH_TOKEN` | Token de autenticación Sentry | `""` |
+
+---
+
+## 6. Comunicación con Otros Servicios
+
+### Servicios de los que Depende
+- **Backend API**: Toda la lógica de negocio - Puerto `3004`
+  - Autenticación: `/api/auth/*`
+  - Generación: `/api/v2/qr/*`, `/api/v1/barcode`
+  - Usuarios: `/api/users/*`
+
+### Servicios que Dependen de Este
+- Ninguno (es el punto final de la arquitectura)
+
+---
+
+## 7. Troubleshooting Común
+
+### Problema: "Failed to fetch" o errores de red
+**Síntoma**: Errores al intentar generar códigos o autenticarse
+**Solución**: 
+1. Verificar que el backend está corriendo: `pm2 status codex-backend`
+2. Confirmar `NEXT_PUBLIC_BACKEND_URL` en `.env.local`
+3. Revisar CORS en el backend
+
+### Problema: Página en blanco o error de hidratación
+**Síntoma**: Console muestra "Hydration failed"
+**Solución**: 
+1. Limpiar caché: `rm -rf .next`
+2. Reinstalar dependencias: `rm -rf node_modules && npm install`
+3. Verificar que no hay diferencias entre SSR y cliente
+
+### Problema: Auto-generación no funciona
+**Síntoma**: No se genera código automáticamente al escribir
+**Solución**:
+1. Verificar que el tipo de código soporta auto-generación
+2. Revisar console para errores de validación
+3. Confirmar debounce time (200-500ms según tipo)
+
+---
+
+## 8. Mantenimiento y Monitoreo
+
+### Sistema de Diseño
+- **Filosofía**: "Sofisticación Corporativa Global"
+- **Colores primarios**: Blue-600 a Blue-700
+- **Espaciado**: Sistema base 4px
+- **Animaciones**: transition-all duration-200
+- **Layout generador**: 2/3 config + 1/3 preview sticky
+
+### Métricas Clave
+- **Performance Score**: Meta > 90 (Lighthouse)
+- **Cache Hit Rate**: Meta > 70% (validaciones)
+- **API Call Reduction**: ~90% con debouncing
+- **Bundle Size**: Monitorear con `npm run analyze`
+
+### Comandos Útiles
+```bash
+# Ver logs en tiempo real
+pm2 logs codex-frontend
+
+# Analizar bundle
+npm run analyze
+
+# Limpiar caché de desarrollo
+rm -rf .next
+
+# Ver métricas de Sentry
+# Acceder a dashboard.sentry.io
+```
+
+### Estructura de Archivos
+```
+frontend/src/
+├── app/              # Páginas y layouts (App Router)
+├── components/       # Componentes reutilizables
+│   ├── ui/          # Componentes base (buttons, cards, etc)
+│   └── generator/   # Componentes del generador
+├── hooks/           # Custom React hooks
+├── lib/             # Utilidades y helpers
+├── schemas/         # Esquemas de validación Zod
+└── context/         # Contextos globales (Auth, Theme)
+```
+
+### Features en Desarrollo
+- **QR Engine v2**: 100% activo pero gradientes pendientes
+- **Smart Auto-Generation**: Sistema completo y optimizado
+- **URL Validation**: Con extracción de metadata (favicon, title)
