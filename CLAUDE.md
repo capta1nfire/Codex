@@ -2,7 +2,7 @@
 
 > **🎯 Purpose**: This file provides Claude Code with project-specific context, commands, and workflows to maximize development efficiency and maintain consistency. Aligned with [Anthropic's Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices).
 
-> **📋 Note**: If you're a new AI agent, start with `CONTEXT_SUMMARY.md` first for project orientation. This file is your practical toolkit after understanding the project context.
+> **📋 Note**: If you're a new AI agent, start with `START_HERE.md` first for project orientation. This file is your practical toolkit after understanding the project context.
 
 > **🔄 Living Document**: This file should be iterated and improved based on effectiveness. Last updated: June 14, 2025
 
@@ -71,7 +71,7 @@ grep -r "app\.use.*'/api/v[12]/" backend/src
 
 ```
 CODEX Project/
-├── 📄 CONTEXT_SUMMARY.md    # START HERE - Project overview & rules
+├── 📄 START_HERE.md         # START HERE - Project overview & rules
 ├── 🧭 .nav.md               # QUICK NAVIGATION - Find files & workflows fast
 ├── 📄 CODEX.md              # Strategic roadmap & phases
 ├── 📄 README.md             # Technical setup & documentation
@@ -83,7 +83,7 @@ CODEX Project/
 ```
 
 ### Critical Files to Read First
-1. `CONTEXT_SUMMARY.md` - Understand project rules and current state
+1. `START_HERE.md` - Understand project rules and current state
 2. `.nav.md` - Quick navigation to find files and workflows efficiently
 3. `CODEX.md` - Understand strategic vision and phases
 4. `docs/CODEX_DESIGN_SYSTEM.md` - UI/UX guidelines
@@ -632,7 +632,7 @@ cargo build --release
 - [ ] ✅ **New dependencies**: Document in corresponding README.md
 - [ ] ✅ **API changes**: Update `API_DOCUMENTATION.md`
 - [ ] ✅ **Resolved issues**: Add to `docs/TROUBLESHOOTING.md`
-- [ ] ✅ **Update CONTEXT_SUMMARY.md**: "Tasks Completed This Session" section
+- [ ] ✅ **Update START_HERE.md**: "Tasks Completed This Session" section
 
 #### 🗂️ 3. TEMPORARY FILES CLEANUP
 - [ ] ✅ **Temporary scripts**: Remove test `.sh`, `.js`, `.py` files
@@ -643,7 +643,7 @@ cargo build --release
 - [ ] ✅ **Debugging screenshots**: `screenshot_*.png`, etc.
 
 #### 📋 4. DOCUMENTATION ORGANIZATION
-- [ ] ✅ **Verify hierarchy**: Follow structure defined in CONTEXT_SUMMARY.md
+- [ ] ✅ **Verify hierarchy**: Follow structure defined in START_HERE.md
 - [ ] ✅ **Avoid duplication**: Don't create new docs if you can update existing ones
 - [ ] ✅ **Cross-references**: Update links between documents if necessary
 - [ ] ✅ **Versioning**: Update "last updated" dates in modified docs

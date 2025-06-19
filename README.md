@@ -69,7 +69,7 @@ docker-compose up -d # PostgreSQL + Redis
 ## 📖 **Documentación Global**
 
 ### **Para Nuevos Desarrolladores**
-1. **[CONTEXT_SUMMARY.md](./CONTEXT_SUMMARY.md)** - Portal de entrada al proyecto
+1. **[START_HERE.md](./START_HERE.md)** - Portal de entrada al proyecto
 2. **[CODEX.md](./CODEX.md)** - Visión estratégica y roadmap
 3. **[CLAUDE.md](./CLAUDE.md)** - Guía para desarrollo con IA
 

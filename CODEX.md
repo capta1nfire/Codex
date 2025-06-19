@@ -249,7 +249,7 @@ La interfaz sigue el **CODEX Design System v2.0** evolucionado hacia sofisticaci
 - **📋 Complete Design System**: [`docs/CODEX_DESIGN_SYSTEM.md`](docs/CODEX_DESIGN_SYSTEM.md) (993 líneas, sistema completo + especialización)
 - **🚀 Implementation Overview**: [`README.md` - Design System v2.0 Section](README.md#codex-design-system-v20-corporate-sophistication-new) (Business impact + specialization)
 - **👤 Profile Specific**: [`PROFILE_IMPLEMENTATION_LOG.md`](PROFILE_IMPLEMENTATION_LOG.md) (Plan & Limits modernization + specialization)
-- **🔄 Context Transfer**: [`CONTEXT_SUMMARY.md`](CONTEXT_SUMMARY.md) (AI agent hierarchy + specialization strategy)
+- **🔄 Context Transfer**: [`START_HERE.md`](START_HERE.md) (AI agent hierarchy + specialization strategy)
 
 El sistema garantiza **coherencia visual corporativa especializada** en toda la plataforma y **escalabilidad específica** para componentes especializados siguiendo patrones modernos 2025.
 

@@ -88,7 +88,7 @@
 - Eliminadas secciones legacy sobre implementaciones específicas
 - Enfoque en Quick Start y arquitectura clara
 
-### CONTEXT_SUMMARY.md v2.0 ✅
+### START_HERE.md v2.0 ✅
 - Transformado de documento complejo (660 líneas) a portal simple (136 líneas)
 - Reducción del 79% en complejidad
 - Estructura clara: Misión → Lectura → Inicio → Reglas → Estado
@@ -107,7 +107,7 @@
 ### Estadísticas Totales
 - **Archivos migrados**: 20+
 - **Nuevos READMEs creados**: 3 (backend, frontend, rust_generator)
-- **Documentos raíz actualizados**: 2 (README.md, CONTEXT_SUMMARY.md)
+- **Documentos raíz actualizados**: 2 (README.md, START_HERE.md)
 - **Reducción de complejidad**: >70% en documentos principales
 
 ### Beneficios Logrados
