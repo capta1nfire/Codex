@@ -3,7 +3,7 @@ import { z } from 'zod';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { URL } from 'url';
-import { redis } from '../config/redis';
+import { redis } from '../lib/redis.js';
 
 const router = express.Router();
 
@@ -96,15 +96,20 @@ async function checkUrlWithRetry(url: string, retries = 2): Promise<{ exists: bo
 async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
   const normalizedUrl = normalizeUrl(url);
   
+  console.log(`[fetchUrlMetadata] Starting for URL: ${normalizedUrl}`);
+  
   // Check cache first
   const cacheKey = `url_metadata:${normalizedUrl}`;
   const cached = await redis.get(cacheKey);
   if (cached) {
+    console.log(`[fetchUrlMetadata] Found in cache, returning:`, cached);
     return JSON.parse(cached);
   }
 
   // First check if URL is reachable with HEAD request
+  console.log(`[fetchUrlMetadata] No cache found, checking URL with HEAD request`);
   const headCheck = await checkUrlWithRetry(url);
+  console.log(`[fetchUrlMetadata] HEAD check result:`, headCheck);
   
   if (!headCheck.exists) {
     const result = {
@@ -112,31 +117,38 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
       error: 'URL is not reachable',
       statusCode: headCheck.statusCode
     };
+    console.log(`[fetchUrlMetadata] URL not reachable, caching negative result:`, result);
     // Cache negative results for shorter time (30 seconds)
-    await redis.setex(cacheKey, 30, JSON.stringify(result));
+    await redis.setEx(cacheKey, 30, JSON.stringify(result));
     return result;
   }
 
   try {
+    console.log(`[fetchUrlMetadata] URL exists, fetching full content with GET request`);
     // Try to fetch the page with timeout
     const response = await axios.get(normalizedUrl, {
       timeout: 5000,
       maxRedirects: 5,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; CODEX-Validator/1.0)',
-        'Accept': 'text/html,application/xhtml+xml'
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9'
       },
       // Don't throw on 4xx/5xx to get status codes
       validateStatus: () => true
     });
+
+    console.log(`[fetchUrlMetadata] GET response status: ${response.status}, has data: ${!!response.data}`);
 
     const result: UrlMetadata = {
       exists: response.status < 400,
       statusCode: response.status
     };
 
-    // Parse HTML for metadata if successful
-    if (response.status < 400 && response.data) {
+    // Parse HTML for metadata if we have data
+    // Note: We should parse metadata even for redirects (3xx) since axios follows them
+    if (response.data && typeof response.data === 'string') {
+      console.log(`[fetchUrlMetadata] Parsing HTML for metadata, content length: ${response.data.length}`);
       const $ = cheerio.load(response.data);
       
       // Extract title
@@ -166,11 +178,16 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
           favicon = `${urlObj.origin}/${favicon}`;
         }
         result.favicon = favicon;
+      } else {
+        // Fallback to Google's favicon service if no favicon found
+        const urlObj = new URL(normalizedUrl);
+        result.favicon = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=64`;
       }
     }
 
+    console.log(`[fetchUrlMetadata] Final result with metadata:`, result);
     // Cache successful results for 24 hours
-    await redis.setex(cacheKey, 86400, JSON.stringify(result));
+    await redis.setEx(cacheKey, 86400, JSON.stringify(result));
     return result;
 
   } catch (error: any) {
@@ -180,7 +197,7 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
     };
     
     // Cache network errors for 30 seconds
-    await redis.setex(cacheKey, 30, JSON.stringify(result));
+    await redis.setEx(cacheKey, 30, JSON.stringify(result));
     return result;
   }
 }
@@ -190,6 +207,7 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
  */
 router.post('/check-url', async (req, res) => {
   try {
+    console.log('[VALIDATE ENDPOINT] Called with body:', req.body);
     const { url } = validateUrlSchema.parse(req.body);
     
     // Quick response for common test domains
@@ -204,6 +222,7 @@ router.post('/check-url', async (req, res) => {
     }
 
     const metadata = await fetchUrlMetadata(url);
+    console.log('[VALIDATE ENDPOINT] Returning metadata:', metadata);
     return res.json(metadata);
 
   } catch (error) {

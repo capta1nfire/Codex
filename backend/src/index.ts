@@ -36,7 +36,7 @@ import { metricsRoutes } from './routes/metrics.routes.js';
 import { qrRoutes } from './routes/qr.routes.js';
 import qrV2Routes from './routes/qrV2.routes.js';
 import { userRoutes } from './routes/user.routes.js';
-import validateRoutes from './routes/validateSimple.js';
+import validateRoutes from './routes/validate.js';
 import { startServer } from './server-config.js'; // <--- Descomentar esta línea
 import {
   startDatabaseService,

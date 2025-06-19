@@ -10,6 +10,19 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
+### 2025-06-19
+
+#### Fixed
+- 🔧 **URL Validation Metadata** - Backend now returns complete metadata (title, description, favicon)
+  - Fixed import from validateSimple.ts to validate.ts route
+  - Updated Redis API calls from setex to setEx
+  - Metadata includes favicon with Google fallback service
+  
+- 🎯 **Favicon Display** - Favicon now displays correctly in URL validation badge
+  - Implemented validation flow: Spinner → Favicon → Checkmark
+  - Badge persists after QR generation with favicon visible
+  - Removed duplicate favicon appearances in other components
+
 ### 2025-06-18
 
 #### Merged

@@ -77,20 +77,21 @@ export const LinkForm: React.FC<LinkFormProps> = ({
     }
   }, [metadata, isValidating, validationUrlError, onUrlValidationComplete, data.url]);
   
-  // Auto-mostrar badge después de 3 segundos si la URL es válida
+  // Mostrar badge con delay apropiado según el estado
   useEffect(() => {
     // Limpiar timer anterior
     if (badgeTimerRef.current) {
       clearTimeout(badgeTimerRef.current);
     }
     
-    if (isValidUrl) {
-      // Iniciar timer de 3 segundos
-      badgeTimerRef.current = setTimeout(() => {
-        setShowBadge(true);
-      }, 3000);
-    } else {
-      // Si la URL no es válida, ocultar badge inmediatamente
+    if (isValidUrl && isValidating) {
+      // Mostrar badge inmediatamente cuando empieza a validar
+      setShowBadge(true);
+    } else if (isValidUrl && metadata && metadata.exists) {
+      // Mantener badge visible si ya se validó exitosamente
+      setShowBadge(true);
+    } else if (!isValidUrl) {
+      // Si la URL no es válida, ocultar badge
       setShowBadge(false);
     }
     
@@ -100,20 +101,15 @@ export const LinkForm: React.FC<LinkFormProps> = ({
         clearTimeout(badgeTimerRef.current);
       }
     };
-  }, [isValidUrl]);
+  }, [isValidUrl, isValidating, metadata]);
   
-  // Ocultar badge cuando se enfoca el input (excepto si se acaba de presionar Enter)
+  // Ocultar badge cuando se enfoca el input SOLO si el usuario empieza a escribir
   useEffect(() => {
-    if (isFocused) {
-      // Solo ocultar si no fue activado manualmente por Enter
-      const timer = setTimeout(() => {
-        if (isFocused) {
-          setShowBadge(false);
-        }
-      }, 100);
-      return () => clearTimeout(timer);
+    if (isFocused && showBadge) {
+      // No ocultar automáticamente el badge al enfocar
+      // Solo se ocultará si el usuario cambia la URL
     }
-  }, [isFocused]);
+  }, [isFocused, showBadge]);
   
   // Handle click on the entire component area
   const handleContainerClick = () => {
@@ -179,6 +175,10 @@ export const LinkForm: React.FC<LinkFormProps> = ({
             value={data.url}
             onChange={(e) => {
               onChange('url', e.target.value);
+              // Ocultar badge cuando el usuario modifica la URL
+              if (showBadge && e.target.value !== data.url) {
+                setShowBadge(false);
+              }
             }}
             onFocus={() => {
               setIsFocused(true);
@@ -189,8 +189,8 @@ export const LinkForm: React.FC<LinkFormProps> = ({
             }}
             onBlur={() => {
               setIsFocused(false);
-              // Restore badge if URL is still valid
-              if (isValidUrl) {
+              // Restore badge if URL is still valid and has metadata
+              if (isValidUrl && metadata && metadata.exists) {
                 setShowBadge(true);
               }
             }}
@@ -206,17 +206,12 @@ export const LinkForm: React.FC<LinkFormProps> = ({
               // Text color based on state
               validationError ? "text-slate-900 dark:text-white" : isValidUrl ? "text-corporate-blue-700 dark:text-corporate-blue-300" : "text-slate-900 dark:text-white",
               // Hide text when showing badge
-              isValidUrl && !isFocused && "text-transparent"
+              showBadge && isValidUrl && "text-transparent"
             )}
             disabled={isLoading}
           />
           
-          {/* Validation indicator - shows while validating */}
-          {isValidating && isValidUrl && !showBadge && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <RefreshCw className="h-3.5 w-3.5 animate-spin text-slate-500" />
-            </div>
-          )}
+          {/* Removed separate validation indicator - now shown inside badge */}
           
           {/* Badge overlay for valid URLs after 3 seconds or when not focused */}
           {showBadge && isValidUrl && (
@@ -232,11 +227,30 @@ export const LinkForm: React.FC<LinkFormProps> = ({
                   onClick={(e) => e.stopPropagation()} // Prevent triggering input focus
                   title={metadata?.title || 'Visitar sitio web'}
                 >
-                  {data.url}
-                  {/* Indicador de estado de validación */}
+                  {/* Flujo de validación: Spinner → Favicon → Checkmark */}
+                  
+                  {/* 1. Spinner mientras valida */}
                   {isValidating && (
                     <RefreshCw className="h-3.5 w-3.5 animate-spin text-corporate-blue-600" />
                   )}
+                  
+                  {/* 2. Favicon cuando se completa la validación */}
+                  {!isValidating && metadata?.favicon && (
+                    <img 
+                      src={metadata.favicon} 
+                      alt="" 
+                      className="w-4 h-4 rounded-sm flex-shrink-0"
+                      onError={(e) => {
+                        // Si falla cargar el favicon, ocultarlo
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  )}
+                  
+                  {/* URL siempre visible */}
+                  {data.url}
+                  
+                  {/* 3. Indicadores finales: Check o Error */}
                   {!isValidating && metadata?.exists && (
                     <Check className="h-4 w-4 text-green-600" />
                   )}

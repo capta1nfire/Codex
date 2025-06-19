@@ -120,8 +120,10 @@ export default function Home() {
         
         // Use state machine to coordinate validation and generation
         if (selectedQRType === 'link') {
-          // Transition to validating state
-          startValidating();
+          // Only transition to validating if not already validating
+          if (urlGenerationState !== 'VALIDATING' && urlGenerationState !== 'READY_TO_GENERATE') {
+            startValidating();
+          }
         } else {
           // Non-URL QR types can generate immediately
           validateAndGenerate(currentFormValues, selectedQRType, currentQRData);
@@ -152,9 +154,10 @@ export default function Home() {
   } = useSmartAutoGeneration({
     enabled: autoGenerationEnabled,
     onGenerationStart: () => {
-      // Cancel any pending URL validation when starting generation
-      if (selectedType === 'qrcode' && selectedQRType === 'link') {
-        clearUrlValidation();
+      // Don't clear URL validation for links - we want to keep the metadata (favicon)
+      // Only clear for other QR types
+      if (selectedType === 'qrcode' && selectedQRType !== 'link') {
+        // Clear validation for non-link types if needed
       }
     },
     onGenerate: (formData: GenerateFormData) => {
@@ -410,6 +413,12 @@ export default function Home() {
       
       console.log(`[page.tsx] Site exists, waiting ${POST_VALIDATION_DELAY}ms before generating QR...`);
       
+      // Update state machine to show we're ready to generate
+      // Only update if we're in VALIDATING state to avoid duplicate transitions
+      if (urlGenerationState === 'VALIDATING') {
+        validationComplete(true);
+      }
+      
       // REMOVED: Sound on URL validation - only play sound on actual QR generation
       // The sound should only play once when the QR is generated (in onSubmit)
       
@@ -418,6 +427,7 @@ export default function Home() {
         const currentFormValues = getValues();
         const updatedFormData = qrFormData.link;
         console.log('[page.tsx] Post-validation delay complete, generating QR code now');
+        startGenerating(); // Update state machine
         validateAndGenerate(currentFormValues, selectedQRType, updatedFormData);
       }, POST_VALIDATION_DELAY);
       
@@ -426,7 +436,7 @@ export default function Home() {
       console.log('[page.tsx] Site does not exist, showing warning instead of generating');
       clearContent(); // Limpiar cualquier código existente
     }
-  }, [selectedType, selectedQRType, getValues, qrFormData, validateAndGenerate, clearContent, setValue]);
+  }, [selectedType, selectedQRType, getValues, qrFormData, validateAndGenerate, clearContent, setValue, validationComplete, startGenerating, urlGenerationState]);
 
   // Función para generar de todas formas cuando el sitio no existe
   const handleGenerateAnyway = useCallback(() => {
@@ -488,7 +498,7 @@ export default function Home() {
     }
   }, [watchedData, selectedType, getValues, validateAndGenerate, isInitialMount]);
   
-  // Monitor URL validation completion and trigger generation
+  // Monitor URL validation completion and update state machine only
   useEffect(() => {
     if (selectedType === 'qrcode' && 
         selectedQRType === 'link' && 
@@ -498,15 +508,13 @@ export default function Home() {
         !isTyping &&
         urlGenerationState === 'VALIDATING') {
       // URL validation completed successfully
-      validationComplete(true);
+      // Remove this - validationComplete is already called in handleUrlValidationComplete
+      // validationComplete(true);
       
-      // Now safe to generate
-      const currentFormValues = getValues();
-      const currentQRData = qrFormData[selectedQRType];
-      startGenerating();
-      validateAndGenerate(currentFormValues, selectedQRType, currentQRData);
+      // Don't generate here - let handleUrlValidationComplete handle it with delay
+      // This prevents duplicate generation
     }
-  }, [isValidatingUrl, urlMetadata, selectedType, selectedQRType, hasUserStartedTyping, isTyping, getValues, qrFormData, validateAndGenerate, urlGenerationState, validationComplete, startGenerating]);
+  }, [isValidatingUrl, urlMetadata, selectedType, selectedQRType, hasUserStartedTyping, isTyping, urlGenerationState]);
   
   // Monitor URL validation errors
   useEffect(() => {
