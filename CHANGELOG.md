@@ -10,6 +10,17 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
+### 2025-06-20
+
+#### Improved
+- 🔧 **URL Validation System** - Enhanced with DNS-first multi-strategy approach
+  - Implemented robust DNS verification checking 7 different record types
+  - Fixed Facebook and other sites that block HEAD requests
+  - Smart fallback: if DNS exists but HTTP fails, assumes site exists
+  - Handles edge cases like firewalls, timeouts, and restricted access
+  - Maintains backward compatibility with existing metadata extraction
+  - Added special handling for problematic domains (Facebook, Meta) to skip stale cache
+
 ### 2025-06-19
 
 #### Added
