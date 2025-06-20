@@ -65,18 +65,21 @@ npm install
 
 ### Ejecución
 ```bash
-# Desarrollo con hot-reload
+# Desarrollo con hot-reload (Puerto 3000)
 npm run dev
 
 # Build para producción
 npm run build
 
-# Producción
+# Producción (Puerto 3000)
 npm start
 
-# Con PM2 (RECOMENDADO)
+# Con PM2 (RECOMENDADO) - Puerto 3000
 pm2 start ecosystem.config.js --only codex-frontend
 ```
+
+**Puerto por defecto:** `3000`  
+**URL de acceso:** `http://localhost:3000`
 
 ### Testing
 ```bash

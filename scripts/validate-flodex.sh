@@ -15,6 +15,41 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Help function
+show_help() {
+    echo -e "${BLUE}FLODEX Architecture Validator v1.0${NC}"
+    echo ""
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --help, -h    Show this help message and exit"
+    echo ""
+    echo "Description:"
+    echo "  Validates that the CODEX project follows FLODEX architecture principles."
+    echo ""
+    echo "Checks performed:"
+    echo "  - Service structure and independence"
+    echo "  - Documentation placement (minimal .md files per service)"
+    echo "  - Cross-service dependencies"
+    echo "  - Port configurations"
+    echo "  - Required root files"
+    echo "  - FLODEX compliance (separate package managers)"
+    echo ""
+    echo "Output:"
+    echo "  Color-coded pass/warn/fail results with actionable feedback"
+    echo ""
+    echo "Exit codes:"
+    echo "  0 - All checks passed"
+    echo "  1 - Warnings found"
+    echo "  2 - Errors found"
+    exit 0
+}
+
+# Check for help flag
+if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
+    show_help
+fi
+
 # Counters
 ERRORS=0
 WARNINGS=0

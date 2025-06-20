@@ -26,6 +26,35 @@ const colors = {
   gray: '\x1b[90m'
 };
 
+// Check for help flag
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  console.log(`${colors.blue}FLODEX Metrics Dashboard v1.0${colors.reset}`);
+  console.log('');
+  console.log('Usage: flodex-metrics [OPTIONS]');
+  console.log('');
+  console.log('Options:');
+  console.log('  --help, -h    Show this help message and exit');
+  console.log('');
+  console.log('Description:');
+  console.log('  Tracks and measures the effectiveness of FLODEX architecture over time.');
+  console.log('');
+  console.log('Metrics tracked:');
+  console.log('  📚 Documentation to Code Ratio - Ensures minimal documentation');
+  console.log('  🏛️ Service Independence Score - Measures service isolation');
+  console.log('  🌉 Cross-Service Features Count - Tracks shared features');
+  console.log('  ✅ FLODEX Compliance Score - Overall architecture health');
+  console.log('  🚀 Development Velocity - Recent activity and changes');
+  console.log('');
+  console.log('Features:');
+  console.log('  - Stores historical data for trend analysis');
+  console.log('  - Visual dashboard with color-coded results');
+  console.log('  - Execution time under 5 seconds');
+  console.log('');
+  console.log('Data storage:');
+  console.log('  Metrics are saved to .flodex-metrics.json in the project root');
+  process.exit(0);
+}
+
 // Metric storage file
 const METRICS_FILE = path.join(__dirname, '..', '.flodex-metrics.json');
 
