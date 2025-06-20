@@ -56,7 +56,7 @@ interface QrV3Response {
  * Generate QR code with structured data output
  */
 router.post('/generate', 
-  authenticateJwt,
+  // authenticateJwt, // REMOVED: v3 is now free for all users
   generationRateLimit,
   async (req, res) => {
     const startTime = Date.now();

@@ -23,10 +23,49 @@ export interface QRStructuredData {
   };
 }
 
+export interface QRV3Customization {
+  gradient?: {
+    enabled: boolean;
+    gradient_type: 'linear' | 'radial' | 'conic' | 'diamond' | 'spiral';
+    colors: string[];
+    angle?: number;
+    apply_to_eyes?: boolean;
+    apply_to_data?: boolean;
+    stroke_style?: {
+      enabled: boolean;
+      color?: string;
+      width?: number;
+      opacity?: number;
+    };
+  };
+  eye_shape?: string;
+  data_pattern?: string;
+  colors?: {
+    foreground: string;
+    background: string;
+  };
+  logo?: {
+    data: string;
+    size_percentage: number;
+    padding: number;
+    shape: 'square' | 'circle' | 'rounded_square';
+  };
+  frame?: {
+    frame_type: string;
+    text?: string;
+    color: string;
+    text_position: 'top' | 'bottom' | 'left' | 'right';
+  };
+  effects?: Array<{
+    effect: string;
+    intensity: number;
+    color?: string;
+  }>;
+}
+
 export interface QRV3Options {
   error_correction?: 'L' | 'M' | 'Q' | 'H';
-  // Futuras opciones de customización
-  customization?: any;
+  customization?: QRV3Customization;
 }
 
 interface QRV3Response {
@@ -71,17 +110,16 @@ export const useQRGenerationV3 = (): UseQRGenerationV3Return => {
     setMetadata(null);
 
     try {
-      const token = user?.token || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-      
-      // Si no hay token, no intentar generar con v3
-      if (!token) {
-        throw new Error('Authentication required for v3 API');
-      }
-      
+      // v3 is now free - no authentication required
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
       };
+      
+      // Add token if available for better rate limits
+      const token = user?.token || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
 
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
       const response = await fetch(`${backendUrl}/api/v3/qr/generate`, {

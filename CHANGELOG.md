@@ -41,12 +41,26 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Smooth transition: Video placeholder → Loading → Generated QR
   - Better user experience with clear visual feedback for each step
 
+#### Changed
+- 🎉 **ULTRATHINK v3 Now Free** - Removed authentication requirement for v3 API
+  - v3 is now the default for all QR code generation
+  - Frontend updated to send gradient options to v3
+  - Automatic fallback to v2 if v3 fails
+  - Better rate limits for authenticated users but works for everyone
+
 #### Known Issues
 - 🐛 **Initial QR Code Not Displaying** - The default QR code with "https://tu-sitio-web.com" doesn't show on page load
   - Root cause: `handleQRFormChange` treats default URL as empty and calls `clearContent()`
+  - Additional finding: QR is generated but hidden under v3 component (superposition issue)
   - Attempted fix: Added `isInitialMount` check to prevent clearing during initial render
-  - Status: Issue persists, needs further investigation
+  - Status: Issue persists, needs UI layer fix
   - Workaround: QR generates correctly when user types any different URL
+
+- ⚠️ **v3 Gradients Limited** - Gradients not fully working in v3 yet
+  - Backend supports gradients via customization field
+  - Frontend sends gradient options but UltrathinkQR component only renders solid paths
+  - Need to update structured data response to include gradient definitions
+  - Temporary: v3 generates solid color QRs even with gradient options
 
 ### 2025-06-19
 

@@ -219,15 +219,46 @@ export default function Home() {
 
   // Handlers
   const onSubmit = useCallback(async (formData: GenerateFormData) => {
-    // Check if user is authenticated for v3
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-    
-    // Use ULTRATHINK v3 for QR codes only if authenticated, otherwise v2
-    if (formData.barcode_type === 'qrcode' && token) {
+    // Use ULTRATHINK v3 for QR codes (now free for all users)
+    if (formData.barcode_type === 'qrcode') {
       try {
-        // Extract QR specific options for v3
+        // Build customization options from formData
+        const customization: any = {};
+        
+        // Add gradient options if enabled
+        if (formData.options?.gradient_enabled) {
+          customization.gradient = {
+            enabled: true,
+            gradient_type: formData.options.gradient_type || 'linear',
+            colors: [
+              formData.options.gradient_color1 || '#000000',
+              formData.options.gradient_color2 || '#666666'
+            ],
+            angle: formData.options.gradient_direction === 'left-right' ? 0 : 
+                   formData.options.gradient_direction === 'diagonal' ? 45 : 
+                   formData.options.gradient_direction === 'center-out' ? 0 : 90,
+            apply_to_data: true,
+            apply_to_eyes: false,
+            stroke_style: formData.options.gradient_borders ? {
+              enabled: true,
+              color: '#FFFFFF',
+              width: 0.5,
+              opacity: 0.3
+            } : undefined
+          };
+        }
+        
+        // Add other customization options
+        if (formData.options?.fgcolor || formData.options?.bgcolor) {
+          customization.colors = {
+            foreground: formData.options.fgcolor || '#000000',
+            background: formData.options.bgcolor || '#FFFFFF'
+          };
+        }
+        
         await generateQR(formData.data, {
-          error_correction: formData.options?.error_correction || 'M',
+          error_correction: formData.options?.error_correction || formData.options?.ecl || 'M',
+          customization: Object.keys(customization).length > 0 ? customization : undefined
         });
         return; // Important: exit after successful v3 generation
       } catch (err) {
@@ -236,7 +267,7 @@ export default function Home() {
       }
     }
     
-    // Use v2 for all other barcode types or when not authenticated
+    // Use v2 for all other barcode types
     await generateBarcode(formData);
     
     // Play success sound on QR generation
