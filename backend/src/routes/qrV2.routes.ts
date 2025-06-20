@@ -120,6 +120,8 @@ router.post(
         userId: req.user?.id,
         dataLength: data.length,
         hasOptions: !!options,
+        data: data,
+        options: options
       });
 
       // Track metrics

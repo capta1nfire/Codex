@@ -1,11 +1,16 @@
-# QR Engine v2 - Documentation Hub
+# QR Engine Documentation Hub
 
 ## Overview
-QR Engine v2 is a complete reimplementation of the QR code generation system, designed for high performance and advanced customization. Built in 100% Rust, it achieves 10x better performance than the previous implementation.
+This directory contains documentation for CODEX's QR generation engines:
+- **QR Engine v2** - Current production system with SVG output
+- **ULTRATHINK v3** - Next-generation secure architecture with structured data output
 
 ## Documentation Structure
 
-### Core Documentation
+### ULTRATHINK v3 (New)
+- 🚀 [ULTRATHINK v3 Architecture](./ULTRATHINK_V3_ARCHITECTURE.md) - **NEW** - Revolutionary secure QR generation
+
+### Core Documentation (v2)
 - [Technical Guide](./core/technical-guide.md) - Complete technical documentation
 - [API Reference](./core/api-reference.md) - API usage and examples
 - [Changelog](./core/changelog.md) - Development history and decisions

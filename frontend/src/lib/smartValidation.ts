@@ -28,7 +28,7 @@ export const SmartValidators = {
   /** URL validation - must be a valid URL format */
   url: (data: any): ValidationResult => {
     if (!data.url || data.url.trim().length === 0 || data.url === 'https://tu-sitio-web.com') {
-      return { isValid: false, message: 'Ingresa el enlace de tu sitio web o página' };
+      return { isValid: false, message: 'Ingresa o pega el enlace de tu sitio web' };
     }
     
     const url = data.url.trim();
@@ -119,7 +119,7 @@ export const SmartValidators = {
         return { isValid: false, message: 'URL inválida (doble punto)' };
       }
       if (url.includes(' ')) {
-        return { isValid: false, message: 'Ingresa el enlace de tu sitio web o página' };
+        return { isValid: false, message: 'Ingresa o pega el enlace de tu sitio web' };
       }
       
       // Don't show "invalid format" for short partial domains

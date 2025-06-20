@@ -35,6 +35,7 @@ import healthRoutes from './routes/health.js'; // ✅ Sistema robusto
 import { metricsRoutes } from './routes/metrics.routes.js';
 import { qrRoutes } from './routes/qr.routes.js';
 import qrV2Routes from './routes/qrV2.routes.js';
+import qrV3Routes from './routes/qr-v3.routes.js';
 import { userRoutes } from './routes/user.routes.js';
 import validateRoutes from './routes/validate.js';
 import { startServer } from './server-config.js'; // <--- Descomentar esta línea
@@ -437,9 +438,10 @@ app.post('/api/services/health-check', async (_req: Request, res: Response) => {
 app.use('/api/generate', generateRoutes); // Legacy - use new endpoints
 app.use('/api/qr', qrRoutes); // Legacy QR routes
 
-// New v1/v2 routes
+// New v1/v2/v3 routes
 app.use('/api/v1/barcode', generateRoutes); // v1 barcode generation
 app.use('/api/v2/qr', qrV2Routes); // v2 QR generation with proper field transformation
+app.use('/api/v3/qr', qrV3Routes); // v3 QR structured data (ULTRATHINK)
 
 // Other routes
 app.use('/api/auth', authRoutes);

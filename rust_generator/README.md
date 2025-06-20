@@ -127,6 +127,43 @@ cargo fmt
 }
 ```
 
+#### POST `/api/v3/qr/generate` 🆕
+**Propósito**: Generar QR con datos estructurados (ULTRATHINK)
+
+**Request**:
+```json
+{
+  "data": "https://example.com",
+  "options": {
+    "error_correction": "H"
+  }
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "path_data": "M4 4h1v1H4zM5 4h1v1H5z...",
+    "total_modules": 33,
+    "data_modules": 25,
+    "version": 2,
+    "error_correction": "H",
+    "metadata": {
+      "generation_time_ms": 15,
+      "quiet_zone": 4,
+      "content_hash": "a7b9c3..."
+    }
+  },
+  "metadata": {
+    "engine_version": "3.0.0",
+    "cached": false,
+    "processing_time_ms": 20
+  }
+}
+```
+
 #### GET `/status`
 **Propósito**: Información del servicio y capacidades
 

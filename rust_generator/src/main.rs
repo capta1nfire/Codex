@@ -648,6 +648,11 @@ async fn main() {
         .route("/api/qr/cache/stats", get(qr_cache_stats_handler))
         .route("/api/qr/cache/clear", post(qr_cache_clear_handler))
         .route("/api/qr/cache/warm", post(qr_cache_warm_handler))
+        // QR Engine v3 - Structured data (ULTRATHINK)
+        .nest("/", routes::qr_v3::routes(routes::qr_v3::QrV3State {
+            engine: Arc::new(engine::QrEngine::new()),
+            cache: Arc::new(rust_generator::cache::redis::RedisCache::new("redis://localhost:6379", "qr_engine_v3", 3600).unwrap_or_else(|_| rust_generator::cache::redis::RedisCache::disabled())),
+        }))
         .layer(cors); // Añadir la capa CORS
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3002));

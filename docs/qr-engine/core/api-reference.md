@@ -347,5 +347,85 @@ curl -X POST https://api.codexqr.com/api/qr/generate \
   }'
 ```
 
+## ULTRATHINK v3 API (New)
+
+### Generate QR Code (Structured Data)
+
+```http
+POST /api/v3/qr/generate
+```
+
+Generate a QR code returning structured JSON data for secure frontend rendering.
+
+#### Request Body
+
+```json
+{
+  "data": "string",           // Required: Data to encode
+  "options": {
+    "error_correction": "L"   // Optional: L, M, Q, H (default: M)
+  }
+}
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "path_data": "M4 4h1v1H4z...",     // SVG path commands
+    "total_modules": 45,               // Total size including quiet zone
+    "data_modules": 37,                // QR data matrix size
+    "version": 5,                      // QR version (1-40)
+    "error_correction": "M",           // Error correction level
+    "metadata": {
+      "generation_time_ms": 1,
+      "quiet_zone": 4,
+      "content_hash": "sha256..."
+    }
+  },
+  "metadata": {
+    "engine_version": "3.0.0",
+    "cached": false,
+    "processing_time_ms": 14
+  }
+}
+```
+
+#### Key Differences from v2
+
+- Returns JSON data instead of SVG string
+- No `dangerouslySetInnerHTML` required
+- 50% smaller response size
+- Perfect dynamic scaling with viewBox
+- Enhanced security (no XSS risk)
+
+#### Example Usage
+
+```javascript
+const response = await fetch('/api/v3/qr/generate', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    data: 'https://example.com',
+    options: {
+      error_correction: 'H'
+    }
+  })
+});
+
+const result = await response.json();
+
+// Render securely in React
+<svg viewBox={`4 4 ${result.data.data_modules} ${result.data.data_modules}`} 
+     width="300" height="300">
+  <path d={result.data.path_data} fill="#000000" />
+</svg>
+```
+
 ---
-*Last updated: June 2025 | Version 2.0.0*
+*Last updated: June 2025 | Version 2.0.0 (v2) / 3.0.0 (v3)*

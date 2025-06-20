@@ -347,6 +347,34 @@ pub struct ValidationIssue {
     pub message: String,
 }
 
+/// Salida estructurada para QR v3 (ULTRATHINK)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrStructuredOutput {
+    /// Path data SVG (atributo 'd')
+    pub path_data: String,
+    /// Tamaño total incluyendo quiet zone
+    pub total_modules: u32,
+    /// Tamaño de datos sin quiet zone
+    pub data_modules: u32,
+    /// Versión QR (1-40)
+    pub version: u8,
+    /// Nivel de corrección de errores
+    pub error_correction: String,
+    /// Metadata adicional
+    pub metadata: QrStructuredMetadata,
+}
+
+/// Metadata para salida estructurada
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrStructuredMetadata {
+    /// Tiempo de generación en ms
+    pub generation_time_ms: u64,
+    /// Tamaño de quiet zone aplicado
+    pub quiet_zone: u32,
+    /// Hash del contenido para cache
+    pub content_hash: String,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum IssueSeverity {

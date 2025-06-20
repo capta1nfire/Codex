@@ -50,6 +50,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
   const { user } = useAuth();
 
   const generateBarcode = useCallback(async (formData: GenerateFormData) => {
+    console.log('[useBarcodeGenerationV2] generateBarcode called with:', formData);
     const requestId = Date.now();
     // Generate barcode with validated data
     
@@ -79,6 +80,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
         
         // Convert old format to v2 format
         const v2Request = migrateQRRequest(payload);
+        console.log('[useBarcodeGenerationV2] v2Request after migration:', v2Request);
         
         // Add gradient options if present
         if (formData.options) {
@@ -158,6 +160,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
         }
         
         // Send request to v2 API
+        console.log('[useBarcodeGenerationV2] Final v2Request being sent:', JSON.stringify(v2Request, null, 2));
         
         const response = await fetch(requestUrl, {
           method: 'POST',
@@ -167,12 +170,30 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
         });
 
         const result = await response.json();
+        console.log('[useBarcodeGenerationV2] v2 API response:', {
+          success: result.success,
+          hasSvg: !!result.svg,
+          svgLength: result.svg?.length,
+          keys: Object.keys(result),
+          fullResponse: result
+        });
         
         if (!response.ok) {
           throw new Error(result.error || 'QR generation failed');
         }
         
-        setSvgContent(result.svg);
+        // Check different possible response formats
+        const svgData = result.svg || result.data || result.svgString;
+        console.log('[useBarcodeGenerationV2] SVG data found:', svgData ? 'Yes' : 'No', 'Length:', svgData?.length);
+        
+        if (svgData) {
+          console.log('[useBarcodeGenerationV2] Setting SVG content, first 100 chars:', svgData.substring(0, 100));
+          setSvgContent(svgData);
+          console.log('[useBarcodeGenerationV2] SVG content set successfully');
+        } else {
+          console.error('[useBarcodeGenerationV2] No SVG data in response!', result);
+          throw new Error('No SVG data in response');
+        }
         setMetadata({
           generationTimeMs: result.metadata?.processingTimeMs || result.performance?.processingTimeMs,
           fromCache: result.cached || false,

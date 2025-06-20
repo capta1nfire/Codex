@@ -35,8 +35,12 @@ export default function BarcodeDisplay({ svgContent, type, data }: BarcodeDispla
     // Clases base: Centrar el SVG y ocupar el espacio necesario
     const baseClasses = 'flex justify-center items-center';
     const isLinearBarcode = ['code128', 'ean13', 'upca', 'code39'].includes(type);
+    const isQRCode = type === 'qrcode' || type === 'qr';
 
-    if (isLinearBarcode) {
+    if (isQRCode) {
+      // Para QR: contenedor fijo con overflow hidden para escalar
+      return `${baseClasses} w-[300px] h-[300px] overflow-hidden relative`;
+    } else if (isLinearBarcode) {
       // Para lineales: mantener aspecto pero ocupar ancho necesario
       return `${baseClasses} w-full min-h-[150px]`;
     } else {
@@ -80,6 +84,7 @@ export default function BarcodeDisplay({ svgContent, type, data }: BarcodeDispla
         dangerouslySetInnerHTML={{ __html: processedSvgContent }}
         role="img"
         aria-label={`Código ${typeLabels[type] || type} generado para los datos: ${data ? data.substring(0, 30) : ''}${data && data.length > 30 ? '...' : ''}`}
+        style={type === 'qrcode' || type === 'qr' ? { transform: 'scale(1.25)', transformOrigin: 'center' } : {}}
       />
       <style jsx>{`
         div :global(svg) {

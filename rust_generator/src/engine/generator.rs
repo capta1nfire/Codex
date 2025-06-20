@@ -704,6 +704,75 @@ impl QrCode {
         svg.push_str("</g>");
         svg
     }
+    
+    /// Convierte el QR a datos estructurados para ULTRATHINK
+    pub fn to_structured_data(&self) -> crate::engine::types::QrStructuredOutput {
+        use std::time::Instant;
+        use sha2::{Sha256, Digest};
+        
+        let start = Instant::now();
+        let mut path_data = String::new();
+        
+        // Generar path data sin quiet zone
+        for y in 0..self.size {
+            for x in 0..self.size {
+                if self.matrix[y][x] {
+                    // Offset por quiet zone en coordenadas
+                    let x_pos = x + self.quiet_zone;
+                    let y_pos = y + self.quiet_zone;
+                    path_data.push_str(&format!("M{} {}h1v1H{}z", x_pos, y_pos, x_pos));
+                }
+            }
+        }
+        
+        // Calcular hash del contenido para cache
+        let mut hasher = Sha256::new();
+        hasher.update(&path_data);
+        let content_hash = format!("{:x}", hasher.finalize());
+        
+        // Determinar versión QR basada en tamaño
+        let version = match self.size {
+            21 => 1,
+            25 => 2,
+            29 => 3,
+            33 => 4,
+            37 => 5,
+            41 => 6,
+            45 => 7,
+            49 => 8,
+            53 => 9,
+            57 => 10,
+            _ => ((self.size - 21) / 4 + 1) as u8, // Fórmula general
+        };
+        
+        // Determinar nivel de corrección basado en customization
+        let error_correction = self.customization
+            .as_ref()
+            .and_then(|c| c.error_correction)
+            .map(|ecl| match ecl {
+                ErrorCorrectionLevel::Low => "L",
+                ErrorCorrectionLevel::Medium => "M",
+                ErrorCorrectionLevel::Quartile => "Q",
+                ErrorCorrectionLevel::High => "H",
+            })
+            .unwrap_or("M")
+            .to_string();
+        
+        let generation_time_ms = start.elapsed().as_millis() as u64;
+        
+        crate::engine::types::QrStructuredOutput {
+            path_data,
+            total_modules: (self.size + 2 * self.quiet_zone) as u32,
+            data_modules: self.size as u32,
+            version,
+            error_correction,
+            metadata: crate::engine::types::QrStructuredMetadata {
+                generation_time_ms,
+                quiet_zone: self.quiet_zone as u32,
+                content_hash,
+            },
+        }
+    }
 }
 
 #[cfg(test)]

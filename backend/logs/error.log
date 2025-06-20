@@ -3702,3 +3702,107 @@
 {"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/v1/url/check","method":"POST","path":"/api/v1/url/check","service":"codex-backend","timestamp":"2025-06-16 21:06:01"}
 {"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /uploads/avatars/0b83f612-f7ff-4808-945c-a298bd1cd531.png","method":"GET","path":"/uploads/avatars/0b83f612-f7ff-4808-945c-a298bd1cd531.png","service":"codex-backend","timestamp":"2025-06-19 00:02:25"}
 {"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /favicon.ico","method":"GET","path":"/favicon.ico","service":"codex-backend","timestamp":"2025-06-19 00:02:25"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:14:59"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:28"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:29"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:29"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:29"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:29"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:29"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:29"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:29"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:29"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:29"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:30"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:30"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:30"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:30"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:30"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:30"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:30"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:30"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:30"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:30"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:31"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:31"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:31"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:31"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:31"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:31"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:31"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:31"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:31"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:32"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:32"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:32"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:32"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:32"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:32"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:32"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:32"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:32"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:32"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:33"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:33"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:33"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:33"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:33"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:33"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:33"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:33"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:33"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:34"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:34"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:34"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:34"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:34"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:34"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:34"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:34"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:34"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:35"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:35"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:35"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:35"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:35"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:35"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:35"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:35"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:35"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:35"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:36"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:36"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:36"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:36"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:36"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:15:36"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:16:23"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/validate","method":"POST","path":"/api/validate","service":"codex-backend","timestamp":"2025-06-19 21:18:10"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/v3/qr/generate","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:12:46"}
+{"level":"error","message":"[404] NOT_FOUND: Ruta no encontrada: /api/v3/qr/generate","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:12:54"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:24:42"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:24:46"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:25:29"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:25:52"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:27:25"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:29:06"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:14"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:17"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:20"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:23"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:25"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:28"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:29"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:31"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:33"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:35"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:37"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:38"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:30:54"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:31:02"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:31:49"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:33:13"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:49:48"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:49:48"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:50:08"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"POST","path":"/api/v3/qr/generate","service":"codex-backend","timestamp":"2025-06-19 22:50:08"}

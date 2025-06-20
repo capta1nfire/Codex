@@ -138,6 +138,50 @@ npm run test:integration
 }
 ```
 
+#### POST `/api/v3/qr/generate` 🆕
+**Propósito**: Generar códigos QR con datos estructurados (ULTRATHINK)
+
+**Request**:
+```json
+{
+  "data": "https://example.com",
+  "options": {
+    "error_correction": "H"
+  }
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "path_data": "M4 4h1v1H4zM5 4h1v1H5z...",
+    "total_modules": 33,
+    "data_modules": 25,
+    "version": 2,
+    "error_correction": "H",
+    "metadata": {
+      "generation_time_ms": 15,
+      "quiet_zone": 4,
+      "content_hash": "a7b9c3..."
+    }
+  },
+  "metadata": {
+    "engine_version": "3.0.0",
+    "cached": false,
+    "processing_time_ms": 20,
+    "total_processing_time_ms": 25,
+    "backend_version": "1.0.0"
+  }
+}
+```
+
+**Beneficios**:
+- No requiere `dangerouslySetInnerHTML` en frontend
+- 50% menos transferencia de datos
+- Permite renderizado seguro con control total
+
 #### POST `/api/v1/barcode`
 **Propósito**: Generar cualquier tipo de código de barras
 

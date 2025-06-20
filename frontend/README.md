@@ -140,6 +140,8 @@ type QRType = 'link' | 'text' | 'email' | 'phone' | 'sms' | 'wifi' | 'vcard' | '
 ```typescript
 // Generación de códigos
 useBarcodeGenerationV2() - Motor v2 de generación
+useQRGenerationV3() - Motor v3 con datos estructurados (ULTRATHINK) 🆕
+useQRGenerationAdaptive() - Selección automática v2/v3 🆕
 useSmartAutoGeneration() - Auto-generación inteligente
 useUrlValidation() - Validación de URLs con metadata
 
@@ -147,6 +149,20 @@ useUrlValidation() - Validación de URLs con metadata
 useTypingTracker() - Tracking de escritura con debounce
 useClipboard() - Copiar al portapapeles
 useTheme() - Gestión de tema claro/oscuro
+```
+
+### Componentes Principales 🆕
+```typescript
+// Generación QR v3
+UltrathinkQR - Renderizado seguro sin dangerouslySetInnerHTML
+UltrathinkQRSkeleton - Estado de carga para v3
+UltrathinkQRWithState - Componente completo con estados
+
+// Características v3:
+- Sin márgenes visuales (ultrathink)
+- Renderizado 100% seguro
+- Accesibilidad completa (ARIA)
+- Optimizado para impresión
 ```
 
 ---

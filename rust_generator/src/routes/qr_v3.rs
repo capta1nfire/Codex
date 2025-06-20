@@ -1,0 +1,246 @@
+// routes/qr_v3.rs - API v3 con datos estructurados (ULTRATHINK)
+
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::Json,
+    routing::post,
+    Router,
+};
+use serde::{Deserialize, Serialize};
+use sha2::Digest;
+use std::sync::Arc;
+use std::time::Instant;
+use tracing::{error, info, instrument};
+
+use rust_generator::engine::{QrEngine, QrCustomization, ErrorCorrectionLevel, error::QrError};
+use rust_generator::cache::redis;
+
+/// Request para generación v3
+#[derive(Debug, Clone, Deserialize)]
+pub struct QrV3Request {
+    /// Datos a codificar
+    pub data: String,
+    
+    /// Opciones de personalización
+    #[serde(default)]
+    pub options: QrV3Options,
+}
+
+/// Opciones para v3
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct QrV3Options {
+    /// Nivel de corrección de errores (L, M, Q, H)
+    #[serde(default)]
+    pub error_correction: Option<String>,
+    
+    /// Customización completa (para features avanzadas)
+    #[serde(flatten)]
+    pub customization: Option<QrCustomization>,
+}
+
+/// Response v3 con datos estructurados
+#[derive(Debug, Clone, Serialize)]
+pub struct QrV3Response {
+    /// Indicador de éxito
+    pub success: bool,
+    
+    /// Datos estructurados del QR
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<rust_generator::engine::types::QrStructuredOutput>,
+    
+    /// Información de error si falla
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<QrV3Error>,
+    
+    /// Metadata adicional
+    pub metadata: QrV3Metadata,
+}
+
+/// Error response
+#[derive(Debug, Clone, Serialize)]
+pub struct QrV3Error {
+    pub code: String,
+    pub message: String,
+}
+
+/// Metadata de la respuesta
+#[derive(Debug, Clone, Serialize)]
+pub struct QrV3Metadata {
+    /// Versión del motor
+    pub engine_version: String,
+    
+    /// Si vino del cache
+    pub cached: bool,
+    
+    /// Tiempo total de procesamiento
+    pub processing_time_ms: u64,
+}
+
+/// Estado compartido para v3
+#[derive(Clone)]
+pub struct QrV3State {
+    pub engine: Arc<QrEngine>,
+    pub cache: Arc<redis::RedisCache>,
+}
+
+/// Crea las rutas v3
+pub fn routes(state: QrV3State) -> Router {
+    Router::new()
+        .route("/api/v3/qr/generate", post(generate_qr_v3))
+        .with_state(state)
+}
+
+/// Handler principal v3
+#[instrument(skip(state, payload))]
+async fn generate_qr_v3(
+    State(state): State<QrV3State>,
+    Json(payload): Json<QrV3Request>,
+) -> Result<Json<QrV3Response>, StatusCode> {
+    let start = Instant::now();
+    info!("QR v3 generation request for data length: {}", payload.data.len());
+    
+    // Validar entrada
+    if payload.data.is_empty() {
+        return Ok(Json(QrV3Response {
+            success: false,
+            data: None,
+            error: Some(QrV3Error {
+                code: "INVALID_INPUT".to_string(),
+                message: "Data cannot be empty".to_string(),
+            }),
+            metadata: QrV3Metadata {
+                engine_version: "3.0.0".to_string(),
+                cached: false,
+                processing_time_ms: start.elapsed().as_millis() as u64,
+            },
+        }));
+    }
+    
+    // Generar cache key basado en contenido y opciones
+    let cache_key = format!(
+        "qrv3:{}:{}:{}",
+        sha2::Sha256::digest(payload.data.as_bytes())
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>(),
+        payload.options.error_correction.as_deref().unwrap_or("M"),
+        serde_json::to_string(&payload.options.customization).unwrap_or_default()
+    );
+    
+    // Verificar cache
+    if let Some(cached_data) = state.cache.get(&cache_key) {
+        if let Ok(structured_output) = serde_json::from_str::<rust_generator::engine::types::QrStructuredOutput>(&cached_data.svg) {
+            info!("Cache hit for v3 generation");
+            return Ok(Json(QrV3Response {
+                success: true,
+                data: Some(structured_output),
+                error: None,
+                metadata: QrV3Metadata {
+                    engine_version: "3.0.0".to_string(),
+                    cached: true,
+                    processing_time_ms: start.elapsed().as_millis() as u64,
+                },
+            }));
+        }
+    }
+    
+    // Generar QR directamente usando QrGenerator
+    let result = tokio::task::spawn_blocking({
+        let data = payload.data.clone();
+        let options = payload.options.clone();
+        
+        move || -> Result<rust_generator::engine::types::QrStructuredOutput, QrError> {
+            use rust_generator::engine::generator::QrGenerator;
+            
+            // Convertir nivel de corrección de string a enum
+            let ecl = options.error_correction
+                .and_then(|ecl_str| match ecl_str.as_str() {
+                    "L" => Some(ErrorCorrectionLevel::Low),
+                    "M" => Some(ErrorCorrectionLevel::Medium),
+                    "Q" => Some(ErrorCorrectionLevel::Quartile),
+                    "H" => Some(ErrorCorrectionLevel::High),
+                    _ => None,
+                })
+                .unwrap_or(ErrorCorrectionLevel::Medium);
+            
+            // Crear generador y generar código QR directamente
+            let generator = QrGenerator::new();
+            let qr_code = generator.generate_with_ecl(&data, 400, ecl)?;
+            
+            // Convertir a datos estructurados
+            Ok(qr_code.to_structured_data())
+        }
+    })
+    .await
+    .map_err(|e| {
+        error!("Task join error: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+    
+    match result {
+        Ok(structured_output) => {
+            // Guardar en cache
+            if let Ok(json_data) = serde_json::to_string(&structured_output) {
+                let cached_qr = redis::CachedQR {
+                    svg: json_data,
+                    metadata: redis::QRMetadata {
+                        version: 1,
+                        modules: structured_output.total_modules as usize,
+                        error_correction: structured_output.error_correction.clone(),
+                        processing_time_ms: structured_output.metadata.generation_time_ms,
+                    },
+                    generated_at: chrono::Utc::now().timestamp(),
+                };
+                let _ = state.cache.set(&cache_key, &cached_qr);
+            }
+            
+            info!("QR v3 generated successfully");
+            Ok(Json(QrV3Response {
+                success: true,
+                data: Some(structured_output),
+                error: None,
+                metadata: QrV3Metadata {
+                    engine_version: "3.0.0".to_string(),
+                    cached: false,
+                    processing_time_ms: start.elapsed().as_millis() as u64,
+                },
+            }))
+        }
+        Err(e) => {
+            error!("QR v3 generation error: {:?}", e);
+            Ok(Json(QrV3Response {
+                success: false,
+                data: None,
+                error: Some(QrV3Error {
+                    code: "GENERATION_ERROR".to_string(),
+                    message: format!("Failed to generate QR: {:?}", e),
+                }),
+                metadata: QrV3Metadata {
+                    engine_version: "3.0.0".to_string(),
+                    cached: false,
+                    processing_time_ms: start.elapsed().as_millis() as u64,
+                },
+            }))
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_request_deserialization() {
+        let json = r#"{
+            "data": "https://example.com",
+            "options": {
+                "error_correction": "H"
+            }
+        }"#;
+        
+        let request: QrV3Request = serde_json::from_str(json).unwrap();
+        assert_eq!(request.data, "https://example.com");
+        assert_eq!(request.options.error_correction, Some("H".to_string()));
+    }
+}

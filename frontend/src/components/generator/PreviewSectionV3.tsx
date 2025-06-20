@@ -4,6 +4,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Download, QrCode, Zap, Database, Keyboard, CheckCircle, Sparkles } from 'lucide-react';
 import BarcodeDisplay from '@/app/BarcodeDisplay';
+import { DynamicQRCodeFromSVG } from '@/components/DynamicQRCode';
+import { UltrathinkQR } from '@/components/generator/UltrathinkQR';
+import { QRStructuredData } from '@/hooks/useQRGenerationV3';
 import { useBarcodeActions } from '@/hooks/useBarcodeActions';
 
 interface PreviewSectionProps {
@@ -11,6 +14,8 @@ interface PreviewSectionProps {
   isLoading: boolean;
   barcodeType?: string;
   isUsingV2?: boolean;
+  isUsingV3?: boolean; // Nuevo: indica si se está usando v3
+  structuredData?: QRStructuredData | null; // Nuevo: datos estructurados de v3
   showCacheIndicator?: boolean;
   isUserTyping?: boolean;
   validationError?: string | null;
@@ -35,6 +40,8 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   isLoading,
   barcodeType = 'qrcode',
   isUsingV2 = false,
+  isUsingV3 = false,
+  structuredData = null,
   showCacheIndicator = false,
   isUserTyping = false,
   validationError = null,
@@ -43,17 +50,39 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   gradientOptions,
   urlGenerationState,
 }) => {
+  console.log('[PreviewSection] Received props:', {
+    hasSvgContent: !!svgContent,
+    svgContentLength: svgContent?.length,
+    isLoading,
+    barcodeType,
+    isUsingV3,
+    hasStructuredData: !!structuredData
+  });
   const { handleDownload } = useBarcodeActions(svgContent, barcodeType);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showHeroMoment, setShowHeroMoment] = useState(false);
   const [previousSvgContent, setPreviousSvgContent] = useState(svgContent);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   
-  // Determine what to show - enhanced logic with URL generation state
-  const showUrlValidationLoading = urlGenerationState === 'READY_TO_GENERATE' && barcodeType === 'qrcode';
+  // Determine what to show - enhanced logic with URL generation state and v3
+  const showUrlValidationLoading = (urlGenerationState === 'READY_TO_GENERATE' || urlGenerationState === 'GENERATING') && barcodeType === 'qrcode';
   const showLoadingState = isLoading || showUrlValidationLoading;
-  const showRealBarcode = !showLoadingState && svgContent && !isLoading;
-  const showEmptyState = !showLoadingState && !showRealBarcode && !svgContent;
+  const hasContent = isUsingV3 ? structuredData !== null : svgContent !== '';
+  const showRealBarcode = !showLoadingState && hasContent;
+  const showEmptyState = !showLoadingState && !showRealBarcode && !hasContent;
+  
+  console.log('[PreviewSection] Display states:', {
+    showUrlValidationLoading,
+    showLoadingState,
+    hasContent,
+    showRealBarcode,
+    showEmptyState,
+    urlGenerationState,
+    svgContentEmpty: svgContent === '',
+    svgContentNull: svgContent === null,
+    svgContentUndefined: svgContent === undefined,
+    svgContentType: typeof svgContent
+  });
   
   // Detect when new QR code is generated
   useEffect(() => {
@@ -81,6 +110,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   // The 2-second video loops from 1s mark, creating seamless animation
   // Pattern: Play 2s → Pause 3s → Repeat (5s total cycle)
   useEffect(() => {
+    console.log('[PreviewSection] Video effect running, showEmptyState:', showEmptyState);
     if (!showEmptyState) return;
     
     const video = videoRef.current;
@@ -134,30 +164,100 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
     <>
       {/* Loading state */}
       {showLoadingState && (
-        <div className={`${className} flex items-center justify-center min-h-[300px] bg-transparent`}>
-          <div className="text-center space-y-4">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-slate-200 dark:border-slate-700 rounded-full"></div>
-              <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
+        <div className={`${className} mx-auto w-fit animate-fadeIn`}>
+          <div className="p-6 pb-4 flex justify-center">
+            <div className="bg-white dark:bg-white rounded-lg p-2 shadow-sm">
+              <div className="w-[300px] h-[300px] rounded flex flex-col items-center justify-center">
+                {/* Opción 1: Spinner circular clásico (actual) */}
+                {/*
+                <div className="relative inline-block">
+                  <div className="w-16 h-16 border-4 border-slate-200 dark:border-slate-700 rounded-full"></div>
+                  <div className="absolute inset-0 w-16 h-16 border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
+                </div>
+                */}
+                
+                {/* Opción 2: Puntos pulsantes */}
+                {/*
+                <div className="flex space-x-2">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
+                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse delay-75"></div>
+                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse delay-150"></div>
+                </div>
+                */}
+                
+                {/* Opción 3: QR Code skeleton animado */}
+                <div className="relative">
+                  <div className="grid grid-cols-5 gap-1 p-2">
+                    {[...Array(25)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={`w-4 h-4 rounded-sm bg-slate-200 dark:bg-slate-300 animate-pulse`}
+                        style={{
+                          animationDelay: `${i * 50}ms`,
+                          opacity: Math.random() > 0.3 ? 1 : 0.3
+                        }}
+                      />
+                    ))}
+                  </div>
+                  {/* Corner markers like QR */}
+                  <div className="absolute top-0 left-0 w-8 h-8 border-4 border-blue-600 border-r-0 border-b-0 rounded-tl-lg"></div>
+                  <div className="absolute top-0 right-0 w-8 h-8 border-4 border-blue-600 border-l-0 border-b-0 rounded-tr-lg"></div>
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-4 border-blue-600 border-r-0 border-t-0 rounded-bl-lg"></div>
+                </div>
+                
+                {/* Opción 4: Barras de carga tipo ecualizador */}
+                {/*
+                <div className="flex items-end space-x-1 h-16">
+                  <div className="w-3 bg-blue-600 rounded-t animate-pulse" style={{height: '40%'}}></div>
+                  <div className="w-3 bg-blue-600 rounded-t animate-pulse delay-75" style={{height: '60%'}}></div>
+                  <div className="w-3 bg-blue-600 rounded-t animate-pulse delay-150" style={{height: '80%'}}></div>
+                  <div className="w-3 bg-blue-600 rounded-t animate-pulse delay-200" style={{height: '60%'}}></div>
+                  <div className="w-3 bg-blue-600 rounded-t animate-pulse delay-300" style={{height: '40%'}}></div>
+                </div>
+                */}
+                
+                <p className="text-sm text-slate-400 dark:text-slate-500 font-medium mt-6">
+                  Generando código...
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-              {showUrlValidationLoading ? 'Preparando código QR...' : 'Generando código...'}
-            </p>
           </div>
         </div>
       )}
           
       {/* Real barcode display */}
       {showRealBarcode && (
-        <div className={`${className} mx-auto w-fit`}>
+        <div className={`${className} mx-auto w-fit animate-fadeIn`}>
           {/* QR Code */}
           <div className="p-6 pb-4 flex justify-center">
-            <div className="bg-white dark:bg-white rounded-lg p-3 shadow-sm relative">
-              <BarcodeDisplay
-                svgContent={svgContent}
-                type={barcodeType}
-                data=""
-              />
+            <div className="bg-white dark:bg-white rounded-lg p-2 shadow-sm relative">
+              {/* Renderizar según la versión disponible */}
+              {(barcodeType === 'qrcode' || barcodeType === 'qr') ? (
+                isUsingV3 && structuredData ? (
+                  // V3: Usar UltrathinkQR con datos estructurados
+                  <UltrathinkQR
+                    data={structuredData}
+                    size={300}
+                    title="Código QR"
+                    description="Escanea este código QR"
+                    className="animate-fadeIn"
+                  />
+                ) : (
+                  // V2 o fallback: Usar DynamicQRCodeFromSVG
+                  <DynamicQRCodeFromSVG
+                    svgContent={svgContent}
+                    size={300}
+                    className="qr-ultrathink"
+                  />
+                )
+              ) : (
+                // Otros tipos de código de barras
+                <BarcodeDisplay
+                  svgContent={svgContent}
+                  type={barcodeType}
+                  data=""
+                />
+              )}
               
               {/* Subtle hero moment - just a checkmark */}
               {showHeroMoment && (
@@ -199,9 +299,9 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
       
       {/* Empty state (no content, not typing) - Show video placeholder */}
       {showEmptyState && (
-        <div className={`${className} mx-auto w-fit`}>
+        <div className={`${className} mx-auto w-fit animate-fadeIn`}>
           <div className="p-6 pb-4 flex justify-center">
-            <div className="bg-white dark:bg-white rounded-lg p-3 shadow-sm">
+            <div className="bg-white dark:bg-white rounded-lg p-2 shadow-sm">
               <video
                 ref={videoRef}
                 muted
@@ -233,5 +333,14 @@ const fadeInKeyframes = `
 
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
+}
+
+/* Estilos de impresión para QR ultrathink */
+@media print {
+  .qr-ultrathink svg path,
+  .qr-ultrathink svg rect {
+    fill: #000000 !important;
+    shape-rendering: crispEdges !important;
+  }
 }
 `;

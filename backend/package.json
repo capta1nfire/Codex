@@ -28,6 +28,7 @@
     "make-superadmin": "tsx src/scripts/makeUserAdmin.ts",
     "list-users": "tsx src/scripts/makeUserAdmin.ts --list",
     "migrate-roles": "tsx src/scripts/migrateRoles.ts",
+    "test-urls": "tsx src/scripts/testUrlValidation.ts",
     "codemod:add-js-ext": "jscodeshift -t ../scripts/add-js-extension.js . --parser=tsx --extensions=ts,tsx --ignore-pattern \"dist/*\" --ignore-pattern \"node_modules/*\""
   },
   "keywords": [],

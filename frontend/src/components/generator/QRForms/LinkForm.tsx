@@ -34,12 +34,23 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   shouldShowGenerateAnywayButton
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = React.useState(false);
   const [showBadge, setShowBadge] = React.useState(false);
+  const [maxUrlWidth, setMaxUrlWidth] = React.useState<number>(200);
   const badgeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasValue = data.url && data.url.length > 0;
   const hasRealValue = hasValue && data.url !== 'https://tu-sitio-web.com';
   const isValidUrl = hasRealValue && !validationError && data.url !== '';
+  
+  // Format URL for display - prioritize showing end
+  const formatUrlForDisplay = (url: string): string => {
+    // Remove protocol if present to save space
+    const withoutProtocol = url.replace(/^https?:\/\//, '');
+    // Remove www. if present to save more space
+    const cleanUrl = withoutProtocol.replace(/^www\./, '');
+    return cleanUrl;
+  };
   
   
   // Use URL validation from parent component
@@ -53,7 +64,7 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   
   // Determinar si es un mensaje de guía (azul) o un error real (rojo)
   const isGuidanceMessage = 
-    validationError === 'Ingresa el enlace de tu sitio web o página' ||
+    validationError === 'Ingresa o pega el enlace de tu sitio web' ||
     validationError === 'Continúa escribiendo...' ||
     validationError?.includes('Añade') ||
     validationError?.includes('Completa');
@@ -111,6 +122,48 @@ export const LinkForm: React.FC<LinkFormProps> = ({
     }
   }, [isFocused, showBadge]);
   
+  // Calculate max width for URL based on container width
+  useEffect(() => {
+    if (!showBadge) return;
+    
+    const calculateMaxWidth = () => {
+      if (containerRef.current && inputRef.current) {
+        // Get the actual container width (the div that holds the input)
+        const containerWidth = containerRef.current.getBoundingClientRect().width;
+        
+        // Calculate space needed for other elements:
+        // - Badge left padding: 12px (px-3)
+        // - Badge right padding: 12px (px-3)  
+        // - Favicon + gap: 22px (16px + 6px)
+        // - Check icon + gap: 22px (16px + 6px)
+        // - X button (absolute): doesn't take space in flow
+        // - Safety margin: 20px
+        const reservedSpace = 88;
+        
+        const availableWidth = containerWidth - reservedSpace;
+        const finalWidth = Math.floor(availableWidth * 0.99); // Use 99% to maximize space usage
+        
+        setMaxUrlWidth(Math.max(80, finalWidth));
+      }
+    };
+    
+    // Use ResizeObserver for more accurate detection
+    let resizeObserver: ResizeObserver | null = null;
+    if (containerRef.current) {
+      resizeObserver = new ResizeObserver(calculateMaxWidth);
+      resizeObserver.observe(containerRef.current);
+    }
+    
+    // Initial calculation
+    setTimeout(calculateMaxWidth, 150);
+    
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [showBadge]);
+  
   // Handle click on the entire component area
   const handleContainerClick = () => {
     if (inputRef.current && !isLoading) {
@@ -147,17 +200,21 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   };
 
   return (
-    <div>
+    <div style={{ overflow: 'visible' }}>
       <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Sitio Web</label>
       <div 
         className="relative cursor-text"
         onClick={handleContainerClick}
+        style={{ overflow: 'visible' }}
       >
         {/* Container with rounded corners and proper overflow handling */}
-        <div className={cn(
-          "relative rounded-lg",
-          validationError && "rounded-b-none" // Remove bottom corners when error
-        )}>
+        <div 
+          ref={containerRef}
+          className={cn(
+            "relative rounded-lg",
+            validationError && "rounded-b-none" // Remove bottom corners when error
+          )}
+        >
           {/* Border - now part of the input container */}
           <div className={cn(
             "absolute inset-0 border rounded-lg transition-all duration-200 pointer-events-none",
@@ -247,14 +304,15 @@ export const LinkForm: React.FC<LinkFormProps> = ({
               }}
               style={{ cursor: 'text' }}
             >
-              <div className="relative">
+              <div className="relative flex items-center max-w-full">
+                
                 <a
                   href={data.url.startsWith('http') ? data.url : `https://${data.url}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex px-3 py-0.5 rounded-full bg-gradient-to-r from-corporate-blue-50 to-corporate-blue-100 text-corporate-blue-700 font-normal text-sm border border-corporate-blue-200 items-center gap-1.5 no-underline hover:from-corporate-blue-100 hover:to-corporate-blue-200 hover:border-corporate-blue-300 transition-all duration-200 cursor-pointer group relative"
+                  className="inline-flex px-3 py-0.5 rounded-full bg-gradient-to-r from-corporate-blue-50 to-corporate-blue-100 text-corporate-blue-700 font-normal text-sm border border-corporate-blue-200 items-center gap-1.5 no-underline hover:from-corporate-blue-100 hover:to-corporate-blue-200 hover:border-corporate-blue-300 transition-all duration-200 cursor-pointer badge-link relative max-w-full"
                   onClick={(e) => e.stopPropagation()} // Prevent triggering input focus
-                  title={metadata?.title || 'Visitar sitio web'}
+                  title={metadata?.title || ''}
                 >
                   {/* Flujo de validación: Spinner → Favicon → Checkmark */}
                   
@@ -276,23 +334,20 @@ export const LinkForm: React.FC<LinkFormProps> = ({
                     />
                   )}
                   
-                  {/* URL siempre visible */}
-                  {data.url}
+                  {/* URL con truncamiento normal */}
+                  <span 
+                    className="truncate"
+                    style={{ maxWidth: `${maxUrlWidth}px` }}
+                  >
+                    {formatUrlForDisplay(data.url)}
+                  </span>
                   
                   {/* 3. Indicadores finales: Check o Error */}
                   {!isValidating && metadata?.exists && (
-                    <Check className="h-4 w-4 text-green-600" />
+                    <Check className="h-4 w-4 text-green-600 flex-shrink-0" />
                   )}
                   {!isValidating && validationUrlError && (
-                    <CircleX className="h-3.5 w-3.5 text-[#D52E4C]" />
-                  )}
-                  
-                  {/* Tooltip mejorado */}
-                  {!isValidating && metadata?.exists && metadata.title && (
-                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-800 text-white text-xs rounded-full whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20 shadow-lg">
-                      {metadata.title}
-                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45 rounded-sm"></span>
-                    </span>
+                    <CircleX className="h-3.5 w-3.5 text-[#D52E4C] flex-shrink-0" />
                   )}
                 </a>
                 
@@ -308,7 +363,7 @@ export const LinkForm: React.FC<LinkFormProps> = ({
                     // Focus the input for immediate typing
                     inputRef.current?.focus();
                   }}
-                  className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-slate-500 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-700 transition-colors duration-200 shadow-sm"
+                  className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-slate-500 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-700 transition-colors duration-200 shadow-sm z-[100]"
                   title="Limpiar"
                 >
                   <X className="h-2.5 w-2.5 text-white" />

@@ -42,9 +42,13 @@ export function migrateQRRequest(oldRequest: OldQRRequest): QRv2GenerateRequest 
       options.size = Math.max(100, Math.min(1000, old.scale * 50));
     }
 
-    if (old.margin !== undefined) {
-      options.margin = old.margin;
-    }
+    // Force margin 0 for ultrathink QR codes
+    options.margin = 0;
+    
+    // Original margin logic preserved but overridden
+    // if (old.margin !== undefined) {
+    //   options.margin = old.margin;
+    // }
 
     if (old.ecl) {
       options.errorCorrection = old.ecl;

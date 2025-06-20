@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils';
 // Hooks personalizados
 import { useBarcodeGenerationV2 } from '@/hooks/useBarcodeGenerationV2';
 import { useQRContentGeneration } from '@/hooks/useQRContentGeneration';
+import { useQRGenerationV3 } from '@/hooks/useQRGenerationV3';
 import { useBarcodeTypes } from '@/hooks/useBarcodeTypes';
 import { useSmartAutoGeneration } from '@/hooks/useSmartAutoGeneration';
 
@@ -70,17 +71,27 @@ export default function Home() {
   // re-validate the same URL endlessly causing "Maximum update depth exceeded"
   const lastValidatedUrl = useRef<string>('');
 
-  // Hooks personalizados con v2
+  // Hooks personalizados con v2 para códigos de barras
   const { 
     svgContent, 
-    isLoading, 
-    serverError, 
-    metadata, 
+    isLoading: isLoadingBarcode, 
+    serverError: barcodeError, 
+    metadata: barcodeMetadata, 
     generateBarcode, 
-    clearError,
-    clearContent,
+    clearError: clearBarcodeError,
+    clearContent: clearBarcodeContent,
     isUsingV2 
   } = useBarcodeGenerationV2();
+  
+  // Hook v3 para QR codes (ULTRATHINK)
+  const {
+    structuredData,
+    isLoading: isLoadingQR,
+    error: qrError,
+    generateQR,
+    metadata: qrMetadata,
+    clearError: clearQRError
+  } = useQRGenerationV3();
   
   // URL validation hook lifted to page level to coordinate with auto-generation
   const { 
@@ -143,11 +154,6 @@ export default function Home() {
     }
   });
   
-  // Usar serverError para evitar warning
-  if (serverError) {
-    console.error('Server error:', serverError);
-  }
-  
   const { 
     selectedQRType, 
     setSelectedQRType, 
@@ -197,8 +203,40 @@ export default function Home() {
   const watchedData = watch('data');
   const watchedOptions = watch('options');
 
+  // Unified states for UI (after selectedType is defined)
+  const isLoading = selectedType === 'qrcode' ? isLoadingQR : isLoadingBarcode;
+  const serverError = selectedType === 'qrcode' ? qrError : barcodeError;
+  const metadata = selectedType === 'qrcode' ? qrMetadata : barcodeMetadata;
+  const clearError = selectedType === 'qrcode' ? clearQRError : clearBarcodeError;
+  const clearContent = selectedType === 'qrcode' ? 
+    () => {} : // For QR v3, clearing is handled by the hook internally
+    clearBarcodeContent;
+
+  // Log server error only if it's not an auth error
+  if (serverError && serverError !== 'Authentication required for v3 API') {
+    console.error('Server error:', serverError);
+  }
+
   // Handlers
   const onSubmit = useCallback(async (formData: GenerateFormData) => {
+    // Check if user is authenticated for v3
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    
+    // Use ULTRATHINK v3 for QR codes only if authenticated, otherwise v2
+    if (formData.barcode_type === 'qrcode' && token) {
+      try {
+        // Extract QR specific options for v3
+        await generateQR(formData.data, {
+          error_correction: formData.options?.error_correction || 'M',
+        });
+        return; // Important: exit after successful v3 generation
+      } catch (err) {
+        // If v3 fails, fallback to v2
+        console.warn('v3 generation failed, falling back to v2:', err);
+      }
+    }
+    
+    // Use v2 for all other barcode types or when not authenticated
     await generateBarcode(formData);
     
     // Play success sound on QR generation
@@ -209,7 +247,7 @@ export default function Home() {
         audio.play().catch(() => {});
       } catch (e) {}
     }
-  }, [generateBarcode, selectedType]);
+  }, [generateBarcode, generateQR, selectedType]);
 
   const handleTypeChange = useCallback(async (newType: string) => {
     // Reset typing state when changing types
@@ -317,10 +355,15 @@ export default function Home() {
     if (!value || value.trim() === '' || (type === 'link' && value === 'https://tu-sitio-web.com')) {
       setValue('data', newQRContent, { shouldValidate: true });
       clearError();
-      clearContent();
+      
+      // Don't clear content on initial mount to preserve the initial QR code
+      if (!isInitialMount) {
+        clearContent();
+      }
+      
       // For link type, show the initial blue message when empty or default
       if (type === 'link') {
-        setRealTimeValidationError('Ingresa el enlace de tu sitio web o página');
+        setRealTimeValidationError('Ingresa o pega el enlace de tu sitio web');
       } else {
         setRealTimeValidationError(null);
       }
@@ -396,15 +439,15 @@ export default function Home() {
   const postValidationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Delay configurable entre validación exitosa y generación de QR (en ms)
-  const POST_VALIDATION_DELAY = 2000; // 2 segundos de delay después de validar
+  const POST_VALIDATION_DELAY = 1000; // 1 segundo de delay después de validar
   
   // TIMING FLOW para URLs (Critical for proper UX):
   // 1. Usuario escribe URL
   // 2. Espera 800ms (debounce de validación en useUrlValidation)
   // 3. Se ejecuta validación de existencia de URL via /api/validate/check-url
-  // 4. Si existe: espera POST_VALIDATION_DELAY (2000ms)
+  // 4. Si existe: espera POST_VALIDATION_DELAY (1000ms)
   // 5. Se genera el código QR
-  // Total: ~2.8-3 segundos desde que el usuario termina de escribir
+  // Total: ~1.8-2 segundos desde que el usuario termina de escribir
   //
   // IMPORTANT: This delay prevents jarring immediate generation and gives
   // users time to see validation result before QR appears
@@ -484,28 +527,68 @@ export default function Home() {
 
   // Generate initial QR on mount with default values
   useEffect(() => {
+    console.log('[Initial QR] useEffect running');
+    
+    // Only run once, and only if we haven't generated anything yet
+    if (!isInitialMount || svgContent) {
+      console.log('[Initial QR] Skipping - already generated or not initial mount');
+      return;
+    }
+    
     const generateInitialBarcode = async () => {
-      // Generar con los valores por defecto actuales
-      const initialFormData = {
-        ...defaultFormValues,
-        barcode_type: selectedType,
-        data: getDefaultDataForType(selectedType),
+      console.log('[Initial QR] Starting generation...');
+      
+      // Force initial values
+      const initialType = 'qrcode';
+      const initialData = 'https://tu-sitio-web.com';
+      
+      const initialFormData: GenerateFormData = {
+        barcode_type: initialType,
+        data: initialData,
         options: {
-          ...defaultFormValues.options,
+          scale: 4,
+          fgcolor: '#000000',
+          bgcolor: undefined,
+          height: 100,
+          includetext: true,
+          ecl: 'M',
+          error_correction: 'M',
+          gradient_enabled: true,
+          gradient_type: 'radial',
+          gradient_color1: '#2563EB',
+          gradient_color2: '#000000',
+          gradient_direction: 'top-bottom',
+          gradient_borders: true,
         }
       };
-      await onSubmit(initialFormData);
+      
+      console.log('[Initial QR] Generating with data:', initialFormData);
+      
+      try {
+        await generateBarcode(initialFormData);
+        console.log('[Initial QR] Generation call completed');
+      } catch (error) {
+        console.error('[Initial QR] Generation failed:', error);
+      }
     };
     
-    generateInitialBarcode();
-    
-    // Mark that initial mount is complete after a delay
+    // Wait a bit to ensure component is ready
     const timer = setTimeout(() => {
+      generateInitialBarcode();
       setIsInitialMount(false);
-    }, 500);
+    }, 1000);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [isInitialMount, svgContent, generateBarcode]);
+
+  // Monitor SVG content changes for debugging
+  useEffect(() => {
+    console.log('[SVG Monitor] SVG content changed:', {
+      hasContent: !!svgContent,
+      length: svgContent?.length,
+      firstChars: svgContent?.substring(0, 50)
+    });
+  }, [svgContent]);
 
   // Auto-generación para códigos que no son QR (los QR se manejan en handleQRFormChange)
   useEffect(() => {
@@ -911,9 +994,11 @@ export default function Home() {
               {/* Componente funcional invisible - para sticky */}
               <PreviewSection
                 svgContent={svgContent}
+                structuredData={structuredData}
                 isLoading={isLoading}
                 barcodeType={selectedType}
                 isUsingV2={isUsingV2}
+                isUsingV3={selectedType === 'qrcode'}
                 showCacheIndicator={metadata?.fromCache}
                 isUserTyping={isTyping && hasUserStartedTyping}
                 validationError={realTimeValidationError || validationError}
