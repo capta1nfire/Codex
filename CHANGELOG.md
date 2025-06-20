@@ -21,6 +21,12 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Maintains backward compatibility with existing metadata extraction
   - Added special handling for problematic domains (Facebook, Meta) to skip stale cache
 
+- ✨ **QR Preview Loading State** - Added visual feedback during URL validation
+  - Shows loading spinner after URL validation but before QR generation
+  - Displays "Preparando código QR..." during the 2-second post-validation delay
+  - Smooth transition: Video placeholder → Loading → Generated QR
+  - Better user experience with clear visual feedback for each step
+
 ### 2025-06-19
 
 #### Added

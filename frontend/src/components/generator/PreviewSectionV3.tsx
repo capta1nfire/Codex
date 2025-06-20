@@ -23,6 +23,7 @@ interface PreviewSectionProps {
     colors?: string[];
     applyBorders?: boolean;
   };
+  urlGenerationState?: string; // State from useUrlGenerationState
 }
 
 /**
@@ -40,6 +41,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   isInitialDisplay = false,
   className = '',
   gradientOptions,
+  urlGenerationState,
 }) => {
   const { handleDownload } = useBarcodeActions(svgContent, barcodeType);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -47,8 +49,9 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   const [previousSvgContent, setPreviousSvgContent] = useState(svgContent);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   
-  // Determine what to show - simplified logic
-  const showLoadingState = isLoading;
+  // Determine what to show - enhanced logic with URL generation state
+  const showUrlValidationLoading = urlGenerationState === 'READY_TO_GENERATE' && barcodeType === 'qrcode';
+  const showLoadingState = isLoading || showUrlValidationLoading;
   const showRealBarcode = !showLoadingState && svgContent && !isLoading;
   const showEmptyState = !showLoadingState && !showRealBarcode && !svgContent;
   
@@ -138,7 +141,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
               <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-              Generando código...
+              {showUrlValidationLoading ? 'Preparando código QR...' : 'Generando código...'}
             </p>
           </div>
         </div>

@@ -919,6 +919,7 @@ export default function Home() {
                 validationError={realTimeValidationError || validationError}
                 isInitialDisplay={false}
                 className="sticky-preview relative z-10"
+                urlGenerationState={urlGenerationState}
               />
             </section>
           </div>
