@@ -102,12 +102,19 @@ export default function Home() {
     validationComplete,
     startGenerating,
     generationComplete,
-    reset: resetUrlState
+    reset: resetUrlState,
+    getCurrentState
   } = useUrlGenerationState({
     onStateChange: (newState, oldState) => {
-      console.log(`URL Generation State: ${oldState} -> ${newState}`);
     }
   });
+
+  // Keep a ref of the current state to avoid closure issues
+  const urlGenerationStateRef = useRef(urlGenerationState);
+  useEffect(() => {
+    urlGenerationStateRef.current = urlGenerationState;
+  }, [urlGenerationState]);
+
   
   // Typing tracker for sophisticated placeholder system
   const { isTyping, trackInput, resetTyping } = useTypingTracker({
@@ -118,10 +125,14 @@ export default function Home() {
         const currentFormValues = getValues();
         const currentQRData = qrFormData[selectedQRType];
         
+        // Use getCurrentState() to get the most current state
+        const currentUrlState = getCurrentState();
+        
         // Use state machine to coordinate validation and generation
         if (selectedQRType === 'link') {
-          // Only transition to validating if not already validating
-          if (urlGenerationState !== 'VALIDATING' && urlGenerationState !== 'READY_TO_GENERATE') {
+          // Only transition to validating if we're in a state that allows it
+          // Added COMPLETE state to handle second URL scenario
+          if (currentUrlState === 'TYPING' || currentUrlState === 'IDLE' || currentUrlState === 'VALIDATION_ERROR' || currentUrlState === 'COMPLETE') {
             startValidating();
           }
         } else {
@@ -161,7 +172,6 @@ export default function Home() {
       }
     },
     onGenerate: (formData: GenerateFormData) => {
-      console.log('[page.tsx] Auto-generating with data:', formData);
       onSubmit(formData);
     }
   });
@@ -287,6 +297,19 @@ export default function Home() {
     // Track typing for UI feedback
     trackInput(value.toString());
     
+    // Update state machine when user starts typing
+    if (type === 'link' && value.toString().trim() !== '') {
+      // Only transition to typing if we're in a state that allows it
+      const currentState = urlGenerationStateRef.current;
+      if (currentState === 'IDLE' || currentState === 'COMPLETE' || currentState === 'VALIDATION_ERROR' || currentState === 'READY_TO_GENERATE') {
+        startTyping();
+        // Clear previous validation metadata when starting to type a new URL
+        if (currentState === 'COMPLETE') {
+          clearUrlValidation();
+        }
+      }
+    }
+    
     // Update QR form data locally (but not the main form data yet for links)
     const newQRContent = updateQRFormData(type, field, value);
     
@@ -308,6 +331,10 @@ export default function Home() {
         exists: null,
         shouldGenerateAnyway: false
       });
+      // Reset last validated URL to allow re-validation
+      lastValidatedUrl.current = '';
+      // Clear URL validation metadata
+      clearUrlValidation();
       return;
     }
     
@@ -347,8 +374,11 @@ export default function Home() {
             shouldGenerateAnyway: false
           }));
           // Trigger URL validation for link type
-          if (field === 'url' && value && value !== 'https://tu-sitio-web.com') {
-            validateUrl(value);
+          // Only validate clean URLs without quotes or special characters
+          const cleanValue = value.trim();
+          if (field === 'url' && cleanValue && cleanValue !== 'https://tu-sitio-web.com' && 
+              !cleanValue.includes('"') && !cleanValue.includes("'") && !cleanValue.includes(';')) {
+            validateUrl(cleanValue);
           }
           // Don't update 'data' field yet - wait for URL validation to complete
           // The 'data' field will be updated in handleUrlValidationComplete instead
@@ -389,7 +419,6 @@ export default function Home() {
       return;
     }
     
-    console.log('[page.tsx] URL validation complete:', { exists, error, url: currentUrl });
     lastValidatedUrl.current = currentUrl;
     
     // Cancelar cualquier timeout pendiente
@@ -411,36 +440,31 @@ export default function Home() {
       const qrContent = currentUrl; // For link type, the content is just the URL
       setValue('data', qrContent, { shouldValidate: true });
       
-      console.log(`[page.tsx] Site exists, waiting ${POST_VALIDATION_DELAY}ms before generating QR...`);
       
       // Update state machine to show we're ready to generate
       // Only update if we're in VALIDATING state to avoid duplicate transitions
-      if (urlGenerationState === 'VALIDATING') {
+      const currentState = getCurrentState();
+      if (currentState === 'VALIDATING') {
         validationComplete(true);
       }
       
-      // REMOVED: Sound on URL validation - only play sound on actual QR generation
-      // The sound should only play once when the QR is generated (in onSubmit)
-      
-      // Agregar delay antes de generar el QR
-      postValidationTimeoutRef.current = setTimeout(() => {
-        const currentFormValues = getValues();
-        const updatedFormData = qrFormData.link;
-        console.log('[page.tsx] Post-validation delay complete, generating QR code now');
-        startGenerating(); // Update state machine
-        validateAndGenerate(currentFormValues, selectedQRType, updatedFormData);
-      }, POST_VALIDATION_DELAY);
+      // The effect above will handle the actual generation when state is READY_TO_GENERATE and user not typing
       
     } else if (!exists && selectedType === 'qrcode' && selectedQRType === 'link') {
       // No generar automáticamente si el sitio no existe
-      console.log('[page.tsx] Site does not exist, showing warning instead of generating');
       clearContent(); // Limpiar cualquier código existente
+      
+      // Update state machine to show validation error
+      // Only transition if we're actually in VALIDATING state
+      const currentState = getCurrentState();
+      if (currentState === 'VALIDATING') {
+        validationComplete(false);
+      }
     }
-  }, [selectedType, selectedQRType, getValues, qrFormData, validateAndGenerate, clearContent, setValue, validationComplete, startGenerating, urlGenerationState]);
+  }, [selectedType, selectedQRType, getValues, qrFormData, clearContent, setValue, validationComplete, urlGenerationState, getCurrentState]);
 
   // Función para generar de todas formas cuando el sitio no existe
   const handleGenerateAnyway = useCallback(() => {
-    console.log('[page.tsx] User clicked "Generate anyway"');
     setUrlValidationState(prev => ({
       ...prev,
       shouldGenerateAnyway: true,
@@ -453,7 +477,6 @@ export default function Home() {
     setValue('data', currentUrl, { shouldValidate: true });
     
     const currentFormValues = getValues();
-    console.log('[page.tsx] Generate anyway with data:', currentFormValues);
     
     // Llamar directamente a onSubmit para evitar validación
     onSubmit(currentFormValues);
@@ -626,6 +649,24 @@ export default function Home() {
   
   // Step 2 is active only when options change
   const isPersonalized = hasChangedOptions;
+
+  // Effect to handle automatic generation when ready and not typing
+  useEffect(() => {
+    if (urlGenerationState === 'READY_TO_GENERATE' && !isTyping && selectedQRType === 'link') {
+      const timeoutId = setTimeout(() => {
+        // Double check state hasn't changed
+        const currentState = getCurrentState();
+        if (currentState === 'READY_TO_GENERATE' && !isTyping) {
+          const currentFormValues = getValues();
+          const updatedFormData = qrFormData.link;
+          startGenerating();
+          validateAndGenerate(currentFormValues, selectedQRType, updatedFormData);
+        }
+      }, POST_VALIDATION_DELAY);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [urlGenerationState, isTyping, selectedQRType, getCurrentState, getValues, qrFormData, startGenerating, validateAndGenerate]);
 
   return (
     <div className="min-h-screen">

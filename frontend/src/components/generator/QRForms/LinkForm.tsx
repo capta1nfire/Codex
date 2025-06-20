@@ -115,6 +115,13 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   const handleContainerClick = () => {
     if (inputRef.current && !isLoading) {
       inputRef.current.focus();
+      // Set cursor at the end of the text
+      setTimeout(() => {
+        if (inputRef.current) {
+          const len = inputRef.current.value.length;
+          inputRef.current.setSelectionRange(len, len);
+        }
+      }, 0);
     }
   };
   
@@ -186,6 +193,13 @@ export const LinkForm: React.FC<LinkFormProps> = ({
               if (data.url === '' || data.url === 'https://tu-sitio-web.com') {
                 onChange('url', '');
               }
+              // Also hide badge when focusing to allow editing
+              if (showBadge) {
+                setShowBadge(false);
+                // Clear URL when clicking on input with badge showing
+                onChange('url', '');
+                lastNotifiedUrl.current = '';
+              }
             }}
             onBlur={() => {
               setIsFocused(false);
@@ -217,6 +231,21 @@ export const LinkForm: React.FC<LinkFormProps> = ({
           {showBadge && isValidUrl && (
             <div 
               className="absolute inset-0 flex items-center px-3"
+              onClick={(e) => {
+                // Si el click no fue en el link del badge, volver al modo edición
+                const target = e.target as HTMLElement;
+                if (!target.closest('a')) {
+                  e.stopPropagation();
+                  setShowBadge(false);
+                  // Reset validation tracking when user wants to edit
+                  lastNotifiedUrl.current = '';
+                  // Clear the URL to start fresh
+                  onChange('url', '');
+                  // Focus the input for immediate typing
+                  inputRef.current?.focus();
+                }
+              }}
+              style={{ cursor: 'text' }}
             >
               <div className="relative">
                 <a
@@ -274,6 +303,8 @@ export const LinkForm: React.FC<LinkFormProps> = ({
                     e.stopPropagation();
                     onChange('url', '');
                     setShowBadge(false);
+                    // Reset validation tracking
+                    lastNotifiedUrl.current = '';
                     // Focus the input for immediate typing
                     inputRef.current?.focus();
                   }}

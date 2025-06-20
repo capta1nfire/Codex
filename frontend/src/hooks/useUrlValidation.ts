@@ -57,12 +57,22 @@ export function useUrlValidation({
   // Cancelación de requests
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastValidatedUrl = useRef<string>('');
+  
+  // Create debounced validate ref to avoid circular dependency
+  const debouncedValidateRef = useRef<ReturnType<typeof debounce> | null>(null);
 
   // Limpiar validación
   const clearValidation = useCallback(() => {
     setMetadata(null);
     setError(null);
     lastValidatedUrl.current = '';
+    // Also cancel any pending validation
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    if (debouncedValidateRef.current) {
+      debouncedValidateRef.current.cancel();
+    }
   }, []);
 
   // Función de validación principal
@@ -72,22 +82,43 @@ export function useUrlValidation({
       return;
     }
 
+    // Clean and validate URL
+    const cleanUrl = url.trim();
+    
+    // Skip URLs with special characters
+    if (cleanUrl.includes('"') || cleanUrl.includes("'") || cleanUrl.includes(';')) {
+      return;
+    }
+
+    // Don't validate very short URLs (less than 4 characters)
+    if (cleanUrl.length < 4) {
+      setError(null);
+      setMetadata(null);
+      return;
+    }
+    
+    // Don't validate single words without dots
+    if (!cleanUrl.includes('.') && !cleanUrl.includes('://')) {
+      setError(null);
+      setMetadata(null);
+      return;
+    }
+
     // Validación básica - permitir URLs simples como www.google.com
     const basicPattern = /^([\w-]+\.)+[\w-]+(\/.*)?$/i;
     
-    if (!basicPattern.test(url) && !url.includes('://')) {
+    if (!basicPattern.test(cleanUrl) && !cleanUrl.includes('://')) {
       setError('Formato de URL inválido');
       setMetadata(null);
       return;
     }
 
     // Check cache first
-    const cachedResult = urlValidationCache.get(url);
+    const cachedResult = urlValidationCache.get(cleanUrl);
     if (cachedResult) {
-      console.log('URL validation cache hit:', url);
       setMetadata(cachedResult);
       setError(cachedResult.exists ? null : cachedResult.error || 'El sitio web no pudo ser verificado');
-      lastValidatedUrl.current = url;
+      lastValidatedUrl.current = cleanUrl;
       return;
     }
 
@@ -101,13 +132,12 @@ export function useUrlValidation({
     
     setIsValidating(true);
     setError(null);
-    lastValidatedUrl.current = url;
+    lastValidatedUrl.current = cleanUrl;
 
     try {
-      console.log('Validating URL:', url);
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/validate/check-url`,
-        { url },
+        { url: cleanUrl },
         {
           signal: abortControllerRef.current.signal,
           timeout: 10000
@@ -117,7 +147,7 @@ export function useUrlValidation({
       const data = response.data as UrlMetadata;
       
       // Cache the result
-      urlValidationCache.set(url, data);
+      urlValidationCache.set(cleanUrl, data);
       
       // Solo actualizar si no fue cancelado
       if (!abortControllerRef.current.signal.aborted) {
@@ -144,6 +174,9 @@ export function useUrlValidation({
   const debouncedValidate = useRef(
     debounce(performValidation, debounceMs)
   ).current;
+  
+  // Store ref for cleanup
+  debouncedValidateRef.current = debouncedValidate;
 
   // Función pública para validar
   const validateUrl = useCallback((url: string) => {
@@ -153,11 +186,19 @@ export function useUrlValidation({
       return;
     }
 
+    // Don't validate URLs with special characters that shouldn't be processed
+    const cleanUrl = url.trim();
+    if (cleanUrl.includes('"') || cleanUrl.includes("'") || cleanUrl.includes(';')) {
+      setError('URL contiene caracteres inválidos');
+      setMetadata(null);
+      return;
+    }
+
     // Cancelar validación pendiente
     debouncedValidate.cancel();
     
     // Iniciar nueva validación
-    debouncedValidate(url);
+    debouncedValidate(cleanUrl);
   }, [debouncedValidate, clearValidation]);
 
   // Cleanup

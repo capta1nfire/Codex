@@ -58,6 +58,7 @@ const validTransitions: StateTransition[] = [
   // From COMPLETE
   { from: ['COMPLETE'], to: 'TYPING' },
   { from: ['COMPLETE'], to: 'IDLE' },
+  { from: ['COMPLETE'], to: 'VALIDATING' }, // For when user clears and starts typing immediately
 ];
 
 interface UseUrlGenerationStateOptions {
@@ -132,6 +133,11 @@ export function useUrlGenerationState(options: UseUrlGenerationStateOptions = {}
   const isTyping = state === 'TYPING';
   const isComplete = state === 'COMPLETE';
   
+  // Get current state from ref (always up to date)
+  const getCurrentState = useCallback(() => {
+    return stateRef.current;
+  }, []);
+  
   return {
     // Current state
     state,
@@ -151,5 +157,6 @@ export function useUrlGenerationState(options: UseUrlGenerationStateOptions = {}
     hasError,
     isTyping,
     isComplete,
+    getCurrentState,
   };
 }

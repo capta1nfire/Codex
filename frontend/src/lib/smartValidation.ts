@@ -46,6 +46,11 @@ export const SmartValidators = {
       return { isValid: false, message: 'Continúa escribiendo...' };
     }
     
+    // Don't validate single words being deleted (like "appl", "app", "ap", "a")
+    if (!url.includes('.') && !url.includes('://') && url.length < 6) {
+      return { isValid: false, message: '' }; // No message for partial words
+    }
+    
     // Check for incomplete patterns with helpful messages
     if (url === 'www') {
       return { isValid: false, message: 'Añade un punto después de www' };
@@ -390,6 +395,11 @@ export const SmartValidators = {
       return { isValid: false, message: 'Ingresa datos' };
     }
     return { isValid: true };
+  },
+  
+  /** Link validation - alias for url validator */
+  link: (data: any): ValidationResult => {
+    return SmartValidators.url(data);
   }
 };
 
