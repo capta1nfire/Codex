@@ -70,10 +70,12 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 - 🔧 **URL Validation for .edu.co Domains** - Improved handling of Colombian educational domains
   - Added special handling for .edu.co domains that may be slower to respond
-  - Increased timeout from 3s to 5s for .edu.co domains
+  - Increased timeout from 3s to 5s for .edu.co domains (backend) and 15s (frontend)
   - Skip stale cache for .edu.co domains like we do for Facebook/Meta
   - Reduced cache TTL to 10s for failed .edu.co validations (vs 30s for others)
-  - univalle.edu.co and similar domains now validate correctly
+  - Fixed SSL certificate verification issues for .edu.co domains
+  - Added support for self-signed and invalid SSL certificates on educational sites
+  - univalle.edu.co and similar domains now validate correctly with full metadata
 
 ### 2025-06-20
 

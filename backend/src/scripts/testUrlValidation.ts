@@ -69,7 +69,12 @@ const TEST_URLS = {
     'columbia.edu',
     'ucla.edu',
     'oxford.ac.uk',
-    'cambridge.ac.uk'
+    'cambridge.ac.uk',
+    // Colombian educational domains
+    'univalle.edu.co',
+    'unal.edu.co',
+    'javeriana.edu.co',
+    'uniandes.edu.co'
   ],
 
   // Organization domains (.org)

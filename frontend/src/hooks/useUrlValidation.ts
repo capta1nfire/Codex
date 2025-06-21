@@ -84,6 +84,7 @@ export function useUrlValidation({
 
     // Clean and validate URL
     const cleanUrl = url.trim();
+    console.log(`[performValidation] Starting validation for: ${cleanUrl}`);
     
     // Skip URLs with special characters
     if (cleanUrl.includes('"') || cleanUrl.includes("'") || cleanUrl.includes(';')) {
@@ -135,15 +136,35 @@ export function useUrlValidation({
     lastValidatedUrl.current = cleanUrl;
 
     try {
+      // Extract domain to check if it's .edu.co
+      let domain = cleanUrl;
+      if (cleanUrl.includes('://')) {
+        try {
+          const urlObj = new URL(cleanUrl);
+          domain = urlObj.hostname;
+        } catch {
+          // If URL parsing fails, use the original
+        }
+      }
+      
+      // Use longer timeout for .edu.co domains
+      const timeoutMs = domain.endsWith('.edu.co') ? 15000 : 10000;
+      
+      console.log(`[useUrlValidation] Sending validation request for: ${cleanUrl}`);
+      console.log(`[useUrlValidation] Domain: ${domain}`);
+      console.log(`[useUrlValidation] Backend URL: ${process.env.NEXT_PUBLIC_BACKEND_URL}/api/validate/check-url`);
+      console.log(`[useUrlValidation] Request timeout: ${timeoutMs}ms`);
+      
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/validate/check-url`,
         { url: cleanUrl },
         {
           signal: abortControllerRef.current.signal,
-          timeout: 10000
+          timeout: timeoutMs
         }
       );
 
+      console.log(`[useUrlValidation] Response received:`, response.data);
       const data = response.data as UrlMetadata;
       
       // Cache the result
@@ -159,13 +180,27 @@ export function useUrlValidation({
     } catch (err: any) {
       // Ignorar errores de cancelación
       if (err.name === 'CanceledError') {
+        console.log(`[useUrlValidation] Request was canceled`);
         return;
       }
       
-      console.error('Error validating URL:', err);
-      setError('Error al verificar el sitio web');
+      console.error('[useUrlValidation] Error validating URL:', err);
+      console.error('[useUrlValidation] Error details:', {
+        code: err.code,
+        message: err.message,
+        response: err.response?.data,
+        isTimeout: err.code === 'ECONNABORTED'
+      });
+      
+      // Special handling for timeout errors
+      if (err.code === 'ECONNABORTED') {
+        setError('La validación tomó demasiado tiempo. Por favor intenta de nuevo.');
+      } else {
+        setError('Error al verificar el sitio web');
+      }
       setMetadata(null);
     } finally {
+      console.log(`[useUrlValidation] Validation finished, setting isValidating to false`);
       setIsValidating(false);
     }
   }, [enabled]);
