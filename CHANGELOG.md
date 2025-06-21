@@ -34,6 +34,14 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Made v3 Enhanced free for all users (removed authentication requirement)
   - Full backwards compatibility with existing QR options
 
+- 🎨 **Complete UI Customization Controls** - All v3 Enhanced features accessible
+  - **SHAPES Tab**: Eye shapes (9 options) and data patterns (9 options) with visual selectors
+  - **LOGO Tab**: Image upload with size, shape, and padding configuration
+  - **ADVANCED Tab**: Visual effects (5 types) and frame customization with text
+  - Integrated all controls with v3 Enhanced API
+  - Fixed frame field mapping (`frame_type` instead of `style`)
+  - Full form validation for all new fields
+
 ### 2025-06-20
 
 #### Added
