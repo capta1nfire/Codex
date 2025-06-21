@@ -25,6 +25,15 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - WCAG 4.5:1 contrast validation ready
   - ~1ms generation time with full customization
 
+#### Improved
+- ⚡ **v3 Enhanced as Primary QR Engine** - Complete integration as main QR generator
+  - Replaced v2 with v3 Enhanced for all QR code generation
+  - Updated main page to use `useQRGenerationV3Enhanced` hook
+  - Modified PreviewSectionV3 to render `EnhancedUltrathinkQR` component
+  - Fixed Rust metadata to include QR-specific fields (version, error_correction)
+  - Made v3 Enhanced free for all users (removed authentication requirement)
+  - Full backwards compatibility with existing QR options
+
 ### 2025-06-20
 
 #### Added
