@@ -80,8 +80,8 @@ enum Standard {
     ISO15416,      // Calidad de impresión 1D
     GS1General,    // Especificaciones generales GS1
     GS1Healthcare, // GS1 para healthcare
-    ANSI_MH10,     // Estándar logístico
-    FDA_UDI,       // Unique Device Identification
+    AnsiMh10,      // Estándar logístico
+    FdaUdi,        // Unique Device Identification
 }
 
 impl StandardValidator {
@@ -107,7 +107,7 @@ impl StandardValidator {
             required_standards: vec![
                 Standard::ISO15415,
                 Standard::GS1Healthcare,
-                Standard::FDA_UDI,
+                Standard::FdaUdi,
             ],
             min_module_size: 0.25,
             min_quiet_zone: 4,
@@ -120,7 +120,7 @@ impl StandardValidator {
             name: "Logistics/Transport",
             required_standards: vec![
                 Standard::ISO15415,
-                Standard::ANSI_MH10,
+                Standard::AnsiMh10,
             ],
             min_module_size: 0.5,
             min_quiet_zone: 6,
@@ -324,11 +324,11 @@ impl StandardValidator {
                 // Verificar AIs específicos de healthcare
                 Ok(data.contains("(01)") && (data.contains("(17)") || data.contains("(7003)")))
             },
-            Standard::FDA_UDI => {
+            Standard::FdaUdi => {
                 // Verificar requisitos UDI
                 Ok(data.contains("(01)") && data.contains("(17)") && data.contains("(10)"))
             },
-            Standard::ANSI_MH10 => {
+            Standard::AnsiMh10 => {
                 // Validación básica ANSI MH10
                 Ok(true) // Simplificado
             },

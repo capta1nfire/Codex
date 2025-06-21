@@ -375,6 +375,178 @@ pub struct QrStructuredMetadata {
     pub content_hash: String,
 }
 
+// ==================== V3 ENHANCED STRUCTURES ====================
+// Nuevas estructuras para arquitectura Enhanced Intermediate
+
+/// Salida estructurada Enhanced para QR v3
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrEnhancedOutput {
+    /// Paths separados para personalización granular
+    pub paths: QrPaths,
+    /// Estilos aplicables a cada path
+    pub styles: QrStyles,
+    /// Definiciones reutilizables (gradientes, filtros)
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub definitions: Vec<QrDefinition>,
+    /// Overlays opcionales (logo, frame)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub overlays: Option<QrOverlays>,
+    /// Metadata de generación
+    pub metadata: QrStructuredMetadata,
+}
+
+/// Paths separados del QR
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrPaths {
+    /// Path principal de datos
+    pub data: String,
+    /// Paths de los ojos (esquinas)
+    pub eyes: Vec<QrEyePath>,
+}
+
+/// Path individual de un ojo
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrEyePath {
+    /// Tipo de ojo (top_left, top_right, bottom_left)
+    #[serde(rename = "type")]
+    pub eye_type: String,
+    /// Path data SVG
+    pub path: String,
+    /// Forma usada (para metadata)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub shape: Option<String>,
+}
+
+/// Estilos aplicables a paths
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrStyles {
+    /// Estilo para datos
+    pub data: QrStyleConfig,
+    /// Estilo para ojos
+    pub eyes: QrStyleConfig,
+}
+
+/// Configuración de estilo para un elemento
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrStyleConfig {
+    /// Fill (color sólido o referencia a gradiente)
+    pub fill: String,
+    /// Efectos aplicados
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub effects: Vec<String>,
+    /// Shape hint (para ojos)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub shape: Option<String>,
+}
+
+/// Definición reutilizable (gradiente o efecto)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum QrDefinition {
+    #[serde(rename = "gradient")]
+    Gradient(QrGradientDef),
+    #[serde(rename = "effect")]
+    Effect(QrEffectDef),
+}
+
+/// Definición de gradiente
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrGradientDef {
+    /// ID único para referencia
+    pub id: String,
+    /// Tipo de gradiente
+    #[serde(rename = "gradient_type")]
+    pub gradient_type: String,
+    /// Colores (máximo 5)
+    pub colors: Vec<String>,
+    /// Ángulo (para linear)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub angle: Option<f32>,
+    /// Coordenadas (para radial)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coords: Option<GradientCoords>,
+}
+
+/// Coordenadas para gradientes
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GradientCoords {
+    pub x1: f32,
+    pub y1: f32,
+    pub x2: f32,
+    pub y2: f32,
+}
+
+/// Definición de efecto
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrEffectDef {
+    /// ID único para referencia
+    pub id: String,
+    /// Tipo de efecto
+    pub effect_type: String,
+    /// Parámetros del efecto
+    #[serde(flatten)]
+    pub params: serde_json::Value,
+}
+
+/// Overlays del QR
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrOverlays {
+    /// Logo opcional
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logo: Option<QrLogo>,
+    /// Frame opcional
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub frame: Option<QrFrame>,
+}
+
+/// Configuración de logo
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrLogo {
+    /// URL o base64 de la imagen
+    pub src: String,
+    /// Tamaño relativo (0.1 a 0.3)
+    pub size: f32,
+    /// Forma del contenedor
+    pub shape: String,
+    /// Padding en módulos
+    pub padding: u32,
+    /// Posición x
+    pub x: f32,
+    /// Posición y
+    pub y: f32,
+}
+
+/// Configuración de frame
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrFrame {
+    /// Estilo del frame
+    pub style: String,
+    /// Path del frame
+    pub path: String,
+    /// Estilo de relleno
+    pub fill_style: QrStyleConfig,
+    /// Texto opcional
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<QrFrameText>,
+}
+
+/// Texto del frame
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrFrameText {
+    /// Contenido del texto
+    pub content: String,
+    /// Posición x
+    pub x: f32,
+    /// Posición y
+    pub y: f32,
+    /// Familia de fuente
+    pub font_family: String,
+    /// Tamaño de fuente
+    pub font_size: f32,
+    /// Anclaje del texto
+    pub text_anchor: String,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum IssueSeverity {

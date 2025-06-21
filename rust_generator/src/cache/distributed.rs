@@ -1,7 +1,7 @@
-use redis::{Client, cluster::ClusterClient, Commands, RedisResult};
+use redis::{Client, Commands, RedisResult};
 use std::time::Duration;
 use tracing::{debug, error, warn, info};
-use super::{CachedQR, QRMetadata};
+use super::CachedQR;
 
 /// Configuration for distributed Redis cache
 #[derive(Clone, Debug)]

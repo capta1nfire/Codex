@@ -88,6 +88,7 @@ pub struct QrV3State {
 pub fn routes(state: QrV3State) -> Router {
     Router::new()
         .route("/api/v3/qr/generate", post(generate_qr_v3))
+        .route("/api/v3/qr/enhanced", post(generate_qr_v3_enhanced))
         .with_state(state)
 }
 
@@ -222,6 +223,144 @@ async fn generate_qr_v3(
                     processing_time_ms: start.elapsed().as_millis() as u64,
                 },
             }))
+        }
+    }
+}
+
+/// Handler para v3 Enhanced con estructura completa
+#[instrument(skip(state, payload))]
+async fn generate_qr_v3_enhanced(
+    State(state): State<QrV3State>,
+    Json(payload): Json<QrV3Request>,
+) -> Result<Json<serde_json::Value>, StatusCode> {
+    let start = Instant::now();
+    info!("QR v3 Enhanced generation request for data length: {}", payload.data.len());
+    
+    // Validar entrada
+    if payload.data.is_empty() {
+        return Ok(Json(serde_json::json!({
+            "success": false,
+            "error": {
+                "code": "INVALID_INPUT",
+                "message": "Data cannot be empty"
+            },
+            "metadata": {
+                "engine_version": "3.0.0-enhanced",
+                "cached": false,
+                "processing_time_ms": start.elapsed().as_millis()
+            }
+        })));
+    }
+    
+    // Generar cache key incluyendo customization
+    let cache_key = format!(
+        "qrv3e:{}:{}:{}",
+        sha2::Sha256::digest(payload.data.as_bytes())
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>(),
+        payload.options.error_correction.as_deref().unwrap_or("M"),
+        serde_json::to_string(&payload.options.customization).unwrap_or_default()
+    );
+    
+    // Verificar cache
+    if let Some(cached_data) = state.cache.get(&cache_key) {
+        if let Ok(enhanced_output) = serde_json::from_str::<rust_generator::engine::types::QrEnhancedOutput>(&cached_data.svg) {
+            info!("Cache hit for v3 Enhanced generation");
+            return Ok(Json(serde_json::json!({
+                "success": true,
+                "data": enhanced_output,
+                "metadata": {
+                    "engine_version": "3.0.0-enhanced",
+                    "cached": true,
+                    "processing_time_ms": start.elapsed().as_millis()
+                }
+            })));
+        }
+    }
+    
+    // Generar QR Enhanced
+    let result = tokio::task::spawn_blocking({
+        let data = payload.data.clone();
+        let options = payload.options.clone();
+        
+        move || -> Result<rust_generator::engine::types::QrEnhancedOutput, QrError> {
+            use rust_generator::engine::generator::QrGenerator;
+            
+            // Convertir nivel de corrección
+            let ecl = options.error_correction
+                .and_then(|ecl_str| match ecl_str.as_str() {
+                    "L" => Some(ErrorCorrectionLevel::Low),
+                    "M" => Some(ErrorCorrectionLevel::Medium),
+                    "Q" => Some(ErrorCorrectionLevel::Quartile),
+                    "H" => Some(ErrorCorrectionLevel::High),
+                    _ => None,
+                })
+                .unwrap_or(ErrorCorrectionLevel::Medium);
+            
+            // Crear generador
+            let generator = QrGenerator::new();
+            
+            // Generar QR básico con nivel de corrección
+            let mut qr_code = generator.generate_with_ecl(&data, 400, ecl)?;
+            
+            // Aplicar customization si está presente
+            if let Some(customization) = options.customization {
+                qr_code.customization = Some(customization);
+            }
+            
+            // Convertir a Enhanced data
+            Ok(qr_code.to_enhanced_data())
+        }
+    })
+    .await
+    .map_err(|e| {
+        error!("Task join error: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+    
+    match result {
+        Ok(enhanced_output) => {
+            // Guardar en cache
+            if let Ok(json_data) = serde_json::to_string(&enhanced_output) {
+                let cached_qr = redis::CachedQR {
+                    svg: json_data,
+                    metadata: redis::QRMetadata {
+                        version: 1,
+                        modules: enhanced_output.paths.data.len(),
+                        error_correction: "M".to_string(), // TODO: Extract from customization
+                        processing_time_ms: enhanced_output.metadata.generation_time_ms,
+                    },
+                    generated_at: chrono::Utc::now().timestamp(),
+                };
+                let _ = state.cache.set(&cache_key, &cached_qr);
+            }
+            
+            info!("QR v3 Enhanced generated successfully");
+            Ok(Json(serde_json::json!({
+                "success": true,
+                "data": enhanced_output,
+                "metadata": {
+                    "engine_version": "3.0.0-enhanced",
+                    "cached": false,
+                    "processing_time_ms": start.elapsed().as_millis()
+                }
+            })))
+        }
+        Err(e) => {
+            error!("QR v3 Enhanced generation error: {:?}", e);
+            Ok(Json(serde_json::json!({
+                "success": false,
+                "error": {
+                    "code": "GENERATION_ERROR",
+                    "message": format!("Failed to generate QR: {:?}", e)
+                },
+                "metadata": {
+                    "engine_version": "3.0.0-enhanced",
+                    "cached": false,
+                    "processing_time_ms": start.elapsed().as_millis()
+                }
+            })))
         }
     }
 }

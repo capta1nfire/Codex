@@ -2,7 +2,7 @@
 
 use crate::engine::error::{QrError, QrResult};
 use crate::standards::gs1::{Gs1Parser, ApplicationIdentifier};
-use image::{DynamicImage, GrayImage, Luma};
+use image::{DynamicImage, GrayImage};
 use std::time::Instant;
 
 /// Datos decodificados de un código QR

@@ -1,7 +1,6 @@
 // shapes/patterns.rs - Renderizado de patrones de datos para QR
 
 use crate::engine::types::DataPattern;
-use crate::engine::error::QrResult;
 
 /// Renderizador de patrones de datos
 pub struct PatternRenderer {

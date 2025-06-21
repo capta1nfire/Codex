@@ -1,7 +1,6 @@
 // shapes/eyes.rs - Renderizado de formas de ojos para QR
 
 use crate::engine::types::EyeShape;
-use crate::engine::error::QrResult;
 
 /// Posiciones de los ojos en un código QR
 #[derive(Debug, Clone, Copy)]

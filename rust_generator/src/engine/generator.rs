@@ -626,7 +626,7 @@ impl QrCode {
         module_size: usize, 
         quiet_zone_size: usize
     ) -> String {
-        use crate::shapes::eyes::{EyeShapeRenderer, EyePosition, EyeComponent};
+        use crate::shapes::eyes::{EyeShapeRenderer, EyePosition};
         
         let mut svg = String::new();
         let eye_renderer = EyeShapeRenderer::new(module_size as u32);
@@ -773,6 +773,409 @@ impl QrCode {
             },
         }
     }
+    
+    /// Convierte el QR a datos estructurados Enhanced para v3
+    pub fn to_enhanced_data(&self) -> crate::engine::types::QrEnhancedOutput {
+        use std::time::Instant;
+        use sha2::{Sha256, Digest};
+        
+        let start = Instant::now();
+        
+        // Generar paths separados
+        let paths = self.generate_enhanced_paths();
+        
+        // Construir estilos basados en customization
+        let styles = self.build_styles();
+        
+        // Construir definiciones (gradientes, efectos)
+        let definitions = self.build_definitions();
+        
+        // Construir overlays (logo, frame)
+        let overlays = self.build_overlays();
+        
+        // Calcular hash para cache
+        let mut hasher = Sha256::new();
+        hasher.update(&paths.data);
+        for eye in &paths.eyes {
+            hasher.update(&eye.path);
+        }
+        let content_hash = format!("{:x}", hasher.finalize());
+        
+        let generation_time_ms = start.elapsed().as_millis() as u64;
+        
+        crate::engine::types::QrEnhancedOutput {
+            paths,
+            styles,
+            definitions,
+            overlays,
+            metadata: crate::engine::types::QrStructuredMetadata {
+                generation_time_ms,
+                quiet_zone: self.quiet_zone as u32,
+                content_hash,
+            },
+        }
+    }
+    
+    /// Genera paths separados para datos y ojos
+    fn generate_enhanced_paths(&self) -> crate::engine::types::QrPaths {
+        let mut data_path = String::new();
+        let mut eye_paths = Vec::new();
+        
+        // Identificar regiones de ojos
+        let eye_regions = self.identify_eye_regions();
+        
+        // Generar path optimizado para datos (excluyendo ojos)
+        for y in 0..self.size {
+            for x in 0..self.size {
+                if self.matrix[y][x] && !self.is_in_eye_region(x, y, &eye_regions) {
+                    let x_pos = x + self.quiet_zone;
+                    let y_pos = y + self.quiet_zone;
+                    
+                    // Optimización: combinar módulos adyacentes horizontalmente
+                    let mut width = 1;
+                    while x + width < self.size && 
+                          self.matrix[y][x + width] && 
+                          !self.is_in_eye_region(x + width, y, &eye_regions) {
+                        width += 1;
+                    }
+                    
+                    if width > 1 {
+                        data_path.push_str(&format!("M{} {}h{}v1H{}z", x_pos, y_pos, width, x_pos));
+                        // Saltar los módulos ya procesados
+                        for _ in 1..width {
+                            if x + 1 < self.size {
+                                // Skip processed modules
+                            }
+                        }
+                    } else {
+                        data_path.push_str(&format!("M{} {}h1v1H{}z", x_pos, y_pos, x_pos));
+                    }
+                }
+            }
+        }
+        
+        // Generar paths para cada ojo
+        for (eye_type, region) in eye_regions.iter() {
+            let eye_path = self.generate_eye_path(region);
+            eye_paths.push(crate::engine::types::QrEyePath {
+                eye_type: eye_type.clone(),
+                path: eye_path,
+                shape: self.customization.as_ref()
+                    .and_then(|c| c.eye_shape)
+                    .map(|shape| format!("{:?}", shape)),
+            });
+        }
+        
+        crate::engine::types::QrPaths {
+            data: data_path,
+            eyes: eye_paths,
+        }
+    }
+    
+    /// Identifica las regiones de los ojos
+    fn identify_eye_regions(&self) -> Vec<(String, EyeRegion)> {
+        let mut regions = Vec::new();
+        
+        // Top-left eye
+        regions.push(("top_left".to_string(), EyeRegion { x: 0, y: 0, size: 7 }));
+        
+        // Top-right eye
+        regions.push(("top_right".to_string(), EyeRegion { x: self.size - 7, y: 0, size: 7 }));
+        
+        // Bottom-left eye
+        regions.push(("bottom_left".to_string(), EyeRegion { x: 0, y: self.size - 7, size: 7 }));
+        
+        regions
+    }
+    
+    /// Verifica si una coordenada está en una región de ojo
+    fn is_in_eye_region(&self, x: usize, y: usize, regions: &[(String, EyeRegion)]) -> bool {
+        for (_, region) in regions {
+            if x >= region.x && x < region.x + region.size &&
+               y >= region.y && y < region.y + region.size {
+                return true;
+            }
+        }
+        false
+    }
+    
+    /// Genera el path para un ojo específico
+    fn generate_eye_path(&self, region: &EyeRegion) -> String {
+        let mut path = String::new();
+        
+        // Generar path según el patrón del ojo
+        for y in region.y..region.y + region.size {
+            for x in region.x..region.x + region.size {
+                if self.matrix[y][x] {
+                    let x_pos = x + self.quiet_zone;
+                    let y_pos = y + self.quiet_zone;
+                    path.push_str(&format!("M{} {}h1v1H{}z", x_pos, y_pos, x_pos));
+                }
+            }
+        }
+        
+        path
+    }
+    
+    /// Construye el objeto de estilos
+    fn build_styles(&self) -> crate::engine::types::QrStyles {
+        let custom = self.customization.as_ref();
+        
+        // Estilo para datos
+        let data_fill = if let Some(gradient) = custom.and_then(|c| c.gradient.as_ref()) {
+            if gradient.enabled && gradient.apply_to_data {
+                "url(#grad_data)".to_string()
+            } else {
+                custom.and_then(|c| c.colors.as_ref())
+                    .map(|colors| colors.foreground.clone())
+                    .unwrap_or_else(|| "#000000".to_string())
+            }
+        } else {
+            custom.and_then(|c| c.colors.as_ref())
+                .map(|colors| colors.foreground.clone())
+                .unwrap_or_else(|| "#000000".to_string())
+        };
+        
+        // Estilo para ojos
+        let eyes_fill = if let Some(gradient) = custom.and_then(|c| c.gradient.as_ref()) {
+            if gradient.enabled && gradient.apply_to_eyes {
+                "url(#grad_eyes)".to_string()
+            } else {
+                custom.and_then(|c| c.colors.as_ref())
+                    .map(|colors| colors.foreground.clone())
+                    .unwrap_or_else(|| data_fill.clone())
+            }
+        } else {
+            custom.and_then(|c| c.colors.as_ref())
+                .map(|colors| colors.foreground.clone())
+                .unwrap_or_else(|| data_fill.clone())
+        };
+        
+        // Efectos
+        let effects: Vec<String> = custom.and_then(|c| c.effects.as_ref())
+            .map(|effects| {
+                effects.iter()
+                    .filter_map(|e| {
+                        match e.effect_type {
+                            crate::engine::types::Effect::Shadow => Some("filter_shadow".to_string()),
+                            crate::engine::types::Effect::Glow => Some("filter_glow".to_string()),
+                            _ => None,
+                        }
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        
+        crate::engine::types::QrStyles {
+            data: crate::engine::types::QrStyleConfig {
+                fill: data_fill,
+                effects: effects.clone(),
+                shape: None,
+            },
+            eyes: crate::engine::types::QrStyleConfig {
+                fill: eyes_fill,
+                effects,
+                shape: custom.and_then(|c| c.eye_shape)
+                    .map(|shape| format!("{:?}", shape)),
+            },
+        }
+    }
+    
+    /// Construye las definiciones (gradientes, efectos)
+    fn build_definitions(&self) -> Vec<crate::engine::types::QrDefinition> {
+        let mut definitions = Vec::new();
+        let custom = self.customization.as_ref();
+        
+        // Agregar gradientes si están habilitados
+        if let Some(gradient) = custom.and_then(|c| c.gradient.as_ref()) {
+            if gradient.enabled {
+                // Limitar a 5 stops máximo
+                let colors: Vec<String> = gradient.colors.iter()
+                    .take(5)
+                    .cloned()
+                    .collect();
+                
+                // Gradiente para datos
+                if gradient.apply_to_data {
+                    definitions.push(crate::engine::types::QrDefinition::Gradient(
+                        crate::engine::types::QrGradientDef {
+                            id: "grad_data".to_string(),
+                            gradient_type: format!("{:?}", gradient.gradient_type).to_lowercase(),
+                            colors: colors.clone(),
+                            angle: gradient.angle,
+                            coords: match gradient.gradient_type {
+                                crate::engine::types::GradientType::Radial => {
+                                    Some(crate::engine::types::GradientCoords {
+                                        x1: 0.5, y1: 0.5, x2: 1.0, y2: 1.0,
+                                    })
+                                },
+                                _ => None,
+                            },
+                        }
+                    ));
+                }
+                
+                // Gradiente para ojos
+                if gradient.apply_to_eyes {
+                    definitions.push(crate::engine::types::QrDefinition::Gradient(
+                        crate::engine::types::QrGradientDef {
+                            id: "grad_eyes".to_string(),
+                            gradient_type: format!("{:?}", gradient.gradient_type).to_lowercase(),
+                            colors,
+                            angle: gradient.angle,
+                            coords: None,
+                        }
+                    ));
+                }
+            }
+        }
+        
+        // Agregar efectos
+        if let Some(effects) = custom.and_then(|c| c.effects.as_ref()) {
+            for effect_opt in effects {
+                match effect_opt.effect_type {
+                    crate::engine::types::Effect::Shadow => {
+                        definitions.push(crate::engine::types::QrDefinition::Effect(
+                            crate::engine::types::QrEffectDef {
+                                id: "filter_shadow".to_string(),
+                                effect_type: "shadow".to_string(),
+                                params: serde_json::json!({
+                                    "dx": 1,
+                                    "dy": 1,
+                                    "stdDeviation": 0.5,
+                                    "opacity": 0.3
+                                }),
+                            }
+                        ));
+                    },
+                    crate::engine::types::Effect::Glow => {
+                        definitions.push(crate::engine::types::QrDefinition::Effect(
+                            crate::engine::types::QrEffectDef {
+                                id: "filter_glow".to_string(),
+                                effect_type: "glow".to_string(),
+                                params: serde_json::json!({
+                                    "stdDeviation": 2,
+                                    "color": match &effect_opt.config {
+                                        crate::engine::types::EffectConfiguration::Glow { color, .. } => color.clone().unwrap_or_else(|| "#ffff00".to_string()),
+                                        _ => "#ffff00".to_string(),
+                                    }
+                                }),
+                            }
+                        ));
+                    },
+                    _ => {},
+                }
+            }
+        }
+        
+        definitions
+    }
+    
+    /// Construye los overlays (logo, frame)
+    fn build_overlays(&self) -> Option<crate::engine::types::QrOverlays> {
+        let custom = self.customization.as_ref()?;
+        
+        let logo = custom.logo.as_ref().map(|logo_opt| {
+            // Calcular posición centrada
+            let qr_size = self.size as f32;
+            let logo_size = qr_size * (logo_opt.size_percentage / 100.0).clamp(0.1, 0.3);
+            let x = (qr_size - logo_size) / 2.0 + self.quiet_zone as f32;
+            let y = (qr_size - logo_size) / 2.0 + self.quiet_zone as f32;
+            
+            crate::engine::types::QrLogo {
+                src: logo_opt.data.clone(),
+                size: logo_opt.size_percentage / 100.0,
+                shape: format!("{:?}", logo_opt.shape).to_lowercase(),
+                padding: logo_opt.padding,
+                x,
+                y,
+            }
+        });
+        
+        let frame = custom.frame.as_ref().map(|frame_opt| {
+            // Generar path del frame según el tipo
+            let frame_path = self.generate_frame_path(&frame_opt.frame_type);
+            
+            crate::engine::types::QrFrame {
+                style: format!("{:?}", frame_opt.frame_type).to_lowercase(),
+                path: frame_path,
+                fill_style: crate::engine::types::QrStyleConfig {
+                    fill: frame_opt.color.clone(),
+                    effects: Vec::new(),
+                    shape: None,
+                },
+                text: frame_opt.text.as_ref().map(|text| {
+                    crate::engine::types::QrFrameText {
+                        content: self.sanitize_text(text),
+                        x: (self.size as f32 / 2.0) + self.quiet_zone as f32,
+                        y: (self.size + self.quiet_zone * 2) as f32 + 10.0,
+                        font_family: "Arial".to_string(),
+                        font_size: 4.0,
+                        text_anchor: "middle".to_string(),
+                    }
+                }),
+            }
+        });
+        
+        if logo.is_some() || frame.is_some() {
+            Some(crate::engine::types::QrOverlays { logo, frame })
+        } else {
+            None
+        }
+    }
+    
+    /// Genera el path SVG para un frame
+    fn generate_frame_path(&self, frame_type: &crate::engine::types::FrameType) -> String {
+        let size = (self.size + 2 * self.quiet_zone) as i32;
+        let padding = 2i32;
+        
+        match frame_type {
+            crate::engine::types::FrameType::Simple => {
+                format!("M{} {}h{}v{}H{}z", 
+                    -padding, -padding, 
+                    size + padding * 2, 
+                    size + padding * 2, 
+                    -padding)
+            },
+            crate::engine::types::FrameType::Rounded => {
+                let radius = 5i32;
+                format!("M{} {}h{}a{} {} 0 0 1 {} {}v{}a{} {} 0 0 1 -{} {}H{}a{} {} 0 0 1 -{} -{}v{}a{} {} 0 0 1 {} -{}z",
+                    -padding + radius, -padding,
+                    size + padding * 2 - radius * 2,
+                    radius, radius, radius, radius,
+                    size + padding * 2 - radius * 2,
+                    radius, radius, radius, radius,
+                    -padding + radius,
+                    radius, radius, radius, radius,
+                    -padding + radius,
+                    radius, radius, radius, radius
+                )
+            },
+            _ => {
+                // Default simple frame
+                format!("M{} {}h{}v{}H{}z", 
+                    -padding, -padding, 
+                    size + padding * 2, 
+                    size + padding * 2, 
+                    -padding)
+            }
+        }
+    }
+    
+    /// Sanitiza el texto para prevenir XSS
+    fn sanitize_text(&self, text: &str) -> String {
+        text.chars()
+            .filter(|c| c.is_alphanumeric() || c.is_whitespace() || matches!(c, '!' | '?' | '.' | ','))
+            .take(50) // Límite de 50 caracteres
+            .collect()
+    }
+}
+
+// Estructura auxiliar para regiones de ojos
+struct EyeRegion {
+    x: usize,
+    y: usize,
+    size: usize,
 }
 
 #[cfg(test)]
