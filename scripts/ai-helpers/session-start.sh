@@ -72,7 +72,7 @@ echo ""
 
 # Reminders
 echo "💡 Quick Reminders:"
-echo "  - Read CONTEXT_SUMMARY.md for latest updates"
+echo "  - Read START_HERE.md for latest updates"
 echo "  - Use .nav.md for quick navigation"
 echo "  - Place temp files in .workspace/temp/"
 echo "  - Update session log as you work"

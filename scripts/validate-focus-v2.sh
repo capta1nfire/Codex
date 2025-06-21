@@ -7,7 +7,7 @@ echo "🎯 FOCUS Methodology Check v2.0"
 echo "================================="
 echo ""
 
-# Define documentation structure based on CONTEXT_SUMMARY.md
+# Define documentation structure based on START_HERE.md
 declare -A DOC_STRUCTURE=(
     ["api"]="API documentation, endpoints, migration guides"
     ["technical"]="Technical specifications, architecture decisions, performance"
@@ -21,7 +21,7 @@ declare -A DOC_STRUCTURE=(
 MASTER_DOCS=(
     "docs/README.md"
     "docs/api/README.md"
-    "CONTEXT_SUMMARY.md"
+    "START_HERE.md"
     "CHANGELOG.md"
 )
 
@@ -64,7 +64,7 @@ suggest_location() {
             ;;
         *"docs/technical"*)
             echo "      - docs/README.md (Technical section)"
-            echo "      - CONTEXT_SUMMARY.md (if it documents critical decisions)"
+            echo "      - START_HERE.md (if it documents critical decisions)"
             ;;
         *"docs/qr-engine"*)
             echo "      - docs/qr-engine/README.md (QR Engine index)"
@@ -184,6 +184,6 @@ echo ""
 echo "🎯 Documentation Best Practices:"
 echo "- Update existing files instead of creating new ones"
 echo "- Every new doc must be referenced in appropriate index"
-echo "- Use proper directory structure (see CONTEXT_SUMMARY.md)"
+echo "- Use proper directory structure (see START_HERE.md)"
 echo ""
 echo "Remember: Every new file = 10+ minutes of human cleanup"
