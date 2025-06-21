@@ -288,9 +288,10 @@ export default function Home() {
         // Frame configuration if enabled
         if (formData.options?.frame_enabled) {
           customization.frame = {
-            style: formData.options.frame_style || 'simple',
+            frame_type: formData.options.frame_style || 'simple',
             text: formData.options.frame_text || 'SCAN ME',
-            text_position: formData.options.frame_text_position || 'bottom'
+            text_position: formData.options.frame_text_position || 'bottom',
+            color: formData.options.fgcolor || '#000000'
           };
         }
         
