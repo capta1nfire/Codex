@@ -68,6 +68,13 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Success sound plays as expected
   - 4-second animation with subtle fade-out effect
 
+- 🔧 **URL Validation for .edu.co Domains** - Improved handling of Colombian educational domains
+  - Added special handling for .edu.co domains that may be slower to respond
+  - Increased timeout from 3s to 5s for .edu.co domains
+  - Skip stale cache for .edu.co domains like we do for Facebook/Meta
+  - Reduced cache TTL to 10s for failed .edu.co validations (vs 30s for others)
+  - univalle.edu.co and similar domains now validate correctly
+
 ### 2025-06-20
 
 #### Added

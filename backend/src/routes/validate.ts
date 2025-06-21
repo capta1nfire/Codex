@@ -88,15 +88,23 @@ async function checkUrlResponds(url: string): Promise<UrlMetadata> {
   const domainExists = await checkDomainExists(domain);
   console.log(`[URL Validation] DNS check for ${domain}: ${domainExists ? 'EXISTS' : 'NOT FOUND'}`);
   
+  // Log adicional para dominios .edu.co
+  if (domain.endsWith('.edu.co')) {
+    console.log(`[URL Validation] Special handling for .edu.co domain: ${domain}`);
+  }
+  
   // Estrategia 2: Verificación HTTP incluso si DNS falla
   // Algunos dominios (como x.com) pueden tener DNS especiales
   return new Promise((resolve) => {
     const urlObj = new URL(normalizedUrl);
     const protocol = urlObj.protocol === 'https:' ? https : http;
     
+    // Timeout más largo para dominios .edu.co que pueden ser más lentos
+    const timeoutMs = domain.endsWith('.edu.co') ? 5000 : 3000;
+    
     const options = {
       method: 'HEAD',
-      timeout: 3000, // Reducir timeout
+      timeout: timeoutMs,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': '*/*',
@@ -169,7 +177,7 @@ async function checkUrlResponds(url: string): Promise<UrlMetadata> {
     });
 
     // Timeout manual más agresivo para casos como x.com
-    req.setTimeout(3000, () => {
+    req.setTimeout(timeoutMs, () => {
       req.abort();
     });
 
@@ -195,7 +203,11 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
     // skip cache and re-validate
     const problematicDomains = ['facebook.com', 'www.facebook.com', 'meta.com'];
     const domain = extractDomain(url);
-    if (!cachedData.exists && problematicDomains.includes(domain)) {
+    
+    // Also skip cache for .edu.co domains as they may have special configurations
+    const isProblematicDomain = problematicDomains.includes(domain) || domain.endsWith('.edu.co');
+    
+    if (!cachedData.exists && isProblematicDomain) {
       console.log(`[fetchUrlMetadata] Skipping cache for problematic domain: ${domain}`);
     } else {
       console.log(`[fetchUrlMetadata] Found in cache: ${cacheKey}`);
@@ -302,8 +314,10 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
       error: error.code || error.message
     };
     
-    // Cache network errors for 30 seconds
-    await redis.setEx(cacheKey, 30, JSON.stringify(result));
+    // Cache network errors for shorter time for .edu.co domains
+    // as they might be temporarily unavailable
+    const cacheTTL = domain.endsWith('.edu.co') ? 10 : 30;
+    await redis.setEx(cacheKey, cacheTTL, JSON.stringify(result));
     return result;
   }
 }
