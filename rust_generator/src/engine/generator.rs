@@ -770,6 +770,32 @@ impl QrCode {
                 generation_time_ms,
                 quiet_zone: self.quiet_zone as u32,
                 content_hash,
+                total_modules: (self.size + 2 * self.quiet_zone) as u32,
+                data_modules: self.size as u32,
+                version: match self.size {
+                    21 => 1,
+                    25 => 2,
+                    29 => 3,
+                    33 => 4,
+                    37 => 5,
+                    41 => 6,
+                    45 => 7,
+                    49 => 8,
+                    53 => 9,
+                    57 => 10,
+                    _ => ((self.size - 21) / 4 + 1) as u32,
+                },
+                error_correction: self.customization
+                    .as_ref()
+                    .and_then(|c| c.error_correction)
+                    .map(|ecl| match ecl {
+                        ErrorCorrectionLevel::Low => "L",
+                        ErrorCorrectionLevel::Medium => "M",
+                        ErrorCorrectionLevel::Quartile => "Q",
+                        ErrorCorrectionLevel::High => "H",
+                    })
+                    .unwrap_or("M")
+                    .to_string(),
             },
         }
     }
@@ -812,6 +838,32 @@ impl QrCode {
                 generation_time_ms,
                 quiet_zone: self.quiet_zone as u32,
                 content_hash,
+                total_modules: (self.size + 2 * self.quiet_zone) as u32,
+                data_modules: self.size as u32,
+                version: match self.size {
+                    21 => 1,
+                    25 => 2,
+                    29 => 3,
+                    33 => 4,
+                    37 => 5,
+                    41 => 6,
+                    45 => 7,
+                    49 => 8,
+                    53 => 9,
+                    57 => 10,
+                    _ => ((self.size - 21) / 4 + 1) as u32,
+                },
+                error_correction: self.customization
+                    .as_ref()
+                    .and_then(|c| c.error_correction)
+                    .map(|ecl| match ecl {
+                        ErrorCorrectionLevel::Low => "L",
+                        ErrorCorrectionLevel::Medium => "M",
+                        ErrorCorrectionLevel::Quartile => "Q",
+                        ErrorCorrectionLevel::High => "H",
+                    })
+                    .unwrap_or("M")
+                    .to_string(),
             },
         }
     }

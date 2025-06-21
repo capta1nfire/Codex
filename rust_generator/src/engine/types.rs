@@ -373,6 +373,14 @@ pub struct QrStructuredMetadata {
     pub quiet_zone: u32,
     /// Hash del contenido para cache
     pub content_hash: String,
+    /// Total de módulos del QR (incluyendo quiet zone)
+    pub total_modules: u32,
+    /// Módulos de datos del QR (sin quiet zone)
+    pub data_modules: u32,
+    /// Versión del QR code
+    pub version: u32,
+    /// Nivel de corrección de errores
+    pub error_correction: String,
 }
 
 // ==================== V3 ENHANCED STRUCTURES ====================

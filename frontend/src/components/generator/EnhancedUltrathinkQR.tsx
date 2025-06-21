@@ -48,6 +48,10 @@ export interface QREnhancedData {
     generation_time_ms: number;
     quiet_zone: number;
     content_hash: string;
+    total_modules: number;
+    data_modules: number;
+    version: number;
+    error_correction: string;
   };
 }
 

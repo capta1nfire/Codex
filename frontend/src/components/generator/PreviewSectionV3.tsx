@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Download, QrCode, Zap, Database, Keyboard, CheckCircle, Sparkles } from 'lucide-react';
 import BarcodeDisplay from '@/app/BarcodeDisplay';
 import { DynamicQRCodeFromSVG } from '@/components/DynamicQRCode';
-import { UltrathinkQR } from '@/components/generator/UltrathinkQR';
-import { QRStructuredData } from '@/hooks/useQRGenerationV3';
+import { EnhancedUltrathinkQR } from '@/components/generator/EnhancedUltrathinkQR';
+import { QREnhancedData } from '@/components/generator/EnhancedUltrathinkQR';
 import { useBarcodeActions } from '@/hooks/useBarcodeActions';
 
 interface PreviewSectionProps {
@@ -14,8 +14,8 @@ interface PreviewSectionProps {
   isLoading: boolean;
   barcodeType?: string;
   isUsingV2?: boolean;
-  isUsingV3?: boolean; // Nuevo: indica si se está usando v3
-  structuredData?: QRStructuredData | null; // Nuevo: datos estructurados de v3
+  isUsingV3Enhanced?: boolean; // Indica si se está usando v3 Enhanced
+  enhancedData?: QREnhancedData | null; // Datos enhanced de v3
   showCacheIndicator?: boolean;
   isUserTyping?: boolean;
   validationError?: string | null;
@@ -40,8 +40,8 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   isLoading,
   barcodeType = 'qrcode',
   isUsingV2 = false,
-  isUsingV3 = false,
-  structuredData = null,
+  isUsingV3Enhanced = false,
+  enhancedData = null,
   showCacheIndicator = false,
   isUserTyping = false,
   validationError = null,
@@ -55,8 +55,8 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
     svgContentLength: svgContent?.length,
     isLoading,
     barcodeType,
-    isUsingV3,
-    hasStructuredData: !!structuredData
+    isUsingV3Enhanced,
+    hasEnhancedData: !!enhancedData
   });
   const { handleDownload } = useBarcodeActions(svgContent, barcodeType);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -67,7 +67,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   // Determine what to show - enhanced logic with URL generation state and v3
   const showUrlValidationLoading = (urlGenerationState === 'READY_TO_GENERATE' || urlGenerationState === 'GENERATING') && barcodeType === 'qrcode';
   const showLoadingState = isLoading || showUrlValidationLoading;
-  const hasContent = isUsingV3 ? structuredData !== null : svgContent !== '';
+  const hasContent = isUsingV3Enhanced ? enhancedData !== null : svgContent !== '';
   const showRealBarcode = !showLoadingState && hasContent;
   const showEmptyState = !showLoadingState && !showRealBarcode && !hasContent;
   
@@ -233,10 +233,14 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
             <div className="bg-white dark:bg-white rounded-lg p-2 shadow-sm relative">
               {/* Renderizar según la versión disponible */}
               {(barcodeType === 'qrcode' || barcodeType === 'qr') ? (
-                isUsingV3 && structuredData ? (
-                  // V3: Usar UltrathinkQR con datos estructurados
-                  <UltrathinkQR
-                    data={structuredData}
+                isUsingV3Enhanced && enhancedData ? (
+                  // V3 Enhanced: Usar EnhancedUltrathinkQR con datos enhanced
+                  <EnhancedUltrathinkQR
+                    data={enhancedData}
+                    totalModules={enhancedData.metadata.total_modules}
+                    dataModules={enhancedData.metadata.data_modules}
+                    version={enhancedData.metadata.version}
+                    errorCorrection={enhancedData.metadata.error_correction}
                     size={300}
                     title="Código QR"
                     description="Escanea este código QR"

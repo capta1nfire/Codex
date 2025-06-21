@@ -28,7 +28,7 @@ import { cn } from '@/lib/utils';
 // Hooks personalizados
 import { useBarcodeGenerationV2 } from '@/hooks/useBarcodeGenerationV2';
 import { useQRContentGeneration } from '@/hooks/useQRContentGeneration';
-import { useQRGenerationV3 } from '@/hooks/useQRGenerationV3';
+import { useQRGenerationV3Enhanced } from '@/hooks/useQRGenerationV3Enhanced';
 import { useBarcodeTypes } from '@/hooks/useBarcodeTypes';
 import { useSmartAutoGeneration } from '@/hooks/useSmartAutoGeneration';
 
@@ -83,15 +83,16 @@ export default function Home() {
     isUsingV2 
   } = useBarcodeGenerationV2();
   
-  // Hook v3 para QR codes (ULTRATHINK)
+  // Hook v3 Enhanced para QR codes (ULTRATHINK Enhanced)
   const {
-    structuredData,
+    enhancedData,
     isLoading: isLoadingQR,
     error: qrError,
-    generateQR,
+    generateEnhancedQR,
     metadata: qrMetadata,
-    clearError: clearQRError
-  } = useQRGenerationV3();
+    clearError: clearQRError,
+    clearData: clearQRData
+  } = useQRGenerationV3Enhanced();
   
   // URL validation hook lifted to page level to coordinate with auto-generation
   const { 
@@ -209,7 +210,7 @@ export default function Home() {
   const metadata = selectedType === 'qrcode' ? qrMetadata : barcodeMetadata;
   const clearError = selectedType === 'qrcode' ? clearQRError : clearBarcodeError;
   const clearContent = selectedType === 'qrcode' ? 
-    () => {} : // For QR v3, clearing is handled by the hook internally
+    clearQRData : // For QR v3 Enhanced, use clearData function
     clearBarcodeContent;
 
   // Log server error only if it's not an auth error
@@ -256,8 +257,8 @@ export default function Home() {
           };
         }
         
-        await generateQR(formData.data, {
-          error_correction: formData.options?.error_correction || formData.options?.ecl || 'M',
+        await generateEnhancedQR(formData.data, {
+          error_correction: (formData.options?.ecl as 'L' | 'M' | 'Q' | 'H') || 'M',
           customization: Object.keys(customization).length > 0 ? customization : undefined
         });
         return; // Important: exit after successful v3 generation
@@ -278,7 +279,7 @@ export default function Home() {
         audio.play().catch(() => {});
       } catch (e) {}
     }
-  }, [generateBarcode, generateQR, selectedType]);
+  }, [generateBarcode, generateEnhancedQR, selectedType]);
 
   const handleTypeChange = useCallback(async (newType: string) => {
     // Reset typing state when changing types
@@ -1025,12 +1026,12 @@ export default function Home() {
               {/* Componente funcional invisible - para sticky */}
               <PreviewSection
                 svgContent={svgContent}
-                structuredData={structuredData}
+                enhancedData={enhancedData}
                 isLoading={isLoading}
                 barcodeType={selectedType}
                 isUsingV2={isUsingV2}
-                isUsingV3={selectedType === 'qrcode'}
-                showCacheIndicator={metadata?.fromCache}
+                isUsingV3Enhanced={selectedType === 'qrcode'}
+                showCacheIndicator={metadata && 'cached' in metadata ? metadata.cached : false}
                 isUserTyping={isTyping && hasUserStartedTyping}
                 validationError={realTimeValidationError || validationError}
                 isInitialDisplay={false}
