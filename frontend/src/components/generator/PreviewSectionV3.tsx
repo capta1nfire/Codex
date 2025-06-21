@@ -71,6 +71,11 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   const showRealBarcode = !showLoadingState && hasContent;
   const showEmptyState = !showLoadingState && !showRealBarcode && !hasContent;
   
+  // Debug URL generation state
+  if (urlGenerationState) {
+    console.log('[PreviewSection] URL Generation State:', urlGenerationState);
+  }
+  
   // Debug which component will be shown
   console.log('[PreviewSection] Component to show:', {
     showLoadingState,

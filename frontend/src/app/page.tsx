@@ -708,10 +708,13 @@ export default function Home() {
   
   // Monitor generation completion
   useEffect(() => {
-    if (!isLoading && svgContent && urlGenerationState === 'GENERATING') {
+    // For v3 Enhanced QR codes, check enhancedData instead of svgContent
+    const hasGeneratedContent = selectedType === 'qrcode' ? enhancedData !== null : svgContent !== '';
+    
+    if (!isLoading && hasGeneratedContent && urlGenerationState === 'GENERATING') {
       generationComplete();
     }
-  }, [isLoading, svgContent, urlGenerationState, generationComplete]);
+  }, [isLoading, svgContent, enhancedData, selectedType, urlGenerationState, generationComplete]);
   
   // Auto-generación cuando cambian las opciones de personalización
   useEffect(() => {

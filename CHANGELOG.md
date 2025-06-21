@@ -57,6 +57,11 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Borders now work with v3 Enhanced just like in v1/v2
   - Optimized border width to 0.1px for minimal visual impact
 
+- 🐛 **QR Generation State Management** - Fixed QR codes not displaying after generation
+  - Updated generation completion monitor to check `enhancedData` for v3 QR codes
+  - Fixed state machine stuck in 'GENERATING' state for v3 Enhanced
+  - QR codes now properly display after successful generation
+
 ### 2025-06-20
 
 #### Added
