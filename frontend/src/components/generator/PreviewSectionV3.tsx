@@ -79,6 +79,15 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
     willShowEnhancedQR: barcodeType === 'qrcode' && isUsingV3Enhanced && enhancedData !== null
   });
   
+  // Additional debug for v3 Enhanced
+  if (barcodeType === 'qrcode' && isUsingV3Enhanced) {
+    console.log('[PreviewSection] v3 Enhanced Debug:', {
+      hasEnhancedData: !!enhancedData,
+      enhancedDataKeys: enhancedData ? Object.keys(enhancedData) : null,
+      willRenderEnhancedQR: showRealBarcode && !!enhancedData
+    });
+  }
+  
   console.log('[PreviewSection] Display states:', {
     showUrlValidationLoading,
     showLoadingState,

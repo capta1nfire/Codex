@@ -445,6 +445,9 @@ pub struct QrStyleConfig {
     /// Shape hint (para ojos)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shape: Option<String>,
+    /// Stroke configuration
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stroke: Option<StrokeStyle>,
 }
 
 /// Definición reutilizable (gradiente o efecto)

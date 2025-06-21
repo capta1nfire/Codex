@@ -32,11 +32,23 @@ export interface QREnhancedData {
       fill: string;
       effects?: string[];
       shape?: string;
+      stroke?: {
+        enabled: boolean;
+        color?: string;
+        width?: number;
+        opacity?: number;
+      };
     };
     eyes: {
       fill: string;
       effects?: string[];
       shape?: string;
+      stroke?: {
+        enabled: boolean;
+        color?: string;
+        width?: number;
+        opacity?: number;
+      };
     };
   };
   definitions?: Array<QRDefinition>;
@@ -145,6 +157,16 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
 }) => {
   const QUIET_ZONE = data.metadata.quiet_zone;
   
+  // Debug log
+  console.log('[EnhancedUltrathinkQR] Rendering with data:', {
+    hasData: !!data,
+    dataKeys: data ? Object.keys(data) : null,
+    totalModules,
+    dataModules,
+    hasDataPath: !!data?.paths?.data,
+    dataPathLength: data?.paths?.data?.length
+  });
+  
   // Calcular viewBox usando la fórmula ULTRATHINK
   const viewBox = useMemo(() => {
     if (!dataModules || dataModules <= 0) {
@@ -220,6 +242,11 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
             d={data.paths.data}
             fill={data.styles.data.fill}
             shapeRendering="crispEdges"
+            {...(data.styles.data.stroke ? {
+              stroke: data.styles.data.stroke.color || '#FFFFFF',
+              strokeWidth: data.styles.data.stroke.width || 0.5,
+              strokeOpacity: data.styles.data.stroke.opacity || 0.3,
+            } : {})}
           />
         </g>
         
@@ -234,6 +261,11 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
               shapeRendering="crispEdges"
               data-eye-type={eye.type}
               data-eye-shape={eye.shape}
+              {...(data.styles.eyes.stroke ? {
+                stroke: data.styles.eyes.stroke.color || '#FFFFFF',
+                strokeWidth: data.styles.eyes.stroke.width || 0.5,
+                strokeOpacity: data.styles.eyes.stroke.opacity || 0.3,
+              } : {})}
             />
           ))}
         </g>

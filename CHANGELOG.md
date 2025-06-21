@@ -50,6 +50,12 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Removed v2 fallback for QR codes - v3 Enhanced is now the only QR engine
   - Added component visibility debugging in PreviewSection
 
+- 🎨 **Gradient Borders in v3 Enhanced** - Restored border functionality for gradients
+  - Added stroke support to QrStyleConfig in Rust types
+  - Updated `build_styles()` to include stroke_style from gradient configuration
+  - Modified EnhancedUltrathinkQR component to render stroke attributes
+  - Borders now work with v3 Enhanced just like in v1/v2
+
 ### 2025-06-20
 
 #### Added

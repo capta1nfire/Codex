@@ -1018,17 +1018,25 @@ impl QrCode {
             })
             .unwrap_or_default();
         
+        // Determinar si aplicar stroke
+        let stroke_style = custom
+            .and_then(|c| c.gradient.as_ref())
+            .and_then(|g| g.stroke_style.as_ref())
+            .cloned();
+        
         crate::engine::types::QrStyles {
             data: crate::engine::types::QrStyleConfig {
                 fill: data_fill,
                 effects: effects.clone(),
                 shape: None,
+                stroke: stroke_style.clone(),
             },
             eyes: crate::engine::types::QrStyleConfig {
                 fill: eyes_fill,
                 effects,
                 shape: custom.and_then(|c| c.eye_shape)
                     .map(|shape| format!("{:?}", shape)),
+                stroke: stroke_style,
             },
         }
     }
@@ -1155,6 +1163,7 @@ impl QrCode {
                     fill: frame_opt.color.clone(),
                     effects: Vec::new(),
                     shape: None,
+                    stroke: None,
                 },
                 text: frame_opt.text.as_ref().map(|text| {
                     crate::engine::types::QrFrameText {
