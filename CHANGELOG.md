@@ -55,6 +55,7 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Updated `build_styles()` to include stroke_style from gradient configuration
   - Modified EnhancedUltrathinkQR component to render stroke attributes
   - Borders now work with v3 Enhanced just like in v1/v2
+  - Optimized border width to 0.1px for minimal visual impact
 
 ### 2025-06-20
 

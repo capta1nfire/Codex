@@ -106,7 +106,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
               strokeStyle: gradientBorders ? {
                 enabled: true,
                 color: '#FFFFFF',
-                width: 0.5,
+                width: 0.1,
                 opacity: 0.3
               } : undefined
             };

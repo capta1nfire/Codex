@@ -244,7 +244,7 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
             shapeRendering="crispEdges"
             {...(data.styles.data.stroke ? {
               stroke: data.styles.data.stroke.color || '#FFFFFF',
-              strokeWidth: data.styles.data.stroke.width || 0.5,
+              strokeWidth: data.styles.data.stroke.width || 0.1,
               strokeOpacity: data.styles.data.stroke.opacity || 0.3,
             } : {})}
           />
@@ -263,7 +263,7 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
               data-eye-shape={eye.shape}
               {...(data.styles.eyes.stroke ? {
                 stroke: data.styles.eyes.stroke.color || '#FFFFFF',
-                strokeWidth: data.styles.eyes.stroke.width || 0.5,
+                strokeWidth: data.styles.eyes.stroke.width || 0.1,
                 strokeOpacity: data.styles.eyes.stroke.opacity || 0.3,
               } : {})}
             />

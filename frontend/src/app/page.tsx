@@ -251,7 +251,7 @@ export default function Home() {
             stroke_style: formData.options.gradient_borders ? {
               enabled: true,
               color: '#FFFFFF',
-              width: 0.5,
+              width: 0.1,
               opacity: 0.3
             } : undefined
           };
