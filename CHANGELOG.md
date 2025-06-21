@@ -62,6 +62,12 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Fixed state machine stuck in 'GENERATING' state for v3 Enhanced
   - QR codes now properly display after successful generation
 
+- ✨ **Hero Moment for v3 Enhanced** - Restored success feedback animations
+  - Fixed hero moment detection to work with v3 Enhanced data
+  - Green check animation now appears correctly after QR generation
+  - Success sound plays as expected
+  - 4-second animation with subtle fade-out effect
+
 ### 2025-06-20
 
 #### Added

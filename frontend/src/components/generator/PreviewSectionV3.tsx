@@ -108,7 +108,12 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   
   // Detect when new QR code is generated
   useEffect(() => {
-    if (svgContent && svgContent !== previousSvgContent && !isLoading) {
+    // For v3 Enhanced QR codes, check enhancedData instead of svgContent
+    const hasNewContent = barcodeType === 'qrcode' && isUsingV3Enhanced 
+      ? (enhancedData !== null && !isLoading)
+      : (svgContent && svgContent !== previousSvgContent && !isLoading);
+    
+    if (hasNewContent) {
       // Don't show hero moment on first load
       if (!isFirstLoad) {
         setShowHeroMoment(true);
@@ -126,7 +131,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
       setPreviousSvgContent(svgContent);
       setIsFirstLoad(false);
     }
-  }, [svgContent, previousSvgContent, isLoading, isFirstLoad]);
+  }, [svgContent, previousSvgContent, enhancedData, barcodeType, isUsingV3Enhanced, isLoading, isFirstLoad]);
   
   // VIDEO LOOP LOGIC: Creates a sophisticated placeholder experience
   // The 2-second video loops from 1s mark, creating seamless animation
