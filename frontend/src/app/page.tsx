@@ -635,7 +635,8 @@ export default function Home() {
       console.log('[Initial QR] Generating with data:', initialFormData);
       
       try {
-        await generateBarcode(initialFormData);
+        // Use v3 Enhanced for initial QR
+        await onSubmit(initialFormData);
         console.log('[Initial QR] Generation call completed');
       } catch (error) {
         console.error('[Initial QR] Generation failed:', error);

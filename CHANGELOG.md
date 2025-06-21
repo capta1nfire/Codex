@@ -42,6 +42,12 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Fixed frame field mapping (`frame_type` instead of `style`)
   - Full form validation for all new fields
 
+#### Fixed
+- 🔧 **v2/v3 Mixing Issue** - Initial QR generation now correctly uses v3 Enhanced
+  - Fixed initial QR generation to use `onSubmit` instead of `generateBarcode`
+  - Added debug logging to track v3 Enhanced data flow
+  - Ensured all QR generation paths use the same v3 Enhanced flow
+
 ### 2025-06-20
 
 #### Added

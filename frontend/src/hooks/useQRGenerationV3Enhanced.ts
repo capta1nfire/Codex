@@ -41,6 +41,7 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
   const { user } = useAuth();
 
   const generateEnhancedQR = useCallback(async (data: string, options?: QRV3Options) => {
+    console.log('[useQRGenerationV3Enhanced] Generating QR with data:', data, 'options:', options);
     // Reset estado
     setError(null);
     setIsLoading(true);
@@ -78,9 +79,12 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
       }
 
       if (result.data) {
+        console.log('[useQRGenerationV3Enhanced] Setting enhanced data:', result.data);
         setEnhancedData(result.data);
         setIsUsingCache(result.metadata.cached);
         setMetadata(result.metadata);
+      } else {
+        console.warn('[useQRGenerationV3Enhanced] No data in result:', result);
       }
     } catch (err: any) {
       console.error('QR v3 Enhanced generation error:', err);
