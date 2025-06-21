@@ -100,6 +100,26 @@ export const generateFormSchema = z.object({
       code39_ratio: z.number().min(2.0).max(3.0).optional(), // Usaremos number para slider/input
       code39_check_digit: z.enum(['None', 'Mod43']).optional(),
       code39_full_ascii: z.boolean().optional(),
+      
+      // Opciones v3 Enhanced para QR
+      eye_shape: z.enum(['square', 'rounded_square', 'circle', 'dot', 'leaf', 'star', 'diamond', 'heart', 'shield']).optional(),
+      data_pattern: z.enum(['square', 'dots', 'rounded', 'circular', 'star', 'cross', 'wave', 'mosaic', 'vertical']).optional(),
+      
+      // Logo options
+      logo_enabled: z.boolean().optional(),
+      logo_data: z.string().optional(), // base64 data URL
+      logo_size: z.number().min(10).max(30).optional(),
+      logo_shape: z.enum(['square', 'circle', 'rounded_square']).optional(),
+      logo_padding: z.number().min(0).max(10).optional(),
+      
+      // Effects
+      effects: z.array(z.enum(['shadow', 'glow', 'blur', 'noise', 'vintage'])).optional(),
+      
+      // Frame options
+      frame_enabled: z.boolean().optional(),
+      frame_style: z.enum(['simple', 'rounded', 'bubble', 'speech', 'badge']).optional(),
+      frame_text: z.string().max(50).optional(),
+      frame_text_position: z.enum(['top', 'bottom', 'left', 'right']).optional(),
     })
     .optional(),
 });

@@ -482,9 +482,88 @@ function GenerationOptions({
       case 'shapes':
         return (
           <div className="animate-in fade-in-50 duration-200 space-y-4">
-            <div className="text-center py-8">
-              <Settings2 className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <p className="text-sm text-slate-500 dark:text-slate-400">Formas personalizadas próximamente</p>
+            {/* Eye Shapes Section */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Forma de Ojos (Esquinas)
+              </Label>
+              <Controller
+                name="options.eye_shape"
+                control={control}
+                defaultValue="square"
+                render={({ field }) => (
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 'square', label: 'Cuadrado', icon: '◼' },
+                      { value: 'rounded_square', label: 'Redondeado', icon: '▢' },
+                      { value: 'circle', label: 'Círculo', icon: '●' },
+                      { value: 'dot', label: 'Punto', icon: '•' },
+                      { value: 'leaf', label: 'Hoja', icon: '🍃' },
+                      { value: 'star', label: 'Estrella', icon: '⭐' },
+                      { value: 'diamond', label: 'Diamante', icon: '◆' },
+                      { value: 'heart', label: 'Corazón', icon: '❤️' },
+                      { value: 'shield', label: 'Escudo', icon: '🛡️' },
+                    ].map((shape) => (
+                      <button
+                        key={shape.value}
+                        type="button"
+                        onClick={() => field.onChange(shape.value)}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
+                          field.value === shape.value
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                        )}
+                      >
+                        <span className="text-2xl mb-1">{shape.icon}</span>
+                        <span className="text-xs font-medium">{shape.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
+
+            {/* Data Pattern Section */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Patrón de Datos
+              </Label>
+              <Controller
+                name="options.data_pattern"
+                control={control}
+                defaultValue="square"
+                render={({ field }) => (
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 'square', label: 'Cuadrado', preview: '■' },
+                      { value: 'dots', label: 'Puntos', preview: '●' },
+                      { value: 'rounded', label: 'Redondeado', preview: '▢' },
+                      { value: 'circular', label: 'Circular', preview: '○' },
+                      { value: 'star', label: 'Estrella', preview: '★' },
+                      { value: 'cross', label: 'Cruz', preview: '+' },
+                      { value: 'wave', label: 'Onda', preview: '∿' },
+                      { value: 'mosaic', label: 'Mosaico', preview: '▦' },
+                      { value: 'vertical', label: 'Vertical', preview: '|||' },
+                    ].map((pattern) => (
+                      <button
+                        key={pattern.value}
+                        type="button"
+                        onClick={() => field.onChange(pattern.value)}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
+                          field.value === pattern.value
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                        )}
+                      >
+                        <span className="text-2xl mb-1 font-mono">{pattern.preview}</span>
+                        <span className="text-xs font-medium">{pattern.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              />
             </div>
           </div>
         );
@@ -492,9 +571,174 @@ function GenerationOptions({
       case 'logo':
         return (
           <div className="animate-in fade-in-50 duration-200 space-y-4">
-            <div className="text-center py-8">
-              <Settings2 className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <p className="text-sm text-slate-500 dark:text-slate-400">Agregar logo próximamente</p>
+            {/* Logo Upload */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Logo del QR
+              </Label>
+              
+              {/* Upload Area */}
+              <Controller
+                name="options.logo_enabled"
+                control={control}
+                defaultValue={false}
+                render={({ field: enableField }) => (
+                  <div className="space-y-3">
+                    {/* Enable Logo Toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                      <Label htmlFor="logo-enabled" className="text-sm font-medium cursor-pointer">
+                        Agregar Logo
+                      </Label>
+                      <Switch
+                        id="logo-enabled"
+                        checked={enableField.value}
+                        onCheckedChange={enableField.onChange}
+                      />
+                    </div>
+
+                    {/* Logo Configuration */}
+                    {enableField.value && (
+                      <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+                        {/* File Upload */}
+                        <Controller
+                          name="options.logo_data"
+                          control={control}
+                          render={({ field }) => (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-center w-full">
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-200 border-dashed rounded-lg cursor-pointer bg-slate-50 dark:bg-slate-800/50 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
+                                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <Settings2 className="w-8 h-8 mb-2 text-slate-400" />
+                                    <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
+                                      <span className="font-semibold">Click para subir</span>
+                                    </p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                      PNG, JPG, SVG (MAX. 2MB)
+                                    </p>
+                                  </div>
+                                  <input 
+                                    type="file" 
+                                    className="hidden" 
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file && file.size <= 2 * 1024 * 1024) {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                          field.onChange(reader.result);
+                                        };
+                                        reader.readAsDataURL(file);
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                              {field.value && (
+                                <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                  <span className="text-sm text-green-600 dark:text-green-400">Logo cargado</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => field.onChange(null)}
+                                    className="text-sm text-red-600 hover:text-red-700"
+                                  >
+                                    Eliminar
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        />
+
+                        {/* Logo Size */}
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Tamaño del Logo</Label>
+                          <Controller
+                            name="options.logo_size"
+                            control={control}
+                            defaultValue={20}
+                            render={({ field }) => (
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="range"
+                                  min="10"
+                                  max="30"
+                                  step="5"
+                                  value={field.value}
+                                  onChange={(e) => field.onChange(Number(e.target.value))}
+                                  className="flex-1"
+                                />
+                                <span className="text-sm font-medium text-slate-600 dark:text-slate-400 w-12">
+                                  {field.value}%
+                                </span>
+                              </div>
+                            )}
+                          />
+                        </div>
+
+                        {/* Logo Shape */}
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Forma del Marco</Label>
+                          <Controller
+                            name="options.logo_shape"
+                            control={control}
+                            defaultValue="square"
+                            render={({ field }) => (
+                              <div className="grid grid-cols-3 gap-2">
+                                {[
+                                  { value: 'square', label: 'Cuadrado', icon: '⬜' },
+                                  { value: 'circle', label: 'Círculo', icon: '⚪' },
+                                  { value: 'rounded_square', label: 'Redondeado', icon: '🔲' },
+                                ].map((shape) => (
+                                  <button
+                                    key={shape.value}
+                                    type="button"
+                                    onClick={() => field.onChange(shape.value)}
+                                    className={cn(
+                                      "flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all",
+                                      field.value === shape.value
+                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                        : "border-slate-200 dark:border-slate-700"
+                                    )}
+                                  >
+                                    <span className="text-xl mb-1">{shape.icon}</span>
+                                    <span className="text-xs">{shape.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          />
+                        </div>
+
+                        {/* Logo Padding */}
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Espacio alrededor</Label>
+                          <Controller
+                            name="options.logo_padding"
+                            control={control}
+                            defaultValue={5}
+                            render={({ field }) => (
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="10"
+                                  step="1"
+                                  value={field.value}
+                                  onChange={(e) => field.onChange(Number(e.target.value))}
+                                  className="flex-1"
+                                />
+                                <span className="text-sm font-medium text-slate-600 dark:text-slate-400 w-12">
+                                  {field.value}px
+                                </span>
+                              </div>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              />
             </div>
           </div>
         );
@@ -502,13 +746,184 @@ function GenerationOptions({
       case 'advanced':
         return (
           <div className="animate-in fade-in-50 duration-200">
-            <AdvancedBarcodeOptions
-              control={control}
-              errors={errors}
-              watch={watch}
-              isLoading={isLoading}
-              selectedType={selectedType}
-            />
+            {isQrCode ? (
+              // QR Advanced Options - Effects and Frame
+              <div className="space-y-4">
+                {/* Visual Effects */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    Efectos Visuales
+                  </Label>
+                  <Controller
+                    name="options.effects"
+                    control={control}
+                    defaultValue={[]}
+                    render={({ field }) => {
+                      const selectedEffects = field.value || [];
+                      const toggleEffect = (effect: string) => {
+                        const newEffects = selectedEffects.includes(effect)
+                          ? selectedEffects.filter((e: string) => e !== effect)
+                          : [...selectedEffects, effect];
+                        field.onChange(newEffects);
+                      };
+                      
+                      return (
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { value: 'shadow', label: 'Sombra', icon: '🌑' },
+                            { value: 'glow', label: 'Brillo', icon: '✨' },
+                            { value: 'blur', label: 'Desenfoque', icon: '🌫️' },
+                            { value: 'noise', label: 'Ruido', icon: '📺' },
+                            { value: 'vintage', label: 'Vintage', icon: '📷' },
+                          ].map((effect) => (
+                            <button
+                              key={effect.value}
+                              type="button"
+                              onClick={() => toggleEffect(effect.value)}
+                              className={cn(
+                                "flex items-center gap-2 p-3 rounded-lg border-2 transition-all",
+                                selectedEffects.includes(effect.value)
+                                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                  : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                              )}
+                            >
+                              <span className="text-lg">{effect.icon}</span>
+                              <span className="text-sm font-medium">{effect.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    }}
+                  />
+                </div>
+
+                {/* Frame Options */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    Marco Decorativo
+                  </Label>
+                  <Controller
+                    name="options.frame_enabled"
+                    control={control}
+                    defaultValue={false}
+                    render={({ field: enableField }) => (
+                      <div className="space-y-3">
+                        {/* Enable Frame Toggle */}
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                          <Label htmlFor="frame-enabled" className="text-sm font-medium cursor-pointer">
+                            Agregar Marco
+                          </Label>
+                          <Switch
+                            id="frame-enabled"
+                            checked={enableField.value}
+                            onCheckedChange={enableField.onChange}
+                          />
+                        </div>
+
+                        {/* Frame Configuration */}
+                        {enableField.value && (
+                          <div className="space-y-3 animate-in slide-in-from-top-2 duration-200">
+                            {/* Frame Style */}
+                            <Controller
+                              name="options.frame_style"
+                              control={control}
+                              defaultValue="simple"
+                              render={({ field }) => (
+                                <div className="grid grid-cols-2 gap-2">
+                                  {[
+                                    { value: 'simple', label: 'Simple', icon: '⬜' },
+                                    { value: 'rounded', label: 'Redondeado', icon: '🔲' },
+                                    { value: 'bubble', label: 'Burbuja', icon: '💬' },
+                                    { value: 'speech', label: 'Diálogo', icon: '🗨️' },
+                                    { value: 'badge', label: 'Insignia', icon: '🏷️' },
+                                  ].map((style) => (
+                                    <button
+                                      key={style.value}
+                                      type="button"
+                                      onClick={() => field.onChange(style.value)}
+                                      className={cn(
+                                        "flex items-center gap-2 p-2 rounded-lg border-2 transition-all",
+                                        field.value === style.value
+                                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                          : "border-slate-200 dark:border-slate-700"
+                                      )}
+                                    >
+                                      <span>{style.icon}</span>
+                                      <span className="text-xs">{style.label}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            />
+
+                            {/* Frame Text */}
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium">Texto del Marco</Label>
+                              <Controller
+                                name="options.frame_text"
+                                control={control}
+                                defaultValue="SCAN ME"
+                                render={({ field }) => (
+                                  <Input
+                                    {...field}
+                                    placeholder="Ej: SCAN ME, ESCANÉAME"
+                                    className="text-sm"
+                                  />
+                                )}
+                              />
+                            </div>
+
+                            {/* Text Position */}
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium">Posición del Texto</Label>
+                              <Controller
+                                name="options.frame_text_position"
+                                control={control}
+                                defaultValue="bottom"
+                                render={({ field }) => (
+                                  <div className="grid grid-cols-4 gap-1">
+                                    {[
+                                      { value: 'top', label: 'Arriba', icon: '⬆️' },
+                                      { value: 'bottom', label: 'Abajo', icon: '⬇️' },
+                                      { value: 'left', label: 'Izq', icon: '⬅️' },
+                                      { value: 'right', label: 'Der', icon: '➡️' },
+                                    ].map((pos) => (
+                                      <button
+                                        key={pos.value}
+                                        type="button"
+                                        onClick={() => field.onChange(pos.value)}
+                                        className={cn(
+                                          "p-2 rounded text-xs transition-all border",
+                                          field.value === pos.value
+                                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                            : "border-slate-200 dark:border-slate-700"
+                                        )}
+                                      >
+                                        {pos.icon}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  />
+                </div>
+              </div>
+            ) : (
+              // Non-QR Advanced Options
+              <AdvancedBarcodeOptions
+                control={control}
+                errors={errors}
+                watch={watch}
+                reset={reset}
+                isLoading={isLoading}
+                selectedType={selectedType}
+              />
+            )}
           </div>
         );
       

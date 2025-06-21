@@ -223,10 +223,18 @@ export default function Home() {
     // Use ULTRATHINK v3 for QR codes (now free for all users)
     if (formData.barcode_type === 'qrcode') {
       try {
-        // Build customization options from formData
+        // Build comprehensive customization options from formData
         const customization: any = {};
         
-        // Add gradient options if enabled
+        // Basic colors
+        if (formData.options?.fgcolor || formData.options?.bgcolor) {
+          customization.colors = {
+            foreground: formData.options.fgcolor || '#000000',
+            background: formData.options.bgcolor || '#FFFFFF'
+          };
+        }
+        
+        // Gradient options if enabled
         if (formData.options?.gradient_enabled) {
           customization.gradient = {
             enabled: true,
@@ -249,11 +257,40 @@ export default function Home() {
           };
         }
         
-        // Add other customization options
-        if (formData.options?.fgcolor || formData.options?.bgcolor) {
-          customization.colors = {
-            foreground: formData.options.fgcolor || '#000000',
-            background: formData.options.bgcolor || '#FFFFFF'
+        // Eye shape customization
+        if (formData.options?.eye_shape) {
+          customization.eye_shape = formData.options.eye_shape;
+        }
+        
+        // Data pattern customization
+        if (formData.options?.data_pattern) {
+          customization.data_pattern = formData.options.data_pattern;
+        }
+        
+        // Logo configuration if enabled
+        if (formData.options?.logo_enabled && formData.options?.logo_data) {
+          customization.logo = {
+            data: formData.options.logo_data,
+            size_percentage: formData.options.logo_size || 20,
+            padding: formData.options.logo_padding || 5,
+            shape: formData.options.logo_shape || 'square'
+          };
+        }
+        
+        // Visual effects
+        if (formData.options?.effects && formData.options.effects.length > 0) {
+          customization.effects = formData.options.effects.map((effect: string) => ({
+            effect_type: effect,
+            config: {}
+          }));
+        }
+        
+        // Frame configuration if enabled
+        if (formData.options?.frame_enabled) {
+          customization.frame = {
+            style: formData.options.frame_style || 'simple',
+            text: formData.options.frame_text || 'SCAN ME',
+            text_position: formData.options.frame_text_position || 'bottom'
           };
         }
         
