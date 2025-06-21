@@ -71,6 +71,14 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   const showRealBarcode = !showLoadingState && hasContent;
   const showEmptyState = !showLoadingState && !showRealBarcode && !hasContent;
   
+  // Debug which component will be shown
+  console.log('[PreviewSection] Component to show:', {
+    showLoadingState,
+    showRealBarcode,
+    showEmptyState,
+    willShowEnhancedQR: barcodeType === 'qrcode' && isUsingV3Enhanced && enhancedData !== null
+  });
+  
   console.log('[PreviewSection] Display states:', {
     showUrlValidationLoading,
     showLoadingState,

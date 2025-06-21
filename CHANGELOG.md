@@ -47,6 +47,8 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Fixed initial QR generation to use `onSubmit` instead of `generateBarcode`
   - Added debug logging to track v3 Enhanced data flow
   - Ensured all QR generation paths use the same v3 Enhanced flow
+  - Removed v2 fallback for QR codes - v3 Enhanced is now the only QR engine
+  - Added component visibility debugging in PreviewSection
 
 ### 2025-06-20
 

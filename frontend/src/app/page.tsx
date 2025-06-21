@@ -301,8 +301,9 @@ export default function Home() {
         });
         return; // Important: exit after successful v3 generation
       } catch (err) {
-        // If v3 fails, fallback to v2
-        console.warn('v3 generation failed, falling back to v2:', err);
+        // No fallback to v2 - v3 is the only QR engine
+        console.error('v3 Enhanced QR generation failed:', err);
+        throw err; // Propagate error to show to user
       }
     }
     
