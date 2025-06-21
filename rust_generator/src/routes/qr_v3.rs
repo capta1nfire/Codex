@@ -35,7 +35,6 @@ pub struct QrV3Options {
     pub error_correction: Option<String>,
     
     /// Customización completa (para features avanzadas)
-    #[serde(flatten)]
     pub customization: Option<QrCustomization>,
 }
 

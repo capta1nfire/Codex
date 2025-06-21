@@ -10,6 +10,21 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
+### 2025-06-21
+
+#### Added
+- 🚀 **Enhanced ULTRATHINK v3 API** - Advanced QR customization with structured data
+  - New `/api/v3/qr/enhanced` endpoint with complete customization support
+  - Returns structured JSON with paths, styles, definitions, and overlays
+  - Full gradient support (linear, radial, conic, diamond, spiral)
+  - Eye shape customization with 15+ options
+  - Data pattern rendering (dots, circular, wave, mosaic, etc.)
+  - Visual effects (shadow, glow, blur, noise, vintage)
+  - Path optimization for efficient rendering
+  - Separate data and eye paths for granular styling
+  - WCAG 4.5:1 contrast validation ready
+  - ~1ms generation time with full customization
+
 ### 2025-06-20
 
 #### Added

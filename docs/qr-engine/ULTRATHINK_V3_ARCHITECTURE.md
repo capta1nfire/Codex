@@ -228,6 +228,148 @@ ULTRATHINK v3 embodies the principle: **"The best solution, even if it takes mor
 - Frontend must handle structured data, not SVG strings
 - Test page shows both authenticated and direct modes
 
+## 🚀 Phase 3: Enhanced v3 API (June 21, 2025)
+
+### Enhanced Endpoint
+```
+Endpoint: /api/v3/qr/enhanced
+```
+
+The enhanced API extends v3 with comprehensive customization support while maintaining the security-first architecture.
+
+**Enhanced Response Structure:**
+```json
+{
+  "success": true,
+  "data": {
+    "paths": {
+      "data": "M14 4h4v1...",  // Optimized data path
+      "eyes": [
+        {"type": "top_left", "path": "M4 4h1v1...", "shape": "square"},
+        {"type": "top_right", "path": "M26 4h1v1...", "shape": "square"},
+        {"type": "bottom_left", "path": "M4 26h1v1...", "shape": "square"}
+      ]
+    },
+    "styles": {
+      "data": {
+        "fill": "url(#grad_data)",
+        "effects": ["filter_shadow", "filter_glow"],
+        "shape": "dots"
+      },
+      "eyes": {
+        "fill": "url(#grad_eyes)",
+        "shape": "RoundedSquare",
+        "effects": ["filter_shadow"]
+      }
+    },
+    "definitions": [
+      {
+        "type": "gradient",
+        "id": "grad_data",
+        "gradient_type": "radial",
+        "colors": ["#FF0066", "#6600FF"],
+        "coords": {"x1": 0.5, "y1": 0.5, "x2": 1.0, "y2": 1.0}
+      },
+      {
+        "type": "effect",
+        "id": "filter_shadow",
+        "effect_type": "shadow",
+        "dx": 1,
+        "dy": 1,
+        "stdDeviation": 0.5,
+        "opacity": 0.3
+      }
+    ],
+    "overlays": {
+      "logo": {
+        "src": "data:image/png;base64,...",
+        "size": 0.2,
+        "shape": "circle",
+        "padding": 4,
+        "x": 0.5,
+        "y": 0.5
+      },
+      "frame": {
+        "style": "rounded",
+        "path": "M-2 -2h404a5 5 0 0 1 5 5v394a5 5 0 0 1 -5 5H-2a5 5 0 0 1 -5 -5V3a5 5 0 0 1 5 -5z",
+        "fill_style": {
+          "fill": "#000000"
+        },
+        "text": {
+          "content": "Scan Me!",
+          "x": 200,
+          "y": -10,
+          "font_family": "Arial",
+          "font_size": 16,
+          "text_anchor": "middle"
+        }
+      }
+    },
+    "metadata": {
+      "generation_time_ms": 1,
+      "quiet_zone": 4,
+      "content_hash": "sha256..."
+    }
+  }
+}
+```
+
+### Implementation Status
+
+✅ **Completed (June 21, 2025)**:
+- Full gradient support (linear, radial, conic, diamond, spiral)
+- Eye shape customization (15+ shapes)
+- Data patterns (dots, circular, wave, mosaic, etc.)
+- Visual effects (shadow, glow, blur, noise, vintage)
+- Path optimization for adjacent modules
+- Separate styling for data vs eyes
+- Complete separation of structure and presentation
+
+🚧 **Pending**:
+- Logo overlay support
+- Frame decorations
+- WCAG contrast validation
+- Frontend implementation
+
+### Enhanced Architecture Benefits
+
+1. **Granular Control**: Separate paths for data and eyes allow different styling
+2. **Reusable Definitions**: Gradients and effects defined once, referenced multiple times
+3. **Path Optimization**: Adjacent modules combined for smaller payload
+4. **Future-Proof**: Overlays structure ready for logos and frames
+5. **Accessibility Ready**: Structure supports WCAG validation
+
+### Testing Enhanced API
+
+```bash
+# Test with gradients
+curl -X POST http://localhost:3002/api/v3/qr/enhanced \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": "https://codex.capta.app",
+    "options": {
+      "error_correction": "H",
+      "customization": {
+        "gradient": {
+          "enabled": true,
+          "gradient_type": "radial",
+          "colors": ["#FF0066", "#6600FF"],
+          "apply_to_data": true,
+          "apply_to_eyes": true
+        },
+        "eye_shape": "rounded_square",
+        "data_pattern": "dots",
+        "effects": [
+          {
+            "effect_type": "shadow",
+            "config": {}
+          }
+        ]
+      }
+    }
+  }' | jq
+```
+
 ---
 
 *"Si vamos a ser la página de códigos QR más importante del planeta, debemos tomar la mejor opción aunque nos cueste más trabajo."* - The ULTRATHINK Philosophy
