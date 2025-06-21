@@ -13,6 +13,18 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 ### 2025-06-21
 
 #### Added
+- 🎆 **Smart QR Module (Beta)** - Intelligent QR code generation with automatic style detection
+  - Domain-driven Design architecture with Repository Pattern and Event Bus
+  - 2 initial templates: Instagram (radial gradient) and YouTube (linear gradient)
+  - User limit: 3 Smart QRs per day for registered users
+  - Fake AI analysis animation for enhanced UX (1.5s delay)
+  - Admin dashboard at `/admin/smart-qr` for template management
+  - Frontend components with analysis progress visualization
+  - Extensible architecture ready for 50+ future templates
+  - Event-driven analytics for tracking popular domains
+  - In-memory repository (Phase 1) with easy migration path to database
+
+#### Added
 - 🚀 **Enhanced ULTRATHINK v3 API** - Advanced QR customization with structured data
   - New `/api/v3/qr/enhanced` endpoint with complete customization support
   - Returns structured JSON with paths, styles, definitions, and overlays

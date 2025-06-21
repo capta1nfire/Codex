@@ -38,6 +38,7 @@ import qrV2Routes from './routes/qrV2.routes.js';
 import qrV3Routes from './routes/qr-v3.routes.js';
 import { userRoutes } from './routes/user.routes.js';
 import validateRoutes from './routes/validate.js';
+import smartQRRoutes from './modules/smart-qr/interfaces/http/routes.js';
 import { startServer } from './server-config.js'; // <--- Descomentar esta línea
 import {
   startDatabaseService,
@@ -448,6 +449,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/avatars', avatarRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/validate', validateRoutes);
+
+// Smart QR routes (new feature)
+app.use('/api/smart-qr', smartQRRoutes);
 
 // Documentación Swagger
 const swaggerOptions = {

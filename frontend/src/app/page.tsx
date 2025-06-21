@@ -36,6 +36,7 @@ import { useSmartAutoGeneration } from '@/hooks/useSmartAutoGeneration';
 import { BarcodeTypeTabs } from '@/components/generator/BarcodeTypeTabs';
 import { QRContentSelector } from '@/components/generator/QRContentSelector';
 import { QRForm } from '@/components/generator/QRForms';
+import { SmartQRButton } from '@/features/smart-qr/components';
 import { PreviewSection } from '@/components/generator/PreviewSectionV3';
 import { useTypingTracker } from '@/hooks/useTypingTracker';
 
@@ -979,6 +980,44 @@ export default function Home() {
                           onGenerateAnyway={selectedQRType === 'link' ? handleGenerateAnyway : undefined}
                           shouldShowGenerateAnywayButton={selectedQRType === 'link' && urlValidationState.exists === false && !urlValidationState.shouldGenerateAnyway}
                         />
+                        
+                        {/* Smart QR Button - Solo para URLs */}
+                        {selectedQRType === 'link' && qrFormData.link.url && (
+                          <SmartQRButton 
+                            url={qrFormData.link.url}
+                            onGenerate={async (config) => {
+                              // Apply Smart QR configuration to current form
+                              console.log('[SmartQR] Applying configuration:', config);
+                              
+                              // Update form data with Smart QR config
+                              if (config.gradient) {
+                                setValue('options.gradient.enabled', true);
+                                setValue('options.gradient.type', config.gradient.type);
+                                setValue('options.gradient.colors', config.gradient.colors);
+                                if (config.gradient.angle !== undefined) {
+                                  setValue('options.gradient.angle', config.gradient.angle);
+                                }
+                              }
+                              
+                              if (config.eyeShape) {
+                                setValue('options.eye_shape', config.eyeShape);
+                              }
+                              
+                              if (config.dataPattern) {
+                                setValue('options.data_pattern', config.dataPattern);
+                              }
+                              
+                              if (config.logo) {
+                                // TODO: Handle logo upload/selection
+                                console.log('[SmartQR] Logo configuration:', config.logo);
+                              }
+                              
+                              // Generate QR with new configuration
+                              const formData = getValues();
+                              await onSubmit(formData);
+                            }}
+                          />
+                        )}
                         
                         {/* Botón para generar - oculto cuando auto-generación está habilitada */}
                         {!autoGenerationEnabled && (
