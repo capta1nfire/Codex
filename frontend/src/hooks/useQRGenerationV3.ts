@@ -8,6 +8,7 @@
 
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { QREnhancedData } from '@/components/generator/EnhancedUltrathinkQR';
 
 // Tipos para la API v3
 export interface QRStructuredData {
@@ -20,6 +21,17 @@ export interface QRStructuredData {
     generation_time_ms: number;
     quiet_zone: number;
     content_hash: string;
+  };
+}
+
+// Tipos para la API v3 Enhanced
+export interface QRV3EnhancedResponse {
+  success: boolean;
+  data?: QREnhancedData;
+  metadata: {
+    engine_version: string;
+    cached: boolean;
+    processing_time_ms: number;
   };
 }
 
@@ -57,9 +69,8 @@ export interface QRV3Customization {
     text_position: 'top' | 'bottom' | 'left' | 'right';
   };
   effects?: Array<{
-    effect: string;
-    intensity: number;
-    color?: string;
+    effect_type: 'shadow' | 'glow' | 'blur' | 'noise' | 'vintage';
+    config?: Record<string, any>;
   }>;
 }
 

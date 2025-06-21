@@ -160,6 +160,114 @@ router.post('/generate',
 );
 
 /**
+ * POST /api/v3/qr/enhanced
+ * Generate QR code with enhanced structured data output (gradients, effects, etc.)
+ */
+router.post('/enhanced', 
+  generationRateLimit,
+  async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+      // Validar entrada con esquema más complejo
+      const validation = qrV3RequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request data',
+            details: validation.error.errors,
+          },
+        });
+      }
+
+      const { data, options } = validation.data;
+      
+      // Log de la solicitud
+      logger.info('QR v3 Enhanced generation request', {
+        userId: req.user?.id,
+        dataLength: data.length,
+        hasGradient: !!options?.customization?.gradient,
+        hasEffects: !!options?.customization?.effects,
+        options,
+      });
+
+      // URL del generador Rust
+      const rustGeneratorUrl = process.env.RUST_GENERATOR_URL || 'http://localhost:3002';
+      
+      // Llamar al generador Rust v3 Enhanced
+      const response = await axios.post(
+        `${rustGeneratorUrl}/api/v3/qr/enhanced`,
+        {
+          data,
+          options: options || {},
+        },
+        {
+          timeout: 10000, // Mayor timeout para procesamiento más complejo
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const rustResponse = response.data;
+
+      // Si la generación fue exitosa, incrementar uso
+      if (rustResponse.success && req.user) {
+        try {
+          // await incrementUsage(req.user.id, 'qrcode_enhanced'); // TODO: Implement usage tracking
+        } catch (usageError) {
+          logger.error('Failed to increment enhanced usage', {
+            userId: req.user.id,
+            error: usageError,
+          });
+        }
+      }
+
+      // Agregar tiempo total de procesamiento
+      const totalTime = Date.now() - startTime;
+      
+      // Responder con los datos estructurados enhanced
+      res.json({
+        ...rustResponse,
+        metadata: {
+          ...rustResponse.metadata,
+          total_processing_time_ms: totalTime,
+          backend_version: '1.0.0-enhanced',
+        },
+      });
+
+    } catch (error: any) {
+      logger.error('QR v3 Enhanced generation error', {
+        error: error.message,
+        stack: error.stack,
+      });
+
+      // Manejar errores de red
+      if (error.code === 'ECONNREFUSED') {
+        return res.status(503).json({
+          success: false,
+          error: {
+            code: 'SERVICE_UNAVAILABLE',
+            message: 'QR generation service is temporarily unavailable',
+          },
+        });
+      }
+
+      // Error genérico
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
+        },
+      });
+    }
+  }
+);
+
+/**
  * GET /api/v3/qr/capabilities
  * Get v3 engine capabilities and features
  */
@@ -173,11 +281,19 @@ router.get('/capabilities', async (req, res) => {
       max_data_length: 2953,
       error_correction_levels: ['L', 'M', 'Q', 'H'],
       output_formats: ['structured_json'],
+      enhanced_features: {
+        gradients: ['linear', 'radial', 'conic', 'diamond', 'spiral'],
+        eye_shapes: ['square', 'rounded_square', 'circle', 'dot', 'leaf', 'star', 'diamond', 'heart', 'shield'],
+        data_patterns: ['square', 'dots', 'rounded', 'circular', 'star', 'cross', 'wave', 'mosaic'],
+        effects: ['shadow', 'glow', 'blur', 'noise', 'vintage'],
+        overlays: ['logo', 'frame'],
+      },
     },
     benefits: {
       security: 'No dangerouslySetInnerHTML required',
       performance: '50% less data transfer',
       flexibility: 'Frontend controls rendering',
+      customization: 'Full visual customization with enhanced API',
     },
   });
 });
