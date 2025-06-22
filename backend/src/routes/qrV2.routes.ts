@@ -42,7 +42,10 @@ const qrV2OptionsSchema = z.object({
       strokeStyle: z
         .object({
           enabled: z.boolean(),
-          color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+          color: z
+            .string()
+            .regex(/^#[0-9A-Fa-f]{6}$/)
+            .optional(),
           width: z.number().min(0).max(5).optional(),
           opacity: z.number().min(0).max(1).optional(),
         })
@@ -121,7 +124,7 @@ router.post(
         dataLength: data.length,
         hasOptions: !!options,
         data: data,
-        options: options
+        options: options,
       });
 
       // Track metrics

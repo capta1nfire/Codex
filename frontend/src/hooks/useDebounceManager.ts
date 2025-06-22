@@ -169,7 +169,6 @@ export function useDebounceManager() {
       }
       
       // Execute with last args
-      const args = instance.lastArgs;
       instance.lastArgs = null;
       instance.lastCallTime = Date.now();
       

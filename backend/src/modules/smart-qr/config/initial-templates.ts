@@ -22,7 +22,7 @@ export interface TemplateDefinition {
       url: string;
       size: number;
       padding?: number;
-      shape?: 'square' | 'circle' | 'rounded';
+      shape?: 'square' | 'circle' | 'rounded_square';
     };
     effects?: string[];
     frame?: {
@@ -42,19 +42,19 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
     config: {
       gradient: {
         type: 'radial',
-        colors: ['#833AB4', '#FD1D1D', '#FCAF45'],
-        angle: 45
+        colors: ['#833AB4', '#FD1D1D'],
+        angle: 45,
       },
-      eyeShape: 'rounded',
+      eyeShape: 'rounded_square',
       dataPattern: 'dots',
       logo: {
         url: '/logos/instagram.svg',
         size: 0.3,
         padding: 10,
-        shape: 'rounded'
+        shape: 'rounded_square',
       },
-      effects: ['subtle-shadow']
-    }
+      effects: ['shadow'],
+    },
   },
   {
     id: 'youtube-v1',
@@ -66,7 +66,7 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
       gradient: {
         type: 'linear',
         colors: ['#FF0000', '#CC0000'],
-        angle: 90
+        angle: 90,
       },
       eyeShape: 'square',
       dataPattern: 'square',
@@ -74,14 +74,14 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
         url: '/logos/youtube.svg',
         size: 0.25,
         padding: 8,
-        shape: 'square'
+        shape: 'square',
       },
       frame: {
         type: 'simple',
-        text: 'Watch on YouTube'
-      }
-    }
-  }
+        text: 'Watch on YouTube',
+      },
+    },
+  },
 ];
 
 // Future templates (for easy addition)
@@ -96,7 +96,7 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
       gradient: {
         type: 'linear',
         colors: ['#0077B5', '#004471'],
-        angle: 135
+        angle: 135,
       },
       eyeShape: 'square',
       dataPattern: 'square',
@@ -104,10 +104,10 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
         url: '/logos/linkedin.svg',
         size: 0.28,
         padding: 12,
-        shape: 'rounded'
+        shape: 'rounded_square',
       },
-      effects: ['professional-border']
-    }
+      effects: ['professional-border'],
+    },
   },
   {
     id: 'tiktok-v1',
@@ -119,18 +119,18 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
       gradient: {
         type: 'linear',
         colors: ['#FF0050', '#00F2EA', '#000000'],
-        angle: 45
+        angle: 45,
       },
-      eyeShape: 'rounded',
+      eyeShape: 'rounded_square',
       dataPattern: 'circular',
       logo: {
         url: '/logos/tiktok.svg',
         size: 0.3,
         padding: 10,
-        shape: 'circle'
+        shape: 'circle',
       },
-      effects: ['glow', 'vibrant']
-    }
+      effects: ['glow', 'vibrant'],
+    },
   },
   {
     id: 'twitter-v1',
@@ -142,7 +142,7 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
       gradient: {
         type: 'linear',
         colors: ['#1DA1F2', '#14171A'],
-        angle: 180
+        angle: 180,
       },
       eyeShape: 'circle',
       dataPattern: 'dots',
@@ -150,9 +150,9 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
         url: '/logos/twitter.svg',
         size: 0.25,
         padding: 8,
-        shape: 'circle'
-      }
-    }
+        shape: 'circle',
+      },
+    },
   },
   {
     id: 'facebook-v1',
@@ -164,17 +164,17 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
       gradient: {
         type: 'linear',
         colors: ['#1877F2', '#0C63D4'],
-        angle: 90
+        angle: 90,
       },
-      eyeShape: 'rounded',
+      eyeShape: 'rounded_square',
       dataPattern: 'square',
       logo: {
         url: '/logos/facebook.svg',
         size: 0.3,
         padding: 10,
-        shape: 'rounded'
-      }
-    }
+        shape: 'rounded_square',
+      },
+    },
   },
   {
     id: 'whatsapp-v1',
@@ -186,21 +186,21 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
       gradient: {
         type: 'radial',
         colors: ['#25D366', '#128C7E'],
-        angle: 0
+        angle: 0,
       },
-      eyeShape: 'rounded',
+      eyeShape: 'rounded_square',
       dataPattern: 'dots',
       logo: {
         url: '/logos/whatsapp.svg',
         size: 0.3,
         padding: 10,
-        shape: 'circle'
+        shape: 'circle',
       },
       frame: {
         type: 'bubble',
-        text: 'Chat on WhatsApp'
-      }
-    }
+        text: 'Chat on WhatsApp',
+      },
+    },
   },
   {
     id: 'spotify-v1',
@@ -212,7 +212,7 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
       gradient: {
         type: 'conic',
         colors: ['#1DB954', '#191414', '#1DB954'],
-        angle: 0
+        angle: 0,
       },
       eyeShape: 'circle',
       dataPattern: 'wave',
@@ -220,11 +220,11 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
         url: '/logos/spotify.svg',
         size: 0.28,
         padding: 10,
-        shape: 'circle'
+        shape: 'circle',
       },
-      effects: ['music-wave']
-    }
-  }
+      effects: ['music-wave'],
+    },
+  },
 ];
 
 // Template categories for future dashboard
@@ -232,23 +232,30 @@ export const TEMPLATE_CATEGORIES = {
   social: {
     name: 'Social Media',
     icon: 'users',
-    templates: ['instagram-v1', 'youtube-v1', 'linkedin-v1', 'tiktok-v1', 'twitter-v1', 'facebook-v1']
+    templates: [
+      'instagram-v1',
+      'youtube-v1',
+      'linkedin-v1',
+      'tiktok-v1',
+      'twitter-v1',
+      'facebook-v1',
+    ],
   },
   professional: {
     name: 'Professional',
     icon: 'briefcase',
-    templates: ['linkedin-v1']
+    templates: ['linkedin-v1'],
   },
   communication: {
     name: 'Communication',
     icon: 'message-circle',
-    templates: ['whatsapp-v1']
+    templates: ['whatsapp-v1'],
   },
   entertainment: {
     name: 'Entertainment',
     icon: 'music',
-    templates: ['spotify-v1', 'youtube-v1', 'tiktok-v1']
-  }
+    templates: ['spotify-v1', 'youtube-v1', 'tiktok-v1'],
+  },
 };
 
 // Helper function to validate logo paths exist

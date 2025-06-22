@@ -7,7 +7,6 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { QREnhancedData } from '@/components/generator/EnhancedUltrathinkQR';
 
 // Tipos para la API v3
@@ -103,6 +102,7 @@ interface UseQRGenerationV3Return {
   metadata: QRV3Response['metadata'] | null;
   generateQR: (data: string, options?: QRV3Options) => Promise<void>;
   clearData: () => void;
+  clearError: () => void;
 }
 
 export const useQRGenerationV3 = (): UseQRGenerationV3Return => {
@@ -111,7 +111,6 @@ export const useQRGenerationV3 = (): UseQRGenerationV3Return => {
   const [error, setError] = useState<string | null>(null);
   const [isUsingCache, setIsUsingCache] = useState(false);
   const [metadata, setMetadata] = useState<QRV3Response['metadata'] | null>(null);
-  const { user } = useAuth();
 
   const generateQR = useCallback(async (data: string, options?: QRV3Options) => {
     // Reset estado
@@ -127,7 +126,7 @@ export const useQRGenerationV3 = (): UseQRGenerationV3Return => {
       };
       
       // Add token if available for better rate limits
-      const token = user?.token || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -162,7 +161,7 @@ export const useQRGenerationV3 = (): UseQRGenerationV3Return => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   const clearData = useCallback(() => {
     setStructuredData(null);

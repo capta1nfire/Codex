@@ -6,9 +6,6 @@
  * These flags now control UI features rather than engine selection
  */
 
-// Check if running in development mode
-const isDevelopment = process.env.NODE_ENV === 'development';
-
 // Check for feature flag overrides in localStorage
 const getLocalOverride = (key: string): boolean | null => {
   if (typeof window === 'undefined') return null;

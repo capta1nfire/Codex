@@ -4,10 +4,10 @@
  * Orchestrates template selection, application, and analytics
  */
 
-import { Template } from '../entities/Template.js';
-import { ITemplateRepository } from '../repositories/ITemplateRepository.js';
 import { LimitService } from './LimitService.js';
 import { eventBus, emitSmartQREvent } from '../../infrastructure/events/EventBus.js';
+import { Template } from '../entities/Template.js';
+import { ITemplateRepository } from '../repositories/ITemplateRepository.js';
 
 export interface ApplyTemplateResult {
   success: boolean;
@@ -34,7 +34,7 @@ export class TemplateService {
     private config: TemplateServiceConfig = {
       enableAnalytics: true,
       enableCaching: true,
-      fakeAnalysisDelay: 1500
+      fakeAnalysisDelay: 1500,
     }
   ) {
     this.setupEventHandlers();
@@ -49,6 +49,7 @@ export class TemplateService {
     userId?: string,
     options?: {
       isPremium?: boolean;
+      isUnlimited?: boolean;
       skipLimitCheck?: boolean;
       preferredTemplateId?: string;
     }
@@ -60,16 +61,17 @@ export class TemplateService {
       if (userId && !options?.skipLimitCheck) {
         const limitCheck = await this.limitService.checkLimit(
           userId,
-          options?.isPremium || false
+          options?.isPremium || false,
+          options?.isUnlimited || false
         );
-        
+
         if (!limitCheck.allowed) {
           return {
             success: false,
             template: null,
             config: {},
             remaining: 0,
-            message: `Daily limit reached. Resets at ${limitCheck.resetAt.toLocaleTimeString()}`
+            message: `Daily limit reached. Resets at ${limitCheck.resetAt.toLocaleTimeString()}`,
           };
         }
       }
@@ -79,7 +81,7 @@ export class TemplateService {
 
       // 3. Find matching template
       let template: Template | null = null;
-      
+
       // Check if user requested specific template
       if (options?.preferredTemplateId) {
         template = await this.templateRepo.findById(options.preferredTemplateId);
@@ -99,7 +101,7 @@ export class TemplateService {
         url: normalizedUrl,
         userId,
         templateFound: !!template,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       // 5. If no template found, emit event for tracking
@@ -109,16 +111,21 @@ export class TemplateService {
           url: normalizedUrl,
           domain,
           userId,
-          timestamp: new Date()
+          timestamp: new Date(),
         });
 
         return {
           success: true,
           template: null,
           config: {},
-          remaining: userId ? 
-            await this.limitService.getRemainingToday(userId, options?.isPremium) : 3,
-          message: 'No smart template available for this URL'
+          remaining: userId
+            ? await this.limitService.getRemainingToday(
+                userId,
+                options?.isPremium,
+                options?.isUnlimited
+              )
+            : 3,
+          message: 'No smart template available for this URL',
         };
       }
 
@@ -132,18 +139,22 @@ export class TemplateService {
 
       // 8. Record usage
       if (userId) {
-        await this.limitService.recordUsage(userId, {
-          templateId: template.id,
-          url: normalizedUrl,
-          processingTimeMs: Date.now() - startTime
-        });
+        await this.limitService.recordUsage(
+          userId,
+          {
+            templateId: template.id,
+            url: normalizedUrl,
+            processingTimeMs: Date.now() - startTime,
+          },
+          options?.isUnlimited || false
+        );
       }
 
       // 9. Update template analytics
       if (this.config.enableAnalytics) {
         await this.templateRepo.updateAnalytics(template.id, {
           incrementUsage: true,
-          lastUsed: new Date()
+          lastUsed: new Date(),
         });
       }
 
@@ -154,12 +165,17 @@ export class TemplateService {
         userId,
         url: normalizedUrl,
         processingTime,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       // 11. Return result
-      const remaining = userId ? 
-        await this.limitService.getRemainingToday(userId, options?.isPremium) : 2;
+      const remaining = userId
+        ? await this.limitService.getRemainingToday(
+            userId,
+            options?.isPremium,
+            options?.isUnlimited
+          )
+        : 2;
 
       return {
         success: true,
@@ -169,10 +185,9 @@ export class TemplateService {
         message: `Applied ${template.name} template`,
         analyticsData: {
           processingTime,
-          cacheHit: false // Future: implement caching
-        }
+          cacheHit: false, // Future: implement caching
+        },
       };
-
     } catch (error) {
       // Emit error event
       emitSmartQREvent('smartqr.failed', {
@@ -180,7 +195,7 @@ export class TemplateService {
         userId,
         url,
         reason: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       throw error;
@@ -204,12 +219,12 @@ export class TemplateService {
     const result = await this.templateRepo.findAll({
       filter: {
         isActive: options?.includeInactive ? undefined : true,
-        tags: options?.tag ? [options.tag] : undefined
+        tags: options?.tag ? [options.tag] : undefined,
       },
       sort: {
         field: 'priority',
-        direction: 'desc'
-      }
+        direction: 'desc',
+      },
     });
 
     return result.data;
@@ -241,7 +256,7 @@ export class TemplateService {
    * Check which domains don't have templates
    */
   async findUncoveredDomains(urls: string[]): Promise<string[]> {
-    const domains = urls.map(url => this.extractDomain(url));
+    const domains = urls.map((url) => this.extractDomain(url));
     const uniqueDomains = [...new Set(domains)];
     return await this.templateRepo.findUncoveredDomains(uniqueDomains);
   }
@@ -249,7 +264,10 @@ export class TemplateService {
   /**
    * Preview template configuration without applying
    */
-  async previewTemplate(templateId: string, url: string): Promise<{
+  async previewTemplate(
+    templateId: string,
+    url: string
+  ): Promise<{
     template: Template;
     config: any;
     preview: string;
@@ -258,11 +276,11 @@ export class TemplateService {
     if (!template) return null;
 
     const config = template.getVariant();
-    
+
     return {
       template,
       config: this.enrichConfig(config, template),
-      preview: this.generatePreviewDescription(template, url)
+      preview: this.generatePreviewDescription(template, url),
     };
   }
 
@@ -271,14 +289,14 @@ export class TemplateService {
    */
   async saveTemplate(template: Template): Promise<void> {
     await this.templateRepo.save(template);
-    
+
     emitSmartQREvent('smartqr.analytics.track', {
       event: 'template.saved',
       properties: {
         templateId: template.id,
-        isNew: !(await this.templateRepo.exists(template.id))
+        isNew: !(await this.templateRepo.exists(template.id)),
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   }
 
@@ -287,11 +305,11 @@ export class TemplateService {
    */
   async deleteTemplate(id: string): Promise<void> {
     await this.templateRepo.delete(id);
-    
+
     emitSmartQREvent('smartqr.analytics.track', {
       event: 'template.deleted',
       properties: { templateId: id },
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   }
 
@@ -300,7 +318,7 @@ export class TemplateService {
     if (!url.match(/^https?:\/\//)) {
       url = `https://${url}`;
     }
-    
+
     // Remove trailing slash
     return url.replace(/\/$/, '');
   }
@@ -323,14 +341,14 @@ export class TemplateService {
         templateId: template.id,
         templateName: template.name,
         templateVersion: template.version,
-        appliedAt: new Date().toISOString()
-      }
+        appliedAt: new Date().toISOString(),
+      },
     };
   }
 
   private async simulateAnalysis(delay: number): Promise<void> {
     // Fake delay to simulate "AI analysis"
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
 
   private generatePreviewDescription(template: Template, url: string): string {
@@ -380,12 +398,12 @@ export class TemplateService {
    */
   async resetUserUsage(userId: string): Promise<void> {
     await this.limitService.resetUsage(userId);
-    
+
     emitSmartQREvent('smartqr.analytics.track', {
       event: 'usage.reset',
       properties: { userId },
       userId,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   }
 }

@@ -15,8 +15,7 @@ import { getValidator, getGenerationDelay } from '@/lib/smartValidation';
 // Simple debounce implementation to avoid lodash dependency
 function debounce<T extends (...args: any[]) => any>(
   func: T,
-  wait: number,
-  options?: { leading?: boolean; trailing?: boolean }
+  wait: number
 ): T & { cancel: () => void } {
   let timeoutId: NodeJS.Timeout | null = null;
   let lastArgs: any[] | null = null;
@@ -192,10 +191,7 @@ export function useSmartAutoGeneration(options: AutoGenerationOptions = {}): Sma
     
     if (!debouncedFunctionsRef.current.has(key)) {
       const delay = customDelay || getGenerationDelay(barcodeType, qrType);
-      const debouncedFn = debounce(performValidationAndGeneration, delay, {
-        leading: false,
-        trailing: true
-      });
+      const debouncedFn = debounce(performValidationAndGeneration, delay);
       debouncedFunctionsRef.current.set(key, debouncedFn);
     }
     

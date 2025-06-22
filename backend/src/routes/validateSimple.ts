@@ -1,15 +1,16 @@
+import dns from 'dns/promises';
+import http from 'http';
+import https from 'https';
+import { URL } from 'url';
+
 import express from 'express';
 import { z } from 'zod';
-import dns from 'dns/promises';
-import https from 'https';
-import http from 'http';
-import { URL } from 'url';
 
 const router = express.Router();
 
 // Schema de validación
 const validateUrlSchema = z.object({
-  url: z.string().min(1)
+  url: z.string().min(1),
 });
 
 interface UrlMetadata {
@@ -75,63 +76,63 @@ async function checkDomainExists(domain: string): Promise<boolean> {
 async function checkUrlResponds(url: string): Promise<UrlMetadata> {
   const normalizedUrl = normalizeUrl(url);
   const domain = extractDomain(url);
-  
+
   // Estrategia 1: Verificación DNS completa
   const domainExists = await checkDomainExists(domain);
-  
+
   // Estrategia 2: Verificación HTTP incluso si DNS falla
   // Algunos dominios (como x.com) pueden tener DNS especiales
   return new Promise((resolve) => {
     const urlObj = new URL(normalizedUrl);
     const protocol = urlObj.protocol === 'https:' ? https : http;
-    
+
     const options = {
       method: 'HEAD',
       timeout: 3000, // Reducir timeout
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': '*/*',
+        Accept: '*/*',
         'Accept-Encoding': 'gzip, deflate',
-        'Connection': 'close' // Cerrar conexión inmediatamente
-      }
+        Connection: 'close', // Cerrar conexión inmediatamente
+      },
     };
 
     const req = protocol.request(urlObj, options, (res) => {
       // Considerar CUALQUIER respuesta HTTP como "sitio existe"
       // Incluso 403, 401, 503, etc. significan que hay un servidor
       const exists = res.statusCode !== undefined;
-      
+
       const result: UrlMetadata = {
         exists: exists,
-        statusCode: res.statusCode
+        statusCode: res.statusCode,
       };
-      
+
       // Si obtenemos respuesta HTTP, el sitio existe
       // independientemente del código de estado
       if (exists && !domainExists) {
         result.title = domain; // DNS falló pero HTTP respondió
       }
-      
+
       // Cerrar conexión inmediatamente para evitar hanging
       res.destroy();
       req.destroy();
-      
+
       resolve(result);
     });
 
     req.on('error', (error: any) => {
-      // Si el error es de conexión pero DNS existe, 
+      // Si el error es de conexión pero DNS existe,
       // podría ser un firewall o restricción
       if (domainExists && (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT')) {
         resolve({
           exists: true, // DNS existe, asumimos que el sitio existe
           error: 'Connection blocked or timed out',
-          title: domain
+          title: domain,
         });
       } else {
         resolve({
           exists: false,
-          error: error.code || error.message
+          error: error.code || error.message,
         });
       }
     });
@@ -144,12 +145,12 @@ async function checkUrlResponds(url: string): Promise<UrlMetadata> {
         resolve({
           exists: true,
           error: 'Timeout but domain exists',
-          title: domain
+          title: domain,
         });
       } else {
         resolve({
           exists: false,
-          error: 'Timeout'
+          error: 'Timeout',
         });
       }
     });
@@ -169,27 +170,26 @@ async function checkUrlResponds(url: string): Promise<UrlMetadata> {
 router.post('/check-url', async (req, res) => {
   try {
     const { url } = validateUrlSchema.parse(req.body);
-    
+
     // Quick response for local/test domains only
     const testDomains = ['localhost', '127.0.0.1', '0.0.0.0', 'example.com'];
     const domain = extractDomain(url);
-    
+
     if (testDomains.includes(domain)) {
       return res.json({
         exists: true,
         title: domain,
-        description: 'Local or test domain'
+        description: 'Local or test domain',
       });
     }
 
     const metadata = await checkUrlResponds(url);
     return res.json(metadata);
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid URL format' });
     }
-    
+
     console.error('URL validation error:', error);
     return res.status(500).json({ error: 'Failed to validate URL' });
   }

@@ -4,8 +4,8 @@
  * Handles the complete flow from request to response
  */
 
-import { TemplateService } from '../../domain/services/TemplateService.js';
 import { Template } from '../../domain/entities/Template.js';
+import { TemplateService } from '../../domain/services/TemplateService.js';
 
 export interface GenerateSmartQRRequest {
   url: string;
@@ -53,8 +53,8 @@ export class GenerateSmartQRUseCase {
           success: false,
           error: {
             code: 'VALIDATION_ERROR',
-            message: validationError
-          }
+            message: validationError,
+          },
         };
       }
 
@@ -64,21 +64,21 @@ export class GenerateSmartQRUseCase {
           success: false,
           error: {
             code: 'AUTHENTICATION_REQUIRED',
-            message: 'Smart QR requires user authentication'
-          }
+            message: 'Smart QR requires user authentication',
+          },
         };
       }
 
       // Apply smart template
-      const result = await this.templateService.applySmartTemplate(
-        request.url,
-        request.userId,
-        {
-          isPremium: request.userRole === 'premium' || request.userRole === 'admin',
-          skipLimitCheck: request.userRole === 'admin',
-          preferredTemplateId: request.preferredTemplateId
-        }
-      );
+      const result = await this.templateService.applySmartTemplate(request.url, request.userId, {
+        isPremium:
+          request.userRole === 'PREMIUM' ||
+          request.userRole === 'WEBADMIN' ||
+          request.userRole === 'SUPERADMIN',
+        isUnlimited: request.userRole === 'SUPERADMIN',
+        skipLimitCheck: request.userRole === 'WEBADMIN' || request.userRole === 'SUPERADMIN',
+        preferredTemplateId: request.preferredTemplateId,
+      });
 
       // Handle limit reached
       if (!result.success && result.message?.includes('limit')) {
@@ -88,9 +88,9 @@ export class GenerateSmartQRUseCase {
             code: 'LIMIT_REACHED',
             message: result.message,
             details: {
-              remaining: result.remaining
-            }
-          }
+              remaining: result.remaining,
+            },
+          },
         };
       }
 
@@ -109,9 +109,9 @@ export class GenerateSmartQRUseCase {
           metadata: {
             analysisTime: Date.now() - startTime,
             domain,
-            isKnownDomain: !!result.template
-          }
-        }
+            isKnownDomain: !!result.template,
+          },
+        },
       };
 
       // Add full template data if requested (for admin/debugging)
@@ -120,17 +120,16 @@ export class GenerateSmartQRUseCase {
       }
 
       return response;
-
     } catch (error) {
       console.error('[GenerateSmartQR] Error:', error);
-      
+
       return {
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to generate Smart QR',
-          details: error instanceof Error ? error.message : 'Unknown error'
-        }
+          details: error instanceof Error ? error.message : 'Unknown error',
+        },
       };
     }
   }
@@ -149,35 +148,39 @@ export class GenerateSmartQRUseCase {
   }> {
     // Get all templates
     const allTemplates = await this.templateService.getAvailableTemplates();
-    
+
     // Filter templates that match the URL
-    const matchingTemplates = allTemplates.filter(t => t.matches(url));
-    
+    const matchingTemplates = allTemplates.filter((t) => t.matches(url));
+
     // Find the recommended one (highest priority)
-    const recommended = matchingTemplates
-      .sort((a, b) => b.getPriorityScore() - a.getPriorityScore())[0];
+    const recommended = matchingTemplates.sort(
+      (a, b) => b.getPriorityScore() - a.getPriorityScore()
+    )[0];
 
     return {
-      templates: matchingTemplates.map(t => ({
+      templates: matchingTemplates.map((t) => ({
         id: t.id,
         name: t.name,
         preview: this.generatePreview(t),
-        tags: t.metadata.tags
+        tags: t.metadata.tags,
       })),
-      recommendedId: recommended?.id
+      recommendedId: recommended?.id,
     };
   }
 
   /**
    * Get user statistics
    */
-  async getUserStats(userId: string, days: number = 7): Promise<{
+  async getUserStats(
+    userId: string,
+    days: number = 7
+  ): Promise<{
     usage: any;
     favoriteTemplates: string[];
     remainingToday: number;
   }> {
     const usage = await this.templateService.getUserUsageStats(userId, days);
-    
+
     // Future: Get favorite templates from user preferences
     const favoriteTemplates: string[] = [];
 
@@ -188,7 +191,7 @@ export class GenerateSmartQRUseCase {
     return {
       usage,
       favoriteTemplates,
-      remainingToday
+      remainingToday,
     };
   }
 
@@ -199,9 +202,8 @@ export class GenerateSmartQRUseCase {
 
     // Basic URL validation
     const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-    const normalizedUrl = request.url.startsWith('http') ? 
-      request.url : `https://${request.url}`;
-    
+    const normalizedUrl = request.url.startsWith('http') ? request.url : `https://${request.url}`;
+
     if (!urlPattern.test(normalizedUrl)) {
       return 'Invalid URL format';
     }
@@ -227,8 +229,8 @@ export class GenerateSmartQRUseCase {
         _smartQR: {
           version: '1.0.0',
           templateApplied: true,
-          templateId: result.template.id
-        }
+          templateId: result.template.id,
+        },
       };
     }
 
@@ -237,14 +239,14 @@ export class GenerateSmartQRUseCase {
       _smartQR: {
         version: '1.0.0',
         templateApplied: false,
-        reason: 'No template available for this domain'
-      }
+        reason: 'No template available for this domain',
+      },
     };
   }
 
   private generatePreview(template: Template): string {
     const features: string[] = [];
-    
+
     if (template.config.gradient) {
       features.push('Custom gradient');
     }

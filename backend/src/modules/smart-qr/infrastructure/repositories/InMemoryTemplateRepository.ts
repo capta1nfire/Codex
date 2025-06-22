@@ -12,61 +12,61 @@ import {
   PaginationOptions,
   PaginatedResult,
   TemplateNotFoundError,
-  TemplateDuplicateError
+  TemplateDuplicateError,
 } from '../../domain/repositories/ITemplateRepository.js';
 
 export class InMemoryTemplateRepository implements ITemplateRepository {
   private templates: Map<string, Template>;
-  
+
   constructor() {
     this.templates = new Map();
     this.initializeDefaultTemplates();
   }
 
   private initializeDefaultTemplates(): void {
-    // Instagram Template
+    // Instagram Premium Template - Gradiente multi-color clásico
     const instagramTemplate = new Template(
       'instagram-v1',
-      'Instagram Style',
+      'Instagram Premium',
       '1.0.0',
       {
         gradient: {
           type: 'radial',
-          colors: ['#833AB4', '#FD1D1D', '#FCAF45'],
-          angle: 45
+          colors: ['#833AB4', '#FD1D1D', '#FCAF45', '#F77737', '#FF5E3A'],
+          angle: 45,
         },
-        eyeShape: 'rounded',
+        eyeShape: 'rounded_square',
         dataPattern: 'dots',
         logo: {
           url: '/logos/instagram.svg',
           size: 0.3,
           padding: 10,
-          shape: 'rounded'
+          shape: 'rounded_square',
         },
-        effects: ['subtle-shadow']
+        effects: ['shadow'],
       },
       {
         domains: ['instagram.com', 'www.instagram.com'],
         priority: 100,
-        tags: ['social', 'photo', 'popular'],
+        tags: ['social', 'photo', 'popular', 'premium'],
         analytics: {
           usage: 0,
           conversionRate: 0,
-          lastUsed: new Date()
-        }
+          lastUsed: new Date(),
+        },
       }
     );
 
-    // YouTube Template
+    // YouTube Premium Template - Gradiente con 3 colores
     const youtubeTemplate = new Template(
       'youtube-v1',
-      'YouTube Style',
+      'YouTube Premium',
       '1.0.0',
       {
         gradient: {
           type: 'linear',
-          colors: ['#FF0000', '#CC0000'],
-          angle: 90
+          colors: ['#FF0000', '#FF4444', '#CC0000'],
+          angle: 90,
         },
         eyeShape: 'square',
         dataPattern: 'square',
@@ -74,12 +74,12 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
           url: '/logos/youtube.svg',
           size: 0.25,
           padding: 8,
-          shape: 'square'
+          shape: 'square',
         },
         frame: {
           type: 'simple',
-          text: 'Watch on YouTube'
-        }
+          text: 'Watch on YouTube',
+        },
       },
       {
         domains: ['youtube.com', 'www.youtube.com', 'youtu.be', 'm.youtube.com'],
@@ -88,13 +88,149 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
         analytics: {
           usage: 0,
           conversionRate: 0,
-          lastUsed: new Date()
-        }
+          lastUsed: new Date(),
+        },
+      }
+    );
+
+    // LinkedIn Professional Template - Gradiente multi-color profesional
+    const linkedinTemplate = new Template(
+      'linkedin-v1',
+      'LinkedIn Professional',
+      '1.0.0',
+      {
+        gradient: {
+          type: 'linear',
+          colors: ['#0077B5', '#0A66C2', '#004182', '#00294A'],
+          angle: 135,
+        },
+        eyeShape: 'square',
+        dataPattern: 'rounded',
+        logo: {
+          url: '/logos/linkedin.svg',
+          size: 0.25,
+          padding: 10,
+          shape: 'square',
+        },
+        effects: ['glow'],
+      },
+      {
+        domains: ['linkedin.com', 'www.linkedin.com', 'lnkd.in'],
+        priority: 90,
+        tags: ['professional', 'business', 'social'],
+        analytics: {
+          usage: 0,
+          conversionRate: 0,
+          lastUsed: new Date(),
+        },
+      }
+    );
+
+    // TikTok Vibrant Template - Gradiente multi-color vibrante
+    const tiktokTemplate = new Template(
+      'tiktok-v1',
+      'TikTok Vibrant',
+      '1.0.0',
+      {
+        gradient: {
+          type: 'conic',
+          colors: ['#FF0050', '#00F2EA', '#000000', '#FF0050', '#00F2EA'],
+          angle: 0,
+        },
+        eyeShape: 'rounded_square',
+        dataPattern: 'dots',
+        logo: {
+          url: '/logos/tiktok.svg',
+          size: 0.28,
+          padding: 8,
+          shape: 'rounded_square',
+        },
+        effects: ['glow', 'noise'],
+      },
+      {
+        domains: ['tiktok.com', 'www.tiktok.com', 'vm.tiktok.com'],
+        priority: 98,
+        tags: ['social', 'video', 'trending', 'youth'],
+        analytics: {
+          usage: 0,
+          conversionRate: 0,
+          lastUsed: new Date(),
+        },
+      }
+    );
+
+    // GitHub Developer Template - Gradiente oscuro multi-color
+    const githubTemplate = new Template(
+      'github-v1',
+      'GitHub Developer',
+      '1.0.0',
+      {
+        gradient: {
+          type: 'linear',
+          colors: ['#24292E', '#586069', '#6A737D', '#959DA5'],
+          angle: 180,
+        },
+        eyeShape: 'square',
+        dataPattern: 'square',
+        logo: {
+          url: '/logos/github.svg',
+          size: 0.3,
+          padding: 10,
+          shape: 'circle',
+        },
+        effects: ['shadow'],
+      },
+      {
+        domains: ['github.com', 'www.github.com', 'gist.github.com'],
+        priority: 85,
+        tags: ['developer', 'code', 'tech'],
+        analytics: {
+          usage: 0,
+          conversionRate: 0,
+          lastUsed: new Date(),
+        },
+      }
+    );
+
+    // Spotify Music Template - Gradiente verde premium
+    const spotifyTemplate = new Template(
+      'spotify-v1',
+      'Spotify Premium',
+      '1.0.0',
+      {
+        gradient: {
+          type: 'radial',
+          colors: ['#1DB954', '#1ED760', '#21E065', '#14A03D'],
+          angle: 0,
+        },
+        eyeShape: 'circle',
+        dataPattern: 'circular',
+        logo: {
+          url: '/logos/spotify.svg',
+          size: 0.3,
+          padding: 10,
+          shape: 'circle',
+        },
+        effects: ['glow'],
+      },
+      {
+        domains: ['spotify.com', 'www.spotify.com', 'open.spotify.com'],
+        priority: 88,
+        tags: ['music', 'entertainment', 'audio'],
+        analytics: {
+          usage: 0,
+          conversionRate: 0,
+          lastUsed: new Date(),
+        },
       }
     );
 
     this.templates.set(instagramTemplate.id, instagramTemplate);
     this.templates.set(youtubeTemplate.id, youtubeTemplate);
+    this.templates.set(linkedinTemplate.id, linkedinTemplate);
+    this.templates.set(tiktokTemplate.id, tiktokTemplate);
+    this.templates.set(githubTemplate.id, githubTemplate);
+    this.templates.set(spotifyTemplate.id, spotifyTemplate);
   }
 
   async findById(id: string): Promise<Template | null> {
@@ -104,7 +240,7 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
   async findByUrl(url: string): Promise<Template | null> {
     // Find all matching templates
     const matches: Template[] = [];
-    
+
     for (const template of this.templates.values()) {
       if (template.matches(url)) {
         matches.push(template);
@@ -113,7 +249,7 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
 
     // Return highest priority match
     if (matches.length === 0) return null;
-    
+
     return matches.sort((a, b) => b.getPriorityScore() - a.getPriorityScore())[0];
   }
 
@@ -147,12 +283,12 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
       data: templates,
       total,
       page: options?.pagination?.page || 1,
-      totalPages: options?.pagination ? Math.ceil(total / options.pagination.limit) : 1
+      totalPages: options?.pagination ? Math.ceil(total / options.pagination.limit) : 1,
     };
   }
 
   async findByTag(tag: string): Promise<Template[]> {
-    return Array.from(this.templates.values()).filter(template =>
+    return Array.from(this.templates.values()).filter((template) =>
       template.metadata.tags.includes(tag)
     );
   }
@@ -165,9 +301,9 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
 
   async findRecentlyUsed(limit: number): Promise<Template[]> {
     return Array.from(this.templates.values())
-      .filter(t => t.metadata.analytics.usage > 0)
-      .sort((a, b) => 
-        b.metadata.analytics.lastUsed.getTime() - a.metadata.analytics.lastUsed.getTime()
+      .filter((t) => t.metadata.analytics.usage > 0)
+      .sort(
+        (a, b) => b.metadata.analytics.lastUsed.getTime() - a.metadata.analytics.lastUsed.getTime()
       )
       .slice(0, limit);
   }
@@ -189,11 +325,14 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
     this.templates.delete(id);
   }
 
-  async updateAnalytics(id: string, analytics: {
-    incrementUsage?: boolean;
-    conversionRate?: number;
-    lastUsed?: Date;
-  }): Promise<void> {
+  async updateAnalytics(
+    id: string,
+    analytics: {
+      incrementUsage?: boolean;
+      conversionRate?: number;
+      lastUsed?: Date;
+    }
+  ): Promise<void> {
     const template = await this.findById(id);
     if (!template) {
       throw new TemplateNotFoundError(id);
@@ -214,14 +353,14 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
 
   async findUncoveredDomains(domains: string[]): Promise<string[]> {
     const uncovered: string[] = [];
-    
+
     for (const domain of domains) {
       const template = await this.findByUrl(domain);
       if (!template) {
         uncovered.push(domain);
       }
     }
-    
+
     return uncovered;
   }
 
@@ -234,18 +373,18 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
     templatesByTag: Record<string, number>;
   }> {
     const templates = Array.from(this.templates.values());
-    const active = templates.filter(t => t.isActive).length;
+    const active = templates.filter((t) => t.isActive).length;
     const totalUsage = templates.reduce((sum, t) => sum + t.metadata.analytics.usage, 0);
-    
+
     const templatesByTag: Record<string, number> = {};
-    templates.forEach(t => {
-      t.metadata.tags.forEach(tag => {
+    templates.forEach((t) => {
+      t.metadata.tags.forEach((tag) => {
         templatesByTag[tag] = (templatesByTag[tag] || 0) + 1;
       });
     });
 
     const mostUsed = templates
-      .filter(t => t.metadata.analytics.usage > 0)
+      .filter((t) => t.metadata.analytics.usage > 0)
       .sort((a, b) => b.metadata.analytics.usage - a.metadata.analytics.usage)[0];
 
     return {
@@ -254,16 +393,17 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
       totalUsage,
       averageUsagePerTemplate: templates.length > 0 ? totalUsage / templates.length : 0,
       mostUsedTemplateId: mostUsed?.id || null,
-      templatesByTag
+      templatesByTag,
     };
   }
 
   async search(query: string): Promise<Template[]> {
     const queryLower = query.toLowerCase();
-    return Array.from(this.templates.values()).filter(template =>
-      template.name.toLowerCase().includes(queryLower) ||
-      template.metadata.domains.some(d => d.includes(queryLower)) ||
-      template.metadata.tags.some(t => t.includes(queryLower))
+    return Array.from(this.templates.values()).filter(
+      (template) =>
+        template.name.toLowerCase().includes(queryLower) ||
+        template.metadata.domains.some((d) => d.includes(queryLower)) ||
+        template.metadata.tags.some((t) => t.includes(queryLower))
     );
   }
 
@@ -275,13 +415,15 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    return Array.from(this.templates.values()).filter(template => {
+    return Array.from(this.templates.values()).filter((template) => {
       // Low conversion rate
-      if (template.metadata.analytics.usage > 10 && 
-          template.metadata.analytics.conversionRate < 0.1) {
+      if (
+        template.metadata.analytics.usage > 10 &&
+        template.metadata.analytics.conversionRate < 0.1
+      ) {
         return true;
       }
-      
+
       // Not used recently
       if (template.metadata.analytics.lastUsed < thirtyDaysAgo) {
         return true;
@@ -303,7 +445,7 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
 
     const cloned = original.clone({ ...modifications, id: newId });
     await this.save(cloned);
-    
+
     return cloned;
   }
 
@@ -331,30 +473,28 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
   }
 
   private applyFilter(templates: Template[], filter: TemplateFilter): Template[] {
-    return templates.filter(template => {
+    return templates.filter((template) => {
       if (filter.isActive !== undefined && template.isActive !== filter.isActive) {
         return false;
       }
-      
+
       if (filter.tags && filter.tags.length > 0) {
-        const hasTag = filter.tags.some(tag => template.metadata.tags.includes(tag));
+        const hasTag = filter.tags.some((tag) => template.metadata.tags.includes(tag));
         if (!hasTag) return false;
       }
 
       if (filter.domains && filter.domains.length > 0) {
-        const hasDomain = filter.domains.some(domain => 
+        const hasDomain = filter.domains.some((domain) =>
           template.metadata.domains.includes(domain)
         );
         if (!hasDomain) return false;
       }
 
-      if (filter.minUsage !== undefined && 
-          template.metadata.analytics.usage < filter.minUsage) {
+      if (filter.minUsage !== undefined && template.metadata.analytics.usage < filter.minUsage) {
         return false;
       }
 
-      if (filter.maxUsage !== undefined && 
-          template.metadata.analytics.usage > filter.maxUsage) {
+      if (filter.maxUsage !== undefined && template.metadata.analytics.usage > filter.maxUsage) {
         return false;
       }
 
@@ -377,8 +517,10 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
         case 'createdAt':
           return (a.createdAt.getTime() - b.createdAt.getTime()) * direction;
         case 'lastUsed':
-          return (a.metadata.analytics.lastUsed.getTime() - 
-                  b.metadata.analytics.lastUsed.getTime()) * direction;
+          return (
+            (a.metadata.analytics.lastUsed.getTime() - b.metadata.analytics.lastUsed.getTime()) *
+            direction
+          );
         default:
           return 0;
       }

@@ -4,7 +4,6 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { 
   getQREngineV2, 
   QRv2GenerateRequest, 
@@ -40,7 +39,6 @@ export interface UseQREngineV2Return {
  */
 export function useQREngineV2(options: UseQREngineV2Options = {}): UseQREngineV2Return {
   const { debounceMs = 300, onSuccess, onError } = options;
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [result, setResult] = useState<QRv2GenerateResponse | null>(null);
@@ -197,7 +195,6 @@ export function useQRPreview(data: string, options?: Partial<QRv2Options>) {
  * Hook for batch QR generation
  */
 export function useQRBatch() {
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   

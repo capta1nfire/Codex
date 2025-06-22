@@ -48,7 +48,7 @@ interface UseUrlValidationReturn {
  */
 export function useUrlValidation({
   enabled = true,
-  debounceMs = 1000
+  debounceMs = 2000 // Increased to 2 seconds for more aggressive debouncing
 }: UseUrlValidationOptions = {}): UseUrlValidationReturn {
   const [isValidating, setIsValidating] = useState(false);
   const [metadata, setMetadata] = useState<UrlMetadata | null>(null);

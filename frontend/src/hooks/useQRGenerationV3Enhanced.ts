@@ -7,13 +7,15 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { QREnhancedData } from '@/components/generator/EnhancedUltrathinkQR';
-import { QRV3Customization, QRV3Options } from './useQRGenerationV3';
+import { QRV3Options } from './useQRGenerationV3';
 
 interface QRV3EnhancedResponse {
   success: boolean;
   data?: QREnhancedData;
+  error?: {
+    message: string;
+  };
   metadata: {
     engine_version: string;
     cached: boolean;
@@ -38,7 +40,6 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
   const [error, setError] = useState<string | null>(null);
   const [isUsingCache, setIsUsingCache] = useState(false);
   const [metadata, setMetadata] = useState<QRV3EnhancedResponse['metadata'] | null>(null);
-  const { user } = useAuth();
 
   const generateEnhancedQR = useCallback(async (data: string, options?: QRV3Options) => {
     console.log('[useQRGenerationV3Enhanced] Generating QR with data:', data, 'options:', options);
@@ -55,27 +56,59 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
       };
       
       // Add token if available for better rate limits
-      const token = user?.token || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      
+      // Prepare request body
+      const requestBody = {
+        data,
+        options: options || {},
+      };
+      
+      // DETAILED LOGGING FOR SMART QR DEBUG
+      console.log('=== SMART QR REQUEST DEBUG ===');
+      console.log('Endpoint:', `${backendUrl}/api/v3/qr/enhanced`);
+      console.log('Headers:', headers);
+      console.log('Request Body:', JSON.stringify(requestBody, null, 2));
+      
+      // Log specific customization details if present
+      if (options?.customization) {
+        console.log('--- Customization Details ---');
+        console.log('Eye Shape:', options.customization.eye_shape);
+        console.log('Data Pattern:', options.customization.data_pattern);
+        console.log('Gradient:', options.customization.gradient);
+        console.log('Logo:', options.customization.logo);
+        console.log('Frame:', options.customization.frame);
+        console.log('Effects:', options.customization.effects);
+      }
+      console.log('=============================');
+      
       const response = await fetch(`${backendUrl}/api/v3/qr/enhanced`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          data,
-          options: options || {},
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const result: QRV3EnhancedResponse = await response.json();
+      
+      console.log('=== SMART QR RESPONSE DEBUG ===');
+      console.log('Response Status:', response.status);
+      console.log('Response OK:', response.ok);
+      console.log('Result:', JSON.stringify(result, null, 2));
+      console.log('================================');
 
       if (!response.ok || !result.success) {
-        throw new Error(result.metadata?.engine_version?.includes('error') 
-          ? 'Failed to generate enhanced QR code'
-          : result.metadata?.engine_version || 'Unknown error');
+        if (response.status === 422 && result.error) {
+          throw new Error(result.error.message || 'Las opciones de personalización no son válidas');
+        }
+        throw new Error(result.error?.message || 
+          result.metadata?.engine_version?.includes('error') 
+            ? 'Error al generar el código QR personalizado'
+            : result.metadata?.engine_version || 'Error desconocido');
       }
 
       if (result.data) {
@@ -92,7 +125,7 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   const clearData = useCallback(() => {
     setEnhancedData(null);

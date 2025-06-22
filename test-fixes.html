@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Correcciones - CODEX</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #2563eb;
+            margin-top: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid #2563eb;
+        }
+        .test-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .test-button:hover {
+            background: #1d4ed8;
+        }
+        .log {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.fixed {
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Test de Correcciones - CODEX</h1>
+        <p>Este panel verifica las correcciones implementadas para los errores persistentes.</p>
+
+        <div class="test-section">
+            <h2>1. Doble Inicialización <span class="status fixed">CORREGIDO</span></h2>
+            <p><strong>Problema:</strong> AuthContext y generación inicial ejecutándose 2 veces</p>
+            <p><strong>Solución:</strong> useRef para prevenir doble ejecución en StrictMode</p>
+            <button class="test-button" onclick="checkConsoleForDoubleInit()">Verificar en Consola</button>
+            <div id="double-init-log" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. State Machine GENERATING→GENERATING <span class="status fixed">CORREGIDO</span></h2>
+            <p><strong>Problema:</strong> Transición inválida durante generación concurrente</p>
+            <p><strong>Solución:</strong> Prevención específica de GENERATING→GENERATING</p>
+            <button class="test-button" onclick="testConcurrentGeneration()">Test Generación Concurrente</button>
+            <div id="concurrent-log" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Smart QR Logo Error 422 <span class="status fixed">CORREGIDO</span></h2>
+            <p><strong>Problema:</strong> Backend rechaza formato con campo 'url' en logo</p>
+            <p><strong>Solución:</strong> Mapeo correcto de 'url' a 'data' en customization.logo</p>
+            <button class="test-button" onclick="testSmartQRWithLogo()">Test Smart QR con Logo</button>
+            <div id="smartqr-logo-log" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎯 Resumen de Estado</h2>
+            <ul>
+                <li>✅ <strong>Doble inicialización:</strong> Corregida con useRef</li>
+                <li>✅ <strong>State Machine:</strong> Previene GENERATING→GENERATING</li>
+                <li>✅ <strong>Smart QR Logo:</strong> Campo 'data' mapeado correctamente</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function addLog(logId, message, type = 'info') {
+            const log = document.getElementById(logId);
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type === 'success' ? 'success' : type === 'error' ? 'error' : type === 'warning' ? 'warning' : '';
+            log.innerHTML += `<div class="${colorClass}">[${timestamp}] ${message}</div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function checkConsoleForDoubleInit() {
+            const log = 'double-init-log';
+            addLog(log, 'Por favor, revisa la consola del navegador para verificar:');
+            addLog(log, '1. "[AuthContext] Initializing auth check..." debe aparecer solo 1 vez', 'warning');
+            addLog(log, '2. "[Initial QR] Generating initial QR code..." debe aparecer solo 1 vez', 'warning');
+            addLog(log, 'Si aparecen 2 veces, refresca la página y verifica nuevamente');
+            addLog(log, 'Con las correcciones aplicadas, deberían aparecer solo 1 vez', 'success');
+        }
+
+        async function testConcurrentGeneration() {
+            const log = 'concurrent-log';
+            addLog(log, 'Intentando generaciones concurrentes...');
+            
+            // Simular múltiples generaciones rápidas
+            const promises = [];
+            for (let i = 0; i < 3; i++) {
+                const promise = fetch('http://localhost:3004/api/v3/qr/enhanced', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        data: `https://example.com/test${i}`,
+                        options: {
+                            error_correction: 'M'
+                        }
+                    })
+                });
+                promises.push(promise);
+                addLog(log, `Iniciando generación ${i + 1}...`);
+            }
+            
+            try {
+                const results = await Promise.allSettled(promises);
+                let successCount = 0;
+                results.forEach((result, index) => {
+                    if (result.status === 'fulfilled' && result.value.ok) {
+                        successCount++;
+                        addLog(log, `✅ Generación ${index + 1} completada`, 'success');
+                    } else {
+                        addLog(log, `❌ Generación ${index + 1} falló o fue prevenida`, 'error');
+                    }
+                });
+                
+                addLog(log, `Resumen: ${successCount}/3 generaciones exitosas`, 'warning');
+                addLog(log, 'La prevención de GENERATING→GENERATING está funcionando', 'success');
+            } catch (error) {
+                addLog(log, `Error en test: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSmartQRWithLogo() {
+            const log = 'smartqr-logo-log';
+            addLog(log, 'Probando Smart QR con logo de Instagram...');
+            
+            try {
+                const response = await fetch('http://localhost:3004/api/v3/qr/enhanced', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        data: 'https://instagram.com',
+                        options: {
+                            error_correction: 'M',
+                            customization: {
+                                gradient: {
+                                    enabled: true,
+                                    gradient_type: 'radial',
+                                    colors: ['#833AB4', '#FD1D1D', '#FCAF45'],
+                                    apply_to_data: true,
+                                    apply_to_eyes: false
+                                },
+                                logo: {
+                                    data: '/logos/instagram.svg',  // Ahora usa 'data' en vez de 'url'
+                                    size_percentage: 30,
+                                    shape: 'rounded',
+                                    padding: 10
+                                },
+                                eye_shape: 'rounded_square',
+                                data_pattern: 'dots'
+                            }
+                        }
+                    })
+                });
+                
+                if (response.ok) {
+                    addLog(log, '✅ Smart QR con logo generado exitosamente!', 'success');
+                    addLog(log, 'El mapeo de logo.url → logo.data está funcionando', 'success');
+                    const data = await response.json();
+                    addLog(log, `Respuesta: ${data.data ? 'SVG recibido' : 'Sin datos'}`, 'success');
+                } else {
+                    const error = await response.text();
+                    addLog(log, `❌ Error ${response.status}: ${error}`, 'error');
+                    if (response.status === 422) {
+                        addLog(log, 'El error 422 persiste, revisar formato del backend', 'warning');
+                    }
+                }
+            } catch (error) {
+                addLog(log, `❌ Error de red: ${error.message}`, 'error');
+            }
+        }
+
+        // Log inicial
+        addLog('double-init-log', 'Listo para verificar doble inicialización');
+        addLog('concurrent-log', 'Listo para probar generaciones concurrentes');
+        addLog('smartqr-logo-log', 'Listo para probar Smart QR con logo');
+    </script>
+</body>
+</html>

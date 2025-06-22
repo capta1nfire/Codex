@@ -1,14 +1,15 @@
 /**
  * QR v3 Routes - Structured data for ULTRATHINK implementation
- * 
+ *
  * This module provides access to the v3 QR generation API that returns
  * structured data instead of SVG strings, enabling secure frontend rendering
  * without dangerouslySetInnerHTML.
  */
 
-import express from 'express';
 import axios from 'axios';
+import express from 'express';
 import { z } from 'zod';
+
 import { authenticateJwt } from '../middleware/authMiddleware.js';
 import { generationRateLimit } from '../middleware/rateLimitMiddleware.js';
 // import { incrementUsage } from '../services/usageService.js'; // TODO: Implement usage service
@@ -19,10 +20,12 @@ const router = express.Router();
 // Schema de validación para v3
 const qrV3RequestSchema = z.object({
   data: z.string().min(1).max(2953), // QR v40 max
-  options: z.object({
-    error_correction: z.enum(['L', 'M', 'Q', 'H']).optional(),
-    customization: z.any().optional(), // Para features avanzadas futuras
-  }).optional(),
+  options: z
+    .object({
+      error_correction: z.enum(['L', 'M', 'Q', 'H']).optional(),
+      customization: z.any().optional(), // Para features avanzadas futuras
+    })
+    .optional(),
 });
 
 // Tipo para la respuesta v3
@@ -55,12 +58,13 @@ interface QrV3Response {
  * POST /api/v3/qr/generate
  * Generate QR code with structured data output
  */
-router.post('/generate', 
+router.post(
+  '/generate',
   // authenticateJwt, // REMOVED: v3 is now free for all users
   generationRateLimit,
   async (req, res) => {
     const startTime = Date.now();
-    
+
     try {
       // Validar entrada
       const validation = qrV3RequestSchema.safeParse(req.body);
@@ -76,7 +80,7 @@ router.post('/generate',
       }
 
       const { data, options } = validation.data;
-      
+
       // Log de la solicitud
       logger.info('QR v3 generation request', {
         userId: req.user?.id,
@@ -86,7 +90,7 @@ router.post('/generate',
 
       // URL del generador Rust
       const rustGeneratorUrl = process.env.RUST_GENERATOR_URL || 'http://localhost:3002';
-      
+
       // Llamar al generador Rust v3
       const response = await axios.post(
         `${rustGeneratorUrl}/api/v3/qr/generate`,
@@ -119,7 +123,7 @@ router.post('/generate',
 
       // Agregar tiempo total de procesamiento
       const totalTime = Date.now() - startTime;
-      
+
       // Responder con los datos estructurados
       res.json({
         ...rustResponse,
@@ -129,7 +133,6 @@ router.post('/generate',
           backend_version: '1.0.0',
         },
       });
-
     } catch (error: any) {
       logger.error('QR v3 generation error', {
         error: error.message,
@@ -163,109 +166,139 @@ router.post('/generate',
  * POST /api/v3/qr/enhanced
  * Generate QR code with enhanced structured data output (gradients, effects, etc.)
  */
-router.post('/enhanced', 
-  generationRateLimit,
-  async (req, res) => {
-    const startTime = Date.now();
-    
-    try {
-      // Validar entrada con esquema más complejo
-      const validation = qrV3RequestSchema.safeParse(req.body);
-      if (!validation.success) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request data',
-            details: validation.error.errors,
-          },
-        });
-      }
+router.post('/enhanced', generationRateLimit, async (req, res) => {
+  const startTime = Date.now();
 
-      const { data, options } = validation.data;
-      
-      // Log de la solicitud
-      logger.info('QR v3 Enhanced generation request', {
-        userId: req.user?.id,
-        dataLength: data.length,
-        hasGradient: !!options?.customization?.gradient,
-        hasEffects: !!options?.customization?.effects,
-        options,
-      });
-
-      // URL del generador Rust
-      const rustGeneratorUrl = process.env.RUST_GENERATOR_URL || 'http://localhost:3002';
-      
-      // Llamar al generador Rust v3 Enhanced
-      const response = await axios.post(
-        `${rustGeneratorUrl}/api/v3/qr/enhanced`,
-        {
-          data,
-          options: options || {},
-        },
-        {
-          timeout: 10000, // Mayor timeout para procesamiento más complejo
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      const rustResponse = response.data;
-
-      // Si la generación fue exitosa, incrementar uso
-      if (rustResponse.success && req.user) {
-        try {
-          // await incrementUsage(req.user.id, 'qrcode_enhanced'); // TODO: Implement usage tracking
-        } catch (usageError) {
-          logger.error('Failed to increment enhanced usage', {
-            userId: req.user.id,
-            error: usageError,
-          });
-        }
-      }
-
-      // Agregar tiempo total de procesamiento
-      const totalTime = Date.now() - startTime;
-      
-      // Responder con los datos estructurados enhanced
-      res.json({
-        ...rustResponse,
-        metadata: {
-          ...rustResponse.metadata,
-          total_processing_time_ms: totalTime,
-          backend_version: '1.0.0-enhanced',
-        },
-      });
-
-    } catch (error: any) {
-      logger.error('QR v3 Enhanced generation error', {
-        error: error.message,
-        stack: error.stack,
-      });
-
-      // Manejar errores de red
-      if (error.code === 'ECONNREFUSED') {
-        return res.status(503).json({
-          success: false,
-          error: {
-            code: 'SERVICE_UNAVAILABLE',
-            message: 'QR generation service is temporarily unavailable',
-          },
-        });
-      }
-
-      // Error genérico
-      res.status(500).json({
+  try {
+    // Validar entrada con esquema más complejo
+    const validation = qrV3RequestSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
         success: false,
         error: {
-          code: 'INTERNAL_ERROR',
-          message: 'An unexpected error occurred',
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request data',
+          details: validation.error.errors,
         },
       });
     }
+
+    const { data, options } = validation.data;
+
+    // Log de la solicitud
+    logger.info('QR v3 Enhanced generation request', {
+      userId: req.user?.id,
+      dataLength: data.length,
+      hasGradient: !!options?.customization?.gradient,
+      hasEffects: !!options?.customization?.effects,
+      options,
+    });
+
+    // URL del generador Rust
+    const rustGeneratorUrl = process.env.RUST_GENERATOR_URL || 'http://localhost:3002';
+
+    // Transform options from camelCase to snake_case for Rust
+    const transformedOptions = options
+      ? {
+          error_correction: options.error_correction || options.errorCorrection || 'M',
+          customization: options.customization
+            ? {
+                colors: options.customization.colors,
+                gradient: options.customization.gradient,
+                eye_shape: options.customization.eye_shape || options.customization.eyeShape,
+                data_pattern:
+                  options.customization.data_pattern || options.customization.dataPattern,
+                effects: options.customization.effects,
+                frame_style: options.customization.frame_style || options.customization.frameStyle,
+                logo: options.customization.logo,
+              }
+            : undefined,
+        }
+      : {};
+
+    // Llamar al generador Rust v3 Enhanced
+    const response = await axios.post(
+      `${rustGeneratorUrl}/api/v3/qr/enhanced`,
+      {
+        data,
+        options: transformedOptions,
+      },
+      {
+        timeout: 10000, // Mayor timeout para procesamiento más complejo
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const rustResponse = response.data;
+
+    // Si la generación fue exitosa, incrementar uso
+    if (rustResponse.success && req.user) {
+      try {
+        // await incrementUsage(req.user.id, 'qrcode_enhanced'); // TODO: Implement usage tracking
+      } catch (usageError) {
+        logger.error('Failed to increment enhanced usage', {
+          userId: req.user.id,
+          error: usageError,
+        });
+      }
+    }
+
+    // Agregar tiempo total de procesamiento
+    const totalTime = Date.now() - startTime;
+
+    // Responder con los datos estructurados enhanced
+    res.json({
+      ...rustResponse,
+      metadata: {
+        ...rustResponse.metadata,
+        total_processing_time_ms: totalTime,
+        backend_version: '1.0.0-enhanced',
+      },
+    });
+  } catch (error: any) {
+    logger.error('QR v3 Enhanced generation error', {
+      error: error.message,
+      stack: error.stack,
+      response: error.response?.data,
+    });
+
+    // Manejar errores de validación del servicio Rust
+    if (error.response?.status === 422) {
+      const rustError = error.response.data;
+      return res.status(422).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid QR customization options',
+          details: rustError || 'The QR customization options are not valid',
+        },
+      });
+    }
+
+    // Manejar errores de red
+    if (error.code === 'ECONNREFUSED') {
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'SERVICE_UNAVAILABLE',
+          message: 'QR generation service is temporarily unavailable',
+        },
+      });
+    }
+
+    // Error genérico
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'An unexpected error occurred',
+        ...(process.env.NODE_ENV === 'development' && { details: error.message }),
+      },
+    });
   }
-);
+});
 
 /**
  * GET /api/v3/qr/capabilities
@@ -283,7 +316,17 @@ router.get('/capabilities', async (req, res) => {
       output_formats: ['structured_json'],
       enhanced_features: {
         gradients: ['linear', 'radial', 'conic', 'diamond', 'spiral'],
-        eye_shapes: ['square', 'rounded_square', 'circle', 'dot', 'leaf', 'star', 'diamond', 'heart', 'shield'],
+        eye_shapes: [
+          'square',
+          'rounded_square',
+          'circle',
+          'dot',
+          'leaf',
+          'star',
+          'diamond',
+          'heart',
+          'shield',
+        ],
         data_patterns: ['square', 'dots', 'rounded', 'circular', 'star', 'cross', 'wave', 'mosaic'],
         effects: ['shadow', 'glow', 'blur', 'noise', 'vintage'],
         overlays: ['logo', 'frame'],

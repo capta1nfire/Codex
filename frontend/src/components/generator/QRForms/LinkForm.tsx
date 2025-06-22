@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { qrPlaceholders } from '@/constants/qrPlaceholders';
 import { cn } from '@/lib/utils';
 import { Check, CircleX, RefreshCw, X } from 'lucide-react';
 
@@ -29,7 +28,6 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   validationError,
   urlValidation,
   onUrlValidationComplete,
-  urlExists,
   onGenerateAnyway,
   shouldShowGenerateAnywayButton
 }) => {

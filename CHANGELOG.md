@@ -10,7 +10,52 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
+### 2025-06-22
+
+#### Fixed
+- 🔧 **React StrictMode Double Initialization** - Fixed duplicate initialization issues
+  - Added `useRef` pattern to prevent double initialization in AuthContext and page.tsx
+  - Resolved "Invalid hook call" error by declaring useRef at component level
+  - Prevents duplicate API calls and state updates in development mode
+
+- 🐛 **State Machine Invalid Transitions** - Fixed GENERATING → GENERATING error
+  - Enhanced state machine to prevent invalid same-state transitions for GENERATING
+  - Added specific validation to block duplicate generation attempts
+  - Improved state transition logging with clear warning messages
+
+- 🚨 **Smart QR Format Compatibility** - Fixed 422 validation errors
+  - Mapped `subtle-shadow` effect to `shadow` in backend templates
+  - Fixed logo shape mapping: `rounded` → `rounded_square`
+  - Corrected logo field mapping: frontend `url` → backend `data`
+  - Updated both frontend mapping logic and backend template definitions
+
+- ⚡ **Duplicate QR Generation Prevention** - Eliminated redundant generations
+  - Added `lastGeneratedData` ref to track previously generated content
+  - Skip logic prevents re-generation for identical data
+  - Improved performance by reducing unnecessary API calls
+
 ### 2025-06-21
+
+#### Fixed
+- 🔧 **Smart QR Redis Compatibility** - Fixed Redis v4 method calls
+  - Updated `rpush` → `rPush`, `llen` → `lLen`, `lrange` → `lRange`, `setex` → `setEx`
+  - Changed `pipeline` → `multi` for Redis v4 compatibility
+  - Fixed TypeScript compilation errors in frontend components
+  - Fixed Smart QR routes authentication middleware imports
+
+- 🐛 **v3 Enhanced Field Mapping** - Fixed camelCase to snake_case conversion
+  - Added field transformation for `eyeShape` → `eye_shape` and `dataPattern` → `data_pattern`
+  - Fixed 422 errors when Smart QR sends customization options to v3 Enhanced endpoint
+  - Ensures compatibility between Smart QR templates and v3 Enhanced Rust service
+  - Fixed invalid eye shape value: `rounded` → `rounded_square` in all templates
+
+#### Enhanced
+- 👑 **Unlimited Smart QR for SUPERADMIN** - Removed daily limits for super administrators
+  - SUPERADMIN users now have unlimited Smart QR generation (999,999 limit)
+  - Usage tracking disabled for SUPERADMIN while maintaining analytics
+  - Added `isUnlimited` parameter throughout the Smart QR stack
+  - SUPERADMIN users also get full template access in responses
+  - Fixed role comparisons to use uppercase (PREMIUM, WEBADMIN, SUPERADMIN)
 
 #### Added
 - 🎆 **Smart QR Module (Beta)** - Intelligent QR code generation with automatic style detection

@@ -146,8 +146,6 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
   data,
   totalModules,
   dataModules,
-  version,
-  errorCorrection,
   size = 300,
   backgroundColor = 'transparent',
   title = 'Código QR',

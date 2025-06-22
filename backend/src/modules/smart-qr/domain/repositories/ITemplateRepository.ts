@@ -85,11 +85,14 @@ export interface ITemplateRepository {
   /**
    * Update template analytics
    */
-  updateAnalytics(id: string, analytics: {
-    incrementUsage?: boolean;
-    conversionRate?: number;
-    lastUsed?: Date;
-  }): Promise<void>;
+  updateAnalytics(
+    id: string,
+    analytics: {
+      incrementUsage?: boolean;
+      conversionRate?: number;
+      lastUsed?: Date;
+    }
+  ): Promise<void>;
 
   /**
    * Find templates without coverage for given domains
@@ -131,10 +134,12 @@ export interface ITemplateRepository {
   /**
    * Bulk update templates
    */
-  bulkUpdate(updates: Array<{
-    id: string;
-    changes: Partial<Template>;
-  }>): Promise<void>;
+  bulkUpdate(
+    updates: Array<{
+      id: string;
+      changes: Partial<Template>;
+    }>
+  ): Promise<void>;
 }
 
 // Error types for repository operations

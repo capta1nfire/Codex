@@ -1,18 +1,20 @@
-import express from 'express';
-import { z } from 'zod';
 import dns from 'dns/promises';
-import https from 'https';
 import http from 'http';
+import https from 'https';
+import { URL } from 'url';
+
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { URL } from 'url';
+import express from 'express';
+import { z } from 'zod';
+
 import { redis } from '../lib/redis.js';
 
 const router = express.Router();
 
 // Schema de validación
 const validateUrlSchema = z.object({
-  url: z.string().min(1)
+  url: z.string().min(1),
 });
 
 interface UrlMetadata {
@@ -51,7 +53,7 @@ function extractDomain(url: string): string {
  */
 async function checkDomainExists(domain: string): Promise<boolean> {
   console.log(`[DNS] Starting DNS checks for domain: ${domain}`);
-  
+
   // Lista de tipos de registros DNS a verificar
   const dnsChecks = [
     { name: 'A (IPv4)', check: () => dns.resolve4(domain) },
@@ -87,41 +89,41 @@ async function checkUrlResponds(url: string): Promise<UrlMetadata> {
   const normalizedUrl = normalizeUrl(url);
   const domain = extractDomain(url);
   const startTime = Date.now();
-  
+
   console.log(`[URL Validation] Starting validation for: ${normalizedUrl}`);
   console.log(`[URL Validation] Domain extracted: ${domain}`);
-  
+
   // Estrategia 1: Verificación DNS completa
   console.log(`[URL Validation] Starting DNS checks for ${domain}...`);
   const domainExists = await checkDomainExists(domain);
   console.log(`[URL Validation] DNS check for ${domain}: ${domainExists ? 'EXISTS' : 'NOT FOUND'}`);
-  
+
   // Log adicional para dominios .edu.co
   if (domain.endsWith('.edu.co')) {
     console.log(`[URL Validation] Special handling for .edu.co domain: ${domain}`);
     console.log(`[URL Validation] Using extended timeout: 5000ms`);
   }
-  
+
   // Estrategia 2: Verificación HTTP incluso si DNS falla
   // Algunos dominios (como x.com) pueden tener DNS especiales
   return new Promise((resolve) => {
     const urlObj = new URL(normalizedUrl);
     const protocol = urlObj.protocol === 'https:' ? https : http;
-    
+
     // Timeout más largo para dominios .edu.co que pueden ser más lentos
     const timeoutMs = domain.endsWith('.edu.co') ? 5000 : 3000;
-    
+
     const options: any = {
       method: 'HEAD',
       timeout: timeoutMs,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': '*/*',
+        Accept: '*/*',
         'Accept-Encoding': 'gzip, deflate',
-        'Connection': 'close' // Cerrar conexión inmediatamente
-      }
+        Connection: 'close', // Cerrar conexión inmediatamente
+      },
     };
-    
+
     // For .edu.co domains with HTTPS, be more lenient with SSL certificates
     if (domain.endsWith('.edu.co') && urlObj.protocol === 'https:') {
       options.rejectUnauthorized = false;
@@ -132,53 +134,67 @@ async function checkUrlResponds(url: string): Promise<UrlMetadata> {
       // Considerar CUALQUIER respuesta HTTP como "sitio existe"
       // Incluso 403, 401, 503, etc. significan que hay un servidor
       const exists = res.statusCode !== undefined;
-      
+
       const result: UrlMetadata = {
         exists: exists,
-        statusCode: res.statusCode
+        statusCode: res.statusCode,
       };
-      
-      console.log(`[URL Validation] HTTP response - Status: ${res.statusCode}, Exists: ${exists}, Time: ${Date.now() - startTime}ms`);
-      
+
+      console.log(
+        `[URL Validation] HTTP response - Status: ${res.statusCode}, Exists: ${exists}, Time: ${Date.now() - startTime}ms`
+      );
+
       // Si obtenemos respuesta HTTP, el sitio existe
       // independientemente del código de estado
       if (exists && !domainExists) {
         result.title = domain; // DNS falló pero HTTP respondió
       }
-      
+
       // Cerrar conexión inmediatamente para evitar hanging
       res.destroy();
       req.destroy();
-      
+
       resolve(result);
     });
 
     req.on('error', (error: any) => {
-      console.log(`[URL Validation] HTTP error - Code: ${error.code}, Message: ${error.message}, DNS exists: ${domainExists}`);
+      console.log(
+        `[URL Validation] HTTP error - Code: ${error.code}, Message: ${error.message}, DNS exists: ${domainExists}`
+      );
       console.log(`[URL Validation] Full error:`, error);
-      
-      // Si el error es de conexión pero DNS existe, 
+
+      // Si el error es de conexión pero DNS existe,
       // podría ser un firewall, restricción o problema de SSL
-      const sslErrors = ['UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'CERT_HAS_EXPIRED', 'DEPTH_ZERO_SELF_SIGNED_CERT', 'SELF_SIGNED_CERT_IN_CHAIN'];
-      
-      if (domainExists && (
-        error.code === 'ECONNREFUSED' || 
-        error.code === 'ETIMEDOUT' || 
-        error.code === 'ENOTFOUND' ||
-        sslErrors.includes(error.code)
-      )) {
-        console.log(`[URL Validation] DNS exists but HTTP failed (${error.code}) - assuming site exists`);
+      const sslErrors = [
+        'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+        'CERT_HAS_EXPIRED',
+        'DEPTH_ZERO_SELF_SIGNED_CERT',
+        'SELF_SIGNED_CERT_IN_CHAIN',
+      ];
+
+      if (
+        domainExists &&
+        (error.code === 'ECONNREFUSED' ||
+          error.code === 'ETIMEDOUT' ||
+          error.code === 'ENOTFOUND' ||
+          sslErrors.includes(error.code))
+      ) {
+        console.log(
+          `[URL Validation] DNS exists but HTTP failed (${error.code}) - assuming site exists`
+        );
         resolve({
           exists: true, // DNS existe, asumimos que el sitio existe
-          error: sslErrors.includes(error.code) ? 'SSL certificate issue' : 'Connection blocked or timed out',
+          error: sslErrors.includes(error.code)
+            ? 'SSL certificate issue'
+            : 'Connection blocked or timed out',
           title: domain,
           // Still provide favicon via Google
-          favicon: `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+          favicon: `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
         });
       } else {
         resolve({
           exists: false,
-          error: error.code || error.message
+          error: error.code || error.message,
         });
       }
     });
@@ -192,12 +208,12 @@ async function checkUrlResponds(url: string): Promise<UrlMetadata> {
         resolve({
           exists: true,
           error: 'Timeout but domain exists',
-          title: domain
+          title: domain,
         });
       } else {
         resolve({
           exists: false,
-          error: 'Timeout'
+          error: 'Timeout',
         });
       }
     });
@@ -216,12 +232,12 @@ async function checkUrlResponds(url: string): Promise<UrlMetadata> {
  */
 async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
   const normalizedUrl = normalizeUrl(url);
-  
+
   console.log(`[fetchUrlMetadata] Starting for URL: ${url}`);
-  
+
   // Check cache first
   const cacheKey = `url_metadata:${normalizedUrl}`;
-  
+
   const cached = await redis.get(cacheKey);
   if (cached) {
     const cachedData = JSON.parse(cached);
@@ -229,10 +245,10 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
     // skip cache and re-validate
     const problematicDomains = ['facebook.com', 'www.facebook.com', 'meta.com'];
     const domain = extractDomain(url);
-    
+
     // Also skip cache for .edu.co domains as they may have special configurations
     const isProblematicDomain = problematicDomains.includes(domain) || domain.endsWith('.edu.co');
-    
+
     if (!cachedData.exists && isProblematicDomain) {
       console.log(`[fetchUrlMetadata] Skipping cache for problematic domain: ${domain}`);
     } else {
@@ -244,7 +260,7 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
   console.log(`[fetchUrlMetadata] Not in cache, checking URL...`);
   // First check if URL is reachable with our smart strategy
   const urlCheck = await checkUrlResponds(url);
-  
+
   if (!urlCheck.exists) {
     // Cache negative results for shorter time (30 seconds)
     await redis.setEx(cacheKey, 30, JSON.stringify(urlCheck));
@@ -254,55 +270,58 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
   // If URL exists, try to enrich with metadata
   try {
     const domain = extractDomain(url);
-    
+
     // Create axios config
     const axiosConfig: any = {
       timeout: 5000,
       maxRedirects: 5,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml'
+        Accept: 'text/html,application/xhtml+xml',
       },
       // Don't throw on 4xx/5xx to get status codes
-      validateStatus: () => true
+      validateStatus: () => true,
     };
-    
+
     // For .edu.co domains, ignore SSL certificate errors
     if (domain.endsWith('.edu.co')) {
       axiosConfig.httpsAgent = new https.Agent({
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
       });
       console.log(`[fetchUrlMetadata] Using lenient SSL for .edu.co domain`);
     }
-    
+
     // Try to fetch the page with timeout
     const response = await axios.get(normalizedUrl, axiosConfig);
 
     const result: UrlMetadata = {
       exists: urlCheck.exists, // Use the smart check result
-      statusCode: response.status || urlCheck.statusCode
+      statusCode: response.status || urlCheck.statusCode,
     };
 
     // Parse HTML for metadata if successful
     if (response.status < 400 && response.data) {
       const $ = cheerio.load(response.data);
-      
+
       // Extract title
-      result.title = $('title').text().trim() || 
-                    $('meta[property="og:title"]').attr('content') || 
-                    $('meta[name="twitter:title"]').attr('content') ||
-                    urlCheck.title; // Fallback to domain name
-      
+      result.title =
+        $('title').text().trim() ||
+        $('meta[property="og:title"]').attr('content') ||
+        $('meta[name="twitter:title"]').attr('content') ||
+        urlCheck.title; // Fallback to domain name
+
       // Extract description
-      result.description = $('meta[name="description"]').attr('content') ||
-                          $('meta[property="og:description"]').attr('content') ||
-                          $('meta[name="twitter:description"]').attr('content');
-      
+      result.description =
+        $('meta[name="description"]').attr('content') ||
+        $('meta[property="og:description"]').attr('content') ||
+        $('meta[name="twitter:description"]').attr('content');
+
       // Extract favicon
-      let favicon = $('link[rel="icon"]').attr('href') ||
-                   $('link[rel="shortcut icon"]').attr('href') ||
-                   $('link[rel="apple-touch-icon"]').attr('href');
-      
+      let favicon =
+        $('link[rel="icon"]').attr('href') ||
+        $('link[rel="shortcut icon"]').attr('href') ||
+        $('link[rel="apple-touch-icon"]').attr('href');
+
       if (favicon) {
         // Make favicon URL absolute
         if (favicon.startsWith('//')) {
@@ -331,7 +350,6 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
     // Cache successful results for 24 hours
     await redis.setEx(cacheKey, 86400, JSON.stringify(result));
     return result;
-
   } catch (error: any) {
     // If we can't get metadata but URL exists (according to DNS), return basic info
     if (urlCheck.exists) {
@@ -340,19 +358,19 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
         title: urlCheck.title || extractDomain(url),
         error: `Metadata fetch failed: ${error.code || error.message}`,
         // Still try to get favicon via Google
-        favicon: `https://www.google.com/s2/favicons?domain=${extractDomain(url)}&sz=64`
+        favicon: `https://www.google.com/s2/favicons?domain=${extractDomain(url)}&sz=64`,
       };
       // Cache with shorter TTL since we couldn't get full metadata
       await redis.setEx(cacheKey, 300, JSON.stringify(result));
       return result;
     }
-    
+
     // URL doesn't exist
     const result: UrlMetadata = {
       exists: false,
-      error: error.code || error.message
+      error: error.code || error.message,
     };
-    
+
     // Cache network errors for shorter time for .edu.co domains
     // as they might be temporarily unavailable
     const cacheTTL = domain.endsWith('.edu.co') ? 10 : 30;
@@ -368,9 +386,9 @@ router.post('/check-url', async (req, res) => {
   const startTime = Date.now();
   try {
     const { url } = validateUrlSchema.parse(req.body);
-    
+
     console.log(`[/check-url] ========== Starting validation for URL: ${url} ==========`);
-    
+
     // Quick response for common test domains
     const testDomains = ['localhost', '127.0.0.1', '0.0.0.0', 'example.com'];
     const domain = extractDomain(url);
@@ -378,7 +396,7 @@ router.post('/check-url', async (req, res) => {
       return res.json({
         exists: true,
         title: domain,
-        description: 'Local or test domain'
+        description: 'Local or test domain',
       });
     }
 
@@ -387,19 +405,17 @@ router.post('/check-url', async (req, res) => {
     console.log(`[/check-url] ========== Validation completed in ${totalTime}ms ==========`);
     console.log(`[/check-url] Result for ${url}:`, JSON.stringify(metadata, null, 2));
     return res.json(metadata);
-
   } catch (error: any) {
     const totalTime = Date.now() - startTime;
     console.log(`[/check-url] ========== Validation FAILED after ${totalTime}ms ==========`);
-    
+
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid URL format' });
     }
-    
+
     console.error('URL validation error:', error);
     return res.status(500).json({ error: 'Failed to validate URL' });
   }
 });
-
 
 export default router;

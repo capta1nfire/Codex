@@ -337,11 +337,14 @@ class QrEngineV2Service {
     // Simple field mappings
     if (options.size !== undefined) rustOptions.size = options.size;
     if (options.margin !== undefined) rustOptions.margin = options.margin;
-    if (options.errorCorrection !== undefined) rustOptions.error_correction = options.errorCorrection;
+    if (options.errorCorrection !== undefined)
+      rustOptions.error_correction = options.errorCorrection;
     if (options.eyeShape !== undefined) rustOptions.eye_shape = options.eyeShape;
     if (options.dataPattern !== undefined) rustOptions.data_pattern = options.dataPattern;
-    if (options.foregroundColor !== undefined) rustOptions.foreground_color = options.foregroundColor;
-    if (options.backgroundColor !== undefined) rustOptions.background_color = options.backgroundColor;
+    if (options.foregroundColor !== undefined)
+      rustOptions.foreground_color = options.foregroundColor;
+    if (options.backgroundColor !== undefined)
+      rustOptions.background_color = options.backgroundColor;
     if (options.eyeColor !== undefined) rustOptions.eye_color = options.eyeColor;
 
     // Transform gradient object

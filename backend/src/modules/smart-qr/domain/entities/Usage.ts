@@ -70,24 +70,28 @@ export class Usage {
    * Get usage statistics
    */
   getStats() {
-    const templateUsage = this.metadata.reduce((acc, meta) => {
-      if (meta.templateId) {
-        acc[meta.templateId] = (acc[meta.templateId] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+    const templateUsage = this.metadata.reduce(
+      (acc, meta) => {
+        if (meta.templateId) {
+          acc[meta.templateId] = (acc[meta.templateId] || 0) + 1;
+        }
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
-    const avgProcessingTime = this.metadata
-      .filter(m => m.processingTimeMs)
-      .reduce((sum, m) => sum + (m.processingTimeMs || 0), 0) / 
-      this.metadata.filter(m => m.processingTimeMs).length || 0;
+    const avgProcessingTime =
+      this.metadata
+        .filter((m) => m.processingTimeMs)
+        .reduce((sum, m) => sum + (m.processingTimeMs || 0), 0) /
+        this.metadata.filter((m) => m.processingTimeMs).length || 0;
 
     return {
       totalUsage: this.count,
       remaining: this.getRemainingToday(),
       templateBreakdown: templateUsage,
       averageProcessingTime: avgProcessingTime,
-      lastUsed: this.metadata[this.metadata.length - 1]?.generatedAt
+      lastUsed: this.metadata[this.metadata.length - 1]?.generatedAt,
     };
   }
 
@@ -102,7 +106,7 @@ export class Usage {
    * Get usage for specific template
    */
   getTemplateUsage(templateId: string): number {
-    return this.metadata.filter(m => m.templateId === templateId).length;
+    return this.metadata.filter((m) => m.templateId === templateId).length;
   }
 
   /**
@@ -111,7 +115,7 @@ export class Usage {
   static createForToday(userId: string, dailyLimit: number = 3): Usage {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     return new Usage(
       `usage_${userId}_${today.toISOString().split('T')[0]}`,
       userId,
@@ -137,10 +141,8 @@ export interface UsageStats {
 
 // Type guard
 export function isUsage(obj: any): obj is Usage {
-  return obj instanceof Usage || (
-    typeof obj === 'object' &&
-    'userId' in obj &&
-    'date' in obj &&
-    'count' in obj
+  return (
+    obj instanceof Usage ||
+    (typeof obj === 'object' && 'userId' in obj && 'date' in obj && 'count' in obj)
   );
 }

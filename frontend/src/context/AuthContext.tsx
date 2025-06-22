@@ -8,6 +8,7 @@ import React, {
   ReactNode,
   useCallback,
   FC,
+  useRef,
 } from 'react';
 import { useRouter } from 'next/navigation'; // Para redirección si es necesario
 
@@ -70,6 +71,9 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true); // Empezar cargando (para verificar token inicial?)
   const [isInitialized, setIsInitialized] = useState<boolean>(false); // Track if initial check is done
   const router = useRouter();
+  
+  // Ref to prevent double initialization in StrictMode
+  const hasInitializedRef = useRef(false);
 
   // Función para obtener datos del usuario basado en token
   const fetchUser = useCallback(async (token: string) => {
@@ -139,6 +143,13 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   // Verificar token al montar el proveedor
   useEffect(() => {
+    // Use ref to prevent double execution in StrictMode
+    if (hasInitializedRef.current) {
+      return;
+    }
+    
+    hasInitializedRef.current = true;
+    
     const initializeAuth = async () => {
       console.log('[AuthContext] Initializing auth check...');
       const storedToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');

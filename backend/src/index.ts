@@ -27,18 +27,18 @@ import { config } from './config.js';
 import { authMiddleware } from './middleware/authMiddleware.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 // Importar rutas (Comentadas para depuración)
+import smartQRRoutes from './modules/smart-qr/interfaces/http/routes.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { avatarRoutes } from './routes/avatar.routes.js';
 import { baseRoutes } from './routes/base.routes.js';
 import { generateRoutes } from './routes/generate.routes.js';
 import healthRoutes from './routes/health.js'; // ✅ Sistema robusto
 import { metricsRoutes } from './routes/metrics.routes.js';
+import qrV3Routes from './routes/qr-v3.routes.js';
 import { qrRoutes } from './routes/qr.routes.js';
 import qrV2Routes from './routes/qrV2.routes.js';
-import qrV3Routes from './routes/qr-v3.routes.js';
 import { userRoutes } from './routes/user.routes.js';
 import validateRoutes from './routes/validate.js';
-import smartQRRoutes from './modules/smart-qr/interfaces/http/routes.js';
 import { startServer } from './server-config.js'; // <--- Descomentar esta línea
 import {
   startDatabaseService,

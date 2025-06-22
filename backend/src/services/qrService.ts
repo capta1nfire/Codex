@@ -78,10 +78,10 @@ export async function generateQRv2(request: QRGenerateRequest): Promise<QRGenera
         colors: request.options.gradient.colors,
         angle: request.options.gradient.angle,
         strokeStyle: request.options.gradient.strokeStyle,
-        hasStrokeStyle: !!request.options.gradient.strokeStyle
+        hasStrokeStyle: !!request.options.gradient.strokeStyle,
       });
     }
-    
+
     // Use v2 endpoint directly without legacy transformation
     const v2Request = {
       data: request.data,
@@ -99,17 +99,17 @@ export async function generateQRv2(request: QRGenerateRequest): Promise<QRGenera
               ? (() => {
                   // Debug logging
                   logger.info('[QR Service] Incoming gradient request:', {
-                    gradient: request.options.gradient
+                    gradient: request.options.gradient,
                   });
-                  
+
                   if (request.options.gradient.strokeStyle) {
                     logger.info('[QR Service] StrokeStyle detected in request:', {
-                      strokeStyle: request.options.gradient.strokeStyle
+                      strokeStyle: request.options.gradient.strokeStyle,
                     });
                   } else {
                     logger.info('[QR Service] No strokeStyle in gradient request');
                   }
-                  
+
                   const gradientObj = {
                     type: request.options.gradient.type,
                     colors: request.options.gradient.colors,
@@ -126,8 +126,11 @@ export async function generateQRv2(request: QRGenerateRequest): Promise<QRGenera
                         }
                       : undefined,
                   };
-                  
-                  logger.info('[QR Service] Final gradient object:', JSON.stringify(gradientObj, null, 2));
+
+                  logger.info(
+                    '[QR Service] Final gradient object:',
+                    JSON.stringify(gradientObj, null, 2)
+                  );
                   return gradientObj;
                 })()
               : undefined,

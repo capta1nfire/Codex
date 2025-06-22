@@ -27,7 +27,6 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   barcodeType = 'qrcode',
   isUsingV2 = false,
   showCacheIndicator = false,
-  gradientOptions,
 }) => {
   const { handleDownload } = useBarcodeActions(svgContent, barcodeType);
 

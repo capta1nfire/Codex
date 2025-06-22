@@ -11,9 +11,7 @@
 
 import { useState, useCallback } from 'react';
 import { GenerateFormData } from '@/schemas/generate.schema';
-import { useAuth } from '@/hooks/useAuth';
-import { getQREngineV2, QRv2Options } from '@/lib/qr-engine-v2';
-import { shouldUseV2, migrateQRRequest, convertV2ResponseToOld } from '@/lib/qr-migration';
+import { shouldUseV2, migrateQRRequest } from '@/lib/qr-migration';
 
 interface ErrorResponse {
   success: boolean;
@@ -47,7 +45,6 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
   const [serverError, setServerError] = useState<ErrorResponse | null>(null);
   const [metadata, setMetadata] = useState<GenerationMetadata | null>(null);
   const [isUsingV2, setIsUsingV2] = useState(false);
-  const { user } = useAuth();
 
   const generateBarcode = useCallback(async (formData: GenerateFormData) => {
     console.log('[useBarcodeGenerationV2] generateBarcode called with:', formData);
@@ -92,9 +89,6 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
           if (opts.gradient_enabled) {
             v2Request.options = v2Request.options || {};
             
-            // Default gradient borders to true if not specified
-            const gradientBorders = opts.gradient_borders !== undefined ? opts.gradient_borders : true;
-            
             v2Request.options.gradient = {
               type: opts.gradient_type || 'linear',
               colors: [opts.gradient_color1 || '#000000', opts.gradient_color2 || '#666666'],
@@ -102,13 +96,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
                      opts.gradient_direction === 'diagonal' ? 45 : 
                      opts.gradient_direction === 'center-out' ? 0 : 90,
               applyToData: true,
-              applyToEyes: false,
-              strokeStyle: gradientBorders ? {
-                enabled: true,
-                color: '#FFFFFF',
-                width: 0.1,
-                opacity: 0.3
-              } : undefined
+              applyToEyes: false
             };
             
             // Override colors when gradient is enabled
@@ -145,12 +133,12 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
               style: opts.frame.style,
               text: opts.frame.text,
               color: opts.frame.color || '#000000',
-              text_position: opts.frame.text_position || 'bottom'
+              textPosition: opts.frame.text_position || 'bottom'
             };
           }
         }
         
-        const token = user?.token || localStorage.getItem('authToken');
+        const token = localStorage.getItem('authToken');
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
         };
@@ -211,7 +199,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
         const requestUrl = `${backendUrl}/api/v1/barcode`;
         
-        const token = user?.token || localStorage.getItem('authToken');
+        const token = localStorage.getItem('authToken');
         
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
@@ -272,7 +260,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   const clearError = useCallback(() => {
     setServerError(null);

@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Download, QrCode } from 'lucide-react';
 import BarcodeDisplay from '@/app/BarcodeDisplay';
 import { useBarcodeActions } from '@/hooks/useBarcodeActions';
@@ -23,7 +22,6 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   serverError,
   selectedType,
   data,
-  gradientOptions,
   scale,
   onScaleChange,
   isTyping = false,

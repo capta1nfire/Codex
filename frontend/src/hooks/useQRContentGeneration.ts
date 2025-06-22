@@ -51,8 +51,8 @@ export const useQRContentGeneration = () => {
     
     // Helper to get value with fallback to default
     const getValueWithDefault = (field: string) => {
-      const value = data[field];
-      return value && value.trim() !== '' ? value : defaults?.[field as keyof typeof defaults] || '';
+      const value = (data as any)[field];
+      return value && value.trim() !== '' ? value : (defaults as any)?.[field] || '';
     };
     
     switch (type) {
@@ -64,27 +64,27 @@ export const useQRContentGeneration = () => {
         
       case 'call':
         const callPhone = getValueWithDefault('phoneNumber');
-        const callCountry = data.countryCode || defaults?.countryCode || '+1';
+        const callCountry = (data as any).countryCode || (defaults as any)?.countryCode || '+1';
         return `tel:${callCountry}${callPhone}`;
         
       case 'sms':
         const smsPhone = getValueWithDefault('phoneNumber');
         const smsMessage = getValueWithDefault('message');
-        const smsCountry = data.countryCode || defaults?.countryCode || '+1';
+        const smsCountry = (data as any).countryCode || (defaults as any)?.countryCode || '+1';
         return `sms:${smsCountry}${smsPhone}?body=${encodeURIComponent(smsMessage)}`;
         
       case 'whatsapp':
         const waPhone = getValueWithDefault('phoneNumber');
         const waMessage = getValueWithDefault('message');
-        const waCountry = data.countryCode || defaults?.countryCode || '+1';
+        const waCountry = (data as any).countryCode || (defaults as any)?.countryCode || '+1';
         const whatsappNumber = `${waCountry}${waPhone}`.replace(/\D/g, '');
         return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(waMessage)}`;
         
       case 'wifi':
         const networkName = getValueWithDefault('networkName');
         const password = getValueWithDefault('password');
-        const security = data.security || defaults?.security || 'WPA';
-        const hidden = data.hidden !== undefined ? data.hidden : defaults?.hidden || false;
+        const security = (data as any).security || (defaults as any)?.security || 'WPA';
+        const hidden = (data as any).hidden !== undefined ? (data as any).hidden : (defaults as any)?.hidden || false;
         return `WIFI:T:${security};S:${networkName};P:${password};H:${hidden ? 'true' : 'false'};;`;
         
       case 'vcard':

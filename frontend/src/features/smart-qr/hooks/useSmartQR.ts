@@ -34,7 +34,7 @@ const ANALYSIS_STEPS: Array<{
 ];
 
 export const useSmartQR = (options: UseSmartQROptions = {}) => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [state, setState] = useState<SmartQRState>({
     isAnalyzing: false,
     template: null,
@@ -76,13 +76,13 @@ export const useSmartQR = (options: UseSmartQROptions = {}) => {
     if (!user) return;
 
     try {
-      const status = await smartQRService.checkLimit();
+      const status = await smartQRService.checkLimit(token || undefined);
       setLimitStatus(status);
       setState(prev => ({ ...prev, remaining: status.remaining }));
     } catch (error) {
       console.error('Failed to check limit:', error);
     }
-  }, [user]);
+  }, [user, token]);
 
   /**
    * Animate through analysis steps
@@ -135,13 +135,13 @@ export const useSmartQR = (options: UseSmartQROptions = {}) => {
       // Start animation
       const animationPromise = animateAnalysis();
 
-      // Make API call
+      // Make API call with token from context
       const response = await smartQRService.generate({
         url,
         options: {
           skipAnalysisDelay: false // Let backend handle delay
         }
-      });
+      }, token || undefined);
 
       // Wait for animation to complete
       await animationPromise;
@@ -175,12 +175,27 @@ export const useSmartQR = (options: UseSmartQROptions = {}) => {
       return data?.configuration || null;
 
     } catch (error: any) {
+      console.error('[useSmartQR] Error:', error);
+      
+      // Clear animation timeout
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+      }
+      
       const errorMessage = error.response?.data?.error?.message || error.message || 'Error al generar QR inteligente';
+      
+      // Check if it's an authentication error
+      const isAuthError = error.response?.status === 401 || 
+                         error.response?.data?.error?.code === 'UNAUTHORIZED';
+      
+      const finalMessage = isAuthError 
+        ? 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.'
+        : errorMessage;
       
       setState(prev => ({
         ...prev,
         isAnalyzing: false,
-        error: errorMessage
+        error: finalMessage
       }));
 
       setAnalysisState({
@@ -189,10 +204,10 @@ export const useSmartQR = (options: UseSmartQROptions = {}) => {
         message: ''
       });
 
-      options.onError?.(errorMessage);
+      options.onError?.(finalMessage);
       return null;
     }
-  }, [user, animateAnalysis, options]);
+  }, [user, token, animateAnalysis, options]);
 
   /**
    * Get available templates for a URL

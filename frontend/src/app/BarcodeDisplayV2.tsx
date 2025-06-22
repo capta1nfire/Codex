@@ -51,7 +51,7 @@ export default function BarcodeDisplayV2({
         if (!originalViewBox) return svgContent;
         
         // Parseamos los valores del viewBox original
-        const [, , width, height] = originalViewBox.split(' ').map(Number);
+        const [, , width] = originalViewBox.split(' ').map(Number);
         
         // El backend incluye una quiet zone de 4 módulos
         const QUIET_ZONE = 4;

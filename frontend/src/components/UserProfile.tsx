@@ -49,7 +49,6 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
     isLoading,
     error,
     isEditing,
-    defaultProfilePictures,
     user,
     isAuthenticated,
     handleProfileUpdate,

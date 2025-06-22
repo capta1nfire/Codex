@@ -24,28 +24,57 @@ class SmartQRService {
   /**
    * Generate a Smart QR code
    */
-  async generate(request: SmartQRGenerateRequest): Promise<SmartQRGenerateResponse> {
+  async generate(request: SmartQRGenerateRequest, token?: string): Promise<SmartQRGenerateResponse> {
     try {
+      const authToken = token || this.getAuthToken();
+      
+      console.log('=== SMART QR SERVICE REQUEST DEBUG ===');
+      console.log('Endpoint:', `${this.baseUrl}/generate`);
+      console.log('Request:', JSON.stringify(request, null, 2));
+      console.log('Auth Token Present:', !!authToken);
+      console.log('=====================================');
+      
       const response = await axios.post<SmartQRGenerateResponse>(
         `${this.baseUrl}/generate`,
         request,
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.getAuthToken()}`
+            Authorization: `Bearer ${authToken}`
           }
         }
       );
+      
+      console.log('=== SMART QR SERVICE RESPONSE DEBUG ===');
+      console.log('Response Status:', response.status);
+      console.log('Response Data:', JSON.stringify(response.data, null, 2));
+      console.log('=======================================');
+      
       return response.data;
     } catch (error: any) {
+      console.error('[SmartQRService] Generate error:', error);
+      
       if (error.response?.data) {
+        // Return backend error response
         return error.response.data;
       }
+      
+      if (error.response?.status === 401) {
+        return {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'No autorizado. Por favor inicia sesión nuevamente.',
+            details: 'Token de autenticación inválido o expirado'
+          }
+        };
+      }
+      
       return {
         success: false,
         error: {
           code: 'NETWORK_ERROR',
-          message: 'Failed to connect to server',
+          message: 'No se pudo conectar con el servidor',
           details: error.message
         }
       };
@@ -87,13 +116,14 @@ class SmartQRService {
   /**
    * Check current usage limit
    */
-  async checkLimit(): Promise<SmartQRLimitStatus> {
+  async checkLimit(token?: string): Promise<SmartQRLimitStatus> {
     try {
+      const authToken = token || this.getAuthToken();
       const response = await axios.get(
         `${this.baseUrl}/limit`,
         {
           headers: {
-            Authorization: `Bearer ${this.getAuthToken()}`
+            Authorization: `Bearer ${authToken}`
           }
         }
       );
@@ -186,10 +216,11 @@ class SmartQRService {
    * Helper to get auth token
    */
   private getAuthToken(): string {
-    // Get token from localStorage or auth context
-    // This should be integrated with your auth system
+    // Get token from localStorage or sessionStorage (for "remember me" option)
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('authToken') || '';
+      return localStorage.getItem('authToken') || 
+             sessionStorage.getItem('authToken') || 
+             '';
     }
     return '';
   }

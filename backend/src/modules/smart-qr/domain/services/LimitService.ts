@@ -5,8 +5,8 @@
  */
 
 import { redis } from '../../../../lib/redis.js';
-import { Usage } from '../entities/Usage.js';
 import { eventBus } from '../../infrastructure/events/EventBus.js';
+import { Usage } from '../entities/Usage.js';
 
 export interface LimitCheckResult {
   allowed: boolean;
@@ -28,18 +28,33 @@ export class LimitService {
     this.config = {
       dailyLimit: config.dailyLimit,
       premiumDailyLimit: config.premiumDailyLimit || config.dailyLimit * 2,
-      resetHour: config.resetHour || 0
+      resetHour: config.resetHour || 0,
     };
   }
 
   /**
    * Check if a user can generate a Smart QR
    */
-  async checkLimit(userId: string, isPremium: boolean = false): Promise<LimitCheckResult> {
+  async checkLimit(
+    userId: string,
+    isPremium: boolean = false,
+    isUnlimited: boolean = false
+  ): Promise<LimitCheckResult> {
+    const resetAt = this.getResetTime();
+
+    // Unlimited users (SUPERADMIN) always have access
+    if (isUnlimited) {
+      return {
+        allowed: true,
+        remaining: 999999,
+        resetAt,
+        limit: 999999,
+      };
+    }
+
     const key = this.getUserKey(userId);
     const count = await this.getCurrentCount(key);
     const limit = isPremium ? this.config.premiumDailyLimit : this.config.dailyLimit;
-    const resetAt = this.getResetTime();
 
     const allowed = count < limit;
     const remaining = Math.max(0, limit - count);
@@ -50,7 +65,7 @@ export class LimitService {
         userId,
         currentCount: count,
         limit,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
     }
 
@@ -58,23 +73,36 @@ export class LimitService {
       allowed,
       remaining,
       resetAt,
-      limit
+      limit,
     };
   }
 
   /**
    * Record usage when a Smart QR is generated
    */
-  async recordUsage(userId: string, metadata?: {
-    templateId?: string;
-    url: string;
-    processingTimeMs?: number;
-  }): Promise<number> {
+  async recordUsage(
+    userId: string,
+    metadata?: {
+      templateId?: string;
+      url: string;
+      processingTimeMs?: number;
+    },
+    isUnlimited: boolean = false
+  ): Promise<number> {
+    // Don't track usage for unlimited users (SUPERADMIN)
+    if (isUnlimited) {
+      // Still store metadata for analytics
+      if (metadata) {
+        await this.storeUsageMetadata(userId, metadata);
+      }
+      return 0;
+    }
+
     const key = this.getUserKey(userId);
-    
+
     // Increment counter
     const newCount = await redis.incr(key);
-    
+
     // Set expiration on first use of the day
     if (newCount === 1) {
       const ttl = this.getSecondsUntilReset();
@@ -92,11 +120,19 @@ export class LimitService {
   /**
    * Get remaining usage for today
    */
-  async getRemainingToday(userId: string, isPremium: boolean = false): Promise<number> {
+  async getRemainingToday(
+    userId: string,
+    isPremium: boolean = false,
+    isUnlimited: boolean = false
+  ): Promise<number> {
+    if (isUnlimited) {
+      return 999999;
+    }
+
     const key = this.getUserKey(userId);
     const count = await this.getCurrentCount(key);
     const limit = isPremium ? this.config.premiumDailyLimit : this.config.dailyLimit;
-    
+
     return Math.max(0, limit - count);
   }
 
@@ -114,7 +150,7 @@ export class LimitService {
   async resetUsage(userId: string): Promise<void> {
     const key = this.getUserKey(userId);
     await redis.del(key);
-    
+
     // Also clear metadata
     const metadataKey = this.getMetadataKey(userId);
     await redis.del(metadataKey);
@@ -123,7 +159,10 @@ export class LimitService {
   /**
    * Get usage statistics for a user
    */
-  async getUsageStats(userId: string, days: number = 7): Promise<{
+  async getUsageStats(
+    userId: string,
+    days: number = 7
+  ): Promise<{
     daily: Array<{ date: string; count: number }>;
     total: number;
     averagePerDay: number;
@@ -137,7 +176,7 @@ export class LimitService {
       date.setDate(date.getDate() - i);
       const dateStr = this.getDateString(date);
       const key = `smartqr:usage:${userId}:${dateStr}`;
-      
+
       const count = await this.getCurrentCount(key);
       stats.push({ date: dateStr, count });
       total += count;
@@ -146,7 +185,7 @@ export class LimitService {
     return {
       daily: stats.reverse(),
       total,
-      averagePerDay: total / days
+      averagePerDay: total / days,
     };
   }
 
@@ -155,24 +194,24 @@ export class LimitService {
    */
   async bulkCheckLimits(userIds: string[]): Promise<Map<string, LimitCheckResult>> {
     const results = new Map<string, LimitCheckResult>();
-    
-    // Use pipeline for efficiency
-    const pipeline = redis.pipeline();
-    const keys = userIds.map(id => this.getUserKey(id));
-    
-    keys.forEach(key => pipeline.get(key));
-    
-    const counts = await pipeline.exec();
-    
+
+    // Use multi for efficiency (Redis v4 uses multi instead of pipeline)
+    const multi = redis.multi();
+    const keys = userIds.map((id) => this.getUserKey(id));
+
+    keys.forEach((key) => multi.get(key));
+
+    const counts = await multi.exec();
+
     userIds.forEach((userId, index) => {
-      const count = parseInt(counts?.[index]?.[1] as string || '0');
+      const count = parseInt((counts?.[index]?.[1] as string) || '0');
       const limit = this.config.dailyLimit; // Default to regular limit
-      
+
       results.set(userId, {
         allowed: count < limit,
         remaining: Math.max(0, limit - count),
         resetAt: this.getResetTime(),
-        limit
+        limit,
       });
     });
 
@@ -184,17 +223,25 @@ export class LimitService {
    */
   async setTemporaryLimit(userId: string, limit: number, duration: number): Promise<void> {
     const key = `smartqr:limit:override:${userId}`;
-    await redis.setex(key, duration, limit.toString());
+    await redis.setEx(key, duration, limit.toString());
   }
 
   /**
    * Get effective limit for user
    */
-  async getEffectiveLimit(userId: string, isPremium: boolean = false): Promise<number> {
+  async getEffectiveLimit(
+    userId: string,
+    isPremium: boolean = false,
+    isUnlimited: boolean = false
+  ): Promise<number> {
+    if (isUnlimited) {
+      return 999999;
+    }
+
     // Check for temporary override
     const overrideKey = `smartqr:limit:override:${userId}`;
     const override = await redis.get(overrideKey);
-    
+
     if (override) {
       return parseInt(override);
     }
@@ -234,22 +281,25 @@ export class LimitService {
     return Math.floor((reset.getTime() - now.getTime()) / 1000);
   }
 
-  private async storeUsageMetadata(userId: string, metadata: {
-    templateId?: string;
-    url: string;
-    processingTimeMs?: number;
-  }): Promise<void> {
+  private async storeUsageMetadata(
+    userId: string,
+    metadata: {
+      templateId?: string;
+      url: string;
+      processingTimeMs?: number;
+    }
+  ): Promise<void> {
     const key = this.getMetadataKey(userId);
     const data = {
       ...metadata,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // Store as list in Redis
-    await redis.rpush(key, JSON.stringify(data));
-    
+    await redis.rPush(key, JSON.stringify(data));
+
     // Set expiration if this is the first entry
-    const length = await redis.llen(key);
+    const length = await redis.lLen(key);
     if (length === 1) {
       const ttl = this.getSecondsUntilReset();
       await redis.expire(key, ttl);
@@ -269,8 +319,8 @@ export class LimitService {
     if (count === 0) return null;
 
     // Get metadata
-    const metadataList = await redis.lrange(metadataKey, 0, -1);
-    const metadata = metadataList.map(item => JSON.parse(item));
+    const metadataList = await redis.lRange(metadataKey, 0, -1);
+    const metadata = metadataList.map((item) => JSON.parse(item));
 
     return new Usage(
       `usage_${userId}_${dateStr}`,

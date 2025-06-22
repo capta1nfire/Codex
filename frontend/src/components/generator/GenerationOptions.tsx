@@ -26,29 +26,6 @@ const AdvancedBarcodeOptions = dynamic(() => import('./AdvancedBarcodeOptions'),
   ssr: false,
 });
 
-// Valores por defecto
-const defaultFormValues: Partial<GenerateFormData> = {
-  options: {
-    scale: 4,
-    fgcolor: '#000000',
-    bgcolor: '#FFFFFF',
-    height: 100,
-    includetext: true,
-    ecl: 'M',
-    // ✨ CODEX Hero Gradient - Azul corporativo con negro, radial desde centro
-    gradient_enabled: true,
-    gradient_type: 'radial',
-    gradient_color1: '#2563EB', // CODEX Corporate Blue en el centro
-    gradient_color2: '#000000', // Negro en los costados para máximo contraste
-    gradient_direction: 'top-bottom',
-    gradient_borders: true,
-    // Añadir defaults para opciones avanzadas si es necesario (o dejar undefined)
-    qr_version: 'Auto',
-    qr_mask_pattern: 'Auto',
-    code128_codeset: 'Auto',
-  },
-};
-
 interface GenerationOptionsProps {
   control: Control<GenerateFormData>;
   errors: FieldErrors<GenerateFormData>;
@@ -759,23 +736,26 @@ function GenerationOptions({
                     control={control}
                     defaultValue={[]}
                     render={({ field }) => {
-                      const selectedEffects = field.value || [];
-                      const toggleEffect = (effect: string) => {
+                      type EffectType = "shadow" | "glow" | "blur" | "noise" | "vintage";
+                      const selectedEffects: EffectType[] = field.value || [];
+                      const toggleEffect = (effect: EffectType) => {
                         const newEffects = selectedEffects.includes(effect)
-                          ? selectedEffects.filter((e: string) => e !== effect)
+                          ? selectedEffects.filter((e) => e !== effect)
                           : [...selectedEffects, effect];
                         field.onChange(newEffects);
                       };
                       
+                      const effects: Array<{ value: EffectType; label: string; icon: string }> = [
+                        { value: 'shadow', label: 'Sombra', icon: '🌑' },
+                        { value: 'glow', label: 'Brillo', icon: '✨' },
+                        { value: 'blur', label: 'Desenfoque', icon: '🌫️' },
+                        { value: 'noise', label: 'Ruido', icon: '📺' },
+                        { value: 'vintage', label: 'Vintage', icon: '📷' },
+                      ];
+                      
                       return (
                         <div className="grid grid-cols-2 gap-2">
-                          {[
-                            { value: 'shadow', label: 'Sombra', icon: '🌑' },
-                            { value: 'glow', label: 'Brillo', icon: '✨' },
-                            { value: 'blur', label: 'Desenfoque', icon: '🌫️' },
-                            { value: 'noise', label: 'Ruido', icon: '📺' },
-                            { value: 'vintage', label: 'Vintage', icon: '📷' },
-                          ].map((effect) => (
+                          {effects.map((effect) => (
                             <button
                               key={effect.value}
                               type="button"

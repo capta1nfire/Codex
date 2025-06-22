@@ -167,7 +167,6 @@ export class ValidationCache<T = any> {
    * Clean up expired entries
    */
   cleanup(): void {
-    const now = Date.now();
     const keysToDelete: string[] = [];
     
     this.cache.forEach((entry, key) => {

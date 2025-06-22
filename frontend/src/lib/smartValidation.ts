@@ -395,11 +395,6 @@ export const SmartValidators = {
       return { isValid: false, message: 'Ingresa datos' };
     }
     return { isValid: true };
-  },
-  
-  /** Link validation - alias for url validator */
-  link: (data: any): ValidationResult => {
-    return SmartValidators.url(data);
   }
 };
 

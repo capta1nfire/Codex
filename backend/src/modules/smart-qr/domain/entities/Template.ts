@@ -70,21 +70,19 @@ export class Template {
    */
   matches(url: string): boolean {
     if (!this.isActive) return false;
-    
+
     try {
       const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
       const hostname = urlObj.hostname.toLowerCase();
-      
-      return this.metadata.domains.some(domain => {
+
+      return this.metadata.domains.some((domain) => {
         const domainLower = domain.toLowerCase();
         return hostname === domainLower || hostname.endsWith(`.${domainLower}`);
       });
     } catch {
       // If URL parsing fails, try simple string matching
       const urlLower = url.toLowerCase();
-      return this.metadata.domains.some(domain => 
-        urlLower.includes(domain.toLowerCase())
-      );
+      return this.metadata.domains.some((domain) => urlLower.includes(domain.toLowerCase()));
     }
   }
 
@@ -139,7 +137,7 @@ export class Template {
     const basePriority = this.metadata.priority;
     const usageBoost = Math.log10(this.metadata.analytics.usage + 1) * 10;
     const recencyBoost = this.wasUsedRecently() ? 5 : 0;
-    
+
     return basePriority + usageBoost + recencyBoost;
   }
 
@@ -152,11 +150,12 @@ export class Template {
 
 // Type guards
 export function isTemplate(obj: any): obj is Template {
-  return obj instanceof Template || (
-    typeof obj === 'object' &&
-    'id' in obj &&
-    'name' in obj &&
-    'config' in obj &&
-    'metadata' in obj
+  return (
+    obj instanceof Template ||
+    (typeof obj === 'object' &&
+      'id' in obj &&
+      'name' in obj &&
+      'config' in obj &&
+      'metadata' in obj)
   );
 }

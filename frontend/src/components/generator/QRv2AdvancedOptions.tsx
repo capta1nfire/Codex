@@ -80,7 +80,7 @@ export default function QRv2AdvancedOptions({
         </CardHeader>
         <CardContent>
           <Controller
-            name="options.eyeShape"
+            name="options.eye_shape"
             control={control}
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
@@ -110,7 +110,7 @@ export default function QRv2AdvancedOptions({
         </CardHeader>
         <CardContent>
           <Controller
-            name="options.dataPattern"
+            name="options.data_pattern"
             control={control}
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
@@ -201,9 +201,8 @@ export default function QRv2AdvancedOptions({
         </CardHeader>
         <CardContent className="space-y-4">
           <Controller
-            name="options.frame.style"
+            name="options.frame_style"
             control={control}
-            defaultValue="none"
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
                 <SelectTrigger className="w-full">
@@ -222,28 +221,30 @@ export default function QRv2AdvancedOptions({
           
           {/* Frame text when frame is selected */}
           <Controller
-            name="options.frame.style"
+            name="options.frame_style"
             control={control}
             render={({ field: frameField }) => (
-              frameField.value && frameField.value !== 'none' && (
-                <Controller
-                  name="options.frame.text"
-                  control={control}
-                  render={({ field }) => (
-                    <div className="space-y-2">
-                      <Label className="text-xs">Frame Text (optional)</Label>
-                      <Input
-                        type="text"
-                        placeholder="Scan Me!"
-                        value={field.value || ''}
-                        onChange={field.onChange}
-                        className="h-8"
-                        disabled={isLoading}
-                      />
-                    </div>
-                  )}
-                />
-              )
+              <>
+                {frameField.value && (
+                  <Controller
+                    name="options.frame_text"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="space-y-2">
+                        <Label className="text-xs">Frame Text (optional)</Label>
+                        <Input
+                          type="text"
+                          placeholder="Scan Me!"
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          className="h-8"
+                          disabled={isLoading}
+                        />
+                      </div>
+                    )}
+                  />
+                )}
+              </>
             )}
           />
         </CardContent>

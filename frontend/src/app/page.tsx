@@ -26,11 +26,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/lib/utils';
 
 // Hooks personalizados
-import { useBarcodeGenerationV2 } from '@/hooks/useBarcodeGenerationV2';
 import { useQRContentGeneration } from '@/hooks/useQRContentGeneration';
-import { useQRGenerationV3Enhanced } from '@/hooks/useQRGenerationV3Enhanced';
 import { useBarcodeTypes } from '@/hooks/useBarcodeTypes';
 import { useSmartAutoGeneration } from '@/hooks/useSmartAutoGeneration';
+import { useQRGenerationState } from '@/hooks/useQRGenerationState';
 
 // Componentes modulares
 import { BarcodeTypeTabs } from '@/components/generator/BarcodeTypeTabs';
@@ -47,7 +46,6 @@ import { defaultFormValues } from '@/constants/defaultFormValues';
 // Validación
 import { SmartValidators } from '@/lib/smartValidation';
 import { useUrlValidation } from '@/hooks/useUrlValidation';
-import { useUrlGenerationState } from '@/hooks/useUrlGenerationState';
 
 export default function Home() {
   // Estados principales
@@ -71,29 +69,29 @@ export default function Home() {
   // the same URL validation multiple times. Without this, the component would
   // re-validate the same URL endlessly causing "Maximum update depth exceeded"
   const lastValidatedUrl = useRef<string>('');
-
-  // Hooks personalizados con v2 para códigos de barras
-  const { 
-    svgContent, 
-    isLoading: isLoadingBarcode, 
-    serverError: barcodeError, 
-    metadata: barcodeMetadata, 
-    generateBarcode, 
-    clearError: clearBarcodeError,
-    clearContent: clearBarcodeContent,
-    isUsingV2 
-  } = useBarcodeGenerationV2();
   
-  // Hook v3 Enhanced para QR codes (ULTRATHINK Enhanced)
-  const {
+  // Ref to prevent double initial generation in StrictMode
+  const hasGeneratedInitialQR = useRef(false);
+  
+  // Ref to track last generated data to prevent duplicates
+  const lastGeneratedData = useRef<string>('');
+
+  // Import centralized state management hook
+  const qrGenerationState = useQRGenerationState();
+  
+  // Use centralized state instead of individual hooks
+  const { 
+    state: generationState,
     enhancedData,
-    isLoading: isLoadingQR,
-    error: qrError,
-    generateEnhancedQR,
-    metadata: qrMetadata,
-    clearError: clearQRError,
-    clearData: clearQRData
-  } = useQRGenerationV3Enhanced();
+    svgContent,
+    isLoading,
+    error: generationError,
+    generateQR: generateWithState,
+    setTyping: setGenerationTyping,
+    setValidating: setGenerationValidating,
+    setReadyToGenerate: setGenerationReady,
+    reset: resetGeneration
+  } = qrGenerationState;
   
   // URL validation hook lifted to page level to coordinate with auto-generation
   const { 
@@ -107,26 +105,6 @@ export default function Home() {
     debounceMs: 800
   });
   
-  // State machine for URL generation flow
-  const {
-    state: urlGenerationState,
-    startTyping,
-    startValidating,
-    validationComplete,
-    startGenerating,
-    generationComplete,
-    reset: resetUrlState,
-    getCurrentState
-  } = useUrlGenerationState({
-    onStateChange: (newState, oldState) => {
-    }
-  });
-
-  // Keep a ref of the current state to avoid closure issues
-  const urlGenerationStateRef = useRef(urlGenerationState);
-  useEffect(() => {
-    urlGenerationStateRef.current = urlGenerationState;
-  }, [urlGenerationState]);
 
   
   // Typing tracker for sophisticated placeholder system
@@ -138,15 +116,11 @@ export default function Home() {
         const currentFormValues = getValues();
         const currentQRData = qrFormData[selectedQRType];
         
-        // Use getCurrentState() to get the most current state
-        const currentUrlState = getCurrentState();
-        
-        // Use state machine to coordinate validation and generation
+        // Use centralized state machine to coordinate validation and generation
         if (selectedQRType === 'link') {
           // Only transition to validating if we're in a state that allows it
-          // Added COMPLETE state to handle second URL scenario
-          if (currentUrlState === 'TYPING' || currentUrlState === 'IDLE' || currentUrlState === 'VALIDATION_ERROR' || currentUrlState === 'COMPLETE') {
-            startValidating();
+          if (generationState === 'TYPING' || generationState === 'IDLE' || generationState === 'ERROR' || generationState === 'COMPLETE') {
+            setGenerationValidating();
           }
         } else {
           // Non-URL QR types can generate immediately
@@ -205,14 +179,10 @@ export default function Home() {
   const watchedData = watch('data');
   const watchedOptions = watch('options');
 
-  // Unified states for UI (after selectedType is defined)
-  const isLoading = selectedType === 'qrcode' ? isLoadingQR : isLoadingBarcode;
-  const serverError = selectedType === 'qrcode' ? qrError : barcodeError;
-  const metadata = selectedType === 'qrcode' ? qrMetadata : barcodeMetadata;
-  const clearError = selectedType === 'qrcode' ? clearQRError : clearBarcodeError;
-  const clearContent = selectedType === 'qrcode' ? 
-    clearQRData : // For QR v3 Enhanced, use clearData function
-    clearBarcodeContent;
+  // Unified states for UI (now using centralized state)
+  const serverError = generationError;
+  const clearError = () => resetGeneration();
+  const clearContent = () => resetGeneration();
 
   // Log server error only if it's not an auth error
   if (serverError && serverError !== 'Authentication required for v3 API') {
@@ -221,95 +191,15 @@ export default function Home() {
 
   // Handlers
   const onSubmit = useCallback(async (formData: GenerateFormData) => {
-    // Use ULTRATHINK v3 for QR codes (now free for all users)
-    if (formData.barcode_type === 'qrcode') {
-      try {
-        // Build comprehensive customization options from formData
-        const customization: any = {};
-        
-        // Basic colors
-        if (formData.options?.fgcolor || formData.options?.bgcolor) {
-          customization.colors = {
-            foreground: formData.options.fgcolor || '#000000',
-            background: formData.options.bgcolor || '#FFFFFF'
-          };
-        }
-        
-        // Gradient options if enabled
-        if (formData.options?.gradient_enabled) {
-          customization.gradient = {
-            enabled: true,
-            gradient_type: formData.options.gradient_type || 'linear',
-            colors: [
-              formData.options.gradient_color1 || '#000000',
-              formData.options.gradient_color2 || '#666666'
-            ],
-            angle: formData.options.gradient_direction === 'left-right' ? 0 : 
-                   formData.options.gradient_direction === 'diagonal' ? 45 : 
-                   formData.options.gradient_direction === 'center-out' ? 0 : 90,
-            apply_to_data: true,
-            apply_to_eyes: false,
-            stroke_style: formData.options.gradient_borders ? {
-              enabled: true,
-              color: '#FFFFFF',
-              width: 0.1,
-              opacity: 0.3
-            } : undefined
-          };
-        }
-        
-        // Eye shape customization
-        if (formData.options?.eye_shape) {
-          customization.eye_shape = formData.options.eye_shape;
-        }
-        
-        // Data pattern customization
-        if (formData.options?.data_pattern) {
-          customization.data_pattern = formData.options.data_pattern;
-        }
-        
-        // Logo configuration if enabled
-        if (formData.options?.logo_enabled && formData.options?.logo_data) {
-          customization.logo = {
-            data: formData.options.logo_data,
-            size_percentage: formData.options.logo_size || 20,
-            padding: formData.options.logo_padding || 5,
-            shape: formData.options.logo_shape || 'square'
-          };
-        }
-        
-        // Visual effects
-        if (formData.options?.effects && formData.options.effects.length > 0) {
-          customization.effects = formData.options.effects.map((effect: string) => ({
-            effect_type: effect,
-            config: {}
-          }));
-        }
-        
-        // Frame configuration if enabled
-        if (formData.options?.frame_enabled) {
-          customization.frame = {
-            frame_type: formData.options.frame_style || 'simple',
-            text: formData.options.frame_text || 'SCAN ME',
-            text_position: formData.options.frame_text_position || 'bottom',
-            color: formData.options.fgcolor || '#000000'
-          };
-        }
-        
-        await generateEnhancedQR(formData.data, {
-          error_correction: (formData.options?.ecl as 'L' | 'M' | 'Q' | 'H') || 'M',
-          customization: Object.keys(customization).length > 0 ? customization : undefined
-        });
-        return; // Important: exit after successful v3 generation
-      } catch (err) {
-        // No fallback to v2 - v3 is the only QR engine
-        console.error('v3 Enhanced QR generation failed:', err);
-        throw err; // Propagate error to show to user
-      }
+    // Prevent duplicate generation for same data
+    if (lastGeneratedData.current === formData.data && generationState === 'COMPLETE') {
+      console.log('[onSubmit] Skipping duplicate generation for same data:', formData.data);
+      return;
     }
     
-    // Use v2 for all other barcode types
-    await generateBarcode(formData);
+    // Use centralized state management for generation
+    lastGeneratedData.current = formData.data;
+    await generateWithState(formData);
     
     // Play success sound on QR generation
     if (selectedType === 'qrcode' && typeof window !== 'undefined' && 'Audio' in window) {
@@ -319,7 +209,7 @@ export default function Home() {
         audio.play().catch(() => {});
       } catch (e) {}
     }
-  }, [generateBarcode, generateEnhancedQR, selectedType]);
+  }, [generateWithState, selectedType, generationState]);
 
   const handleTypeChange = useCallback(async (newType: string) => {
     // Reset typing state when changing types
@@ -356,7 +246,7 @@ export default function Home() {
     if (newQRType === 'link') {
       setHasUserStartedTyping(false);
       clearUrlValidation(); // Clear any pending URL validation
-      resetUrlState(); // Reset state machine
+      resetGeneration(); // Reset centralized state machine
       // Also reset URL validation state
       setUrlValidationState({
         isValidating: false,
@@ -366,7 +256,7 @@ export default function Home() {
     } else {
       // Clear URL validation when switching away from link
       clearUrlValidation();
-      resetUrlState(); // Reset state machine
+      resetGeneration(); // Reset centralized state machine
     }
     resetTyping();
     
@@ -388,14 +278,14 @@ export default function Home() {
       }
     };
     await onSubmit(completeFormValues);
-  }, [setValue, getValues, onSubmit, qrFormData, generateQRContent, setSelectedQRType, resetTyping, clearUrlValidation, resetUrlState]);
+  }, [setValue, getValues, onSubmit, qrFormData, generateQRContent, setSelectedQRType, resetTyping, clearUrlValidation, resetGeneration]);
 
   const handleQRFormChange = useCallback((type: string, field: string, value: any) => {
     
     // Mark that user has started typing
     if (!hasUserStartedTyping && type === 'link' && field === 'url') {
       setHasUserStartedTyping(true);
-      startTyping(); // Update state machine
+      setGenerationTyping(value.toString()); // Update centralized state machine with data
     }
     
     // Cancel any pending post-validation timeout when user types again
@@ -410,9 +300,9 @@ export default function Home() {
     // Update state machine when user starts typing
     if (type === 'link' && value.toString().trim() !== '') {
       // Only transition to typing if we're in a state that allows it
-      const currentState = urlGenerationStateRef.current;
-      if (currentState === 'IDLE' || currentState === 'COMPLETE' || currentState === 'VALIDATION_ERROR' || currentState === 'READY_TO_GENERATE') {
-        startTyping();
+      const currentState = generationState;
+      if (currentState === 'IDLE' || currentState === 'COMPLETE' || currentState === 'ERROR' || currentState === 'READY_TO_GENERATE') {
+        setGenerationTyping(value.toString());
         // Clear previous validation metadata when starting to type a new URL
         if (currentState === 'COMPLETE') {
           clearUrlValidation();
@@ -488,6 +378,7 @@ export default function Home() {
             isValidating: true,
             shouldGenerateAnyway: false
           }));
+          setGenerationValidating(); // Update centralized state to validating
           // Trigger URL validation for link type
           // Only validate clean URLs without quotes or special characters
           const cleanValue = value.trim();
@@ -505,7 +396,7 @@ export default function Home() {
         }
       }
     }
-  }, [updateQRFormData, setValue, trackInput, qrFormData, selectedQRType, hasUserStartedTyping, validateUrl, startTyping, getValues, clearError, clearContent, resetTyping, validateAndGenerate]);
+  }, [updateQRFormData, setValue, trackInput, qrFormData, selectedQRType, hasUserStartedTyping, validateUrl, setGenerationTyping, setGenerationValidating, generationState, getValues, clearError, clearContent, resetTyping, validateAndGenerate, clearUrlValidation, isInitialMount]);
 
   // Ref para el timeout de generación post-validación
   const postValidationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -556,11 +447,10 @@ export default function Home() {
       setValue('data', qrContent, { shouldValidate: true });
       
       
-      // Update state machine to show we're ready to generate
+      // Update centralized state machine to show we're ready to generate
       // Only update if we're in VALIDATING state to avoid duplicate transitions
-      const currentState = getCurrentState();
-      if (currentState === 'VALIDATING') {
-        validationComplete(true);
+      if (generationState === 'VALIDATING') {
+        setGenerationReady();
       }
       
       // The effect above will handle the actual generation when state is READY_TO_GENERATE and user not typing
@@ -569,14 +459,13 @@ export default function Home() {
       // No generar automáticamente si el sitio no existe
       clearContent(); // Limpiar cualquier código existente
       
-      // Update state machine to show validation error
-      // Only transition if we're actually in VALIDATING state
-      const currentState = getCurrentState();
-      if (currentState === 'VALIDATING') {
-        validationComplete(false);
+      // Update centralized state machine to show validation error
+      // Reset to typing state since validation failed
+      if (generationState === 'VALIDATING') {
+        setGenerationTyping('');
       }
     }
-  }, [selectedType, selectedQRType, getValues, qrFormData, clearContent, setValue, validationComplete, urlGenerationState, getCurrentState]);
+  }, [selectedType, selectedQRType, getValues, qrFormData, clearContent, setValue, generationState, setGenerationReady, setGenerationTyping]);
 
   // Función para generar de todas formas cuando el sitio no existe
   const handleGenerateAnyway = useCallback(() => {
@@ -597,26 +486,20 @@ export default function Home() {
     onSubmit(currentFormValues);
   }, [getValues, onSubmit, qrFormData, setValue]);
 
-  // Generate initial QR on mount with default values
+  // Generate initial QR on mount with default values - ONLY ONCE
   useEffect(() => {
-    console.log('[Initial QR] useEffect running');
-    
-    // Only run once, and only if we haven't generated anything yet
-    if (!isInitialMount || svgContent) {
-      console.log('[Initial QR] Skipping - already generated or not initial mount');
+    // Skip if already generated or not initial mount
+    if (hasGeneratedInitialQR.current || !isInitialMount) {
       return;
     }
     
+    hasGeneratedInitialQR.current = true;
+    console.log('[Initial QR] Generating initial QR code...');
+    
     const generateInitialBarcode = async () => {
-      console.log('[Initial QR] Starting generation...');
-      
-      // Force initial values
-      const initialType = 'qrcode';
-      const initialData = 'https://tu-sitio-web.com';
-      
       const initialFormData: GenerateFormData = {
-        barcode_type: initialType,
-        data: initialData,
+        barcode_type: 'qrcode',
+        data: 'https://tu-sitio-web.com',
         options: {
           scale: 4,
           fgcolor: '#000000',
@@ -624,7 +507,6 @@ export default function Home() {
           height: 100,
           includetext: true,
           ecl: 'M',
-          error_correction: 'M',
           gradient_enabled: true,
           gradient_type: 'radial',
           gradient_color1: '#2563EB',
@@ -634,25 +516,19 @@ export default function Home() {
         }
       };
       
-      console.log('[Initial QR] Generating with data:', initialFormData);
-      
       try {
-        // Use v3 Enhanced for initial QR
-        await onSubmit(initialFormData);
-        console.log('[Initial QR] Generation call completed');
+        await generateWithState(initialFormData);
+        console.log('[Initial QR] Initial generation completed');
       } catch (error) {
-        console.error('[Initial QR] Generation failed:', error);
+        console.error('[Initial QR] Initial generation failed:', error);
+      } finally {
+        setIsInitialMount(false);
       }
     };
     
-    // Wait a bit to ensure component is ready
-    const timer = setTimeout(() => {
-      generateInitialBarcode();
-      setIsInitialMount(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, [isInitialMount, svgContent, generateBarcode]);
+    // Generate immediately
+    generateInitialBarcode();
+  }, []); // Empty deps - only run once on mount
 
   // Monitor SVG content changes for debugging
   useEffect(() => {
@@ -685,15 +561,12 @@ export default function Home() {
         urlMetadata && 
         hasUserStartedTyping &&
         !isTyping &&
-        urlGenerationState === 'VALIDATING') {
+        generationState === 'VALIDATING') {
       // URL validation completed successfully
-      // Remove this - validationComplete is already called in handleUrlValidationComplete
-      // validationComplete(true);
-      
       // Don't generate here - let handleUrlValidationComplete handle it with delay
       // This prevents duplicate generation
     }
-  }, [isValidatingUrl, urlMetadata, selectedType, selectedQRType, hasUserStartedTyping, isTyping, urlGenerationState]);
+  }, [isValidatingUrl, urlMetadata, selectedType, selectedQRType, hasUserStartedTyping, isTyping, generationState]);
   
   // Monitor URL validation errors
   useEffect(() => {
@@ -701,21 +574,11 @@ export default function Home() {
         selectedQRType === 'link' && 
         !isValidatingUrl && 
         urlValidationError && 
-        urlGenerationState === 'VALIDATING') {
-      // URL validation failed
-      validationComplete(false);
+        generationState === 'VALIDATING') {
+      // URL validation failed - reset to typing state
+      setGenerationTyping('');
     }
-  }, [isValidatingUrl, urlValidationError, selectedType, selectedQRType, urlGenerationState, validationComplete]);
-  
-  // Monitor generation completion
-  useEffect(() => {
-    // For v3 Enhanced QR codes, check enhancedData instead of svgContent
-    const hasGeneratedContent = selectedType === 'qrcode' ? enhancedData !== null : svgContent !== '';
-    
-    if (!isLoading && hasGeneratedContent && urlGenerationState === 'GENERATING') {
-      generationComplete();
-    }
-  }, [isLoading, svgContent, enhancedData, selectedType, urlGenerationState, generationComplete]);
+  }, [isValidatingUrl, urlValidationError, selectedType, selectedQRType, generationState, setGenerationTyping]);
   
   // Auto-generación cuando cambian las opciones de personalización
   useEffect(() => {
@@ -811,21 +674,24 @@ export default function Home() {
 
   // Effect to handle automatic generation when ready and not typing
   useEffect(() => {
-    if (urlGenerationState === 'READY_TO_GENERATE' && !isTyping && selectedQRType === 'link') {
+    // Skip if already generating or completed
+    if (generationState === 'GENERATING' || generationState === 'COMPLETE') {
+      return;
+    }
+    
+    if (generationState === 'READY_TO_GENERATE' && !isTyping && selectedQRType === 'link') {
       const timeoutId = setTimeout(() => {
         // Double check state hasn't changed
-        const currentState = getCurrentState();
-        if (currentState === 'READY_TO_GENERATE' && !isTyping) {
+        if (generationState === 'READY_TO_GENERATE' && !isTyping) {
           const currentFormValues = getValues();
           const updatedFormData = qrFormData.link;
-          startGenerating();
           validateAndGenerate(currentFormValues, selectedQRType, updatedFormData);
         }
       }, POST_VALIDATION_DELAY);
       
       return () => clearTimeout(timeoutId);
     }
-  }, [urlGenerationState, isTyping, selectedQRType, getCurrentState, getValues, qrFormData, startGenerating, validateAndGenerate]);
+  }, [generationState, isTyping, selectedQRType, getValues, qrFormData, validateAndGenerate]);
 
   return (
     <div className="min-h-screen">
@@ -991,11 +857,18 @@ export default function Home() {
                               
                               // Update form data with Smart QR config
                               if (config.gradient) {
-                                setValue('options.gradient.enabled', true);
-                                setValue('options.gradient.type', config.gradient.type);
-                                setValue('options.gradient.colors', config.gradient.colors);
+                                setValue('options.gradient_enabled', true);
+                                setValue('options.gradient_type', config.gradient.type);
+                                if (config.gradient.colors && config.gradient.colors.length >= 2) {
+                                  setValue('options.gradient_color1', config.gradient.colors[0]);
+                                  setValue('options.gradient_color2', config.gradient.colors[1]);
+                                }
                                 if (config.gradient.angle !== undefined) {
-                                  setValue('options.gradient.angle', config.gradient.angle);
+                                  setValue('options.gradient_direction', 
+                                    config.gradient.angle === 0 ? 'left-right' : 
+                                    config.gradient.angle === 90 ? 'top-bottom' :
+                                    'diagonal'
+                                  );
                                 }
                               }
                               
@@ -1012,9 +885,18 @@ export default function Home() {
                                 console.log('[SmartQR] Logo configuration:', config.logo);
                               }
                               
-                              // Generate QR with new configuration
+                              // Generate QR with Smart QR config using centralized state
                               const formData = getValues();
-                              await onSubmit(formData);
+                              
+                              console.log('=== SMART QR GENERATION TRIGGER ===');
+                              console.log('Form Data:', formData);
+                              console.log('Smart QR Config:', JSON.stringify(config, null, 2));
+                              console.log('===================================');
+                              
+                              await generateWithState(formData, {
+                                isSmartQR: true,
+                                smartQRConfig: config
+                              });
                             }}
                           />
                         )}
@@ -1111,14 +993,14 @@ export default function Home() {
                 enhancedData={enhancedData}
                 isLoading={isLoading}
                 barcodeType={selectedType}
-                isUsingV2={isUsingV2}
+                isUsingV2={false}
                 isUsingV3Enhanced={selectedType === 'qrcode'}
-                showCacheIndicator={metadata && 'cached' in metadata ? metadata.cached : false}
+                showCacheIndicator={false}
                 isUserTyping={isTyping && hasUserStartedTyping}
                 validationError={realTimeValidationError || validationError}
                 isInitialDisplay={false}
                 className="sticky-preview relative z-10"
-                urlGenerationState={urlGenerationState}
+                urlGenerationState={generationState}
               />
             </section>
           </div>

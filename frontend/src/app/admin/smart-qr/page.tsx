@@ -5,7 +5,7 @@
  * Control panel for Smart QR templates and statistics
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -23,7 +23,6 @@ import {
   Eye,
   Code
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 // Mock data for now - will be replaced with API calls
 const ACTIVE_TEMPLATES = [
@@ -83,7 +82,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, trend }) => (
 
 export default function SmartQRAdminPage() {
   const [templates, setTemplates] = useState(ACTIVE_TEMPLATES);
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     today: 0,
     week: 0,
     month: 0,

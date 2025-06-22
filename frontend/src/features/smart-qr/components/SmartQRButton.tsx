@@ -1,9 +1,10 @@
 /**
  * Smart QR Button Component
  * Main entry point for Smart QR feature
+ * Now with isolated state management to prevent conflicts
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Lock, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,7 +18,7 @@ interface SmartQRButtonProps {
   disabled?: boolean;
 }
 
-export const SmartQRButton: React.FC<SmartQRButtonProps> = ({
+const SmartQRButtonComponent: React.FC<SmartQRButtonProps> = ({
   url,
   onGenerate,
   className,
@@ -27,22 +28,26 @@ export const SmartQRButton: React.FC<SmartQRButtonProps> = ({
   const [showModal, setShowModal] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (!user) {
       setShowLoginPrompt(true);
-      setTimeout(() => setShowLoginPrompt(false), 3000);
-      return;
+      const timer = setTimeout(() => setShowLoginPrompt(false), 3000);
+      return () => clearTimeout(timer);
     }
 
     if (!disabled && url) {
       setShowModal(true);
     }
-  };
+  }, [user, disabled, url]);
 
-  const handleGenerate = (config: any) => {
+  const handleGenerate = useCallback((config: any) => {
     onGenerate?.(config);
     setShowModal(false);
-  };
+  }, [onGenerate]);
+
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false);
+  }, []);
 
   const isLocked = !user;
   const isDisabled = disabled || !url || url.trim().length === 0;
@@ -140,11 +145,11 @@ export const SmartQRButton: React.FC<SmartQRButtonProps> = ({
         )}
       </div>
 
-      {/* Smart QR Modal */}
+      {/* Smart QR Modal - only render when open and user exists */}
       {showModal && user && (
         <SmartQRModal
           isOpen={showModal}
-          onClose={() => setShowModal(false)}
+          onClose={handleCloseModal}
           url={url}
           onGenerate={handleGenerate}
         />
@@ -152,3 +157,15 @@ export const SmartQRButton: React.FC<SmartQRButtonProps> = ({
     </>
   );
 };
+
+// Memoize with custom comparison
+const arePropsEqual = (prevProps: SmartQRButtonProps, nextProps: SmartQRButtonProps) => {
+  return (
+    prevProps.url === nextProps.url &&
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.className === nextProps.className &&
+    prevProps.onGenerate === nextProps.onGenerate
+  );
+};
+
+export const SmartQRButton = React.memo(SmartQRButtonComponent, arePropsEqual);

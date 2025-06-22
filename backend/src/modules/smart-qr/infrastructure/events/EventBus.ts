@@ -68,13 +68,13 @@ export class EventBus {
     if (!this.handlers.has(event)) {
       this.handlers.set(event, new Set());
     }
-    
+
     this.handlers.get(event)!.add(handler);
 
     return {
       unsubscribe: () => {
         this.handlers.get(event)?.delete(handler);
-      }
+      },
     };
   }
 
@@ -103,7 +103,7 @@ export class EventBus {
     return {
       unsubscribe: () => {
         this.globalHandlers.delete(handler);
-      }
+      },
     };
   }
 
@@ -119,13 +119,13 @@ export class EventBus {
       // Notify specific handlers
       const handlers = this.handlers.get(event);
       if (handlers) {
-        handlers.forEach(handler => {
+        handlers.forEach((handler) => {
           this.safeExecute(handler, data, event);
         });
       }
 
       // Notify global handlers
-      this.globalHandlers.forEach(handler => {
+      this.globalHandlers.forEach((handler) => {
         this.safeExecute(handler, { event, data }, 'global');
       });
     });
@@ -146,13 +146,13 @@ export class EventBus {
     // Collect promises from specific handlers
     const handlers = this.handlers.get(event);
     if (handlers) {
-      handlers.forEach(handler => {
+      handlers.forEach((handler) => {
         promises.push(this.safeExecuteAsync(handler, data, event));
       });
     }
 
     // Collect promises from global handlers
-    this.globalHandlers.forEach(handler => {
+    this.globalHandlers.forEach((handler) => {
       promises.push(this.safeExecuteAsync(handler, { event, data }, 'global'));
     });
 
@@ -176,7 +176,7 @@ export class EventBus {
    */
   getHistory(event?: keyof SmartQREvents): Array<{ event: string; data: any; timestamp: Date }> {
     if (event) {
-      return this.eventHistory.filter(h => h.event === event);
+      return this.eventHistory.filter((h) => h.event === event);
     }
     return [...this.eventHistory];
   }
@@ -195,9 +195,9 @@ export class EventBus {
     if (event) {
       return this.handlers.get(event)?.size || 0;
     }
-    
+
     let total = this.globalHandlers.size;
-    this.handlers.forEach(handlers => {
+    this.handlers.forEach((handlers) => {
       total += handlers.size;
     });
     return total;
@@ -208,7 +208,7 @@ export class EventBus {
       const result = handler(data);
       // Handle async handlers
       if (result instanceof Promise) {
-        result.catch(error => {
+        result.catch((error) => {
           console.error(`Async event handler error in ${context}:`, error);
         });
       }
@@ -217,11 +217,7 @@ export class EventBus {
     }
   }
 
-  private async safeExecuteAsync(
-    handler: EventHandler,
-    data: any,
-    context: string
-  ): Promise<void> {
+  private async safeExecuteAsync(handler: EventHandler, data: any, context: string): Promise<void> {
     try {
       await handler(data);
     } catch (error) {
@@ -233,7 +229,7 @@ export class EventBus {
     this.eventHistory.push({
       event,
       data,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
 
     // Keep history size under control
@@ -261,10 +257,10 @@ export function EmitEvent<K extends keyof SmartQREvents>(event: K) {
 
     descriptor.value = async function (...args: any[]) {
       const result = await originalMethod.apply(this, args);
-      
+
       // Emit event with method result as data
       eventBus.emit(event, result);
-      
+
       return result;
     };
 
