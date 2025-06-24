@@ -69,6 +69,21 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
         options: options || {},
       };
       
+      // Add logo_size_ratio if logo is present
+      if (options?.customization?.logo) {
+        // Calculate logo_size_ratio from size_percentage if present
+        const logoSizePercentage = options.customization.logo.size_percentage || 20;
+        const logoSizeRatio = logoSizePercentage / 100; // Convert percentage to ratio
+        
+        // Ensure customization object exists and add logo_size_ratio
+        requestBody.options.customization = {
+          ...requestBody.options.customization,
+          logo_size_ratio: logoSizeRatio
+        };
+        
+        console.log('[useQRGenerationV3Enhanced] Added logo_size_ratio:', logoSizeRatio);
+      }
+      
       // DETAILED LOGGING FOR SMART QR DEBUG
       console.log('=== SMART QR REQUEST DEBUG ===');
       console.log('Endpoint:', `${backendUrl}/api/v3/qr/enhanced`);

@@ -263,6 +263,7 @@ mod tests {
                 frame: None,
                 effects: None,
                 error_correction: None,
+                logo_size_ratio: None,
             }),
         };
         
@@ -293,6 +294,7 @@ mod tests {
                 frame: None,
                 effects: None,
                 error_correction: None,
+                logo_size_ratio: None,
             }),
         };
         

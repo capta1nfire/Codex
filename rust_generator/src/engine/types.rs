@@ -45,6 +45,9 @@ pub struct QrCustomization {
     
     /// Nivel de corrección de errores
     pub error_correction: Option<ErrorCorrectionLevel>,
+    
+    /// Ratio del tamaño del logo (0.0 - 0.3)
+    pub logo_size_ratio: Option<f32>,
 }
 
 /// Formas de ojos disponibles
@@ -286,6 +289,7 @@ pub struct QrCode {
     pub size: usize,
     pub quiet_zone: usize,
     pub customization: Option<QrCustomization>,
+    pub logo_zone: Option<crate::engine::geometry::LogoExclusionZone>,
 }
 
 // La implementación de to_svg está en generator.rs
@@ -362,6 +366,9 @@ pub struct QrStructuredOutput {
     pub error_correction: String,
     /// Metadata adicional
     pub metadata: QrStructuredMetadata,
+    /// Zonas intocables (solo cuando hay logo)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub untouchable_zones: Option<Vec<UntouchableZoneInfo>>,
 }
 
 /// Metadata para salida estructurada
@@ -381,6 +388,39 @@ pub struct QrStructuredMetadata {
     pub version: u32,
     /// Nivel de corrección de errores
     pub error_correction: String,
+    /// Información de exclusión de logo (si aplica)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exclusion_info: Option<ExclusionInfo>,
+}
+
+/// Información sobre la zona de exclusión del logo
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExclusionInfo {
+    /// Número de módulos excluidos
+    pub excluded_modules: usize,
+    /// Número de codewords afectados
+    pub affected_codewords: usize,
+    /// Porcentaje de oclusión
+    pub occlusion_percentage: f32,
+    /// ECL seleccionado dinámicamente
+    pub selected_ecl: String,
+    /// Si se usó override de ECL
+    pub ecl_override: bool,
+}
+
+/// Información sobre una zona intocable
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UntouchableZoneInfo {
+    /// Tipo de zona
+    pub zone_type: String,
+    /// Coordenada X inicial
+    pub x: u16,
+    /// Coordenada Y inicial
+    pub y: u16,
+    /// Ancho de la zona
+    pub width: u16,
+    /// Alto de la zona
+    pub height: u16,
 }
 
 // ==================== V3 ENHANCED STRUCTURES ====================
@@ -589,6 +629,7 @@ mod tests {
                 frame: None,
                 effects: None,
                 error_correction: Some(ErrorCorrectionLevel::Medium),
+                logo_size_ratio: None,
             }),
         };
         

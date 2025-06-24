@@ -659,6 +659,7 @@ mod tests {
             size: 25,
             quiet_zone: 4,
             customization: None,
+            logo_zone: None,
         };
         
         // Simular resultados de validación

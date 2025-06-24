@@ -8,6 +8,10 @@ pub mod router;
 pub mod types;
 pub mod error;
 pub mod reporter;
+pub mod constants;
+pub mod zones;
+pub mod geometry;
+pub mod ecl_optimizer;
 
 // Re-exportar tipos principales
 pub use generator::QrGenerator;
@@ -18,6 +22,7 @@ pub use router::ComplexityRouter;
 pub use types::ComplexityLevel;
 pub use types::*;
 pub use error::{QrError, QrResult};
+pub use constants::get_alignment_pattern_positions;
 
 use once_cell::sync::Lazy;
 use std::sync::Arc;
@@ -381,3 +386,9 @@ pub static QR_ENGINE: Lazy<QrEngine> = Lazy::new(QrEngine::new);
 
 #[cfg(test)]
 mod test_integration;
+#[cfg(test)]
+mod ecl_optimizer_tests;
+#[cfg(test)]
+mod zones_tests;
+#[cfg(test)]
+mod geometry_tests;

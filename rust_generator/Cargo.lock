@@ -1025,6 +1025,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "geo-types"
+version = "0.7.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62ddb1950450d67efee2bbc5e429c68d052a822de3aad010d28b351fbb705224"
+dependencies = [
+ "approx",
+ "num-traits",
+ "serde",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2515,6 +2526,7 @@ dependencies = [
  "console-subscriber",
  "criterion",
  "dashmap",
+ "geo-types",
  "gif 0.13.1",
  "image 0.24.9",
  "imageproc 0.24.0",

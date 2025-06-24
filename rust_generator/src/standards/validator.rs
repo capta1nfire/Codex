@@ -422,7 +422,9 @@ mod tests {
                 frame: None,
                 effects: None,
                 error_correction: Some(crate::engine::types::ErrorCorrectionLevel::High),
+                logo_size_ratio: None,
             }),
+            logo_zone: None,
         }
     }
 }

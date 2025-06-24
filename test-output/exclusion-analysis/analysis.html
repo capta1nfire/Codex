@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>QR Exclusion Analysis</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin: 40px 0;
+    }
+    .qr-box {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .qr-box h2 {
+      margin: 0 0 20px 0;
+      color: #333;
+    }
+    .stats {
+      text-align: left;
+      margin-top: 20px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 5px;
+    }
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    svg { 
+      max-width: 300px; 
+      height: auto; 
+      border: 1px solid #ddd;
+    }
+    .debug-info {
+      background: #e9ecef;
+      padding: 20px;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-family: monospace;
+      font-size: 12px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>QR Exclusion Zone Analysis</h1>
+    <p>Testing QR code: <strong>HELLO</strong></p>
+    
+    <div class="comparison">
+      <div class="qr-box">
+        <h2>Baseline (No Logo)</h2>
+        <p>No data</p>
+        <div class="stats">
+          <p><strong>Modules:</strong> 0</p>
+          <p><strong>Path length:</strong> 0 chars</p>
+          <p><strong>Should scan:</strong> ✅ YES</p>
+        </div>
+      </div>
+      
+      <div class="qr-box">
+        <h2>With Logo + Exclusion</h2>
+        <p>No data</p>
+        <div class="stats">
+          <p><strong>Modules:</strong> 0</p>
+          <p><strong>Path length:</strong> 0 chars</p>
+          <p><strong>Excluded:</strong> 0 modules</p>
+          
+        </div>
+      </div>
+    </div>
+    
+    
+    
+    <div class="error">
+      <h3>🔍 Debugging Steps:</h3>
+      <ol>
+        <li>Test scanning both QR codes with your phone</li>
+        <li>If the baseline scans but the exclusion doesn't, the issue is with module removal</li>
+        <li>Check if excluded modules contain critical data patterns</li>
+        <li>Verify that the ECL compensation is sufficient</li>
+      </ol>
+    </div>
+    
+    <div class="debug-info">
+      <h3>Debug Information</h3>
+      <p><strong>Baseline first 200 chars:</strong><br>...</p>
+      <p><strong>Exclusion first 200 chars:</strong><br>...</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1784,6 +1784,7 @@ async fn qr_v2_preview_handler(
             frame: None,
             effects: None,
             error_correction: None,
+            logo_size_ratio: None,
         })
     } else {
         None

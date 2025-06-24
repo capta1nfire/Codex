@@ -287,6 +287,7 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
                     _ => None
                 }
             }),
+            logo_size_ratio: None,
         })
     } else {
         None

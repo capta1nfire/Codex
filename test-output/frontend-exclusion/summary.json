@@ -1,0 +1,44 @@
+{
+  "timestamp": "2025-06-24T04:16:25.924Z",
+  "totalTests": 3,
+  "passed": 3,
+  "failed": 0,
+  "results": [
+    {
+      "testCase": "small-logo-test",
+      "success": true,
+      "hasExclusionInfo": true,
+      "exclusionData": {
+        "affected_codewords": 4,
+        "ecl_override": false,
+        "excluded_modules": 25,
+        "occlusion_percentage": 7.692307949066162,
+        "selected_ecl": "Medium"
+      }
+    },
+    {
+      "testCase": "medium-logo-test",
+      "success": true,
+      "hasExclusionInfo": true,
+      "exclusionData": {
+        "affected_codewords": 7,
+        "ecl_override": false,
+        "excluded_modules": 49,
+        "occlusion_percentage": 13.461539268493652,
+        "selected_ecl": "Quartile"
+      }
+    },
+    {
+      "testCase": "large-logo-test",
+      "success": true,
+      "hasExclusionInfo": true,
+      "exclusionData": {
+        "affected_codewords": 11,
+        "ecl_override": false,
+        "excluded_modules": 81,
+        "occlusion_percentage": 21.153846740722656,
+        "selected_ecl": "High"
+      }
+    }
+  ]
+}

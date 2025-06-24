@@ -55,6 +55,7 @@ mod tests {
                 frame: None,
                 effects: None,
                 error_correction: Some(ErrorCorrectionLevel::High),
+                logo_size_ratio: None,
             }),
         };
         
@@ -107,6 +108,7 @@ mod tests {
                 frame: None,
                 effects: None,
                 error_correction: None,
+                logo_size_ratio: None,
             }),
         };
         assert_eq!(router.determine_complexity(&advanced_request), ComplexityLevel::Advanced);

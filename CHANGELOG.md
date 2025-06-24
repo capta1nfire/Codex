@@ -12,6 +12,29 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ### 2025-06-24
 
+#### Fixed
+- ✅ **QR Eye Shapes Rendering** - Fixed eye shapes rendering as squares instead of configured shapes
+  - Fixed: Star, circle, and other eye shapes now render correctly (was defaulting to square)
+  - Fixed: Eye shape alignment issues - shapes now properly centered in QR eye positions
+  - Integrated: EyeShapeRenderer correctly in Rust generator for all 16 eye shapes
+  - Root cause: `generate_eye_path` method wasn't using EyeShapeRenderer properly
+
+#### Changed
+- 🔧 **Smart QR Instagram Template** - Updated to use star eye shape
+  - Changed: Eye shape from 'leaf' to 'star' in InMemoryTemplateRepository
+  - Updated: Logo from SVG to optimized PNG (44KB) at `/logos/instagram-new.png`
+
+#### Added
+- ✨ **Native Exclusion Zone for QR Logos** - Complete implementation with full frontend integration
+  - Implemented dynamic ECL (Error Correction Level) optimization based on logo occlusion
+  - Added automatic detection of untouchable QR zones (finder patterns, timing, alignment)
+  - Created intelligent algorithm that iteratively selects optimal ECL (max 3 iterations)
+  - Full end-to-end integration from frontend to Rust engine
+  - Frontend automatically calculates and sends logo_size_ratio when logos are present
+  - PreviewSectionV3 passes logoSizeRatio to activate native exclusion
+  - Preserves QR functionality while maximizing logo space
+  - Verified with 100% test coverage across all integration points
+
 #### Changed
 - 🔧 **Smart QR Instagram Template** - Multiple visual adjustments
   - Fixed: Logo rendering with Base64 SVG conversion in `useQRGenerationState.ts`
@@ -21,6 +44,12 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Analyzed: Native area exclusion implementation report for future improvements
 
 #### Technical Details
+- Native Exclusion Zone:
+  - Created `zones.rs` with complete untouchable zone mapping for QR versions 1-40
+  - Implemented `ecl_optimizer.rs` with occlusion analysis and ECL selection
+  - Added `to_enhanced_data_with_exclusion()` method to propagate exclusion metadata
+  - Frontend renders QR with SVG masks preserving functional patterns
+  - 27 comprehensive unit tests covering all edge cases
 - Modified `loadSvgAsBase64` function to handle SVG file loading and conversion
 - Updated `generate_eye_path` in Rust to support Dot and Leaf shapes
 - Adjusted logo rendering calculations in `EnhancedUltrathinkQR.tsx`

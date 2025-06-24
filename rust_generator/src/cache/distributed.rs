@@ -418,7 +418,7 @@ mod tests {
         assert!(cache.get("test").is_none());
         assert!(cache.set("test", &CachedQR {
             svg: "test".to_string(),
-            metadata: QRMetadata {
+            metadata: crate::cache::redis::QRMetadata {
                 version: 1,
                 modules: 21,
                 error_correction: "M".to_string(),

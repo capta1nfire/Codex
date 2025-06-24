@@ -267,6 +267,7 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
                 }).collect()
             }),
             error_correction: opts.error_correction.as_ref().map(|ec| parse_error_correction(ec)),
+            logo_size_ratio: None,
         }
     });
     

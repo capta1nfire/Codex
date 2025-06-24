@@ -10,6 +10,7 @@ edition = "2021"
 qrcodegen = "1.8"              # Biblioteca base optimizada para QR
 imageproc = "0.24"             # Procesamiento avanzado de imágenes
 rusttype = "0.9"               # Renderizado de texto para marcos
+geo-types = "0.7"              # Tipos geométricos para detección de colisiones
 
 # === PERFORMANCE ===
 rayon = "1.8"                  # Paralelización

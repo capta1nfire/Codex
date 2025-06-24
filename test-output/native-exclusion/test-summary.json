@@ -1,0 +1,72 @@
+{
+  "timestamp": "2025-06-24T03:50:59.296Z",
+  "totalTests": 8,
+  "passed": 0,
+  "failed": 8,
+  "results": [
+    {
+      "testCase": "small-logo-5",
+      "success": false,
+      "actualEcl": "Low",
+      "expectedEcl": "L",
+      "occlusionPercentage": 1.9230769872665405,
+      "excludedModules": 1
+    },
+    {
+      "testCase": "small-logo-10",
+      "success": false,
+      "actualEcl": "Medium",
+      "expectedEcl": "L",
+      "occlusionPercentage": 3.846153974533081,
+      "excludedModules": 9
+    },
+    {
+      "testCase": "medium-logo-15",
+      "success": false,
+      "actualEcl": "Medium",
+      "expectedEcl": "M",
+      "occlusionPercentage": 7.692307949066162,
+      "excludedModules": 25
+    },
+    {
+      "testCase": "medium-logo-20",
+      "success": false,
+      "actualEcl": "Medium",
+      "expectedEcl": "M",
+      "occlusionPercentage": 7.692307949066162,
+      "excludedModules": 25
+    },
+    {
+      "testCase": "large-logo-25",
+      "success": false,
+      "actualEcl": "Quartile",
+      "expectedEcl": "Q",
+      "occlusionPercentage": 13.461539268493652,
+      "excludedModules": 49
+    },
+    {
+      "testCase": "xlarge-logo-30",
+      "success": false,
+      "actualEcl": "High",
+      "expectedEcl": "H",
+      "occlusionPercentage": 21.153846740722656,
+      "excludedModules": 81
+    },
+    {
+      "testCase": "long-data-small-logo",
+      "success": false,
+      "actualEcl": "Medium",
+      "expectedEcl": "M",
+      "occlusionPercentage": 2.0231213569641113,
+      "excludedModules": 56
+    },
+    {
+      "testCase": "unicode-data-medium-logo",
+      "success": false,
+      "actualEcl": "Quartile",
+      "expectedEcl": "M",
+      "occlusionPercentage": 11,
+      "excludedModules": 81
+    }
+  ]
+}

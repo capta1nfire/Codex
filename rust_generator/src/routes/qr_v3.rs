@@ -166,10 +166,60 @@ async fn generate_qr_v3(
             
             // Crear generador y generar código QR directamente
             let generator = QrGenerator::new();
-            let qr_code = generator.generate_with_ecl(&data, 400, ecl)?;
             
-            // Convertir a datos estructurados
-            Ok(qr_code.to_structured_data())
+            // Verificar si hay un logo con ratio de tamaño
+            let has_logo_with_ratio = options.customization.as_ref()
+                .and_then(|c| c.logo_size_ratio)
+                .is_some();
+                
+            info!("Options customization: {:?}", options.customization.as_ref().map(|c| format!("logo_size_ratio: {:?}", c.logo_size_ratio)));
+            info!("has_logo_with_ratio: {}", has_logo_with_ratio);
+            
+            // Generar QR con estrategia apropiada
+            let (qr_code, exclusion_info) = if has_logo_with_ratio {
+                let logo_ratio = options.customization.as_ref()
+                    .and_then(|c| c.logo_size_ratio)
+                    .unwrap_or(0.2);
+                
+                let (qr, analysis) = generator.generate_with_dynamic_ecl(
+                    &data,
+                    400,
+                    logo_ratio,
+                    Some(ecl),
+                )?;
+                
+                let exclusion = Some(rust_generator::engine::types::ExclusionInfo {
+                    excluded_modules: analysis.occluded_modules,
+                    affected_codewords: analysis.affected_codewords,
+                    occlusion_percentage: analysis.occlusion_percentage,
+                    selected_ecl: format!("{:?}", analysis.recommended_ecl),
+                    ecl_override: false,
+                });
+                
+                (qr, exclusion)
+            } else {
+                let qr = generator.generate_with_ecl(&data, 400, ecl)?;
+                (qr, None)
+            };
+            
+            // Convertir a datos estructurados con exclusion info
+            let structured = if has_logo_with_ratio {
+                // Usar el método con exclusión cuando hay logo
+                let mut structured = qr_code.to_structured_data_with_exclusion(qr_code.logo_zone.as_ref());
+                if let Some(exclusion) = exclusion_info {
+                    structured.metadata.exclusion_info = Some(exclusion);
+                }
+                structured
+            } else {
+                // Método estándar sin exclusión
+                let mut structured = qr_code.to_structured_data();
+                if let Some(exclusion) = exclusion_info {
+                    structured.metadata.exclusion_info = Some(exclusion);
+                }
+                structured
+            };
+            
+            Ok(structured)
         }
     })
     .await
@@ -300,16 +350,62 @@ async fn generate_qr_v3_enhanced(
             // Crear generador
             let generator = QrGenerator::new();
             
-            // Generar QR básico con nivel de corrección
-            let mut qr_code = generator.generate_with_ecl(&data, 400, ecl)?;
+            // Verificar si hay un logo con ratio de tamaño
+            let has_logo_with_ratio = options.customization.as_ref()
+                .and_then(|c| c.logo_size_ratio)
+                .is_some();
+                
+            info!("Options customization: {:?}", options.customization.as_ref().map(|c| format!("logo_size_ratio: {:?}", c.logo_size_ratio)));
+            info!("has_logo_with_ratio: {}", has_logo_with_ratio);
+            
+            // Generar QR con estrategia apropiada
+            let (qr_code, exclusion_info) = if has_logo_with_ratio {
+                // Usar generación con ECL dinámico para logos
+                let logo_ratio = options.customization.as_ref()
+                    .and_then(|c| c.logo_size_ratio)
+                    .unwrap_or(0.2);
+                
+                info!("Generating QR with dynamic ECL. Logo ratio: {}", logo_ratio);
+                
+                let (mut qr, analysis) = generator.generate_with_dynamic_ecl(
+                    &data,
+                    400,
+                    logo_ratio,
+                    Some(ecl),
+                )?;
+                
+                // Convertir análisis a ExclusionInfo
+                let exclusion = Some(rust_generator::engine::types::ExclusionInfo {
+                    excluded_modules: analysis.occluded_modules,
+                    affected_codewords: analysis.affected_codewords,
+                    occlusion_percentage: analysis.occlusion_percentage,
+                    selected_ecl: format!("{:?}", analysis.recommended_ecl),
+                    ecl_override: false,
+                });
+                
+                info!("Dynamic ECL analysis complete. Occluded modules: {}, ECL: {:?}", 
+                     analysis.occluded_modules, analysis.recommended_ecl);
+                
+                (qr, exclusion)
+            } else {
+                // Generación estándar sin ECL dinámico
+                let qr = generator.generate_with_ecl(&data, 400, ecl)?;
+                (qr, None)
+            };
             
             // Aplicar customization si está presente
+            let mut qr_code = qr_code;
             if let Some(customization) = options.customization {
                 qr_code.customization = Some(customization);
             }
             
-            // Convertir a Enhanced data
-            Ok(qr_code.to_enhanced_data())
+            // Convertir a Enhanced data con exclusion info
+            let enhanced = qr_code.to_enhanced_data_with_exclusion(exclusion_info);
+            
+            info!("Enhanced data exclusion info: {:?}", 
+                 enhanced.metadata.exclusion_info.as_ref().map(|e| e.excluded_modules));
+            
+            Ok(enhanced)
         }
     })
     .await
@@ -327,7 +423,7 @@ async fn generate_qr_v3_enhanced(
                     metadata: redis::QRMetadata {
                         version: 1,
                         modules: enhanced_output.paths.data.len(),
-                        error_correction: "M".to_string(), // TODO: Extract from customization
+                        error_correction: enhanced_output.metadata.error_correction.clone(),
                         processing_time_ms: enhanced_output.metadata.generation_time_ms,
                     },
                     generated_at: chrono::Utc::now().timestamp(),

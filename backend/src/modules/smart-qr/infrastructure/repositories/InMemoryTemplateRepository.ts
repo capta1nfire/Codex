@@ -35,10 +35,10 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
           colors: ['#833AB4', '#FD1D1D', '#FCAF45', '#F77737', '#FF5E3A'],
           angle: 45,
         },
-        eyeShape: 'leaf',
+        eyeShape: 'star',
         dataPattern: 'dots',
         logo: {
-          url: '/logos/instagram-fixed.svg',
+          url: '/logos/instagram-new.png',
           size: 0.2,
           padding: 8,
           shape: 'rounded_square',

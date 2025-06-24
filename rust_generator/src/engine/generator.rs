@@ -3,6 +3,7 @@
 use qrcodegen::{QrCode as QrCodeGen, QrCodeEcc};
 use super::types::*;
 use super::error::{QrError, QrResult};
+use crate::shapes::eyes::{EyeShapeRenderer, EyePosition, EyeComponent};
 
 /// Constantes de configuración
 const MIN_SIZE: u32 = 100;
@@ -43,6 +44,7 @@ impl QrGenerator {
             size: qr.size() as usize,
             quiet_zone: self.quiet_zone,
             customization: None,
+            logo_zone: None,
         })
     }
     
@@ -66,7 +68,43 @@ impl QrGenerator {
             size: qr.size() as usize,
             quiet_zone: self.quiet_zone,
             customization: None,
+            logo_zone: None,
         })
+    }
+    
+    /// Genera con ECL dinámico optimizado para logo
+    pub fn generate_with_dynamic_ecl(
+        &self,
+        data: &str,
+        size: u32,
+        logo_size_ratio: f32,
+        ecl_override: Option<ErrorCorrectionLevel>,
+    ) -> QrResult<(QrCode, super::ecl_optimizer::OcclusionAnalysis)> {
+        self.validate_input(data, size)?;
+        
+        // Usar el optimizador para determinar el ECL óptimo
+        let optimizer = super::ecl_optimizer::EclOptimizer::new();
+        let (optimal_ecl, analysis) = optimizer.determine_optimal_ecl(
+            data,
+            logo_size_ratio,
+            ecl_override,
+        )?;
+        
+        // Generar el QR con el ECL óptimo
+        let mut qr_code = self.generate_with_ecl(data, size, optimal_ecl)?;
+        
+        // Crear y almacenar la zona del logo
+        let qr_size = qr_code.size as f64;
+        let center = qr_size / 2.0;
+        let logo_size = (qr_size * logo_size_ratio as f64) / 2.0;
+        qr_code.logo_zone = Some(super::geometry::LogoExclusionZone::new(
+            super::geometry::LogoShape::Square,
+            center,
+            center,
+            logo_size,
+        ));
+        
+        Ok((qr_code, analysis))
     }
     
     /// Valida los datos de entrada
@@ -139,6 +177,109 @@ impl QrGenerator {
 
 // Implementación de to_svg para QrCode
 impl QrCode {
+    /// Convierte el QR a datos estructurados con zona de exclusión
+    pub fn to_structured_data_with_exclusion(
+        &self, 
+        logo_zone: Option<&super::geometry::LogoExclusionZone>
+    ) -> crate::engine::types::QrStructuredOutput {
+        use std::time::Instant;
+        use sha2::{Sha256, Digest};
+        
+        let start = Instant::now();
+        let mut path_data = String::new();
+        let mut excluded_count = 0;
+        
+        // Obtener zonas intocables si hay logo
+        let untouchable_zones = if logo_zone.is_some() {
+            let version = self.get_version();
+            super::zones::calculate_untouchable_zones(version)
+        } else {
+            vec![]
+        };
+        
+        // Generar path data excluyendo módulos en zona de logo
+        for y in 0..self.size {
+            for x in 0..self.size {
+                if self.matrix[y][x] {
+                    // Verificar si el módulo debe ser excluido
+                    let should_exclude = if let Some(zone) = logo_zone {
+                        super::geometry::is_module_excludable(
+                            x as u16, 
+                            y as u16, 
+                            zone, 
+                            &untouchable_zones
+                        )
+                    } else {
+                        false
+                    };
+                    
+                    if should_exclude {
+                        excluded_count += 1;
+                        // No agregar este módulo al path
+                        continue;
+                    }
+                    
+                    // Offset por quiet zone en coordenadas
+                    let x_pos = x + self.quiet_zone;
+                    let y_pos = y + self.quiet_zone;
+                    path_data.push_str(&format!("M{} {}h1v1H{}z", x_pos, y_pos, x_pos));
+                }
+            }
+        }
+        
+        // Calcular hash del contenido para cache
+        let mut hasher = Sha256::new();
+        hasher.update(&path_data);
+        let content_hash = format!("{:x}", hasher.finalize());
+        
+        // Construir estructura con información de exclusión
+        let mut output = self.to_structured_data();
+        output.path_data = path_data;
+        output.metadata.content_hash = content_hash;
+        output.metadata.generation_time_ms = start.elapsed().as_millis() as u64;
+        
+        // Agregar información de exclusión si se excluyeron módulos
+        if excluded_count > 0 && logo_zone.is_some() {
+            // Esta información ya debería venir del proceso de generación con ECL dinámico
+            // Por ahora solo actualizamos el contador
+            if let Some(ref mut exclusion) = output.metadata.exclusion_info {
+                exclusion.excluded_modules = excluded_count;
+            }
+            
+            // Convertir zonas intocables a formato de salida
+            output.untouchable_zones = Some(
+                untouchable_zones.iter().map(|zone| {
+                    crate::engine::types::UntouchableZoneInfo {
+                        zone_type: format!("{:?}", zone.zone_type),
+                        x: zone.x,
+                        y: zone.y,
+                        width: zone.width,
+                        height: zone.height,
+                    }
+                }).collect()
+            );
+        }
+        
+        output
+    }
+    
+    /// Obtiene la versión del código QR basado en su tamaño
+    fn get_version(&self) -> u8 {
+        match self.size {
+            21 => 1,
+            25 => 2,
+            29 => 3,
+            33 => 4,
+            37 => 5,
+            41 => 6,
+            45 => 7,
+            49 => 8,
+            53 => 9,
+            57 => 10,
+            _ => ((self.size - 21) / 4 + 1) as u8,
+        }
+    }
+    
     /// Convierte el QR a SVG básico
     pub fn to_svg(&self) -> String {
         // Usar la customización almacenada en el QrCode
@@ -626,8 +767,6 @@ impl QrCode {
         module_size: usize, 
         quiet_zone_size: usize
     ) -> String {
-        use crate::shapes::eyes::{EyeShapeRenderer, EyePosition};
-        
         let mut svg = String::new();
         let eye_renderer = EyeShapeRenderer::new(module_size as u32);
         let qr_size = self.size;
@@ -642,63 +781,30 @@ impl QrCode {
         svg.push_str(&format!(r#"<g transform="translate({}, {})">"#, quiet_zone_size, quiet_zone_size));
         
         for (position, x_offset, y_offset) in &eye_positions {
-            // Renderizar marco exterior del ojo directamente
-            let outer_x = *x_offset as f32 * module_size as f32;
-            let outer_y = *y_offset as f32 * module_size as f32;
-            let outer_size = 7.0 * module_size as f32;
+            // Aplicar transformación para la posición del ojo
+            svg.push_str(&format!(
+                r#"<g transform="translate({}, {})">"#, 
+                x_offset * module_size, 
+                y_offset * module_size
+            ));
             
-            // Usar la forma específica para el marco exterior
-            let outer_path = match eye_shape {
-                EyeShape::Square => format!("M {} {} h {} v {} h -{} Z", outer_x, outer_y, outer_size, outer_size, outer_size),
-                EyeShape::RoundedSquare => {
-                    let radius = outer_size * 0.2;
-                    format!(
-                        "M {} {} h {} a {} {} 0 0 1 {} {} v {} a {} {} 0 0 1 -{} {} h -{} a {} {} 0 0 1 -{} -{} v -{} a {} {} 0 0 1 {} -{} Z",
-                        outer_x + radius, outer_y,
-                        outer_size - 2.0 * radius,
-                        radius, radius, radius, radius,
-                        outer_size - 2.0 * radius,
-                        radius, radius, radius, radius,
-                        outer_size - 2.0 * radius,
-                        radius, radius, radius, radius,
-                        outer_size - 2.0 * radius,
-                        radius, radius, radius, radius
-                    )
-                },
-                EyeShape::Circle => {
-                    let center_x = outer_x + outer_size / 2.0;
-                    let center_y = outer_y + outer_size / 2.0;
-                    let radius = outer_size / 2.0;
-                    format!(
-                        "M {} {} m -{} 0 a {} {} 0 1 0 {} 0 a {} {} 0 1 0 -{} 0",
-                        center_x, center_y, radius, radius, radius, radius * 2.0, radius, radius, radius * 2.0
-                    )
-                },
-                _ => format!("M {} {} h {} v {} h -{} Z", outer_x, outer_y, outer_size, outer_size, outer_size), // Default to square
-            };
-            svg.push_str(&format!(r#"<path d="{}" fill="{}" />"#, outer_path, color));
+            // Renderizar marco exterior del ojo usando EyeShapeRenderer
+            svg.push_str(&eye_renderer.render_to_svg_path(
+                eye_shape, 
+                *position, 
+                EyeComponent::Outer, 
+                color
+            ));
             
-            // Renderizar punto interior del ojo
-            let inner_x = outer_x + 2.0 * module_size as f32;
-            let inner_y = outer_y + 2.0 * module_size as f32;
-            let inner_size = 3.0 * module_size as f32;
+            // Renderizar punto interior del ojo usando EyeShapeRenderer
+            svg.push_str(&eye_renderer.render_to_svg_path(
+                eye_shape, 
+                *position, 
+                EyeComponent::Inner, 
+                color
+            ));
             
-            let inner_path = match eye_shape {
-                EyeShape::Square | EyeShape::RoundedSquare => {
-                    format!("M {} {} h {} v {} h -{} Z", inner_x, inner_y, inner_size, inner_size, inner_size)
-                },
-                EyeShape::Circle => {
-                    let center_x = inner_x + inner_size / 2.0;
-                    let center_y = inner_y + inner_size / 2.0;
-                    let radius = inner_size / 2.0;
-                    format!(
-                        "M {} {} m -{} 0 a {} {} 0 1 0 {} 0 a {} {} 0 1 0 -{} 0",
-                        center_x, center_y, radius, radius, radius, radius * 2.0, radius, radius, radius * 2.0
-                    )
-                },
-                _ => format!("M {} {} h {} v {} h -{} Z", inner_x, inner_y, inner_size, inner_size, inner_size),
-            };
-            svg.push_str(&format!(r#"<path d="{}" fill="{}" />"#, inner_path, color));
+            svg.push_str("</g>");
         }
         
         svg.push_str("</g>");
@@ -796,19 +902,26 @@ impl QrCode {
                     })
                     .unwrap_or("M")
                     .to_string(),
+                exclusion_info: None,
             },
+            untouchable_zones: None,
         }
     }
     
     /// Convierte el QR a datos estructurados Enhanced para v3
     pub fn to_enhanced_data(&self) -> crate::engine::types::QrEnhancedOutput {
+        self.to_enhanced_data_with_exclusion(None)
+    }
+    
+    /// Convierte el QR a datos estructurados Enhanced para v3 con información de exclusión opcional
+    pub fn to_enhanced_data_with_exclusion(&self, exclusion_info: Option<crate::engine::types::ExclusionInfo>) -> crate::engine::types::QrEnhancedOutput {
         use std::time::Instant;
         use sha2::{Sha256, Digest};
         
         let start = Instant::now();
         
-        // Generar paths separados
-        let paths = self.generate_enhanced_paths();
+        // Generar paths separados (con exclusión si hay logo_zone)
+        let paths = self.generate_enhanced_paths_with_exclusion(self.logo_zone.as_ref());
         
         // Construir estilos basados en customization
         let styles = self.build_styles();
@@ -864,27 +977,57 @@ impl QrCode {
                     })
                     .unwrap_or("M")
                     .to_string(),
+                exclusion_info,
             },
         }
     }
     
     /// Genera paths separados para datos y ojos
     fn generate_enhanced_paths(&self) -> crate::engine::types::QrPaths {
+        self.generate_enhanced_paths_with_exclusion(None)
+    }
+    
+    /// Genera paths separados para datos y ojos con soporte para exclusión
+    fn generate_enhanced_paths_with_exclusion(&self, logo_zone: Option<&super::geometry::LogoExclusionZone>) -> crate::engine::types::QrPaths {
         let mut data_path = String::new();
         let mut eye_paths = Vec::new();
         
         // Identificar regiones de ojos
         let eye_regions = self.identify_eye_regions();
         
+        // Obtener zonas intocables si hay logo
+        let untouchable_zones = if logo_zone.is_some() {
+            let version = self.get_version();
+            super::zones::calculate_untouchable_zones(version)
+        } else {
+            vec![]
+        };
+        
         // Obtener el patrón de datos configurado
         let data_pattern = self.customization.as_ref()
             .and_then(|c| c.data_pattern)
             .unwrap_or(DataPattern::Square);
         
-        // Generar path optimizado para datos (excluyendo ojos)
+        // Generar path optimizado para datos (excluyendo ojos y zona de logo si aplica)
         for y in 0..self.size {
             for x in 0..self.size {
                 if self.matrix[y][x] && !self.is_in_eye_region(x, y, &eye_regions) {
+                    // Verificar si el módulo debe ser excluido por el logo
+                    let should_exclude = if let Some(zone) = logo_zone {
+                        super::geometry::is_module_excludable(
+                            x as u16, 
+                            y as u16, 
+                            zone, 
+                            &untouchable_zones
+                        )
+                    } else {
+                        false
+                    };
+                    
+                    if should_exclude {
+                        // No agregar este módulo al path
+                        continue;
+                    }
                     let x_pos = x + self.quiet_zone;
                     let y_pos = y + self.quiet_zone;
                     
@@ -984,8 +1127,112 @@ impl QrCode {
             .and_then(|c| c.eye_shape)
             .unwrap_or(EyeShape::Square);
         
-        // Para Dot shape, renderizar el marco exterior como cuadrado con esquinas redondeadas
-        // y el interior como círculo
+        // Generar paths para el marco exterior (7x7) y el centro (3x3)
+        let mut path_parts = Vec::new();
+        
+        // Marco exterior (7x7)
+        match eye_shape {
+            EyeShape::Square => {
+                let x = region.x + self.quiet_zone;
+                let y = region.y + self.quiet_zone;
+                path_parts.push(format!("M {} {} h 7 v 7 h -7 Z", x, y));
+            }
+            EyeShape::RoundedSquare => {
+                let x = region.x + self.quiet_zone;
+                let y = region.y + self.quiet_zone;
+                path_parts.push(format!(
+                    "M {:.1} {} h 5.6 a 0.7 0.7 0 0 1 0.7 0.7 v 5.6 a 0.7 0.7 0 0 1 -0.7 0.7 h -5.6 a 0.7 0.7 0 0 1 -0.7 -0.7 v -5.6 a 0.7 0.7 0 0 1 0.7 -0.7 Z",
+                    x as f32 + 0.7, y
+                ));
+            }
+            EyeShape::Circle => {
+                let cx = (region.x + self.quiet_zone) as f32 + 3.5;
+                let cy = (region.y + self.quiet_zone) as f32 + 3.5;
+                path_parts.push(format!(
+                    "M {} {} A 3.5 3.5 0 1 0 {} {} A 3.5 3.5 0 1 0 {} {} Z",
+                    cx - 3.5, cy, cx + 3.5, cy, cx - 3.5, cy
+                ));
+            }
+            EyeShape::Star => {
+                let cx = (region.x + self.quiet_zone) as f32 + 3.5;
+                let cy = (region.y + self.quiet_zone) as f32 + 3.5;
+                let outer_r = 3.5;
+                let inner_r = 1.75;
+                
+                let mut star_path = String::from("M ");
+                for i in 0..10 {
+                    let angle = (i as f32 * 36.0 - 90.0).to_radians();
+                    let r = if i % 2 == 0 { outer_r } else { inner_r };
+                    let px = cx as f32 + r * angle.cos();
+                    let py = cy as f32 + r * angle.sin();
+                    
+                    if i == 0 {
+                        star_path.push_str(&format!("{:.2} {:.2}", px, py));
+                    } else {
+                        star_path.push_str(&format!(" L {:.2} {:.2}", px, py));
+                    }
+                }
+                star_path.push_str(" Z");
+                path_parts.push(star_path);
+            }
+            _ => {
+                // Para otras formas, usar la implementación legacy por ahora
+                let x = region.x + self.quiet_zone;
+                let y = region.y + self.quiet_zone;
+                path_parts.push(format!("M {} {} h 7 v 7 h -7 Z", x, y));
+            }
+        }
+        
+        // Centro interior (3x3)
+        let inner_x = region.x + self.quiet_zone + 2;
+        let inner_y = region.y + self.quiet_zone + 2;
+        
+        match eye_shape {
+            EyeShape::Circle | EyeShape::Dot => {
+                let cx = inner_x as f32 + 1.5;
+                let cy = inner_y as f32 + 1.5;
+                path_parts.push(format!(
+                    "M {} {} A 1.5 1.5 0 1 0 {} {} A 1.5 1.5 0 1 0 {} {} Z",
+                    cx - 1.5, cy, cx + 1.5, cy, cx - 1.5, cy
+                ));
+            }
+            EyeShape::Star => {
+                let cx = inner_x as f32 + 1.5;
+                let cy = inner_y as f32 + 1.5;
+                let outer_r = 1.5;
+                let inner_r = 0.75;
+                
+                let mut star_path = String::from("M ");
+                for i in 0..10 {
+                    let angle = (i as f32 * 36.0 - 90.0).to_radians();
+                    let r = if i % 2 == 0 { outer_r } else { inner_r };
+                    let px = cx + r * angle.cos();
+                    let py = cy + r * angle.sin();
+                    
+                    if i == 0 {
+                        star_path.push_str(&format!("{:.2} {:.2}", px, py));
+                    } else {
+                        star_path.push_str(&format!(" L {:.2} {:.2}", px, py));
+                    }
+                }
+                star_path.push_str(" Z");
+                path_parts.push(star_path);
+            }
+            _ => {
+                // Cuadrado por defecto
+                path_parts.push(format!("M {} {} h 3 v 3 h -3 Z", inner_x, inner_y));
+            }
+        }
+        
+        path_parts.join(" ")
+    }
+    
+    /// Genera el path para un ojo específico (implementación anterior para compatibilidad)
+    fn generate_eye_path_legacy(&self, region: &EyeRegion) -> String {
+        let eye_shape = self.customization.as_ref()
+            .and_then(|c| c.eye_shape)
+            .unwrap_or(EyeShape::Square);
+        
         match eye_shape {
             EyeShape::Dot => {
                 let mut path = String::new();

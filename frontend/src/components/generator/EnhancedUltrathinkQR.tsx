@@ -16,6 +16,7 @@
  */
 
 import React, { useMemo } from 'react';
+import { QRLogoMask, UntouchableZonesDebug } from './QRLogoMask';
 
 // Tipos para la estructura Enhanced v3
 export interface QREnhancedData {
@@ -64,7 +65,21 @@ export interface QREnhancedData {
     data_modules: number;
     version: number;
     error_correction: string;
+    exclusion_info?: {
+      excluded_modules: number;
+      affected_codewords: number;
+      occlusion_percentage: number;
+      selected_ecl: string;
+      ecl_override: boolean;
+    };
   };
+  untouchable_zones?: Array<{
+    zone_type: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>;
 }
 
 type QRDefinition = QRGradientDef | QREffectDef;
@@ -140,6 +155,12 @@ interface EnhancedUltrathinkQRProps {
   
   // Callback cuando el QR es clickeado
   onClick?: () => void;
+  
+  // Opciones de depuración
+  debugUntouchableZones?: boolean;
+  
+  // Ratio del tamaño del logo (si existe)
+  logoSizeRatio?: number;
 }
 
 export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
@@ -152,6 +173,8 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
   description,
   className = '',
   onClick,
+  debugUntouchableZones = false,
+  logoSizeRatio,
 }) => {
   const QUIET_ZONE = data.metadata.quiet_zone;
   
@@ -198,6 +221,17 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
     [description]
   );
   
+  // ID único para la máscara del logo
+  const maskId = useMemo(() => 
+    `qr-logo-mask-${Math.random().toString(36).substr(2, 9)}`, 
+    []
+  );
+  
+  // Determinar si necesitamos usar máscara de exclusión
+  const hasLogoWithExclusion = useMemo(() => {
+    return data.overlays?.logo && data.metadata.exclusion_info && logoSizeRatio;
+  }, [data.overlays?.logo, data.metadata.exclusion_info, logoSizeRatio]);
+  
   return (
     <div
       className={`enhanced-ultrathink-qr-container ${className}`}
@@ -230,11 +264,29 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
         <title id={titleId}>{title}</title>
         {description && <desc id={descId}>{description}</desc>}
         
-        {/* Definiciones (gradientes y efectos) */}
-        {definitions && <defs>{definitions}</defs>}
+        {/* Definiciones (gradientes, efectos y máscaras) */}
+        <defs>
+          {definitions}
+          
+          {/* Máscara de exclusión del logo si es necesaria */}
+          {hasLogoWithExclusion && data.overlays?.logo && (
+            <QRLogoMask
+              maskId={maskId}
+              totalModules={totalModules}
+              dataModules={dataModules}
+              quietZone={QUIET_ZONE}
+              logoSize={logoSizeRatio || data.overlays.logo.size}
+              logoShape={data.overlays.logo.shape as 'square' | 'circle' | 'rounded-square'}
+              untouchableZones={data.untouchable_zones}
+            />
+          )}
+        </defs>
         
-        {/* Grupo principal con efectos si existen */}
-        <g filter={getFilterString(data.styles.data.effects)}>
+        {/* Grupo principal con efectos y máscara si existe */}
+        <g 
+          filter={getFilterString(data.styles.data.effects)}
+          mask={hasLogoWithExclusion ? `url(#${maskId})` : undefined}
+        >
           {/* Path de datos */}
           <path
             d={data.paths.data}
@@ -248,8 +300,11 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
           />
         </g>
         
-        {/* Grupo de ojos con efectos si existen */}
-        <g filter={getFilterString(data.styles.eyes.effects)}>
+        {/* Grupo de ojos con efectos y máscara si existe */}
+        <g 
+          filter={getFilterString(data.styles.eyes.effects)}
+          mask={hasLogoWithExclusion ? `url(#${maskId})` : undefined}
+        >
           {/* Paths de ojos */}
           {data.paths.eyes.map((eye, index) => (
             <path
@@ -268,8 +323,16 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
           ))}
         </g>
         
+        {/* Debug de zonas intocables si está habilitado */}
+        {debugUntouchableZones && data.untouchable_zones && (
+          <UntouchableZonesDebug 
+            zones={data.untouchable_zones}
+            quietZone={QUIET_ZONE}
+          />
+        )}
+        
         {/* Overlays (logo y frame) si existen */}
-        {data.overlays?.logo && renderLogo(data.overlays.logo, totalModules)}
+        {data.overlays?.logo && renderLogo(data.overlays.logo, totalModules, hasLogoWithExclusion)}
         {data.overlays?.frame && renderFrame(data.overlays.frame)}
       </svg>
       
@@ -440,8 +503,8 @@ function renderEffect(effect: QREffectDef): React.ReactElement {
   }
 }
 
-function renderLogo(logo: QRLogo, totalModules: number): React.ReactElement {
-  console.log('[renderLogo] Input:', { logo, totalModules });
+function renderLogo(logo: QRLogo, totalModules: number, hasExclusion: boolean = false): React.ReactElement {
+  console.log('[renderLogo] Input:', { logo, totalModules, hasExclusion });
   
   // Logo size is a percentage of the total QR size
   const logoSize = totalModules * logo.size;
@@ -469,15 +532,17 @@ function renderLogo(logo: QRLogo, totalModules: number): React.ReactElement {
   
   return (
     <g key="logo-overlay">
-      {/* Fondo blanco para el logo sin padding extra */}
-      <rect
-        x={logoX - logoSize/2}
-        y={logoY - logoSize/2}
-        width={logoSize}
-        height={logoSize}
-        fill="white"
-        rx={logo.shape === 'circle' ? '50%' : (logo.shape === 'rounded_square' || logo.shape === 'roundedsquare') ? '10%' : '0'}
-      />
+      {/* Solo renderizar fondo blanco si NO hay exclusión nativa */}
+      {!hasExclusion && (
+        <rect
+          x={logoX - logoSize/2}
+          y={logoY - logoSize/2}
+          width={logoSize}
+          height={logoSize}
+          fill="white"
+          rx={logo.shape === 'circle' ? '50%' : (logo.shape === 'rounded_square' || logo.shape === 'roundedsquare') ? '10%' : '0'}
+        />
+      )}
       
       {/* Logo image */}
       <image

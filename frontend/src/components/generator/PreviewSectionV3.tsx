@@ -195,6 +195,9 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
     if (!displayState.showRealBarcode) return null;
     
     if ((barcodeType === 'qrcode' || barcodeType === 'qr') && isUsingV3Enhanced && enhancedData) {
+      // Extract logo size ratio if available
+      const logoSizeRatio = enhancedData.overlays?.logo?.size || undefined;
+      
       return (
         <EnhancedUltrathinkQR
           data={enhancedData}
@@ -206,6 +209,7 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
           title="Código QR"
           description="Escanea este código QR"
           className="animate-fadeIn"
+          logoSizeRatio={logoSizeRatio}
         />
       );
     } else if (barcodeType === 'qrcode' || barcodeType === 'qr') {

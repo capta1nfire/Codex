@@ -439,9 +439,9 @@ mod tests {
         // Crear imagen de prueba
         let image = GrayImage::from_fn(100, 100, |x, y| {
             if (x / 10 + y / 10) % 2 == 0 {
-                Luma([0u8])
+                image::Luma([0u8])
             } else {
-                Luma([255u8])
+                image::Luma([255u8])
             }
         });
         

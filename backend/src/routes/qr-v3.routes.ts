@@ -211,10 +211,18 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
                 effects: options.customization.effects,
                 frame_style: options.customization.frame_style || options.customization.frameStyle,
                 logo: options.customization.logo,
+                logo_size_ratio: options.customization.logo_size_ratio || options.customization.logoSizeRatio,
               }
             : undefined,
         }
       : {};
+
+    // Log what we're sending to Rust
+    logger.info('Sending to Rust v3 Enhanced:', {
+      data,
+      options: transformedOptions,
+      logoSizeRatio: transformedOptions?.customization?.logo_size_ratio,
+    });
 
     // Llamar al generador Rust v3 Enhanced
     const response = await axios.post(
