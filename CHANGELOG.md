@@ -10,6 +10,22 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
+### 2025-06-24
+
+#### Changed
+- 🔧 **Smart QR Instagram Template** - Multiple visual adjustments
+  - Fixed: Logo rendering with Base64 SVG conversion in `useQRGenerationState.ts`
+  - Updated: Eye shape from 'dot' to 'leaf' in template configurations
+  - Added: Dot pattern support for QR data modules in Rust generator
+  - Fixed: Logo background padding to match exact logo dimensions
+  - Analyzed: Native area exclusion implementation report for future improvements
+
+#### Technical Details
+- Modified `loadSvgAsBase64` function to handle SVG file loading and conversion
+- Updated `generate_eye_path` in Rust to support Dot and Leaf shapes
+- Adjusted logo rendering calculations in `EnhancedUltrathinkQR.tsx`
+- Removed extra padding from white background rectangle
+
 ### 2025-06-22
 
 #### Fixed

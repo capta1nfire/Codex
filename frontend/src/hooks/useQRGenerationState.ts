@@ -114,6 +114,29 @@ export const useQRGenerationState = () => {
     transitionTo('READY_TO_GENERATE');
   }, [transitionTo]);
 
+  // Helper function to load SVG and convert to Base64
+  const loadSvgAsBase64 = async (url: string): Promise<string> => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to load SVG: ${response.status}`);
+      }
+      let svgText = await response.text();
+      
+      // Make gradient IDs unique to avoid conflicts
+      const uniqueId = Math.random().toString(36).substr(2, 9);
+      svgText = svgText.replace(/id="([^"]*)"/g, `id="$1-${uniqueId}"`);
+      svgText = svgText.replace(/url\(#([^)]*)\)/g, `url(#$1-${uniqueId})`);
+      
+      // Convert SVG text to Base64
+      const base64 = btoa(unescape(encodeURIComponent(svgText)));
+      return `data:image/svg+xml;base64,${base64}`;
+    } catch (error) {
+      console.error('Error loading SVG:', error);
+      throw error;
+    }
+  };
+
   // Main generation function
   const generateQR = useCallback(async (
     formData: GenerateFormData,
@@ -175,13 +198,23 @@ export const useQRGenerationState = () => {
 
         // Map logo format - backend expects 'data' not 'url' and all fields are required
         if (smartConfig.logo && smartConfig.logo.url) {
-          customization.logo = {
-            data: smartConfig.logo.url, // Backend expects 'data' field
-            size_percentage: Math.round((smartConfig.logo.size || 0.3) * 100),
-            padding: smartConfig.logo.padding || 10,
-            shape: smartConfig.logo.shape === 'rounded' ? 'rounded_square' : (smartConfig.logo.shape || 'square') // Map 'rounded' to 'rounded_square'
-          };
-          console.log('Mapped Logo:', customization.logo);
+          try {
+            // Load SVG and convert to Base64
+            const logoData = await loadSvgAsBase64(smartConfig.logo.url);
+            customization.logo = {
+              data: logoData, // Now sending actual Base64 data
+              size_percentage: Math.round((smartConfig.logo.size || 0.2) * 100), // Reduced from 0.3 to 0.2 (20%)
+              padding: smartConfig.logo.padding || 8, // Reduced padding
+              shape: smartConfig.logo.shape === 'rounded' ? 'rounded_square' : (smartConfig.logo.shape || 'square') // Map 'rounded' to 'rounded_square'
+            };
+            console.log('Mapped Logo with Base64 data:', { 
+              ...customization.logo, 
+              data: customization.logo.data.substring(0, 50) + '...' // Log only first 50 chars
+            });
+          } catch (error) {
+            console.error('Failed to load logo:', error);
+            // Continue without logo if loading fails
+          }
         }
 
         // Map frame if exists
@@ -201,7 +234,8 @@ export const useQRGenerationState = () => {
         await v3Enhanced.generateEnhancedQR(
           formData.data,
           {
-            error_correction: 'M',
+            // Use high error correction when logo is present for better QR readability
+            error_correction: customization.logo ? 'H' : 'M',
             customization
           }
         );

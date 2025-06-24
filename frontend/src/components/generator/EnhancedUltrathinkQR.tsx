@@ -269,7 +269,7 @@ export const EnhancedUltrathinkQR: React.FC<EnhancedUltrathinkQRProps> = ({
         </g>
         
         {/* Overlays (logo y frame) si existen */}
-        {data.overlays?.logo && renderLogo(data.overlays.logo, dataModules)}
+        {data.overlays?.logo && renderLogo(data.overlays.logo, totalModules)}
         {data.overlays?.frame && renderFrame(data.overlays.frame)}
       </svg>
       
@@ -440,28 +440,50 @@ function renderEffect(effect: QREffectDef): React.ReactElement {
   }
 }
 
-function renderLogo(logo: QRLogo, moduleSize: number): React.ReactElement {
-  const logoSize = moduleSize * logo.size;
-  const logoX = (moduleSize * logo.x) - (logoSize / 2);
-  const logoY = (moduleSize * logo.y) - (logoSize / 2);
+function renderLogo(logo: QRLogo, totalModules: number): React.ReactElement {
+  console.log('[renderLogo] Input:', { logo, totalModules });
+  
+  // Logo size is a percentage of the total QR size
+  const logoSize = totalModules * logo.size;
+  
+  // Logo position - center it properly in the QR code
+  // The backend sends coordinates but we'll calculate the true center
+  const logoX = totalModules / 2;
+  const logoY = totalModules / 2;
+  
+  // Padding needs to be scaled relative to the QR size
+  // Convert padding from pixels to viewBox units
+  // Increase padding to create more white space around logo for better QR readability
+  const paddingInUnits = (logo.padding * 1.5) * totalModules / 300; // Increased padding for better contrast
+  
+  console.log('[renderLogo] Calculated:', {
+    logoSize,
+    logoX,
+    logoY,
+    paddingInUnits,
+    shape: logo.shape,
+    rectX: logoX - logoSize/2 - paddingInUnits,
+    rectY: logoY - logoSize/2 - paddingInUnits,
+    rectSize: logoSize + paddingInUnits * 2
+  });
   
   return (
     <g key="logo-overlay">
-      {/* Fondo blanco para el logo con padding */}
+      {/* Fondo blanco para el logo sin padding extra */}
       <rect
-        x={logoX - logo.padding}
-        y={logoY - logo.padding}
-        width={logoSize + (logo.padding * 2)}
-        height={logoSize + (logo.padding * 2)}
+        x={logoX - logoSize/2}
+        y={logoY - logoSize/2}
+        width={logoSize}
+        height={logoSize}
         fill="white"
-        rx={logo.shape === 'circle' ? '50%' : logo.shape === 'rounded_square' ? '10%' : '0'}
+        rx={logo.shape === 'circle' ? '50%' : (logo.shape === 'rounded_square' || logo.shape === 'roundedsquare') ? '10%' : '0'}
       />
       
       {/* Logo image */}
       <image
         href={logo.src}
-        x={logoX}
-        y={logoY}
+        x={logoX - logoSize/2}
+        y={logoY - logoSize/2}
         width={logoSize}
         height={logoSize}
         preserveAspectRatio="xMidYMid meet"

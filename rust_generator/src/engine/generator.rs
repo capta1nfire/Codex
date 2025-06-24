@@ -876,6 +876,11 @@ impl QrCode {
         // Identificar regiones de ojos
         let eye_regions = self.identify_eye_regions();
         
+        // Obtener el patrón de datos configurado
+        let data_pattern = self.customization.as_ref()
+            .and_then(|c| c.data_pattern)
+            .unwrap_or(DataPattern::Square);
+        
         // Generar path optimizado para datos (excluyendo ojos)
         for y in 0..self.size {
             for x in 0..self.size {
@@ -883,24 +888,46 @@ impl QrCode {
                     let x_pos = x + self.quiet_zone;
                     let y_pos = y + self.quiet_zone;
                     
-                    // Optimización: combinar módulos adyacentes horizontalmente
-                    let mut width = 1;
-                    while x + width < self.size && 
-                          self.matrix[y][x + width] && 
-                          !self.is_in_eye_region(x + width, y, &eye_regions) {
-                        width += 1;
-                    }
-                    
-                    if width > 1 {
-                        data_path.push_str(&format!("M{} {}h{}v1H{}z", x_pos, y_pos, width, x_pos));
-                        // Saltar los módulos ya procesados
-                        for _ in 1..width {
-                            if x + 1 < self.size {
-                                // Skip processed modules
+                    // Para el patrón de dots, generar círculos individuales
+                    match data_pattern {
+                        DataPattern::Dots => {
+                            // Círculo con radio 0.4 (40% del módulo)
+                            let cx = x_pos as f32 + 0.5;
+                            let cy = y_pos as f32 + 0.5;
+                            let r = 0.4;
+                            data_path.push_str(&format!(
+                                "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0",
+                                cx, cy, r, r, r, r * 2.0, r, r, r * 2.0
+                            ));
+                        },
+                        DataPattern::Rounded => {
+                            // Cuadrado redondeado
+                            data_path.push_str(&format!(
+                                "M{}.25 {}h0.5a0.25 0.25 0 0 1 0.25 0.25v0.5a0.25 0.25 0 0 1 -0.25 0.25h-0.5a0.25 0.25 0 0 1 -0.25 -0.25v-0.5a0.25 0.25 0 0 1 0.25 -0.25z",
+                                x_pos, y_pos
+                            ));
+                        },
+                        _ => {
+                            // Patrón cuadrado estándar (optimizado)
+                            let mut width = 1;
+                            while x + width < self.size && 
+                                  self.matrix[y][x + width] && 
+                                  !self.is_in_eye_region(x + width, y, &eye_regions) {
+                                width += 1;
+                            }
+                            
+                            if width > 1 {
+                                data_path.push_str(&format!("M{} {}h{}v1H{}z", x_pos, y_pos, width, x_pos));
+                                // Saltar los módulos ya procesados
+                                for _ in 1..width {
+                                    if x + 1 < self.size {
+                                        // Skip processed modules
+                                    }
+                                }
+                            } else {
+                                data_path.push_str(&format!("M{} {}h1v1H{}z", x_pos, y_pos, x_pos));
                             }
                         }
-                    } else {
-                        data_path.push_str(&format!("M{} {}h1v1H{}z", x_pos, y_pos, x_pos));
                     }
                 }
             }
@@ -953,20 +980,118 @@ impl QrCode {
     
     /// Genera el path para un ojo específico
     fn generate_eye_path(&self, region: &EyeRegion) -> String {
-        let mut path = String::new();
+        let eye_shape = self.customization.as_ref()
+            .and_then(|c| c.eye_shape)
+            .unwrap_or(EyeShape::Square);
         
-        // Generar path según el patrón del ojo
-        for y in region.y..region.y + region.size {
-            for x in region.x..region.x + region.size {
-                if self.matrix[y][x] {
-                    let x_pos = x + self.quiet_zone;
-                    let y_pos = y + self.quiet_zone;
-                    path.push_str(&format!("M{} {}h1v1H{}z", x_pos, y_pos, x_pos));
+        // Para Dot shape, renderizar el marco exterior como cuadrado con esquinas redondeadas
+        // y el interior como círculo
+        match eye_shape {
+            EyeShape::Dot => {
+                let mut path = String::new();
+                
+                // Marco exterior (7x7) - cuadrado con esquinas ligeramente redondeadas
+                let outer_x = (region.x + self.quiet_zone) as f32;
+                let outer_y = (region.y + self.quiet_zone) as f32;
+                let outer_size = 7.0;
+                
+                // Renderizar el marco exterior completo como un path
+                path.push_str(&format!(
+                    "M{} {}h{}v{}h-{}z",
+                    outer_x, outer_y, outer_size, outer_size, outer_size
+                ));
+                
+                // Interior (3x3) - círculo
+                let inner_x = outer_x + 2.0;
+                let inner_y = outer_y + 2.0;
+                let inner_size = 3.0;
+                let center_x = inner_x + inner_size / 2.0;
+                let center_y = inner_y + inner_size / 2.0;
+                let radius = inner_size / 2.0;
+                
+                // Agregar el círculo interior
+                path.push_str(&format!(
+                    "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0",
+                    center_x, center_y, radius, radius, radius, radius * 2.0, radius, radius, radius * 2.0
+                ));
+                
+                path
+            },
+            EyeShape::Circle => {
+                let mut path = String::new();
+                
+                // Marco exterior circular
+                let outer_x = (region.x + self.quiet_zone) as f32;
+                let outer_y = (region.y + self.quiet_zone) as f32;
+                let outer_size = 7.0;
+                let center_x = outer_x + outer_size / 2.0;
+                let center_y = outer_y + outer_size / 2.0;
+                let radius = outer_size / 2.0;
+                
+                path.push_str(&format!(
+                    "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0",
+                    center_x, center_y, radius, radius, radius, radius * 2.0, radius, radius, radius * 2.0
+                ));
+                
+                // Interior circular
+                let inner_radius = 1.5;
+                path.push_str(&format!(
+                    "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0",
+                    center_x, center_y, inner_radius, inner_radius, inner_radius, inner_radius * 2.0, inner_radius, inner_radius, inner_radius * 2.0
+                ));
+                
+                path
+            },
+            EyeShape::Leaf => {
+                let mut path = String::new();
+                
+                // Marco exterior en forma de hoja
+                let outer_x = (region.x + self.quiet_zone) as f32;
+                let outer_y = (region.y + self.quiet_zone) as f32;
+                let outer_size = 7.0;
+                let cx = outer_x + outer_size / 2.0;
+                let cy = outer_y + outer_size / 2.0;
+                
+                // Path de hoja para el marco exterior
+                path.push_str(&format!(
+                    "M{} {}Q{} {} {} {}Q{} {} {} {}Q{} {} {} {}Q{} {} {} {}z",
+                    cx, outer_y,
+                    outer_x + outer_size * 0.8, outer_y + outer_size * 0.2, outer_x + outer_size, cy,
+                    outer_x + outer_size * 0.8, outer_y + outer_size * 0.8, cx, outer_y + outer_size,
+                    outer_x + outer_size * 0.2, outer_y + outer_size * 0.8, outer_x, cy,
+                    outer_x + outer_size * 0.2, outer_y + outer_size * 0.2, cx, outer_y
+                ));
+                
+                // Interior - círculo más pequeño
+                let inner_x = outer_x + 2.0;
+                let inner_y = outer_y + 2.0;
+                let inner_size = 3.0;
+                let inner_cx = inner_x + inner_size / 2.0;
+                let inner_cy = inner_y + inner_size / 2.0;
+                let inner_r = inner_size / 2.0;
+                
+                path.push_str(&format!(
+                    "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0",
+                    inner_cx, inner_cy, inner_r, inner_r, inner_r, inner_r * 2.0, inner_r, inner_r, inner_r * 2.0
+                ));
+                
+                path
+            },
+            _ => {
+                // Fallback to default square rendering
+                let mut path = String::new();
+                for y in region.y..region.y + region.size {
+                    for x in region.x..region.x + region.size {
+                        if self.matrix[y][x] {
+                            let x_pos = x + self.quiet_zone;
+                            let y_pos = y + self.quiet_zone;
+                            path.push_str(&format!("M{} {}h1v1H{}z", x_pos, y_pos, x_pos));
+                        }
+                    }
                 }
+                path
             }
         }
-        
-        path
     }
     
     /// Construye el objeto de estilos
@@ -1028,7 +1153,8 @@ impl QrCode {
             data: crate::engine::types::QrStyleConfig {
                 fill: data_fill,
                 effects: effects.clone(),
-                shape: None,
+                shape: custom.and_then(|c| c.data_pattern)
+                    .map(|pattern| format!("{:?}", pattern)),
                 stroke: stroke_style.clone(),
             },
             eyes: crate::engine::types::QrStyleConfig {
