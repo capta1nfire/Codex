@@ -1,45 +1,41 @@
-// Importar compression para respuestas comprimidas
-// Importar os para obtener información del sistema
-// Importar fs y https para soporte SSL
-// import * as fs from 'fs'; // <- Unused
-// import * as http from 'http'; // <- Unused
-// import * as https from 'https'; // <- Unused
-// import * as os from 'os'; // <- Unused
-
+// Node.js built-in modules
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 
+// External dependencies
 import * as Sentry from '@sentry/node';
 import compression from 'compression';
 import cors from 'cors';
 import express, { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
-// import { check, validationResult } from 'express-validator'; // <- Unused
 import helmet from 'helmet';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import xss from 'xss-clean';
 
-// import express from 'express'; // <-- Comentado
+// Configuration
 import { config } from './config.js';
-// import { config } from './config.js'; // <-- Comentar esta línea
-// Importar módulos de autenticación
+
+// Middleware
 import { authMiddleware } from './middleware/authMiddleware.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
-// Importar rutas (Comentadas para depuración)
+
+// Routes
 import smartQRRoutes from './modules/smart-qr/interfaces/http/routes.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { avatarRoutes } from './routes/avatar.routes.js';
 import { baseRoutes } from './routes/base.routes.js';
 import { generateRoutes } from './routes/generate.routes.js';
-import healthRoutes from './routes/health.js'; // ✅ Sistema robusto
+import healthRoutes from './routes/health.js';
 import { metricsRoutes } from './routes/metrics.routes.js';
 import qrV3Routes from './routes/qr-v3.routes.js';
 import { qrRoutes } from './routes/qr.routes.js';
 import qrV2Routes from './routes/qrV2.routes.js';
 import { userRoutes } from './routes/user.routes.js';
 import validateRoutes from './routes/validate.js';
-import { startServer } from './server-config.js'; // <--- Descomentar esta línea
+
+// Services
+import { startServer } from './server-config.js';
 import {
   startDatabaseService,
   startRustService,
@@ -47,24 +43,18 @@ import {
   restartBackendService,
   getServiceStatus,
 } from './services/serviceControl.js';
+
+// Utilities
 import logger from './utils/logger.js';
-// Importar métricas de Prometheus
-import { httpRequestDurationMicroseconds, httpRequestsTotal } from './utils/metrics.js'; // <--- Descomentar esta línea
+import { httpRequestDurationMicroseconds, httpRequestsTotal } from './utils/metrics.js';
 
-// Importar Prisma client para Sentry
-// import prisma from './lib/prisma.js';  // ✅ Comentado: no usado en index.ts
-// Importar Sentry con configuración básica
-
-// Importar funciones de control de servicios
-
-// Obtener __dirname en ESM
+// Get __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Inicializar Sentry ANTES que todo lo demás que usa 'app' para los handlers
-// Asegúrate de configurar SENTRY_DSN y APP_VERSION en tus variables de entorno
+// Initialize Sentry before any middleware
 if (config.SENTRY_DSN) {
   Sentry.init({
     dsn: config.SENTRY_DSN,
@@ -85,18 +75,14 @@ if (config.SENTRY_DSN) {
   logger.warn('SENTRY_DSN no está configurado. Sentry no será inicializado.');
 }
 
-// The request handler must be the first middleware on the app
-// Sentry configurado para captura manual de errores
-
-// --- Configuración de Middleware (Restaurada) ---
-// Aplicar middleware de seguridad - Configurar CORP para permitir imágenes cross-origin
+// Security middleware - Configure CORS for cross-origin images
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
 
-// Configurar opciones de CORS
+// CORS configuration
 app.use(
   cors({
     origin: config.ALLOWED_ORIGINS,
@@ -112,22 +98,21 @@ app.use(
   })
 );
 
-// Prevenir ataques XSS
+// XSS protection
 app.use(xss());
 
-// Parse JSON body
+// JSON parser middleware
 app.use(express.json({ limit: config.MAX_REQUEST_SIZE }));
 
-// Servir archivos estáticos PRIMERO (para que no cuenten en el rate limit)
+// Static files (before rate limiter)
 app.use('/static', express.static(path.join(__dirname, '../static')));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// --- ENDPOINTS PÚBLICOS (ANTES DEL RATE LIMITER) ---
-// Rutas de salud (ping, etc.) - Estas NO deben estar sujetas al rate limit
+// Public endpoints (exempt from rate limiting)
 app.use('/health', healthRoutes);
 app.use('/metrics', metricsRoutes);
 
-// Aplicar límites de tasa DESPUÉS de estáticos, CORS y health checks
+// Rate limiting (after static files and health endpoints)
 const limiter = rateLimit({
   windowMs: config.RATE_LIMIT_WINDOW_MS,
   max: config.RATE_LIMIT_MAX,
@@ -142,31 +127,29 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Aplicar compresión para respuestas (después del limiter está bien)
+// Response compression
 app.use(compression());
 
-// --- Configuración de Autenticación ---
-// Configurar y usar passport para la autenticación JWT
+// Authentication middleware
 app.use(authMiddleware.configurePassport());
 app.use(authMiddleware.apiKeyStrategy);
 
-// Middleware para registrar solicitudes (usando winston)
+// Request logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
-  // Registrar solo en desarrollo (o ajustar según necesidades)
+  // Log only in development
   if (config.NODE_ENV === 'development') {
     logger.info(`[${req.method}] ${req.url}`);
   }
 
-  // Registrar métricas para Prometheus
+  // Prometheus metrics
   const end = httpRequestDurationMicroseconds.startTimer();
   const countPath = req.path || 'unknown';
 
-  // Al finalizar la respuesta
   res.on('finish', () => {
     const respTime = end();
     httpRequestsTotal.labels(req.method, countPath, res.statusCode.toString()).inc();
     if (respTime > 1000) {
-      // Registrar respuestas lentas (más de 1 segundo)
+      // Log slow responses (> 1 second)
       logger.warn(`Respuesta lenta (${respTime.toFixed(2)}ms): [${req.method}] ${req.url}`);
     }
   });
@@ -174,10 +157,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// --- Rutas de la API ---
+// API Routes
 app.use('/', baseRoutes);
 
-// ✅ Service Control Endpoints (Protected)
+// Service Control Endpoints
 app.post('/api/services/:service/start', async (req: Request, res: Response) => {
   const { service } = req.params;
 
@@ -187,7 +170,6 @@ app.post('/api/services/:service/start', async (req: Request, res: Response) => 
     let result;
     switch (service.toLowerCase()) {
       case 'database':
-        // Only allow starting database if it's stopped, never stop it
         result = await startDatabaseService();
         break;
       case 'backend':
@@ -319,7 +301,7 @@ app.post('/api/services/:service/restart', async (req: Request, res: Response) =
   }
 });
 
-// ✅ Enhanced Service Status Endpoint
+// Service Status Endpoint
 app.get('/api/services/status', async (_req: Request, res: Response) => {
   try {
     console.log('🔍 Getting all services status...');
@@ -365,7 +347,7 @@ app.get('/api/services/status', async (_req: Request, res: Response) => {
   }
 });
 
-// ✅ Individual Service Status Endpoint
+// Individual Service Status
 app.get('/api/services/:service/status', async (req: Request, res: Response) => {
   const { service } = req.params;
 
@@ -390,14 +372,14 @@ app.get('/api/services/:service/status', async (req: Request, res: Response) => 
   }
 });
 
-// ✅ Force Health Check Endpoint
+// Force Health Check
 app.post('/api/services/health-check', async (_req: Request, res: Response) => {
   try {
     console.log('🏥 Forcing health check of all services...');
 
     const healthChecks = {
       database: false,
-      backend: true, // Always true since we're responding
+      backend: true,
       rust: false,
     };
 
@@ -435,41 +417,39 @@ app.post('/api/services/health-check', async (_req: Request, res: Response) => {
   }
 });
 
-// Current routes with deprecation warnings
-app.use('/api/generate', generateRoutes); // Legacy - use new endpoints
-app.use('/api/qr', qrRoutes); // Legacy QR routes
+// Legacy routes (deprecated)
+app.use('/api/generate', generateRoutes);
+app.use('/api/qr', qrRoutes);
 
-// New v1/v2/v3 routes
-app.use('/api/v1/barcode', generateRoutes); // v1 barcode generation
-app.use('/api/v2/qr', qrV2Routes); // v2 QR generation with proper field transformation
-app.use('/api/v3/qr', qrV3Routes); // v3 QR structured data (ULTRATHINK)
+// Versioned API routes
+app.use('/api/v1/barcode', generateRoutes);
+app.use('/api/v2/qr', qrV2Routes);
+app.use('/api/v3/qr', qrV3Routes);
 
-// Other routes
+// Feature routes
 app.use('/api/auth', authRoutes);
 app.use('/api/avatars', avatarRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/validate', validateRoutes);
 
-// Smart QR routes (new feature)
 app.use('/api/smart-qr', smartQRRoutes);
 
-// Documentación Swagger
+// Swagger documentation
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
       title: 'API de Codex - Generador de Códigos QR / Barras',
       version: '1.0.0',
-      description:
-        'API para generación y gestión de códigos QR y de barras integrada con servicio Rust',
+      description: 'API for QR and barcode generation with Rust service integration',
       license: {
         name: 'MIT',
         url: 'https://spdx.org/licenses/MIT.html',
       },
       contact: {
-        name: 'Soporte de Codex',
+        name: 'Codex Support',
         url: 'https://codexproject.com',
-        email: 'soporte@codexproject.com',
+        email: 'support@codexproject.com',
       },
     },
     servers: [
@@ -492,7 +472,7 @@ const swaggerOptions = {
       },
     },
   },
-  apis: ['./src/routes/*.ts'], // Rutas a archivos con anotaciones JSDoc
+  apis: ['./src/routes/*.ts'],
 };
 
 const swaggerSpecification = swaggerJsdoc(swaggerOptions);
@@ -567,22 +547,21 @@ app.use(
   })
 );
 
-// Manejador para rutas no encontradas (404)
+// 404 handler
 app.use(notFoundHandler);
 
-// Manejador de errores global
+// Global error handler
 app.use(errorHandler);
 
-// Iniciar servidor HTTP o HTTPS según configuración (ahora asíncrono)
-// Usar una IIFE async para poder usar await
-(async () => {
+// Start server
+void (async () => {
   try {
-    await startServer(app, config); // Esperar a que el servidor inicie correctamente
+    await startServer(app, config);
   } catch (error) {
-    logger.error('Fallo al iniciar el servidor desde index.ts: ', error);
+    logger.error('Failed to start server from index.ts: ', error);
     process.exit(1);
   }
 })();
 
-// Para testing (exportar app)
+// Export for testing
 export default app;

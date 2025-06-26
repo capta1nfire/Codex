@@ -1,31 +1,96 @@
 import axios, { AxiosError } from 'axios';
 
 import { config } from '../config.js';
-import { QRGenerateRequest, QROptions } from '../schemas/qrSchemas.js';
 import { AppError, ErrorCode } from '../utils/errors.js';
 import logger from '../utils/logger.js';
 
 const QR_ENGINE_URL = process.env.RUST_SERVICE_URL || 'http://localhost:3002';
 const QR_ENGINE_TIMEOUT = parseInt(process.env.QR_ENGINE_TIMEOUT || '10000', 10);
 
-// QR Engine v2 client
-const qrEngineClient = axios.create({
-  baseURL: QR_ENGINE_URL,
-  timeout: QR_ENGINE_TIMEOUT,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Unified interfaces supporting both v1 and v2 formats
+export interface QrOptions {
+  // Common options
+  size?: number;
+  margin?: number;
+  errorCorrection?: string;
+  error_correction?: string; // snake_case variant
 
-// Log requests in development
-if (process.env.NODE_ENV === 'development') {
-  qrEngineClient.interceptors.request.use((request) => {
-    logger.debug(`[QR Engine] Request: ${request.method?.toUpperCase()} ${request.url}`);
-    return request;
-  });
+  // Color options
+  foregroundColor?: string;
+  foreground_color?: string;
+  backgroundColor?: string;
+  background_color?: string;
+  eyeColor?: string;
+  eye_color?: string;
+
+  // Shape options
+  eyeShape?: string;
+  eye_shape?: string;
+  dataPattern?: string;
+  data_pattern?: string;
+
+  // Advanced features
+  gradient?: {
+    type: string;
+    colors: string[];
+    angle?: number;
+    enabled?: boolean;
+    applyToEyes?: boolean;
+    apply_to_eyes?: boolean;
+    applyToData?: boolean;
+    apply_to_data?: boolean;
+    strokeStyle?: {
+      enabled: boolean;
+      color?: string;
+      width?: number;
+      opacity?: number;
+    };
+    stroke_style?: any; // snake_case variant
+  };
+
+  logo?: {
+    data: string;
+    size?: number;
+    padding?: number;
+    backgroundColor?: string;
+    background_color?: string;
+    shape?: string;
+  };
+
+  frame?: {
+    style: string;
+    color?: string;
+    width?: number;
+    text?: string;
+    textPosition?: string;
+    text_position?: string;
+  };
+
+  effects?: Array<{
+    type: string;
+    intensity?: number;
+    color?: string;
+    offsetX?: number;
+    offset_x?: number;
+    offsetY?: number;
+    offset_y?: number;
+    blurRadius?: number;
+    blur_radius?: number;
+  }>;
+
+  // Other options
+  optimizeForSize?: boolean;
+  optimize_for_size?: boolean;
+  enableCache?: boolean;
+  enable_cache?: boolean;
 }
 
-interface QRGenerateResult {
+export interface QrGenerateRequest {
+  data: string;
+  options?: QrOptions;
+}
+
+export interface QrGenerateResponse {
   svg: string;
   metadata: {
     version: number;
@@ -33,11 +98,21 @@ interface QRGenerateResult {
     errorCorrection: string;
     dataCapacity: number;
     processingTimeMs: number;
+    complexityLevel?: string;
+    qualityScore?: number;
   };
-  cached?: boolean;
+  cached: boolean;
 }
 
-interface QRBatchResult {
+export interface QrBatchRequest {
+  items: Array<{
+    id?: string;
+    data: string;
+    options?: QrOptions;
+  }>;
+}
+
+export interface QrBatchResponse {
   success: boolean;
   results: Array<{
     id?: string;
@@ -55,7 +130,12 @@ interface QRBatchResult {
   };
 }
 
-interface QRValidationResult {
+export interface QrValidateRequest {
+  data: string;
+  options?: QrOptions;
+}
+
+export interface QrValidateResponse {
   valid: boolean;
   details: {
     dataLength: number;
@@ -63,371 +143,467 @@ interface QRValidationResult {
     errorCorrectionCapacity: number;
     logoImpact?: number;
   };
-  suggestions?: string[];
+  suggestions: string[];
 }
 
-/**
- * Generate QR code using v2 engine
- */
-export async function generateQRv2(request: QRGenerateRequest): Promise<QRGenerateResult> {
-  try {
-    // Debug incoming request
-    if (request.options?.gradient) {
-      logger.info('[QR Service] Raw gradient in request:', {
-        type: request.options.gradient.type,
-        colors: request.options.gradient.colors,
-        angle: request.options.gradient.angle,
-        strokeStyle: request.options.gradient.strokeStyle,
-        hasStrokeStyle: !!request.options.gradient.strokeStyle,
-      });
-    }
-
-    // Use v2 endpoint directly without legacy transformation
-    const v2Request = {
-      data: request.data,
-      options: request.options
-        ? {
-            size: request.options.size,
-            margin: request.options.margin,
-            error_correction: request.options.errorCorrection,
-            eye_shape: request.options.eyeShape,
-            data_pattern: request.options.dataPattern,
-            foreground_color: request.options.foregroundColor,
-            background_color: request.options.backgroundColor,
-            eye_color: request.options.eyeColor,
-            gradient: request.options.gradient
-              ? (() => {
-                  // Debug logging
-                  logger.info('[QR Service] Incoming gradient request:', {
-                    gradient: request.options.gradient,
-                  });
-
-                  if (request.options.gradient.strokeStyle) {
-                    logger.info('[QR Service] StrokeStyle detected in request:', {
-                      strokeStyle: request.options.gradient.strokeStyle,
-                    });
-                  } else {
-                    logger.info('[QR Service] No strokeStyle in gradient request');
-                  }
-
-                  const gradientObj = {
-                    type: request.options.gradient.type,
-                    colors: request.options.gradient.colors,
-                    angle: request.options.gradient.angle,
-                    enabled: request.options.gradient.enabled !== false,
-                    apply_to_data: request.options.gradient.applyToData !== false,
-                    apply_to_eyes: request.options.gradient.applyToEyes || false,
-                    stroke_style: request.options.gradient.strokeStyle
-                      ? {
-                          enabled: request.options.gradient.strokeStyle.enabled,
-                          color: request.options.gradient.strokeStyle.color,
-                          width: request.options.gradient.strokeStyle.width,
-                          opacity: request.options.gradient.strokeStyle.opacity,
-                        }
-                      : undefined,
-                  };
-
-                  logger.info(
-                    '[QR Service] Final gradient object:',
-                    JSON.stringify(gradientObj, null, 2)
-                  );
-                  return gradientObj;
-                })()
-              : undefined,
-            logo: request.options.logo,
-            frame: request.options.frame,
-            effects: request.options.effects,
-            optimize_for_size: request.options.optimizeForSize,
-            enable_cache: request.options.enableCache,
-          }
-        : undefined,
-    };
-
-    logger.info('[QR Service] Sending to Rust v2:', { request: v2Request });
-
-    const response = await qrEngineClient.post<any>('/api/qr/generate', v2Request);
-
-    // Handle v2 response format
-    if (response.data.output?.svg || response.data.svg) {
-      const result: QRGenerateResult = {
-        svg: response.data.output?.svg || response.data.svg,
-        metadata: {
-          version: response.data.metadata?.version || 4,
-          modules: response.data.metadata?.modules || 25,
-          errorCorrection: request.options?.errorCorrection || 'M',
-          dataCapacity: request.data.length,
-          processingTimeMs: response.data.performance?.processingTimeMs || 5,
-        },
-        cached: response.data.cached || false,
-      };
-
-      logger.info('[QR Service] Generation successful');
-      return result;
-    }
-
-    throw new Error('Invalid response from Rust service');
-  } catch (error) {
-    logger.error('[QR Service] Generation failed:', error);
-
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-
-      if (axiosError.code === 'ECONNREFUSED') {
-        throw new AppError(
-          'QR Engine service is not available',
-          503,
-          ErrorCode.SERVICE_UNAVAILABLE
-        );
-      }
-
-      if (axiosError.response?.status === 400) {
-        throw new AppError(
-          'Invalid QR generation parameters',
-          400,
-          ErrorCode.VALIDATION_ERROR,
-          axiosError.response.data
-        );
-      }
-    }
-
-    throw new AppError('Failed to generate QR code', 500, ErrorCode.INTERNAL_SERVER);
-  }
+export interface QrCacheStats {
+  hits: number;
+  misses: number;
+  hitRate: string;
+  totalRequests: number;
+  cacheSize: number;
+  evictions: number;
 }
 
-/**
- * Generate multiple QR codes in batch
- */
-export async function generateQRBatch(
-  codes: QRGenerateRequest[],
-  options?: { maxConcurrent?: number; includeMetadata?: boolean }
-): Promise<QRBatchResult> {
-  try {
-    const rustBatch = {
-      codes: codes.map((code) => transformToRustFormat(code)),
-      options: {
-        max_concurrent: options?.maxConcurrent || 10,
-        include_metadata: options?.includeMetadata ?? true,
+export interface QrAnalytics {
+  totalGenerated: number;
+  averageGenerationTime: number;
+  popularOptions: {
+    eyeShapes: Record<string, number>;
+    dataPatterns: Record<string, number>;
+    errorCorrection: Record<string, number>;
+  };
+  cacheStats: QrCacheStats;
+}
+
+class QrServiceUnified {
+  private axiosClient;
+
+  constructor() {
+    this.axiosClient = axios.create({
+      baseURL: QR_ENGINE_URL,
+      timeout: QR_ENGINE_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/json',
       },
-    };
-
-    const response = await qrEngineClient.post<QRBatchResult>('/api/qr/batch', rustBatch);
-
-    logger.info('[QR Service] Batch generation complete', {
-      total: response.data.summary.total,
-      successful: response.data.summary.successful,
-      failed: response.data.summary.failed,
-      avgTime: response.data.summary.averageTimeMs,
     });
 
-    return response.data;
-  } catch (error) {
-    logger.error('[QR Service] Batch generation failed:', error);
-    throw new AppError('Failed to generate QR batch', 500, ErrorCode.INTERNAL_SERVER);
+    // Log requests in development
+    if (process.env.NODE_ENV === 'development') {
+      this.axiosClient.interceptors.request.use((request) => {
+        logger.debug(`[QR Engine] Request: ${request.method?.toUpperCase()} ${request.url}`);
+        return request;
+      });
+    }
+  }
+
+  /**
+   * Transform camelCase options to snake_case for Rust API
+   */
+  private transformToSnakeCase(options: QrOptions): any {
+    if (!options) return undefined;
+
+    const transformed: any = {
+      size: options.size,
+      margin: options.margin,
+      error_correction: options.errorCorrection || options.error_correction,
+      eye_shape: options.eyeShape || options.eye_shape,
+      data_pattern: options.dataPattern || options.data_pattern,
+      foreground_color: options.foregroundColor || options.foreground_color,
+      background_color: options.backgroundColor || options.background_color,
+      eye_color: options.eyeColor || options.eye_color,
+      optimize_for_size: options.optimizeForSize || options.optimize_for_size,
+      enable_cache: options.enableCache || options.enable_cache,
+    };
+
+    // Handle gradient with detailed logging
+    if (options.gradient) {
+      logger.info('[QR Service] Processing gradient:', {
+        gradient: options.gradient,
+        hasStrokeStyle: !!options.gradient.strokeStyle,
+      });
+
+      transformed.gradient = {
+        type: options.gradient.type,
+        colors: options.gradient.colors,
+        angle: options.gradient.angle,
+        enabled: options.gradient.enabled !== false,
+        apply_to_data:
+          options.gradient.applyToData !== false || options.gradient.apply_to_data !== false,
+        apply_to_eyes: options.gradient.applyToEyes || options.gradient.apply_to_eyes || false,
+      };
+
+      if (options.gradient.strokeStyle) {
+        transformed.gradient.stroke_style = {
+          enabled: options.gradient.strokeStyle.enabled,
+          color: options.gradient.strokeStyle.color,
+          width: options.gradient.strokeStyle.width,
+          opacity: options.gradient.strokeStyle.opacity,
+        };
+      }
+    }
+
+    // Handle logo
+    if (options.logo) {
+      transformed.logo = {
+        data: options.logo.data,
+        size: options.logo.size,
+        padding: options.logo.padding,
+        background_color: options.logo.backgroundColor || options.logo.background_color,
+        shape: options.logo.shape,
+      };
+    }
+
+    // Handle frame
+    if (options.frame) {
+      transformed.frame = {
+        style: options.frame.style,
+        color: options.frame.color,
+        width: options.frame.width,
+        text: options.frame.text,
+        text_position: options.frame.textPosition || options.frame.text_position,
+      };
+    }
+
+    // Handle effects
+    if (options.effects) {
+      transformed.effects = options.effects.map((effect) => ({
+        type: effect.type,
+        intensity: effect.intensity,
+        color: effect.color,
+        offset_x: effect.offsetX || effect.offset_x,
+        offset_y: effect.offsetY || effect.offset_y,
+        blur_radius: effect.blurRadius || effect.blur_radius,
+      }));
+    }
+
+    return transformed;
+  }
+
+  /**
+   * Generate a QR code
+   */
+  async generate(request: QrGenerateRequest): Promise<QrGenerateResponse> {
+    try {
+      logger.info('QR generation request', {
+        dataLength: request.data.length,
+        hasOptions: !!request.options,
+      });
+
+      const transformedRequest = {
+        data: request.data,
+        options: this.transformToSnakeCase(request.options),
+      };
+
+      logger.info('[QR Service] Sending to Rust:', {
+        request: transformedRequest,
+      });
+
+      const response = await this.axiosClient.post<any>('/api/qr/generate', transformedRequest);
+
+      // Handle both v1 and v2 response formats
+      if (response.data.qr_code) {
+        // v1 format
+        return {
+          svg: response.data.qr_code,
+          metadata: response.data.metadata || {
+            version: 1,
+            modules: 0,
+            errorCorrection: 'M',
+            dataCapacity: 0,
+            processingTimeMs: 0,
+          },
+          cached: response.data.cached || false,
+        };
+      } else if (response.data.svg) {
+        // v2 format
+        return {
+          svg: response.data.svg,
+          metadata: response.data.metadata,
+          cached: response.data.cached || false,
+        };
+      } else {
+        throw new AppError('Invalid response format from QR engine', ErrorCode.INTERNAL_ERROR);
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        logger.error('QR generation error:', {
+          status: axiosError.response?.status,
+          data: axiosError.response?.data,
+          message: axiosError.message,
+        });
+
+        if (axiosError.response?.status === 400) {
+          throw new AppError(
+            axiosError.response.data?.message || 'Invalid QR code parameters',
+            ErrorCode.VALIDATION_ERROR
+          );
+        }
+
+        if (axiosError.code === 'ECONNABORTED' || axiosError.code === 'ETIMEDOUT') {
+          throw new AppError('QR generation timeout', ErrorCode.TIMEOUT_ERROR);
+        }
+
+        if (axiosError.code === 'ECONNREFUSED') {
+          throw new AppError('QR engine service unavailable', ErrorCode.SERVICE_UNAVAILABLE);
+        }
+      }
+
+      throw new AppError('Failed to generate QR code', ErrorCode.INTERNAL_ERROR);
+    }
+  }
+
+  /**
+   * Generate multiple QR codes in batch
+   */
+  async batch(request: QrBatchRequest): Promise<QrBatchResponse> {
+    try {
+      logger.info('QR batch generation request', {
+        itemCount: request.items.length,
+      });
+
+      const transformedItems = request.items.map((item) => ({
+        id: item.id,
+        data: item.data,
+        options: this.transformToSnakeCase(item.options),
+      }));
+
+      const response = await this.axiosClient.post<QrBatchResponse>('/api/qr/batch', {
+        items: transformedItems,
+      });
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        logger.error('QR batch generation error:', {
+          status: axiosError.response?.status,
+          data: axiosError.response?.data,
+        });
+
+        if (axiosError.response?.status === 400) {
+          throw new AppError('Invalid batch parameters', ErrorCode.VALIDATION_ERROR);
+        }
+
+        if (axiosError.code === 'ECONNREFUSED') {
+          throw new AppError('QR engine service unavailable', ErrorCode.SERVICE_UNAVAILABLE);
+        }
+      }
+
+      throw new AppError('Failed to generate QR codes in batch', ErrorCode.INTERNAL_ERROR);
+    }
+  }
+
+  /**
+   * Validate QR code data and options
+   */
+  async validate(request: QrValidateRequest): Promise<QrValidateResponse> {
+    try {
+      const transformedRequest = {
+        data: request.data,
+        options: this.transformToSnakeCase(request.options),
+      };
+
+      const response = await this.axiosClient.post<QrValidateResponse>(
+        '/api/qr/validate',
+        transformedRequest
+      );
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response?.status === 400) {
+          return axiosError.response.data as QrValidateResponse;
+        }
+      }
+
+      throw new AppError('Failed to validate QR code', ErrorCode.INTERNAL_ERROR);
+    }
+  }
+
+  /**
+   * Get cache statistics
+   */
+  async getCacheStats(): Promise<QrCacheStats> {
+    try {
+      const response = await this.axiosClient.get<QrCacheStats>('/api/qr/cache/stats');
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to get cache stats:', error);
+      throw new AppError('Failed to get cache statistics', ErrorCode.INTERNAL_ERROR);
+    }
+  }
+
+  /**
+   * Clear the QR cache
+   */
+  async clearCache(): Promise<{ cleared: number }> {
+    try {
+      const response = await this.axiosClient.post<{ cleared: number }>('/api/qr/cache/clear');
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to clear cache:', error);
+      throw new AppError('Failed to clear cache', ErrorCode.INTERNAL_ERROR);
+    }
+  }
+
+  /**
+   * Get QR v2 analytics (extended functionality from qrService.ts)
+   */
+  async getAnalytics(): Promise<QrAnalytics> {
+    try {
+      const [stats, analyticsResponse] = await Promise.all([
+        this.getCacheStats(),
+        this.axiosClient.get('/api/qr/analytics'),
+      ]);
+
+      const analytics = analyticsResponse.data;
+
+      return {
+        totalGenerated: analytics.totalGenerated || 0,
+        averageGenerationTime: analytics.averageGenerationTime || 0,
+        popularOptions: {
+          eyeShapes: analytics.popularOptions?.eyeShapes || {},
+          dataPatterns: analytics.popularOptions?.dataPatterns || {},
+          errorCorrection: analytics.popularOptions?.errorCorrection || {},
+        },
+        cacheStats: stats,
+      };
+    } catch (error) {
+      logger.error('Failed to get analytics:', error);
+
+      // Return default analytics if service is unavailable
+      return {
+        totalGenerated: 0,
+        averageGenerationTime: 0,
+        popularOptions: {
+          eyeShapes: {},
+          dataPatterns: {},
+          errorCorrection: {},
+        },
+        cacheStats: {
+          hits: 0,
+          misses: 0,
+          hitRate: '0%',
+          totalRequests: 0,
+          cacheSize: 0,
+          evictions: 0,
+        },
+      };
+    }
+  }
+
+  /**
+   * Health check for QR engine
+   */
+  async healthCheck(): Promise<{ status: string; version?: string }> {
+    try {
+      const response = await this.axiosClient.get('/health');
+      return response.data;
+    } catch (error) {
+      return { status: 'unhealthy' };
+    }
+  }
+
+  /**
+   * Get preview URL for QR code
+   */
+  getPreviewUrl(params: {
+    data: string;
+    eyeShape?: string;
+    dataPattern?: string;
+    fgColor?: string;
+    bgColor?: string;
+    size?: number;
+  }): string {
+    const queryParams = new URLSearchParams({
+      data: params.data,
+      ...(params.eyeShape && { eye_shape: params.eyeShape }),
+      ...(params.dataPattern && { data_pattern: params.dataPattern }),
+      ...(params.fgColor && { fg_color: params.fgColor }),
+      ...(params.bgColor && { bg_color: params.bgColor }),
+      ...(params.size && { size: params.size.toString() }),
+    });
+
+    return `${QR_ENGINE_URL}/api/qr/preview?${queryParams.toString()}`;
+  }
+
+  /**
+   * Convert old API format to v2 format
+   */
+  convertFromOldFormat(oldRequest: any): QrGenerateRequest {
+    const options: QrOptions = {};
+
+    if (oldRequest.options) {
+      const oldOpts = oldRequest.options;
+
+      // Size conversion (scale to pixels)
+      if (oldOpts.scale) {
+        options.size = oldOpts.scale * 100; // Approximate conversion
+      }
+
+      // Colors
+      if (oldOpts.fgcolor) {
+        options.foregroundColor = oldOpts.fgcolor;
+      }
+      if (oldOpts.bgcolor) {
+        options.backgroundColor = oldOpts.bgcolor;
+      }
+
+      // Error correction
+      if (oldOpts.ecl) {
+        options.errorCorrection = oldOpts.ecl;
+      }
+
+      // Gradient
+      if (oldOpts.gradient_enabled && oldOpts.gradient_colors) {
+        options.gradient = {
+          type: oldOpts.gradient_type || 'linear',
+          colors: oldOpts.gradient_colors,
+          angle: oldOpts.gradient_direction === 'horizontal' ? 0 : 90,
+        };
+      }
+    }
+
+    return {
+      data: oldRequest.data,
+      options,
+    };
+  }
+
+  /**
+   * Convert v2 response to old format for backward compatibility
+   */
+  convertToOldFormat(v2Response: QrGenerateResponse): any {
+    return {
+      success: true,
+      svgString: v2Response.svg,
+      svg: v2Response.svg,
+      cached: v2Response.cached,
+      metadata: {
+        generation_time_ms: v2Response.metadata.processingTimeMs,
+        from_cache: v2Response.cached,
+        barcode_type: 'qrcode',
+        data_size: v2Response.metadata.dataCapacity,
+      },
+    };
   }
 }
 
-/**
- * Get real-time QR preview
- */
+// Export singleton instance
+export const qrService = new QrServiceUnified();
+
+// Also export individual functions for backward compatibility
+export const generateQRv2 = (request: QrGenerateRequest) => qrService.generate(request);
+export const batchGenerateQRv2 = (request: QrBatchRequest) => qrService.batch(request);
+export const validateQRv2 = (request: QrValidateRequest) => qrService.validate(request);
+export const getQRv2CacheStats = () => qrService.getCacheStats();
+export const clearQRv2Cache = () => qrService.clearCache();
+export const getQRv2Analytics = () => qrService.getAnalytics();
+export const checkQREngineHealth = () => qrService.healthCheck();
+
+// Additional function for preview
 export async function getQRPreview(params: any): Promise<{ svg: string }> {
   try {
     const queryString = new URLSearchParams(params).toString();
-    const response = await qrEngineClient.get(`/api/qr/preview?${queryString}`);
-
+    const response = await qrService.axiosClient.get(`/api/qr/preview?${queryString}`);
     return { svg: response.data };
   } catch (error) {
     logger.error('[QR Service] Preview failed:', error);
-    throw new AppError('Failed to generate preview', 500, ErrorCode.INTERNAL_SERVER);
+    throw new AppError('Failed to generate preview', ErrorCode.INTERNAL_ERROR);
   }
 }
 
-/**
- * Validate QR data and options
- */
-export async function validateQRData(request: QRGenerateRequest): Promise<QRValidationResult> {
-  try {
-    const rustRequest = transformToRustFormat(request);
-    const response = await qrEngineClient.post<QRValidationResult>('/api/qr/validate', rustRequest);
-
-    return response.data;
-  } catch (error) {
-    logger.error('[QR Service] Validation failed:', error);
-    throw new AppError('Failed to validate QR data', 500, ErrorCode.INTERNAL_SERVER);
-  }
-}
-
-/**
- * Transform Node.js format to Rust engine format
- */
-function transformToRustFormat(request: QRGenerateRequest): any {
-  const { data, options } = request;
-
-  if (!options) {
-    return { data, options: {} };
-  }
-
-  // Transform to Rust format (using legacy format for now)
-  const rustOptions: any = {
-    scale: options.size ? Math.floor(options.size / 25) : 4, // Convert size to scale
-    margin: options.margin || 4,
-    fgcolor: options.foregroundColor || '#000000',
-    bgcolor: options.backgroundColor || '#FFFFFF',
-    ecc_level: options.errorCorrection || 'M',
-  };
-
-  // Add gradient support if gradient is present
-  if (options.gradient) {
-    rustOptions.gradient = {
-      type: options.gradient.type || 'linear',
-      colors: options.gradient.colors || ['#000000', '#666666'],
-      angle: options.gradient.angle || 90,
-      apply_to_data: options.gradient.applyToData !== false,
-      apply_to_eyes: options.gradient.applyToEyes || false,
-    };
-
-    // Override fgcolor when gradient is enabled
-    rustOptions.fgcolor = options.gradient.colors[0] || '#000000';
-  }
-
-  // Add v2 specific options if present
-  if (options.eyeShape) rustOptions.eye_shape = options.eyeShape;
-  if (options.dataPattern) rustOptions.data_pattern = options.dataPattern;
-  if (options.eyeColor) rustOptions.eye_color = options.eyeColor;
-
-  // Remove undefined values
-  Object.keys(rustOptions).forEach((key) => {
-    if (rustOptions[key] === undefined) {
-      delete rustOptions[key];
-    }
-  });
-
-  return {
-    barcode_type: 'qrcode',
-    data,
-    options: rustOptions,
-  };
-}
-
-/**
- * Get QR Engine v2 Analytics
- */
-export async function getQRv2Analytics() {
-  try {
-    // Get analytics from Rust service
-    const rustServiceUrl = QR_ENGINE_URL;
-    const [performanceResponse, cacheResponse] = await Promise.all([
-      axios.get(`${rustServiceUrl}/analytics/performance`),
-      axios.get(`${rustServiceUrl}/cache/stats`).catch(() => null),
-    ]);
-
-    const performanceData = performanceResponse.data;
-
-    // Extract QR-specific metrics
-    const qrMetrics = performanceData.by_barcode_type?.qrcode || {
-      avg_cache_hit_ms: null,
-      avg_generation_ms: null,
-      cache_hit_rate_percent: 0,
-      hit_count: 0,
-      miss_count: 0,
-    };
-
-    // Calculate v2 adoption (this would need to be tracked separately in production)
-    const totalQrRequests = qrMetrics.hit_count + qrMetrics.miss_count;
-
-    // Feature usage would need to be tracked in Rust
-    const featureUsage = {
-      gradients: 0,
-      logos: 0,
-      customShapes: 0,
-      effects: 0,
-      frames: 0,
-    };
-
-    return {
-      success: true,
-      timestamp: new Date().toISOString(),
-      overview: {
-        totalRequests: totalQrRequests,
-        cacheHitRate: qrMetrics.cache_hit_rate_percent,
-        avgResponseTime: qrMetrics.avg_generation_ms || 0,
-        avgCacheHitTime: qrMetrics.avg_cache_hit_ms || 0,
-        v2AdoptionRate: 100, // All QR requests are v2 now
-      },
-      performance: {
-        last24Hours: {
-          requests: totalQrRequests,
-          avgTime: qrMetrics.avg_generation_ms || 0,
-          p95Time: qrMetrics.max_generation_ms || 0,
-          errors: 0,
-        },
-      },
-      features: {
-        usage: featureUsage,
-        popularCombinations: [],
-      },
-      cache: cacheResponse?.data || {
-        size: 0,
-        hitRate: qrMetrics.cache_hit_rate_percent,
-        memoryUsage: 0,
-      },
-    };
-  } catch (error) {
-    logger.error('[QR v2 Analytics] Error fetching analytics:', error);
-    throw new AppError('Failed to fetch QR v2 analytics', 500, ErrorCode.SERVICE_UNAVAILABLE);
-  }
-}
-
-/**
- * Get QR Engine v2 Cache Statistics
- */
-export async function getQRv2CacheStats() {
-  try {
-    const rustServiceUrl = QR_ENGINE_URL;
-
-    // Try to get cache stats from Rust service
-    try {
-      const response = await axios.get(`${rustServiceUrl}/cache/stats`);
-      return response.data;
-    } catch (error) {
-      // If endpoint doesn't exist yet, return mock data
-      logger.warn('[QR v2 Cache] Cache stats endpoint not available, returning default stats');
-      return {
-        success: true,
-        stats: {
-          totalEntries: 0,
-          memoryUsage: '0 MB',
-          hitRate: 0,
-          evictions: 0,
-          avgEntrySize: '0 KB',
-        },
-      };
-    }
-  } catch (error) {
-    logger.error('[QR v2 Cache] Error fetching cache stats:', error);
-    throw new AppError('Failed to fetch cache statistics', 500, ErrorCode.SERVICE_UNAVAILABLE);
-  }
-}
-
-/**
- * Clear QR Engine v2 Cache
- */
-export async function clearQRv2Cache() {
-  try {
-    const rustServiceUrl = QR_ENGINE_URL;
-
-    try {
-      const response = await axios.post(`${rustServiceUrl}/cache/clear`);
-      return response.data;
-    } catch (error) {
-      // If endpoint doesn't exist yet, return success
-      logger.warn('[QR v2 Cache] Cache clear endpoint not available');
-      return {
-        success: true,
-        message: 'Cache clear requested',
-      };
-    }
-  } catch (error) {
-    logger.error('[QR v2 Cache] Error clearing cache:', error);
-    throw new AppError('Failed to clear cache', 500, ErrorCode.SERVICE_UNAVAILABLE);
-  }
-}
+export default qrService;

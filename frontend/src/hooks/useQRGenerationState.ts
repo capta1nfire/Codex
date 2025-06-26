@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQRGenerationV3Enhanced } from './useQRGenerationV3Enhanced';
 import { useBarcodeGenerationV2 } from './useBarcodeGenerationV2';
 import { GenerateFormData } from '@/schemas/generate.schema';
+import { qrDefaultValues } from '@/constants/qrDefaultValues';
 
 /**
  * Centralized QR Generation State Hook
@@ -335,6 +336,77 @@ export const useQRGenerationState = () => {
     });
   }, [transitionTo, v3Enhanced, v2Barcode]);
 
+  // QR Content Generation helper
+  const generateQRContent = useCallback((type: string, data: any): string => {
+    // If no data provided, use empty form data
+    if (!data) {
+      const defaults = qrDefaultValues[type as keyof typeof qrDefaultValues];
+      data = defaults || {};
+    }
+    
+    // Get default values for this type
+    const defaults = qrDefaultValues[type as keyof typeof qrDefaultValues];
+    
+    // Helper to get value with fallback to default
+    const getValueWithDefault = (field: string) => {
+      const value = (data as any)[field];
+      return value && value.trim() !== '' ? value : (defaults as any)?.[field] || '';
+    };
+    
+    switch (type) {
+      case 'email':
+        const email = getValueWithDefault('email');
+        const subject = getValueWithDefault('subject');
+        const message = getValueWithDefault('message');
+        return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+        
+      case 'call':
+        const callPhone = getValueWithDefault('phoneNumber');
+        const callCountry = (data as any).countryCode || (defaults as any)?.countryCode || '+1';
+        return `tel:${callCountry}${callPhone}`;
+        
+      case 'sms':
+        const smsPhone = getValueWithDefault('phoneNumber');
+        const smsMessage = getValueWithDefault('message');
+        const smsCountry = (data as any).countryCode || (defaults as any)?.countryCode || '+1';
+        return `sms:${smsCountry}${smsPhone}?body=${encodeURIComponent(smsMessage)}`;
+        
+      case 'whatsapp':
+        const waPhone = getValueWithDefault('phoneNumber');
+        const waMessage = getValueWithDefault('message');
+        const waCountry = (data as any).countryCode || (defaults as any)?.countryCode || '+1';
+        const whatsappNumber = `${waCountry}${waPhone}`.replace(/\D/g, '');
+        return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(waMessage)}`;
+        
+      case 'wifi':
+        const networkName = getValueWithDefault('networkName');
+        const password = getValueWithDefault('password');
+        const security = (data as any).security || (defaults as any)?.security || 'WPA';
+        const hidden = (data as any).hidden !== undefined ? (data as any).hidden : (defaults as any)?.hidden || false;
+        return `WIFI:T:${security};S:${networkName};P:${password};H:${hidden ? 'true' : 'false'};;`;
+        
+      case 'vcard':
+        const firstName = getValueWithDefault('firstName');
+        const lastName = getValueWithDefault('lastName');
+        const organization = getValueWithDefault('organization');
+        const title = getValueWithDefault('title');
+        const phone = getValueWithDefault('phone');
+        const vcardEmail = getValueWithDefault('email');
+        const website = getValueWithDefault('website');
+        const address = getValueWithDefault('address');
+        return `BEGIN:VCARD\nVERSION:3.0\nFN:${firstName} ${lastName}\nORG:${organization}\nTITLE:${title}\nTEL:${phone}\nEMAIL:${vcardEmail}\nURL:${website}\nADR:;;${address};;;;\nEND:VCARD`;
+        
+      case 'text':
+        return getValueWithDefault('message');
+        
+      case 'link':
+        return getValueWithDefault('url');
+        
+      default:
+        return 'CODEX QR Generator';
+    }
+  }, []);
+
   return {
     // Current state
     state: stateData.state,
@@ -346,6 +418,9 @@ export const useQRGenerationState = () => {
     setReadyToGenerate,
     generateQR,
     reset,
+    
+    // QR Content generation
+    generateQRContent,
     
     // Generation data
     enhancedData: v3Enhanced.enhancedData,

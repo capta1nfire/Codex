@@ -521,7 +521,7 @@ export async function getServiceStatus(serviceName: string): Promise<ServiceResu
     logger.info(`🔍 Checking status of ${serviceName} service...`);
 
     switch (serviceName.toLowerCase()) {
-      case 'database':
+      case 'database': {
         const { stdout: dbCheck } = await execAsync(
           'docker ps --format "{{.Names}}:{{.Status}}" | grep codex_postgres || true'
         );
@@ -539,9 +539,10 @@ export async function getServiceStatus(serviceName: string): Promise<ServiceResu
             details: { status: 'stopped' },
           };
         }
+      }
 
       case 'rust':
-      case 'rust_generator':
+      case 'rust_generator': {
         const portOccupied = !(await isPortAvailable(3002));
         const isHealthy = portOccupied
           ? await waitForService('http://localhost:3002/health', 1)
@@ -566,6 +567,7 @@ export async function getServiceStatus(serviceName: string): Promise<ServiceResu
             details: { status: 'stopped', port: 3002 },
           };
         }
+      }
 
       case 'backend':
         return {

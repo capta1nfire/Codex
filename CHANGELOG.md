@@ -10,6 +10,45 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## Latest Updates
 
+### 2025-06-26
+
+#### Cleaned
+- 🧹 **Major Code Cleanup** - Removed duplicate files and temporary scripts
+  - Deleted: Test output directory with temporary HTML/JSON files
+  - Deleted: 6 temporary test scripts (exclusion tests, debug scripts)
+  - Deleted: `.backup/` directory with outdated file versions
+  - Deleted: Gemini configuration files (temporary onboarding docs)
+  - Fixed: ESLint errors in `serviceControl.ts` (case declarations)
+  - Added: `@jest/globals` dependency for test files
+  - Impact: Cleaner repository, faster searches, reduced confusion
+
+### 2025-06-26
+
+#### Changed
+- 🧹 **Code Cleanup** - Consolidated duplicate route files in backend
+  - Removed: `validateSimple.ts` (kept `validate.ts` as the complete version)
+  - Removed: `health.routes.ts` (kept `health.ts` as the more robust version)
+  - Impact: Reduced code duplication and potential confusion
+
+- 🔧 **Service Refactoring** - Unified QR service implementations
+  - Removed: `barcodeServiceOptimized.ts` (empty file with only comments)
+  - Merged: `qrService.ts` and `qrEngineV2Service.ts` into unified service
+  - Impact: Single source of truth for QR generation, supports both v1 and v2 APIs
+  - Benefits: Easier maintenance, reduced code duplication, backward compatibility
+
+- 🎯 **Hook Consolidation** - Unified frontend generation hooks
+  - Removed: `useSmartQRGeneration` (unused duplicate)
+  - Integrated: `useQRContentGeneration` functionality into `useQRGenerationState`
+  - Deprecated: `useBarcodeGeneration` and `useQRGenerationV3` (kept for legacy tests)
+  - Impact: Single centralized hook for all generation needs
+  - Benefits: Prevents state conflicts, easier to maintain, cleaner API
+
+#### Investigated
+- ✅ **QR v2 Gradients** - Verified working correctly
+  - Tested: Linear gradients render properly in `/api/v2/qr/generate`
+  - Finding: No bug exists - gradients are fully functional
+  - Note: Initial reports were incorrect, possibly due to API version confusion
+
 ### 2025-06-24
 
 #### Fixed

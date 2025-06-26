@@ -26,7 +26,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/lib/utils';
 
 // Hooks personalizados
-import { useQRContentGeneration } from '@/hooks/useQRContentGeneration';
+// useQRContentGeneration is now integrated into useQRGenerationState
 import { useBarcodeTypes } from '@/hooks/useBarcodeTypes';
 import { useSmartAutoGeneration } from '@/hooks/useSmartAutoGeneration';
 import { useQRGenerationState } from '@/hooks/useQRGenerationState';
@@ -130,13 +130,38 @@ export default function Home() {
     }
   });
   
-  const { 
-    selectedQRType, 
-    setSelectedQRType, 
-    qrFormData, 
-    generateQRContent, 
-    updateQRFormData 
-  } = useQRContentGeneration();
+  // QR Content generation state
+  const [selectedQRType, setSelectedQRType] = useState<string>('link');
+  const [qrFormData, setQrFormData] = useState<Record<string, any>>({
+    email: { email: '', subject: '', message: '' },
+    call: { countryCode: '+1', phoneNumber: '' },
+    sms: { countryCode: '+1', phoneNumber: '', message: '' },
+    whatsapp: { countryCode: '+1', phoneNumber: '', message: '' },
+    wifi: { networkName: '', password: '', security: 'WPA', hidden: false },
+    vcard: { 
+      firstName: '', lastName: '', organization: '', title: '',
+      phone: '', email: '', website: '', address: '' 
+    },
+    text: { message: '' },
+    link: { url: 'https://tu-sitio-web.com' }
+  });
+  
+  const updateQRFormData = useCallback((type: string, field: string, value: any) => {
+    setQrFormData(prev => ({
+      ...prev,
+      [type]: {
+        ...prev[type],
+        [field]: value
+      }
+    }));
+    
+    const updatedData = {
+      ...qrFormData[type],
+      [field]: value
+    };
+    
+    return qrGenerationState.generateQRContent(type, updatedData);
+  }, [qrFormData, qrGenerationState]);
 
   // Hook de auto-generación inteligente
   const autoGenerationEnabled = true; // Feature flag for auto-generation
@@ -264,7 +289,7 @@ export default function Home() {
     lastValidatedUrl.current = '';
     
     const initialData = qrFormData[newQRType];
-    const qrContent = generateQRContent(newQRType, initialData);
+    const qrContent = qrGenerationState.generateQRContent(newQRType, initialData);
     
     setValue('data', qrContent, { shouldValidate: true });
     
@@ -278,7 +303,7 @@ export default function Home() {
       }
     };
     await onSubmit(completeFormValues);
-  }, [setValue, getValues, onSubmit, qrFormData, generateQRContent, setSelectedQRType, resetTyping, clearUrlValidation, resetGeneration]);
+  }, [setValue, getValues, onSubmit, qrFormData, qrGenerationState, setSelectedQRType, resetTyping, clearUrlValidation, resetGeneration]);
 
   const handleQRFormChange = useCallback((type: string, field: string, value: any) => {
     

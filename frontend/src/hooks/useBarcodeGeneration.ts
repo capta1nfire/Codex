@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use useQRGenerationState instead
+ * This hook is kept for legacy test pages only
+ */
 import { useState, useCallback } from 'react';
 import { GenerateFormData } from '@/schemas/generate.schema';
 

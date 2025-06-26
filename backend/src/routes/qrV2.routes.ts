@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { generationRateLimit } from '../middleware/rateLimitMiddleware.js';
 import { validateBody as validationMiddleware } from '../middleware/validationMiddleware.js';
-import qrEngineV2Service from '../services/qrEngineV2Service.js';
+import qrService from '../services/qrService.js';
 import logger from '../utils/logger.js';
 // import { metrics } from '../utils/metrics.js';
 
@@ -130,7 +130,7 @@ router.post(
       // Track metrics
       // metrics.increment('qr_v2.generation.requests');
 
-      const result = await qrEngineV2Service.generate({ data, options });
+      const result = await qrService.generate({ data, options });
 
       // Track success metrics
       // metrics.increment('qr_v2.generation.success');
@@ -163,7 +163,7 @@ router.post(
     try {
       const { data, options } = req.body;
 
-      const result = await qrEngineV2Service.validate({ data, options });
+      const result = await qrService.validate({ data, options });
 
       res.json({
         success: true,
@@ -193,7 +193,7 @@ router.post(
       // metrics.increment('qr_v2.batch.requests');
       // metrics.gauge('qr_v2.batch.size', codes.length);
 
-      const result = await qrEngineV2Service.batch(codes);
+      const result = await qrService.batch(codes);
 
       // metrics.increment('qr_v2.batch.success');
       // metrics.timing('qr_v2.batch.duration', Date.now() - startTime);
@@ -222,7 +222,7 @@ router.get('/preview-url', (req, res) => {
     });
   }
 
-  const previewUrl = qrEngineV2Service.getPreviewUrl({
+  const previewUrl = qrService.getPreviewUrl({
     data,
     eyeShape: eyeShape as string,
     dataPattern: dataPattern as string,
@@ -244,7 +244,7 @@ router.get(
   authMiddleware.checkRole(['ADMIN', 'SUPERADMIN']),
   async (req, res, next) => {
     try {
-      const stats = await qrEngineV2Service.getCacheStats();
+      const stats = await qrService.getCacheStats();
       res.json({
         success: true,
         stats,
@@ -261,7 +261,7 @@ router.post(
   authMiddleware.checkRole(['ADMIN', 'SUPERADMIN']),
   async (req, res, next) => {
     try {
-      const cleared = await qrEngineV2Service.clearCache();
+      const cleared = await qrService.clearCache();
       res.json({
         success: cleared,
         message: cleared ? 'Cache cleared successfully' : 'Failed to clear cache',
@@ -282,17 +282,17 @@ router.post(
       const startTime = Date.now();
 
       // Convert old format to v2
-      const v2Request = qrEngineV2Service.convertFromOldFormat(req.body);
+      const v2Request = qrService.convertFromOldFormat(req.body);
 
       logger.info('QR v2 compatibility generation', {
         userId: req.user?.id,
         originalType: req.body.barcode_type,
       });
 
-      const v2Response = await qrEngineV2Service.generate(v2Request);
+      const v2Response = await qrService.generate(v2Request);
 
       // Convert v2 response to old format
-      const oldFormatResponse = qrEngineV2Service.convertToOldFormat(v2Response);
+      const oldFormatResponse = qrService.convertToOldFormat(v2Response);
 
       // metrics.increment('qr_v2.compat.requests');
       // metrics.timing('qr_v2.compat.duration', Date.now() - startTime);

@@ -211,7 +211,8 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
                 effects: options.customization.effects,
                 frame_style: options.customization.frame_style || options.customization.frameStyle,
                 logo: options.customization.logo,
-                logo_size_ratio: options.customization.logo_size_ratio || options.customization.logoSizeRatio,
+                logo_size_ratio:
+                  options.customization.logo_size_ratio || options.customization.logoSizeRatio,
               }
             : undefined,
         }

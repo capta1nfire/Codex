@@ -10,12 +10,12 @@ import { validateBody } from '../middleware/validationMiddleware.js';
 import { qrGenerateSchema, qrPreviewSchema } from '../schemas/qrSchemas.js';
 import {
   generateQRv2,
-  generateQRBatch,
-  getQRPreview,
-  validateQRData,
+  batchGenerateQRv2 as generateQRBatch,
+  validateQRv2 as validateQRData,
   getQRv2Analytics,
   getQRv2CacheStats,
   clearQRv2Cache,
+  getQRPreview,
 } from '../services/qrService.js';
 import { AppError, ErrorCode } from '../utils/errors.js';
 import logger from '../utils/logger.js';

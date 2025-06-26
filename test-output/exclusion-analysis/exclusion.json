@@ -1,7 +1,0 @@
-{
-  "success": false,
-  "error": {
-    "code": "RATE_LIMIT_EXCEEDED",
-    "message": "Demasiadas solicitudes. Intenta de nuevo más tarde."
-  }
-}

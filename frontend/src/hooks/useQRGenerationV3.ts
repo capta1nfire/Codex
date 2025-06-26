@@ -1,4 +1,7 @@
 /**
+ * @deprecated Use useQRGenerationState instead (which uses useQRGenerationV3Enhanced internally)
+ * This hook is kept for legacy test pages only
+ * 
  * Hook para generación de QR v3 con datos estructurados (ULTRATHINK)
  * 
  * Este hook consume la nueva API v3 que retorna datos estructurados
