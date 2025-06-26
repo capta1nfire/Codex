@@ -46,9 +46,10 @@ http://localhost:3002  # Rust Engine
 ## 🤖 **Guía para Agentes IA**
 
 ### **Documentación Esencial**
-- **[CLAUDE.md](./CLAUDE.md)** - Tu manual de operación completo
+- **Si eres Claude, lee [CLAUDE.md](./CLAUDE.md). Si eres Gemini, lee [GEMINI.md](./GEMINI.md).**
 - **[README.md](./README.md)** - Arquitectura general del proyecto
 - **[.nav.md](./.nav.md)** - GPS para navegación rápida
+- **[MULTI_AGENT_COLLABORATION_PROTOCOL.md](./MULTI_AGENT_COLLABORATION_PROTOCOL.md)** - Protocolo de colaboración entre agentes IA
 
 ### **Reglas FLODEX**
 ✅ **HACER:** Trabajar en el README del servicio específico  

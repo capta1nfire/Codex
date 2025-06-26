@@ -1,18 +1,19 @@
 # CLAUDE.md - AI Agent Guide for CODEX Project
 
-> **🎯 Purpose**: This file provides Claude Code with project-specific context, commands, and workflows to maximize development efficiency and maintain consistency. Aligned with [Anthropic's Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices).
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+> **🎯 Purpose**: Project-specific context, commands, and workflows to maximize development efficiency and maintain consistency. Aligned with [Anthropic's Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices).
 
 > **📋 Note**: If you're a new AI agent, start with `START_HERE.md` first for project orientation. This file is your practical toolkit after understanding the project context.
 
-> **🔄 Living Document**: This file should be iterated and improved based on effectiveness. Last updated: June 14, 2025
+> **🔄 Living Document**: This file should be iterated and improved based on effectiveness. Last updated: June 26, 2025
 
-### Recent Updates (June 14, 2025)
-- ✅ Added Think-Plan-Execute workflow based on Anthropic best practices
-- ✅ Added Test-Driven Development (TDD) workflow
-- ✅ Added Visual Iteration workflow for UI/UX development
-- ✅ Added Claude Code optimization tips and safety considerations
-- ✅ Added section on improving this document iteratively
-- ✅ Created complementary `.cursorrules` file for Cursor IDE users
+### Recent Updates (June 26, 2025)
+- ✅ Added Multi-Agent Collaboration Protocol integration
+- ✅ Updated QR Engine status (v3 ULTRATHINK is primary)
+- ✅ Fixed critical security information (checkRole middleware)
+- ✅ Consolidated best practices from CLAUDE_BK.md
+- ✅ Added current project status section
 
 ---
 
@@ -38,6 +39,24 @@ pm2 monit             # Interactive monitor
 # Restart services
 pm2 restart all       # All services
 pm2 restart codex-backend # Specific service
+```
+
+---
+
+## 🤖 Multi-Agent Collaboration Protocol
+
+**⚠️ CRITICAL**: This project uses multiple AI agents. See `MULTI_AGENT_COLLABORATION_PROTOCOL.md` for complete rules.
+
+### Quick Reference
+- **Gemini**: Forensic analysis and auditing (`/docs/forensic/`)
+- **Claude**: Implementation and development (`/docs/implementation/`)
+- **🔒 NEVER MODIFY** documents marked with `**🤖 AGENTE:** Gemini`
+- **📋 ALWAYS REFERENCE** Gemini analysis when implementing fixes
+- **💾 DOCUMENT YOUR WORK** in `/docs/implementation/` with proper headers
+
+### Collaboration Workflow
+```mermaid
+Gemini Analysis → Claude Implementation → Documentation → Gemini Verification
 ```
 
 ---
@@ -76,6 +95,7 @@ CODEX Project/
 ├── 📄 CODEX.md              # Strategic roadmap & phases
 ├── 📄 README.md             # Technical setup & documentation
 ├── 📄 CLAUDE.md             # THIS FILE - AI agent guide
+├── 🤖 MULTI_AGENT_COLLABORATION_PROTOCOL.md  # Multi-agent rules
 ├── 🛡️ ecosystem.config.js   # PM2 configuration
 ├── 📁 frontend/             # Next.js 14 app (Port 3000)
 ├── 📁 backend/              # Express API (Port 3004)
@@ -85,9 +105,26 @@ CODEX Project/
 ### Critical Files to Read First
 1. `START_HERE.md` - Understand project rules and current state
 2. `.nav.md` - Quick navigation to find files and workflows efficiently
-3. `CODEX.md` - Understand strategic vision and phases
-4. `docs/CODEX_DESIGN_SYSTEM.md` - UI/UX guidelines
-5. `docs/qr-engine/QR_ENGINE_V2_REFERENCE.md` - ⚠️ QR Engine v2 complete reference (MUST READ)
+3. `MULTI_AGENT_COLLABORATION_PROTOCOL.md` - Multi-agent collaboration rules
+4. `docs/qr-engine/ULTRATHINK_V3_ARCHITECTURE.md` - ⚠️ Primary QR Engine (MUST READ)
+5. `docs/qr-engine/QR_ENGINE_V2_REFERENCE.md` - Legacy v2 reference
+
+---
+
+## 🎯 Current Project Status
+
+### QR Engine Status
+- **✅ QR v3 ULTRATHINK**: **100% Active** - Primary engine for all QR generation
+- **✅ Full gradient support**: Linear, radial, conic, diamond, spiral - all working
+- **✅ Free for everyone**: No authentication required for v3
+- **✅ Performance**: ~1ms generation time maintained
+- **❌ QR v2**: Legacy, will be removed June 2025
+
+### Recent Critical Fixes (June 26, 2025)
+- **🔐 Security**: `checkRole` middleware now accepts arrays (fixed WEBADMIN access)
+- **📚 Documentation**: 35/35 API discrepancies resolved (100% sync)
+- **🤖 Multi-agent**: Protocol established for Gemini-Claude collaboration
+- **🎨 Frontend**: God Component refactoring postponed for calm implementation
 
 ---
 
@@ -104,6 +141,11 @@ npm run test:coverage     # With coverage
 cd frontend
 npm test                  # Unit tests
 npm run test:e2e          # E2E tests (services must be running)
+
+# Rust tests
+cd rust_generator
+cargo test                # All tests
+cargo bench               # Performance benchmarks
 
 # Validate implementation
 node validate_implementation.js  # From root directory
@@ -165,9 +207,10 @@ cd frontend && npx tsc --noEmit
 docker exec -it codex_postgres psql -U codex_user -d codex_db
 
 # 5. Test specific endpoint
-curl -X POST http://localhost:3004/api/generate \
+curl -X POST http://localhost:3004/api/v3/qr/generate \
   -H "Content-Type: application/json" \
-  -d '{"barcode_type":"qrcode","data":"Test","options":{"scale":2}}'
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{"data":"Test","options":{"error_correction":"H"}}'
 ```
 
 ### 3. UI Development Flow
@@ -246,27 +289,22 @@ npm test -- --testNamePattern="your test"
 # Verify responsive behavior
 ```
 
-### 7. FLODEX Architecture Workflow
+### 7. Multi-Agent Forensic Implementation Flow
 ```bash
-# 1. Before starting any feature
-./scripts/validate-flodex.sh
-# Ensure clean baseline
+# 1. Check for Gemini analysis
+ls docs/forensic/GEMINI_*
 
-# 2. For cross-service features
-# Read the guide first
-cat docs/flodex/CROSS_SERVICE_FEATURES_GUIDE.md
+# 2. Read forensic report thoroughly
+cat docs/forensic/GEMINI_FORENSIC_[NAME]_[DATE].md
 
-# 3. During development
-# Keep services independent
-# Document in service READMEs
+# 3. Create implementation tracking doc
+# Use API_FIXES_TRACKING.md as template
 
-# 4. Before committing
-./scripts/validate-flodex.sh
-# Fix any violations
+# 4. Implement fixes systematically
+# Reference Gemini findings in commits
 
-# 5. Track metrics over time
-./scripts/flodex-metrics
-# Monitor architecture health
+# 5. Document in /docs/implementation/
+# Include agent headers and status
 ```
 
 ---
@@ -374,6 +412,7 @@ className="w-full md:w-1/2 lg:w-1/3"
 - ❌ Use experimental Next.js features
 - ❌ Commit directly to main branch
 - ❌ Add console.logs in production code
+- ❌ Modify Gemini forensic reports in `/docs/forensic/`
 
 ### ALWAYS DO:
 - ✅ Use PM2 for service management
@@ -382,6 +421,8 @@ className="w-full md:w-1/2 lg:w-1/3"
 - ✅ Follow the design system (docs/CODEX_DESIGN_SYSTEM.md)
 - ✅ Document significant changes in CHANGELOG.md
 - ✅ Use TypeScript strict mode
+- ✅ Reference Gemini analysis when fixing reported issues
+- ✅ Follow multi-agent collaboration protocol
 
 ### 📚 DOCUMENTATION POLICIES:
 For comprehensive documentation rules, see **[DOCUMENTATION_POLICY.md](./docs/flodex/DOCUMENTATION_POLICY.md)**
@@ -396,26 +437,38 @@ Quick reminder:
 
 ## 🎯 Common Tasks & Solutions
 
-### Generate a Barcode
+### Generate a QR Code
 
-#### NEW API Structure (v1/v2)
+#### Current API Structure (v3 Primary)
 ```bash
-# QR Code (v2 - High Performance)
-curl -X POST http://localhost:3004/api/v2/qr/generate \
+# QR Code v3 (ULTRATHINK - Primary Engine)
+curl -X POST http://localhost:3004/api/v3/qr/generate \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
     "data": "https://example.com",
     "options": {
-      "size": 400,
-      "eyeShape": "rounded",
-      "gradient": {
-        "type": "linear",
-        "colors": ["#000000", "#666666"]
+      "error_correction": "H",
+      "customization": {
+        "gradient": {
+          "enabled": true,
+          "gradient_type": "radial",
+          "colors": ["#FF0066", "#6600FF"]
+        },
+        "eye_shape": "rounded_square",
+        "data_pattern": "dots"
       }
     }
   }'
 
-# Other Barcodes (v1)
+# Direct to Rust (No Auth - Testing Only)
+curl -X POST http://localhost:3002/api/v3/qr/enhanced \
+  -H "Content-Type: application/json" \
+  -d '{"data": "Test", "options": {"error_correction": "H"}}'
+```
+
+#### Other Barcodes (v1)
+```bash
 curl -X POST http://localhost:3004/api/v1/barcode \
   -H "Content-Type: application/json" \
   -d '{
@@ -427,18 +480,11 @@ curl -X POST http://localhost:3004/api/v1/barcode \
   }'
 ```
 
-#### ⚠️ CRITICAL: QR Engine v2 Status
-- **100% Active** - All QR codes use v2 engine
-- **Gradients NOT working** - Processor exists but not integrated
-- **See**: `docs/qr-engine/QR_ENGINE_V2_REFERENCE.md` for complete details
-- **Known Issue**: `generator.rs` line 207 uses solid colors instead of gradients
-
-#### Legacy Endpoints (Deprecated - Remove June 2025)
-```bash
-# Old endpoints still work but show deprecation headers
-# /api/generate - All barcode types
-# /api/qr/* - QR specific endpoints
-```
+#### ⚠️ CRITICAL: QR Engine Status
+- **✅ v3 ULTRATHINK**: Primary engine with full features
+- **✅ Gradients**: Fully working (linear, radial, conic, diamond, spiral)
+- **✅ Free access**: No authentication required for basic generation
+- **📅 v2 Deprecation**: Remove June 2025
 
 ### Add a New API Endpoint
 1. Create route in `backend/src/routes/`
@@ -446,6 +492,7 @@ curl -X POST http://localhost:3004/api/v1/barcode \
 3. Implement service logic in `backend/src/services/`
 4. Add tests in `backend/src/__tests__/`
 5. Update API documentation
+6. Run `./scripts/validate-flodex.sh`
 
 ### Add a New UI Component
 1. Create component in `frontend/src/components/`
@@ -453,6 +500,7 @@ curl -X POST http://localhost:3004/api/v1/barcode \
 3. Use design system tokens and classes
 4. Add to appropriate page/layout
 5. Test responsive behavior
+6. Update component documentation if significant
 
 ### Fix Memory Issues
 ```bash
@@ -470,6 +518,13 @@ free -h  # Linux
 vm_stat  # macOS
 ```
 
+### Implement Gemini Forensic Findings
+1. Read forensic report: `docs/forensic/GEMINI_*`
+2. Create tracking doc: `API_FIXES_TRACKING.md`
+3. Fix systematically with references
+4. Document in `docs/implementation/CLAUDE_*`
+5. Request Gemini verification when complete
+
 ---
 
 ## 📊 Performance Optimization
@@ -477,12 +532,20 @@ vm_stat  # macOS
 ### Backend Optimization
 - API responses are cached in Redis for 5 minutes
 - Database queries use proper indexes
-- Rate limiting prevents abuse
+- Rate limiting prevents abuse (100 req/15 min)
+- JWT tokens expire in 1 hour
 
 ### Frontend Optimization
 - Images use Next.js Image component
 - Code splitting with dynamic imports
 - Tailwind CSS purges unused styles
+- React components memoized where appropriate
+
+### Rust Generator Optimization
+- Release builds for production (`cargo build --release`)
+- Path optimization for adjacent QR modules
+- Efficient SVG generation algorithms
+- Memory-safe implementations
 
 ### Check Performance
 ```bash
@@ -491,6 +554,9 @@ curl http://localhost:3004/metrics
 
 # Frontend bundle analysis
 cd frontend && npm run analyze
+
+# Rust benchmarks
+cd rust_generator && cargo bench
 ```
 
 ---
@@ -536,14 +602,36 @@ rm -rf node_modules/.cache
 rm -rf .next
 ```
 
+### Authentication Issues
+```bash
+# Test with correct role (WEBADMIN not ADMIN)
+curl -X POST http://localhost:3004/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"password"}'
+
+# Check JWT contents
+# Use jwt.io to decode token and verify role field
+```
+
 ---
 
 ## 🔐 Security Considerations
 
-- JWT tokens expire in 1 hour
-- API keys are hashed with bcrypt
-- Rate limiting: 100 requests per 15 minutes
-- Input validation with Zod schemas
+### Authentication & Authorization
+- **JWT tokens**: 1 hour expiration
+- **Roles hierarchy**: USER < PREMIUM < ADVANCED < WEBADMIN < SUPERADMIN
+- **checkRole middleware**: Now accepts arrays for multiple role checks
+- **API keys**: Hashed with bcrypt
+
+### Rate Limiting
+- Standard users: 100 requests per 15 minutes
+- SUPERADMIN: Higher limits configured
+- Redis-backed for distributed systems
+
+### Input Validation
+- Zod schemas for all API endpoints
+- XSS protection enabled
+- SQL injection prevented via Prisma ORM
 - CORS configured for frontend origin only
 
 ---
@@ -624,6 +712,8 @@ curl http://localhost:3002/status
 - [ ] Database migrations ready
 - [ ] API documentation updated
 - [ ] CHANGELOG.md updated
+- [ ] FLODEX validation passing
+- [ ] Multi-agent docs synchronized
 
 ### Build Commands
 ```bash
@@ -663,7 +753,7 @@ cargo build --release
 - [ ] ✅ **New dependencies**: Document in corresponding README.md
 - [ ] ✅ **API changes**: Update `API_DOCUMENTATION.md`
 - [ ] ✅ **Resolved issues**: Add to `docs/TROUBLESHOOTING.md`
-- [ ] ✅ **Update START_HERE.md**: "Tasks Completed This Session" section
+- [ ] ✅ **Multi-agent docs**: Create in `/docs/implementation/` with headers
 
 #### 🗂️ 3. TEMPORARY FILES CLEANUP
 - [ ] ✅ **Temporary scripts**: Remove test `.sh`, `.js`, `.py` files
@@ -677,13 +767,13 @@ cargo build --release
 - [ ] ✅ **Verify hierarchy**: Follow structure defined in START_HERE.md
 - [ ] ✅ **Avoid duplication**: Don't create new docs if you can update existing ones
 - [ ] ✅ **Cross-references**: Update links between documents if necessary
-- [ ] ✅ **Versioning**: Update "last updated" dates in modified docs
+- [ ] ✅ **Agent identification**: Include proper headers in all docs
 
 #### 💾 5. VERSION CONTROL
 - [ ] ✅ **Atomic commits**: Make frequent commits with descriptive messages
 - [ ] ✅ **Check git status**: Ensure no important untracked files
-- [ ] ✅ **Push to remote**: `git push` to safeguard changes
-- [ ] ✅ **Check .gitignore**: Ensure temporary files aren't uploaded
+- [ ] ✅ **Reference Gemini**: If implementing forensic findings
+- [ ] ✅ **Co-author attribution**: Include in commit messages
 
 #### 🎯 6. FINAL VALIDATION
 - [ ] ✅ **Functionality intact**: Verify changes didn't break anything
@@ -709,6 +799,7 @@ cargo build --release
 - ✅ Complex bug fixes
 - ✅ New feature implementations
 - ✅ Long development sessions (>30 min of changes)
+- ✅ Implementing Gemini forensic findings
 
 **Execute partial checklist (steps 1, 5, 6) after:**
 - ✅ Minor code fixes
@@ -732,6 +823,7 @@ cargo build --release
 3. **Commit early, commit often** - Save progress frequently
 4. **Clean up temporarily** - Remove traces of temporary work
 5. **Verify before finishing** - Ensure everything works before finishing
+6. **Respect multi-agent boundaries** - Never modify other agents' work
 
 ---
 
@@ -742,9 +834,14 @@ cargo build --release
 
 [optional body]
 
+[Multi-agent references if applicable]
+Based-on: GEMINI_FORENSIC_[NAME]_[DATE].md
+Fixes: [Issue reference]
+
 🤖 Generated with Claude Code
 
 Co-Authored-By: Claude <noreply@anthropic.com>
+[Co-Authored-By: Gemini <gemini@ai-agent.local>]
 ```
 
 Types:
@@ -764,6 +861,8 @@ Types:
 2. Search codebase for similar patterns
 3. Review test files for usage examples
 4. Check logs for detailed error messages
+5. Review Gemini forensic reports for known issues
+6. Consult multi-agent protocol for collaboration questions
 
 Remember: Context is key. Read relevant files before making changes.
 
@@ -777,6 +876,7 @@ Remember: Context is key. Read relevant files before making changes.
 - **Use emphasis strategically** - Add "IMPORTANT", "CRITICAL" for frequently missed requirements
 - **Test with real tasks** - Observe where Claude struggles and update accordingly
 - **Version control** - Track changes to see what improvements work
+- **Sync with protocol** - Ensure alignment with multi-agent collaboration rules
 
 ### Signs This File Needs Updates
 - Claude repeatedly makes the same mistakes
@@ -784,21 +884,17 @@ Remember: Context is key. Read relevant files before making changes.
 - Project structure changes significantly
 - Team discovers better workflows
 - Anthropic releases new Claude Code features
+- Multi-agent protocol evolves
 
 ### Contribution Guidelines
 ```bash
 # When updating CLAUDE.md:
 1. Make changes based on actual pain points
 2. Test effectiveness with real development tasks
-3. Commit with clear explanation of why change was needed
-4. Update "Last updated" date in header
+3. Ensure compatibility with multi-agent protocol
+4. Commit with clear explanation of why change was needed
+5. Update "Last updated" date in header
 ```
-
-### Relationship with .cursorrules
-- **CLAUDE.md** - Primary source of truth for all AI agents
-- **.cursorrules** - Minimal companion file for Cursor IDE
-- **Maintenance** - Keep .cursorrules lightweight, pointing to CLAUDE.md
-- **Updates** - Major changes go in CLAUDE.md, Cursor-specific tweaks in .cursorrules
 
 ---
 
@@ -862,20 +958,23 @@ CODE FILES:
 
 #### Start of Session
 1. Read task requirement
-2. Find relevant existing files (use .nav.md)
-3. Start coding immediately
-4. Document inline as you go
+2. Check for Gemini forensic reports
+3. Find relevant existing files (use .nav.md)
+4. Start coding immediately
+5. Document inline as you go
 
 #### Every 30 Minutes
 Ask yourself:
 - Minutes since last code change? (>10 = refocus)
 - New files created? (>0 = justify or delete)
 - CHANGELOG.md updated? (No = update now)
+- Following multi-agent protocol? (Check boundaries)
 
 #### End of Session
 1. Update CHANGELOG.md (2-5 lines max)
 2. Delete any temporary files
-3. Verify no orphan documentation
+3. Create implementation doc if significant work done
+4. Verify no orphan documentation
 
 ### 🚀 Examples
 
@@ -959,5 +1058,10 @@ c) Refactor into components?"
 2. Justification why existing docs don't work
 3. Addition to a navigation/index file
 4. Clear maintenance plan
+5. Proper multi-agent headers if applicable
 
 **Remember**: Every unnecessary file = 10+ minutes of human cleanup time
+
+---
+
+*This document represents the collective wisdom of the CODEX project. Keep it updated, keep it relevant, and keep it effective.*

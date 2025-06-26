@@ -21,6 +21,15 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Fixed: ESLint errors in `serviceControl.ts` (case declarations)
   - Added: `@jest/globals` dependency for test files
   - Impact: Cleaner repository, faster searches, reduced confusion
+  - Additional cleanup: Removed test HTML/SVG files, temporary scripts
+
+#### Documentation
+- 📚 **Updated Critical Documentation** - Synchronized docs with current code state
+  - Created: `docs/API_DOCUMENTATION.md` with all current endpoints
+  - Updated: `.nav.md` to reflect actual project structure
+  - Fixed: Removed references to deleted files and non-existent endpoints
+  - Added: Complete API v1/v2/v3 documentation with examples
+  - Impact: Accurate navigation and API reference for developers
 
 ### 2025-06-26
 
@@ -48,6 +57,25 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Tested: Linear gradients render properly in `/api/v2/qr/generate`
   - Finding: No bug exists - gradients are fully functional
   - Note: Initial reports were incorrect, possibly due to API version confusion
+
+### 2025-06-26
+
+#### Added
+- 📝 **Forensic Analysis Report** - Documented discrepancies between docs and code
+  - Created `FORENSIC_ANALYSIS_REPORT.md` detailing API inconsistencies, architectural principles, and troubleshooting accuracy.
+  - Identified critical areas for documentation updates and potential code fixes.
+- 🤖 **Agent-Specific Guide (`GEMINI.md`)** - Created and referenced for improved AI agent onboarding
+  - Summarizes project vision, architecture, key APIs, development flow, and known discrepancies.
+  - Referenced in `START_HERE.md`, `CLAUDE.md`, and `.nav.md` for clear agent guidance.
+
+#### Changed
+- 🎨 **Frontend UI Enhancement** - Expanded QR customization options
+  - Updated `frontend/src/schemas/generate.schema.ts` to support 17 eye shapes and 12 data patterns (previously 9 each).
+  - Updated `frontend/src/components/generator/GenerationOptions.tsx` to display all new eye shape and data pattern options in the UI.
+- 🧪 **Random QR Test Script** - Improved robustness and accuracy for fuzzing
+  - Created `random_qr_test.py` to generate and send random QR configurations to the backend.
+  - Debugged and corrected payload generation to align with backend validation (gradient types, eye shape naming, `apply_to_eyes`/`apply_to_data` fields).
+  - Verified successful execution of random tests against the backend.
 
 ### 2025-06-24
 

@@ -476,10 +476,18 @@ function GenerationOptions({
                       { value: 'circle', label: 'Círculo', icon: '●' },
                       { value: 'dot', label: 'Punto', icon: '•' },
                       { value: 'leaf', label: 'Hoja', icon: '🍃' },
+                      { value: 'bars-horizontal', label: 'Barras Horiz.', icon: '☰' },
+                      { value: 'bars-vertical', label: 'Barras Vert.', icon: '☷' },
                       { value: 'star', label: 'Estrella', icon: '⭐' },
                       { value: 'diamond', label: 'Diamante', icon: '◆' },
+                      { value: 'cross', label: 'Cruz', icon: '➕' },
+                      { value: 'hexagon', label: 'Hexágono', icon: '⬢' },
                       { value: 'heart', label: 'Corazón', icon: '❤️' },
                       { value: 'shield', label: 'Escudo', icon: '🛡️' },
+                      { value: 'crystal', label: 'Cristal', icon: '💎' },
+                      { value: 'flower', label: 'Flor', icon: '🌸' },
+                      { value: 'arrow', label: 'Flecha', icon: '⬆️' },
+                      { value: 'custom', label: 'Personalizado', icon: '✨' },
                     ].map((shape) => (
                       <button
                         key={shape.value}
@@ -516,12 +524,15 @@ function GenerationOptions({
                       { value: 'square', label: 'Cuadrado', preview: '■' },
                       { value: 'dots', label: 'Puntos', preview: '●' },
                       { value: 'rounded', label: 'Redondeado', preview: '▢' },
+                      { value: 'vertical', label: 'Vertical', preview: '|||' },
+                      { value: 'horizontal', label: 'Horizontal', preview: '===' },
+                      { value: 'diamond', label: 'Diamante', preview: '◆' },
                       { value: 'circular', label: 'Circular', preview: '○' },
                       { value: 'star', label: 'Estrella', preview: '★' },
-                      { value: 'cross', label: 'Cruz', preview: '+' },
+                      { value: 'cross', label: 'Cruz', preview: '➕' },
+                      { value: 'random', label: 'Aleatorio', preview: '?' },
                       { value: 'wave', label: 'Onda', preview: '∿' },
                       { value: 'mosaic', label: 'Mosaico', preview: '▦' },
-                      { value: 'vertical', label: 'Vertical', preview: '|||' },
                     ].map((pattern) => (
                       <button
                         key={pattern.value}

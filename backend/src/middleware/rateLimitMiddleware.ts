@@ -91,7 +91,7 @@ export const authenticatedRateLimit = rateLimit({
     switch (user.role) {
       case 'SUPERADMIN':
         return 999999; // SUPERADMIN: Prácticamente ilimitado
-      case 'ADMIN':
+      case 'WEBADMIN':
         return 1000; // Administradores: 1000/15min
       case 'premium':
         return 500; // Premium: 500/15min
@@ -142,8 +142,8 @@ export const strictRateLimit = rateLimit({
     const user = req.user as any;
     return (
       user?.role === 'SUPERADMIN' ||
-      user?.role === 'ADMIN' ||
-      (process.env.NODE_ENV === 'development' && user?.role === 'ADMIN')
+      user?.role === 'WEBADMIN' ||
+      (process.env.NODE_ENV === 'development' && user?.role === 'WEBADMIN')
     );
   },
 });

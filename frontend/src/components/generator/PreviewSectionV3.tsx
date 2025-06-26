@@ -56,6 +56,7 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
     const showRealBarcode = !showLoadingState && hasContent;
     const showEmptyState = !showLoadingState && !showRealBarcode && !hasContent;
     
+    
     return {
       showUrlValidationLoading,
       showLoadingState,

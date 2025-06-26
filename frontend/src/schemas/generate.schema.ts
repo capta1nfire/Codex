@@ -102,8 +102,8 @@ export const generateFormSchema = z.object({
       code39_full_ascii: z.boolean().optional(),
       
       // Opciones v3 Enhanced para QR
-      eye_shape: z.enum(['square', 'rounded_square', 'circle', 'dot', 'leaf', 'star', 'diamond', 'heart', 'shield']).optional(),
-      data_pattern: z.enum(['square', 'dots', 'rounded', 'circular', 'star', 'cross', 'wave', 'mosaic', 'vertical']).optional(),
+      eye_shape: z.enum(['square', 'rounded_square', 'circle', 'dot', 'leaf', 'bars-horizontal', 'bars-vertical', 'star', 'diamond', 'cross', 'hexagon', 'heart', 'shield', 'crystal', 'flower', 'arrow', 'custom']).optional(),
+      data_pattern: z.enum(['square', 'dots', 'rounded', 'vertical', 'horizontal', 'diamond', 'circular', 'star', 'cross', 'random', 'wave', 'mosaic']).optional(),
       
       // Logo options
       logo_enabled: z.boolean().optional(),

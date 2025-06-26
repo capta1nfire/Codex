@@ -241,7 +241,7 @@ router.get('/preview-url', (req, res) => {
 router.get(
   '/cache/stats',
   authMiddleware.authenticateJwt,
-  authMiddleware.checkRole(['ADMIN', 'SUPERADMIN']),
+  authMiddleware.checkRole(['WEBADMIN', 'SUPERADMIN']),
   async (req, res, next) => {
     try {
       const stats = await qrService.getCacheStats();
@@ -258,7 +258,7 @@ router.get(
 router.post(
   '/cache/clear',
   authMiddleware.authenticateJwt,
-  authMiddleware.checkRole(['ADMIN', 'SUPERADMIN']),
+  authMiddleware.checkRole(['WEBADMIN', 'SUPERADMIN']),
   async (req, res, next) => {
     try {
       const cleared = await qrService.clearCache();

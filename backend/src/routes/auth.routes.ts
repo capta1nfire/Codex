@@ -233,7 +233,7 @@ router.post('/api-key', authMiddleware.authenticateJwt, authController.generateA
 router.post(
   '/admin',
   authMiddleware.authenticateJwt,
-  authMiddleware.checkRole(UserRole.ADMIN),
+  authMiddleware.checkRole(UserRole.WEBADMIN),
   authController.adminAccess
 );
 

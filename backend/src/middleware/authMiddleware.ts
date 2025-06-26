@@ -153,17 +153,28 @@ export const authenticateJwt = (req: Request, res: Response, next: NextFunction)
   )(req, res, next);
 };
 
-// Middleware para verificar rol del usuario
-export const checkRole = (requiredRole: UserRole) => {
+// Middleware para verificar rol del usuario (acepta rol único o array)
+export const checkRole = (requiredRoles: UserRole | UserRole[]) => {
   return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(new AppError('No autorizado', 401, ErrorCode.UNAUTHORIZED));
     }
 
     const userRole = (req.user as any).role;
-
-    if (!authService.hasRole(userRole, requiredRole)) {
-      return next(new AppError('Acceso denegado', 403, ErrorCode.FORBIDDEN));
+    
+    // Normalizar a array para simplificar lógica
+    const rolesArray = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+    
+    // Verificar si el usuario tiene alguno de los roles requeridos
+    const hasAccess = rolesArray.some(role => authService.hasRole(userRole, role));
+    
+    if (!hasAccess) {
+      const rolesList = rolesArray.join(', ');
+      return next(new AppError(
+        `Acceso denegado. Se requiere uno de estos roles: ${rolesList}`, 
+        403, 
+        ErrorCode.FORBIDDEN
+      ));
     }
 
     next();

@@ -87,7 +87,9 @@ Endpoint: /api/v3/qr/generate
   "metadata": {
     "engine_version": "3.0.0",
     "cached": false,
-    "processing_time_ms": 14
+    "processing_time_ms": 14,
+    "total_processing_time_ms": 20,
+    "backend_version": "1.0.0"
   }
 }
 ```
@@ -151,6 +153,27 @@ Example:
 - Quiet zone of 4 modules
 - viewBox = "4 4 37 37"
 - SVG will scale perfectly to fill any container size
+
+## 📊 Response Metadata Fields
+
+All ULTRATHINK v3 responses include detailed metadata for performance monitoring and debugging:
+
+### Data Metadata
+- **`generation_time_ms`**: Time spent generating QR code in Rust (typically 1-3ms)
+- **`quiet_zone`**: Hardcoded to 4 modules per QR standard
+- **`content_hash`**: SHA256 hash of input data for cache validation
+
+### Engine Metadata
+- **`engine_version`**: ULTRATHINK engine version (currently "3.0.0")
+- **`cached`**: Boolean indicating if response was served from cache
+- **`processing_time_ms`**: Backend processing time (validation, proxying, etc.)
+- **`total_processing_time_ms`**: End-to-end processing time (Rust + Backend)
+- **`backend_version`**: Backend service version for compatibility tracking
+
+### Performance Calculation
+```
+total_processing_time_ms = generation_time_ms + processing_time_ms + network_overhead
+```
 
 ## 🚀 Performance Metrics
 
@@ -310,6 +333,13 @@ The enhanced API extends v3 with comprehensive customization support while maint
       "quiet_zone": 4,
       "content_hash": "sha256..."
     }
+  },
+  "metadata": {
+    "engine_version": "3.0.0",
+    "cached": false,
+    "processing_time_ms": 20,
+    "total_processing_time_ms": 25,
+    "backend_version": "1.0.0"
   }
 }
 ```

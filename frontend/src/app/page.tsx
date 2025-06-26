@@ -1010,7 +1010,7 @@ export default function Home() {
             {/* Columna de vista previa con v2 */}
             <section className="lg:col-span-1 relative">
               {/* Componente de fondo visible - solo para altura visual */}
-              <div id="preview-background" className="absolute inset-0 hero-card backdrop-blur-xl bg-white/40 dark:bg-slate-950/40"></div>
+              <div id="preview-background" className="absolute inset-0 hero-card backdrop-blur-xl bg-white/40 dark:bg-slate-950/40 z-0"></div>
               
               {/* Componente funcional invisible - para sticky */}
               <PreviewSection
@@ -1024,7 +1024,7 @@ export default function Home() {
                 isUserTyping={isTyping && hasUserStartedTyping}
                 validationError={realTimeValidationError || validationError}
                 isInitialDisplay={false}
-                className="sticky-preview relative z-10"
+                className="sticky-preview relative z-20"
                 urlGenerationState={generationState}
               />
             </section>

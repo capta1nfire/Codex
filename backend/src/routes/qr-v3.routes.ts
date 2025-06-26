@@ -17,15 +17,36 @@ import logger from '../utils/logger.js';
 
 const router = express.Router();
 
-// Schema de validación para v3
+// Schema de validación mejorado para v3
+const customizationSchema = z.object({
+  colors: z.object({
+    foreground: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+    background: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  }).optional(),
+  eye_shape: z.enum(['square', 'rounded_square', 'circle', 'dot', 'leaf', 'star', 'diamond', 'heart', 'shield']).optional(),
+  data_pattern: z.enum(['square', 'dots', 'rounded', 'circular', 'star', 'cross', 'wave', 'mosaic']).optional(),
+  gradient: z.object({
+    enabled: z.boolean(),
+    gradient_type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']).optional(),
+    colors: z.array(z.string().regex(/^#[0-9A-Fa-f]{6}$/)).min(2).max(5).optional(),
+    apply_to_eyes: z.boolean().optional(),
+    apply_to_data: z.boolean().optional(),
+  }).optional(),
+  effects: z.array(z.object({
+    type: z.enum(['shadow', 'glow', 'blur', 'noise', 'vintage']),
+    intensity: z.number().min(0).max(100).optional(),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  })).max(3).optional(),
+  logo_size_ratio: z.number().min(0.05).max(0.3).optional(),
+  frame_style: z.enum(['simple', 'rounded', 'bubble', 'speech', 'badge']).optional(),
+}).optional();
+
 const qrV3RequestSchema = z.object({
-  data: z.string().min(1).max(2953), // QR v40 max
-  options: z
-    .object({
-      error_correction: z.enum(['L', 'M', 'Q', 'H']).optional(),
-      customization: z.any().optional(), // Para features avanzadas futuras
-    })
-    .optional(),
+  data: z.string().min(1).max(2953), // QR v40 max capacity
+  options: z.object({
+    error_correction: z.enum(['L', 'M', 'Q', 'H']).optional(),
+    customization: customizationSchema,
+  }).optional(),
 });
 
 // Tipo para la respuesta v3
