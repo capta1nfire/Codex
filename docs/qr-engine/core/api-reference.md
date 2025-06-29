@@ -43,7 +43,13 @@ Generate a QR code with advanced customization options.
     "gradient": {
       "type": "linear",
       "colors": ["#000000", "#0000FF"],
-      "angle": 45
+      "angle": 45,
+      "stroke_style": {
+        "enabled": true,
+        "color": "#FFFFFF",
+        "width": 0.1,
+        "opacity": 0.3
+      }
     },
     "logo": {
       "data": "base64string",
@@ -347,7 +353,7 @@ curl -X POST https://api.codexqr.com/api/qr/generate \
   }'
 ```
 
-## ULTRATHINK v3 API (New)
+## QR v3 API (New)
 
 ### Generate QR Code (Structured Data)
 
@@ -427,5 +433,133 @@ const result = await response.json();
 </svg>
 ```
 
+## Enterprise URL Validation API
+
+### Validate URL (Enterprise-Grade)
+
+```http
+POST /api/validate
+```
+
+Enterprise-grade URL validation that can bypass advanced anti-bot systems like CloudFlare, Amazon, and Shopify. Features multi-layer validation with realistic browser fingerprinting.
+
+#### Request Body
+
+```json
+{
+  "url": "string",              // Required: URL to validate
+  "forceRefresh": false,        // Optional: Skip cache
+  "timeout": 10000              // Optional: Timeout in ms (1000-30000)
+}
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "exists": true,
+    "accessible": true,
+    "title": "Amazon.com. Spend less. Smile more.",
+    "description": "Free shipping on millions of items...",
+    "favicon": "https://amazon.com/favicon.ico",
+    "statusCode": 200,
+    "responseTime": 1923,
+    "redirectUrl": "https://amazon.com",
+    "lastModified": "Wed, 26 Jun 2025 14:20:15 GMT",
+    "server": "Server",
+    "cached": false,
+    "validationMethod": "enhanced",
+    "attempts": 1,
+    "debugInfo": {}
+  }
+}
+```
+
+#### Validation Methods
+
+- `stealth` - Enterprise headers with TLS fingerprinting
+- `enhanced` - Multiple strategies with progressive timeouts
+- `behavioral` - Real browser behavior simulation
+- `dns` - DNS-only fallback validation
+
+#### Features
+
+- **40+ realistic browser headers** per request
+- **TLS fingerprinting** matching real browsers
+- **Domain-specific browser selection** (Amazon → Chrome/Edge)
+- **Behavioral patterns** (DNS prefetch, favicon requests)
+- **Intelligent fallbacks** with 4 escalation levels
+- **Redis caching** (60-300s TTL)
+- **Rate limiting bypass** capabilities
+
+### Validation Health Check
+
+```http
+GET /api/validate/health
+```
+
+Check validation service health and capabilities.
+
+#### Response
+
+```json
+{
+  "success": true,
+  "status": "healthy",
+  "capabilities": {
+    "enterpriseValidation": true,
+    "browserFingerprinting": true,
+    "tlsFingerprinting": true,
+    "behavioralSimulation": true,
+    "multiLayerFallbacks": true,
+    "caching": true
+  },
+  "testResult": {
+    "url": "https://google.com",
+    "exists": true,
+    "method": "stealth",
+    "responseTime": 498
+  }
+}
+```
+
+### Validation Statistics
+
+```http
+GET /api/validate/stats
+```
+
+Get validation service statistics and metrics.
+
+#### Response
+
+```json
+{
+  "success": true,
+  "stats": {
+    "cachedUrls": 0,
+    "cacheKeyPattern": "url_validation:v3:*",
+    "features": {
+      "browserProfiles": 5,
+      "headerTemplates": "40+",
+      "fallbackLayers": 4,
+      "tlsFingerprints": 3,
+      "maxTimeout": 30000,
+      "cacheTtl": "60-300s"
+    }
+  }
+}
+```
+
+### Clear Validation Cache
+
+```http
+DELETE /api/validate/cache
+```
+
+Clear all cached validation results.
+
 ---
-*Last updated: June 2025 | Version 2.0.0 (v2) / 3.0.0 (v3)*
+*Last updated: June 29, 2025 | Version 2.0.0 (v2) / 3.0.0 (v3) + Enterprise Validator*

@@ -150,13 +150,13 @@ export function useUrlValidation({
       // Use longer timeout for .edu.co domains
       const timeoutMs = domain.endsWith('.edu.co') ? 15000 : 10000;
       
-      console.log(`[useUrlValidation] Sending validation request for: ${cleanUrl}`);
+      console.log(`[useUrlValidation] Sending enterprise validation request for: ${cleanUrl}`);
       console.log(`[useUrlValidation] Domain: ${domain}`);
-      console.log(`[useUrlValidation] Backend URL: ${process.env.NEXT_PUBLIC_BACKEND_URL}/api/validate/check-url`);
+      console.log(`[useUrlValidation] Backend URL: ${process.env.NEXT_PUBLIC_BACKEND_URL}/api/validate`);
       console.log(`[useUrlValidation] Request timeout: ${timeoutMs}ms`);
       
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/validate/check-url`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/validate`,
         { url: cleanUrl },
         {
           signal: abortControllerRef.current.signal,
@@ -165,7 +165,8 @@ export function useUrlValidation({
       );
 
       console.log(`[useUrlValidation] Response received:`, response.data);
-      const data = response.data as UrlMetadata;
+      // Enterprise validator returns data in response.data.data
+      const data = (response.data.success && response.data.data ? response.data.data : response.data) as UrlMetadata;
       
       // Cache the result
       urlValidationCache.set(cleanUrl, data);

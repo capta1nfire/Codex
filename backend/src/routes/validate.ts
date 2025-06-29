@@ -1,420 +1,298 @@
-import dns from 'dns/promises';
-import http from 'http';
-import https from 'https';
-import { URL } from 'url';
+/**
+ * Enterprise-Grade URL Validation API
+ *
+ * This module provides enterprise-level URL validation that can bypass
+ * advanced anti-bot systems like CloudFlare, Amazon, and Shopify.
+ *
+ * Features:
+ * - Multi-layer validation with intelligent fallbacks
+ * - Realistic browser fingerprinting with 40+ headers
+ * - TLS fingerprinting simulation
+ * - Behavioral patterns matching real browsers
+ * - Redis caching for performance
+ * - Comprehensive metadata extraction
+ *
+ * Updated: June 29, 2025 - Enterprise-grade implementation
+ */
 
-import axios from 'axios';
-import * as cheerio from 'cheerio';
 import express from 'express';
 import { z } from 'zod';
 
+import { validateUrlEnterprise, ValidationResult } from '../lib/enterpriseValidator.js';
 import { redis } from '../lib/redis.js';
 
 const router = express.Router();
 
-// Schema de validación
-const validateUrlSchema = z.object({
-  url: z.string().min(1),
+// Request validation schema
+const validateRequestSchema = z.object({
+  url: z.string().url('Invalid URL format'),
+  forceRefresh: z.boolean().optional().default(false),
+  timeout: z.number().min(1000).max(30000).optional().default(10000),
 });
 
 interface UrlMetadata {
   exists: boolean;
+  accessible: boolean;
   title?: string;
   description?: string;
   favicon?: string;
   statusCode?: number;
-  error?: string;
+  responseTime?: number;
+  redirectUrl?: string;
+  lastModified?: string;
+  server?: string;
+  cached: boolean;
+  validationMethod: string;
+  attempts: number;
+  debugInfo?: any;
 }
 
 /**
- * Normaliza una URL agregando protocolo si no existe
+ * Normalize URL for consistent caching and processing
  */
 function normalizeUrl(url: string): string {
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return `https://${url}`;
-  }
-  return url;
-}
-
-/**
- * Extrae el dominio de una URL
- */
-function extractDomain(url: string): string {
   try {
-    const urlObj = new URL(normalizeUrl(url));
-    return urlObj.hostname;
+    const urlObj = new URL(url);
+
+    // Remove common tracking parameters
+    const trackingParams = [
+      'utm_source',
+      'utm_medium',
+      'utm_campaign',
+      'utm_content',
+      'utm_term',
+      'fbclid',
+      'gclid',
+      'ref',
+      'source',
+    ];
+    trackingParams.forEach((param) => urlObj.searchParams.delete(param));
+
+    // Normalize protocol to https if no specific protocol given
+    if (urlObj.protocol === 'http:' && !url.toLowerCase().startsWith('http://')) {
+      urlObj.protocol = 'https:';
+    }
+
+    // Remove trailing slash for consistency
+    if (urlObj.pathname === '/') {
+      urlObj.pathname = '';
+    }
+
+    return urlObj.toString();
   } catch {
     return url;
   }
 }
 
 /**
- * Verifica si un dominio existe via DNS con múltiples estrategias
+ * Generate cache key for URL validation results
  */
-async function checkDomainExists(domain: string): Promise<boolean> {
-  console.log(`[DNS] Starting DNS checks for domain: ${domain}`);
-
-  // Lista de tipos de registros DNS a verificar
-  const dnsChecks = [
-    { name: 'A (IPv4)', check: () => dns.resolve4(domain) },
-    { name: 'AAAA (IPv6)', check: () => dns.resolve6(domain) },
-    { name: 'CNAME', check: () => dns.resolveCname(domain) },
-    { name: 'MX', check: () => dns.resolveMx(domain) },
-    { name: 'TXT', check: () => dns.resolveTxt(domain) },
-    { name: 'NS', check: () => dns.resolveNs(domain) },
-    { name: 'SOA', check: () => dns.resolveSoa(domain) },
-  ];
-
-  // Si CUALQUIER tipo de registro DNS existe, el dominio existe
-  for (const { name, check } of dnsChecks) {
-    try {
-      console.log(`[DNS] Checking ${name} record...`);
-      const result = await check();
-      console.log(`[DNS] ${name} record found for ${domain}:`, result);
-      return true;
-    } catch (error: any) {
-      console.log(`[DNS] ${name} record not found: ${error.code || error.message}`);
-      // Continuar con el siguiente tipo
-    }
-  }
-
-  console.log(`[DNS] No DNS records found for domain: ${domain}`);
-  return false;
+function getCacheKey(url: string): string {
+  const normalizedUrl = normalizeUrl(url);
+  return `url_validation:v3:${Buffer.from(normalizedUrl).toString('base64')}`;
 }
 
 /**
- * Verifica si una URL responde con estrategias inteligentes
+ * Convert enterprise validation result to API response format
  */
-async function checkUrlResponds(url: string): Promise<UrlMetadata> {
-  const normalizedUrl = normalizeUrl(url);
-  const domain = extractDomain(url);
+function formatValidationResult(result: ValidationResult, cached: boolean = false): UrlMetadata {
+  return {
+    exists: result.exists,
+    accessible: result.accessible,
+    title: result.metadata?.title,
+    description: result.metadata?.description,
+    favicon: result.metadata?.favicon,
+    statusCode: result.metadata?.statusCode,
+    responseTime: result.metadata?.responseTime,
+    redirectUrl: result.metadata?.redirectUrl,
+    lastModified: result.metadata?.lastModified,
+    server: result.metadata?.server,
+    cached,
+    validationMethod: result.method,
+    attempts: result.attempts,
+    debugInfo: result.debugInfo,
+  };
+}
+
+/**
+ * POST /validate
+ * Enterprise-grade URL validation endpoint
+ */
+router.post('/', async (req, res) => {
   const startTime = Date.now();
 
-  console.log(`[URL Validation] Starting validation for: ${normalizedUrl}`);
-  console.log(`[URL Validation] Domain extracted: ${domain}`);
-
-  // Estrategia 1: Verificación DNS completa
-  console.log(`[URL Validation] Starting DNS checks for ${domain}...`);
-  const domainExists = await checkDomainExists(domain);
-  console.log(`[URL Validation] DNS check for ${domain}: ${domainExists ? 'EXISTS' : 'NOT FOUND'}`);
-
-  // Log adicional para dominios .edu.co
-  if (domain.endsWith('.edu.co')) {
-    console.log(`[URL Validation] Special handling for .edu.co domain: ${domain}`);
-    console.log(`[URL Validation] Using extended timeout: 5000ms`);
-  }
-
-  // Estrategia 2: Verificación HTTP incluso si DNS falla
-  // Algunos dominios (como x.com) pueden tener DNS especiales
-  return new Promise((resolve) => {
-    const urlObj = new URL(normalizedUrl);
-    const protocol = urlObj.protocol === 'https:' ? https : http;
-
-    // Timeout más largo para dominios .edu.co que pueden ser más lentos
-    const timeoutMs = domain.endsWith('.edu.co') ? 5000 : 3000;
-
-    const options: any = {
-      method: 'HEAD',
-      timeout: timeoutMs,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        Accept: '*/*',
-        'Accept-Encoding': 'gzip, deflate',
-        Connection: 'close', // Cerrar conexión inmediatamente
-      },
-    };
-
-    // For .edu.co domains with HTTPS, be more lenient with SSL certificates
-    if (domain.endsWith('.edu.co') && urlObj.protocol === 'https:') {
-      options.rejectUnauthorized = false;
-      console.log(`[URL Validation] Disabling SSL certificate verification for .edu.co domain`);
-    }
-
-    const req = protocol.request(urlObj, options, (res) => {
-      // Considerar CUALQUIER respuesta HTTP como "sitio existe"
-      // Incluso 403, 401, 503, etc. significan que hay un servidor
-      const exists = res.statusCode !== undefined;
-
-      const result: UrlMetadata = {
-        exists: exists,
-        statusCode: res.statusCode,
-      };
-
-      console.log(
-        `[URL Validation] HTTP response - Status: ${res.statusCode}, Exists: ${exists}, Time: ${Date.now() - startTime}ms`
-      );
-
-      // Si obtenemos respuesta HTTP, el sitio existe
-      // independientemente del código de estado
-      if (exists && !domainExists) {
-        result.title = domain; // DNS falló pero HTTP respondió
-      }
-
-      // Cerrar conexión inmediatamente para evitar hanging
-      res.destroy();
-      req.destroy();
-
-      resolve(result);
-    });
-
-    req.on('error', (error: any) => {
-      console.log(
-        `[URL Validation] HTTP error - Code: ${error.code}, Message: ${error.message}, DNS exists: ${domainExists}`
-      );
-      console.log(`[URL Validation] Full error:`, error);
-
-      // Si el error es de conexión pero DNS existe,
-      // podría ser un firewall, restricción o problema de SSL
-      const sslErrors = [
-        'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
-        'CERT_HAS_EXPIRED',
-        'DEPTH_ZERO_SELF_SIGNED_CERT',
-        'SELF_SIGNED_CERT_IN_CHAIN',
-      ];
-
-      if (
-        domainExists &&
-        (error.code === 'ECONNREFUSED' ||
-          error.code === 'ETIMEDOUT' ||
-          error.code === 'ENOTFOUND' ||
-          sslErrors.includes(error.code))
-      ) {
-        console.log(
-          `[URL Validation] DNS exists but HTTP failed (${error.code}) - assuming site exists`
-        );
-        resolve({
-          exists: true, // DNS existe, asumimos que el sitio existe
-          error: sslErrors.includes(error.code)
-            ? 'SSL certificate issue'
-            : 'Connection blocked or timed out',
-          title: domain,
-          // Still provide favicon via Google
-          favicon: `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
-        });
-      } else {
-        resolve({
-          exists: false,
-          error: error.code || error.message,
-        });
-      }
-    });
-
-    req.on('timeout', () => {
-      req.destroy();
-      // Si hay DNS pero timeout, el sitio probablemente existe
-      // pero está lento o bloqueado
-      if (domainExists) {
-        console.log(`[URL Validation] Timeout but DNS exists, assuming site exists`);
-        resolve({
-          exists: true,
-          error: 'Timeout but domain exists',
-          title: domain,
-        });
-      } else {
-        resolve({
-          exists: false,
-          error: 'Timeout',
-        });
-      }
-    });
-
-    // Timeout manual más agresivo para casos como x.com
-    req.setTimeout(timeoutMs, () => {
-      req.abort();
-    });
-
-    req.end();
-  });
-}
-
-/**
- * Obtiene metadata de una URL
- */
-async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
-  const normalizedUrl = normalizeUrl(url);
-
-  console.log(`[fetchUrlMetadata] Starting for URL: ${url}`);
-
-  // Check cache first
-  const cacheKey = `url_metadata:${normalizedUrl}`;
-
-  const cached = await redis.get(cacheKey);
-  if (cached) {
-    const cachedData = JSON.parse(cached);
-    // If cached result says URL doesn't exist and it's a known problematic domain,
-    // skip cache and re-validate
-    const problematicDomains = ['facebook.com', 'www.facebook.com', 'meta.com'];
-    const domain = extractDomain(url);
-
-    // Also skip cache for .edu.co domains as they may have special configurations
-    const isProblematicDomain = problematicDomains.includes(domain) || domain.endsWith('.edu.co');
-
-    if (!cachedData.exists && isProblematicDomain) {
-      console.log(`[fetchUrlMetadata] Skipping cache for problematic domain: ${domain}`);
-    } else {
-      console.log(`[fetchUrlMetadata] Found in cache: ${cacheKey}`);
-      return cachedData;
-    }
-  }
-
-  console.log(`[fetchUrlMetadata] Not in cache, checking URL...`);
-  // First check if URL is reachable with our smart strategy
-  const urlCheck = await checkUrlResponds(url);
-
-  if (!urlCheck.exists) {
-    // Cache negative results for shorter time (30 seconds)
-    await redis.setEx(cacheKey, 30, JSON.stringify(urlCheck));
-    return urlCheck;
-  }
-
-  // If URL exists, try to enrich with metadata
   try {
-    const domain = extractDomain(url);
-
-    // Create axios config
-    const axiosConfig: any = {
-      timeout: 5000,
-      maxRedirects: 5,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        Accept: 'text/html,application/xhtml+xml',
-      },
-      // Don't throw on 4xx/5xx to get status codes
-      validateStatus: () => true,
-    };
-
-    // For .edu.co domains, ignore SSL certificate errors
-    if (domain.endsWith('.edu.co')) {
-      axiosConfig.httpsAgent = new https.Agent({
-        rejectUnauthorized: false,
+    // Validate request
+    const validation = validateRequestSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid request',
+        details: validation.error.errors,
       });
-      console.log(`[fetchUrlMetadata] Using lenient SSL for .edu.co domain`);
     }
 
-    // Try to fetch the page with timeout
-    const response = await axios.get(normalizedUrl, axiosConfig);
+    const { url, forceRefresh, timeout } = validation.data;
+    const normalizedUrl = normalizeUrl(url);
+    const cacheKey = getCacheKey(normalizedUrl);
 
-    const result: UrlMetadata = {
-      exists: urlCheck.exists, // Use the smart check result
-      statusCode: response.status || urlCheck.statusCode,
-    };
+    console.log(`\n[URLValidation] 🚀 Enterprise validation request for: ${normalizedUrl}`);
 
-    // Parse HTML for metadata if successful
-    if (response.status < 400 && response.data) {
-      const $ = cheerio.load(response.data);
+    // Check cache first (unless force refresh)
+    if (!forceRefresh) {
+      try {
+        const cachedResult = await redis.get(cacheKey);
+        if (cachedResult) {
+          const parsedResult = JSON.parse(cachedResult);
+          console.log(`[URLValidation] ⚡ Cache hit for: ${normalizedUrl}`);
 
-      // Extract title
-      result.title =
-        $('title').text().trim() ||
-        $('meta[property="og:title"]').attr('content') ||
-        $('meta[name="twitter:title"]').attr('content') ||
-        urlCheck.title; // Fallback to domain name
-
-      // Extract description
-      result.description =
-        $('meta[name="description"]').attr('content') ||
-        $('meta[property="og:description"]').attr('content') ||
-        $('meta[name="twitter:description"]').attr('content');
-
-      // Extract favicon
-      let favicon =
-        $('link[rel="icon"]').attr('href') ||
-        $('link[rel="shortcut icon"]').attr('href') ||
-        $('link[rel="apple-touch-icon"]').attr('href');
-
-      if (favicon) {
-        // Make favicon URL absolute
-        if (favicon.startsWith('//')) {
-          favicon = `https:${favicon}`;
-        } else if (favicon.startsWith('/')) {
-          const urlObj = new URL(normalizedUrl);
-          favicon = `${urlObj.origin}${favicon}`;
-        } else if (!favicon.startsWith('http')) {
-          const urlObj = new URL(normalizedUrl);
-          favicon = `${urlObj.origin}/${favicon}`;
+          return res.json({
+            success: true,
+            data: {
+              ...parsedResult,
+              cached: true,
+              responseTime: Date.now() - startTime,
+            },
+          });
         }
-        result.favicon = favicon;
-      } else {
-        // Fallback to Google's favicon service if no favicon found
-        const urlObj = new URL(normalizedUrl);
-        result.favicon = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=64`;
+      } catch (cacheError) {
+        console.warn('[URLValidation] Cache read error:', cacheError);
       }
-    } else {
-      // Use basic data from smart check if we can't fetch full page
-      result.title = urlCheck.title || extractDomain(url);
-      // Still try to get favicon via Google
-      const urlObj = new URL(normalizedUrl);
-      result.favicon = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=64`;
     }
 
-    // Cache successful results for 24 hours
-    await redis.setEx(cacheKey, 86400, JSON.stringify(result));
-    return result;
+    // Perform enterprise validation
+    console.log(`[URLValidation] 🔍 Starting enterprise validation...`);
+    const validationResult = await validateUrlEnterprise(normalizedUrl);
+
+    // Format result
+    const formattedResult = formatValidationResult(validationResult, false);
+    formattedResult.responseTime = Date.now() - startTime;
+
+    // Cache the result
+    try {
+      const cacheTime = formattedResult.exists ? 300 : 60; // 5min for existing, 1min for non-existing
+      await redis.setex(cacheKey, cacheTime, JSON.stringify(formattedResult));
+      console.log(`[URLValidation] 💾 Cached result for ${cacheTime}s`);
+    } catch (cacheError) {
+      console.warn('[URLValidation] Cache write error:', cacheError);
+    }
+
+    // Log result summary
+    console.log(`[URLValidation] ✅ Validation complete:`, {
+      url: normalizedUrl,
+      exists: formattedResult.exists,
+      accessible: formattedResult.accessible,
+      method: formattedResult.validationMethod,
+      attempts: formattedResult.attempts,
+      responseTime: formattedResult.responseTime + 'ms',
+      statusCode: formattedResult.statusCode,
+    });
+
+    return res.json({
+      success: true,
+      data: formattedResult,
+    });
   } catch (error: any) {
-    // If we can't get metadata but URL exists (according to DNS), return basic info
-    if (urlCheck.exists) {
-      const result: UrlMetadata = {
-        exists: true,
-        title: urlCheck.title || extractDomain(url),
-        error: `Metadata fetch failed: ${error.code || error.message}`,
-        // Still try to get favicon via Google
-        favicon: `https://www.google.com/s2/favicons?domain=${extractDomain(url)}&sz=64`,
-      };
-      // Cache with shorter TTL since we couldn't get full metadata
-      await redis.setEx(cacheKey, 300, JSON.stringify(result));
-      return result;
-    }
+    console.error('[URLValidation] ❌ Validation error:', error);
 
-    // URL doesn't exist
-    const result: UrlMetadata = {
-      exists: false,
-      error: error.code || error.message,
-    };
-
-    // Cache network errors for shorter time for .edu.co domains
-    // as they might be temporarily unavailable
-    const cacheTTL = domain.endsWith('.edu.co') ? 10 : 30;
-    await redis.setEx(cacheKey, cacheTTL, JSON.stringify(result));
-    return result;
+    return res.status(500).json({
+      success: false,
+      error: 'Validation failed',
+      message: error.message,
+      responseTime: Date.now() - startTime,
+    });
   }
-}
+});
 
 /**
- * Endpoint para validar URLs
+ * GET /health
+ * Health check endpoint for validation service
  */
-router.post('/check-url', async (req, res) => {
-  const startTime = Date.now();
+router.get('/health', async (req, res) => {
   try {
-    const { url } = validateUrlSchema.parse(req.body);
+    // Test with a known good URL
+    const testResult = await validateUrlEnterprise('https://google.com');
 
-    console.log(`[/check-url] ========== Starting validation for URL: ${url} ==========`);
-
-    // Quick response for common test domains
-    const testDomains = ['localhost', '127.0.0.1', '0.0.0.0', 'example.com'];
-    const domain = extractDomain(url);
-    if (testDomains.includes(domain)) {
-      return res.json({
-        exists: true,
-        title: domain,
-        description: 'Local or test domain',
-      });
-    }
-
-    const metadata = await fetchUrlMetadata(url);
-    const totalTime = Date.now() - startTime;
-    console.log(`[/check-url] ========== Validation completed in ${totalTime}ms ==========`);
-    console.log(`[/check-url] Result for ${url}:`, JSON.stringify(metadata, null, 2));
-    return res.json(metadata);
+    return res.json({
+      success: true,
+      status: 'healthy',
+      capabilities: {
+        enterpriseValidation: true,
+        browserFingerprinting: true,
+        tlsFingerprinting: true,
+        behavioralSimulation: true,
+        multiLayerFallbacks: true,
+        caching: true,
+      },
+      testResult: {
+        url: 'https://google.com',
+        exists: testResult.exists,
+        method: testResult.method,
+        responseTime: testResult.metadata?.responseTime,
+      },
+    });
   } catch (error: any) {
-    const totalTime = Date.now() - startTime;
-    console.log(`[/check-url] ========== Validation FAILED after ${totalTime}ms ==========`);
+    return res.status(503).json({
+      success: false,
+      status: 'unhealthy',
+      error: error.message,
+    });
+  }
+});
 
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid URL format' });
+/**
+ * GET /stats
+ * Get validation statistics and cache metrics
+ */
+router.get('/stats', async (req, res) => {
+  try {
+    // Get cache statistics
+    const cacheKeys = await redis.keys('url_validation:v3:*');
+
+    return res.json({
+      success: true,
+      stats: {
+        cachedUrls: cacheKeys.length,
+        cacheKeyPattern: 'url_validation:v3:*',
+        features: {
+          browserProfiles: 5,
+          headerTemplates: '40+',
+          fallbackLayers: 4,
+          tlsFingerprints: 3,
+          maxTimeout: 30000,
+          cacheTtl: '60-300s',
+        },
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * DELETE /cache
+ * Clear validation cache
+ */
+router.delete('/cache', async (req, res) => {
+  try {
+    const cacheKeys = await redis.keys('url_validation:v3:*');
+
+    if (cacheKeys.length > 0) {
+      await redis.del(...cacheKeys);
     }
 
-    console.error('URL validation error:', error);
-    return res.status(500).json({ error: 'Failed to validate URL' });
+    return res.json({
+      success: true,
+      message: `Cleared ${cacheKeys.length} cached validation results`,
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
   }
 });
 
