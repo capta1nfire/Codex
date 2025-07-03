@@ -216,9 +216,8 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
       console.error('Invalid dataModules:', dataModules);
       return '0 0 1 1';
     }
-    // Include quiet zone in viewBox to allow background to cover entire area
-    return `0 0 ${totalModules} ${totalModules}`;
-  }, [dataModules, totalModules]);
+    return `${QUIET_ZONE} ${QUIET_ZONE} ${dataModules} ${dataModules}`;
+  }, [dataModules, QUIET_ZONE]);
   
   // Renderizar definiciones (gradientes y efectos)
   const definitions = useMemo(() => {
@@ -261,8 +260,10 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
       style={{ 
         width: size, 
         height: size,
-        backgroundColor: bgColor,
+        backgroundColor: transparentBackground ? 'transparent' : bgColor,
         cursor: onClick ? 'pointer' : 'default',
+        padding: `${size * QUIET_ZONE / totalModules * 0.35}px`,
+        boxSizing: 'border-box',
       }}
       onClick={onClick}
       role={onClick ? 'button' : 'img'}
@@ -305,22 +306,10 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
           )}
         </defs>
         
-        {/* Background rectangle covering entire area including quiet zone */}
-        {!transparentBackground && (
-          <rect
-            x="0"
-            y="0"
-            width={totalModules}
-            height={totalModules}
-            fill={bgColor}
-          />
-        )}
-        
         {/* Grupo principal con efectos y máscara si existe */}
         <g 
           filter={getFilterString(data.styles.data.effects)}
           mask={hasLogoWithExclusion ? `url(#${maskId})` : undefined}
-          transform={`translate(${QUIET_ZONE}, ${QUIET_ZONE})`}
         >
           {/* Path de datos */}
           {/* 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
@@ -345,7 +334,6 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
         <g 
           filter={getFilterString(data.styles.eyes.effects)}
           mask={hasLogoWithExclusion ? `url(#${maskId})` : undefined}
-          transform={`translate(${QUIET_ZONE}, ${QUIET_ZONE})`}
         >
           {/* Paths de ojos */}
           {data.paths.eyes.map((eye, index) => {
@@ -414,19 +402,15 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
         
         {/* Debug de zonas intocables si está habilitado */}
         {debugUntouchableZones && data.untouchable_zones && (
-          <g transform={`translate(${QUIET_ZONE}, ${QUIET_ZONE})`}>
-            <UntouchableZonesDebug 
-              zones={data.untouchable_zones}
-              quietZone={0} // Already translated
-            />
-          </g>
+          <UntouchableZonesDebug 
+            zones={data.untouchable_zones}
+            quietZone={QUIET_ZONE}
+          />
         )}
         
         {/* Overlays (logo y frame) si existen */}
-        <g transform={`translate(${QUIET_ZONE}, ${QUIET_ZONE})`}>
-          {data.overlays?.logo && renderLogo(data.overlays.logo, totalModules - (2 * QUIET_ZONE), Boolean(hasLogoWithExclusion))}
-          {data.overlays?.frame && renderFrame(data.overlays.frame)}
-        </g>
+        {data.overlays?.logo && renderLogo(data.overlays.logo, totalModules, Boolean(hasLogoWithExclusion))}
+        {data.overlays?.frame && renderFrame(data.overlays.frame)}
       </svg>
       
       {/* Estilos inline para garantizar comportamiento */}
