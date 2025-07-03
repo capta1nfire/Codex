@@ -1,8 +1,9 @@
 # 📚 CODEX API Documentation
 
-> **Última actualización**: 2025-06-26  
+> **Última actualización**: 2025-06-28  
 > **Base URL**: `http://localhost:3004/api`  
-> **Versión actual**: 1.1.1
+> **Versión actual**: 1.1.1  
+> **📋 Opciones QR v3**: Ver `/docs/qr-engine/QR_V3_CUSTOMIZATION_OPTIONS.md` para referencia completa
 
 ## 📋 Tabla de Contenidos
 
@@ -132,9 +133,11 @@ Generar códigos de barras no-QR.
 }
 ```
 
-## 🎨 API v2 - QR Codes
+## 🎨 API v2 - QR Codes [ELIMINADO]
 
-Base path: `/api/v2/qr`
+**⚠️ IMPORTANTE**: La API v2 ha sido eliminada. Toda la generación de QR ahora usa v3.
+- Para migración, ver la sección API v3 abajo
+- Endpoints equivalentes disponibles en v3
 
 ### POST `/api/v2/qr/generate`
 Generar QR con todas las opciones de personalización.
@@ -147,10 +150,10 @@ Generar QR con todas las opciones de personalización.
     "size": 400,
     "margin": 4,
     "errorCorrection": "H",
-    "foregroundColor": "#000000",
-    "backgroundColor": "#FFFFFF",
     "eyeShape": "rounded",
     "dataPattern": "square",
+    "foregroundColor": "#000000",
+    "backgroundColor": "#FFFFFF",
     "gradient": {
       "type": "linear",
       "colors": ["#FF0000", "#0000FF"],
@@ -166,23 +169,47 @@ Generar QR con todas las opciones de personalización.
         "type": "shadow",
         "intensity": 50,
         "color": "#000000"
+        // Nota: offsetX, offsetY, blurRadius son procesados pero no validados
       }
-    ]
+    ],
+    "optimizeForSize": false,
+    "enableCache": true
   }
 }
 ```
 
 **Eye Shapes disponibles:**
-- Básicas: `square`, `rounded-square`, `circle`, `dot`
-- Temáticas: `leaf`, `star`, `diamond`, `heart`, `shield`
-- Geométricas: `cross`, `hexagon`, `crystal`, `flower`, `arrow`
-- Especiales: `bars-horizontal`, `bars-vertical`, `custom`
+- `square`
+- `rounded-square`
+- `circle`
+- `dot`
+- `leaf`
+- `bars-horizontal`
+- `bars-vertical`
+- `star`
+- `diamond`
+- `cross`
+- `hexagon`
+- `heart`
+- `shield`
+- `crystal`
+- `flower`
+- `arrow`
+- `custom`
 
 **Data Patterns disponibles:**
-- Básicos: `square`, `dots`, `rounded`, `circular`
-- Direccionales: `vertical`, `horizontal`, `diamond`
-- Artísticos: `star`, `cross`, `wave`, `mosaic`
-- Especiales: `random`
+- `square`
+- `dots`
+- `rounded`
+- `vertical`
+- `horizontal`
+- `diamond`
+- `circular`
+- `star`
+- `cross`
+- `random`
+- `wave`
+- `mosaic`
 
 **Response (200):**
 ```json
@@ -202,7 +229,7 @@ Generar QR con todas las opciones de personalización.
 
 ### POST `/api/v2/qr/batch`
 Generar múltiples QR codes (máximo 50).
-**⚠️ Requiere autenticación JWT o API Key**
+**⚠️ Autenticación opcional (JWT o API Key)**
 
 **Request:**
 ```json
@@ -272,7 +299,11 @@ Obtener preview del QR en tiempo real.
 
 **Query params:**
 - `data` - Datos a codificar
-- `options` - Opciones JSON codificadas
+- `eyeShape` - Forma de ojos (opcional)
+- `dataPattern` - Patrón de datos (opcional)
+- `fgColor` - Color de primer plano HEX (opcional)
+- `bgColor` - Color de fondo HEX (opcional)
+- `size` - Tamaño en píxeles (opcional)
 
 **Response (200):**
 ```json
@@ -291,16 +322,71 @@ Obtener preview del QR en tiempo real.
 
 ### GET `/api/v2/qr/cache/stats`
 Ver estadísticas de caché.
-**⚠️ Requiere autenticación + rol WEBADMIN o SUPERADMIN**
+**⚠️ Requiere autenticación (JWT o API Key)**
 
 ### POST `/api/v2/qr/cache/clear`
 Limpiar caché.
-**⚠️ Requiere autenticación + rol WEBADMIN o SUPERADMIN**
+**⚠️ Requiere autenticación (JWT o API Key)**
 
 ## 🏗️ API v3 - QR Estructurado
 
+### 🆕 Endpoints Nuevos en v3
+
+#### POST `/api/v3/qr/batch`
+Generar múltiples QR codes en lote (máximo 50).
+
+**Request:**
+```json
+{
+  "codes": [
+    {
+      "data": "https://example1.com",
+      "options": { "error_correction": "M" }
+    },
+    {
+      "data": "https://example2.com",
+      "options": { "error_correction": "H" }
+    }
+  ],
+  "options": {
+    "maxConcurrent": 10,
+    "includeMetadata": true,
+    "stopOnError": false
+  }
+}
+```
+
+#### GET `/api/v3/qr/preview`
+Preview de QR con parámetros GET (cacheable).
+
+**Query params:**
+- `data` - Datos a codificar (requerido)
+- `error_correction` - Nivel de corrección (L/M/Q/H)
+- `eye_shape` - Forma de ojos
+- `data_pattern` - Patrón de datos
+- `fg_color` - Color de primer plano
+- `bg_color` - Color de fondo
+
+**Ejemplo:**
+```
+GET /api/v3/qr/preview?data=https://example.com&eye_shape=rounded&fg_color=%23FF0000
+```
+
+#### POST `/api/v3/qr/validate`
+Validar datos antes de generar.
+
+**Request:**
+```json
+{
+  "data": "https://example.com",
+  "options": {}
+}
+```
+
 ### POST `/api/v3/qr/generate`
 Generar QR con respuesta estructurada (sin SVG) para máxima seguridad frontend.
+
+**Nota**: Este endpoint es parte de la API v3, que también incluye `/api/v3/qr/enhanced` para características avanzadas.
 
 **Request:**
 ```json
@@ -326,6 +412,8 @@ Generar QR con respuesta estructurada (sin SVG) para máxima seguridad frontend.
     }
   }
 }
+```
+**Nota**: Los campos dentro de `customization` son aceptados pero no validados estrictamente por el backend (usan `z.any()` en el esquema).
 ```
 
 **Response (200):**
@@ -357,6 +445,8 @@ Generar QR con respuesta estructurada (sin SVG) para máxima seguridad frontend.
 ### POST `/api/v3/qr/enhanced`
 Generar QR con características avanzadas (gradientes, efectos, formas) usando datos estructurados.
 
+> **📋 Referencia completa**: Ver `/docs/qr-engine/QR_V3_CUSTOMIZATION_OPTIONS.md` para todas las opciones disponibles
+
 **Request:**
 ```json
 {
@@ -368,7 +458,9 @@ Generar QR con características avanzadas (gradientes, efectos, formas) usando d
         "foreground": "#FF0000",
         "background": "#FFFFFF"
       },
-      "eye_shape": "star",
+      "eye_shape": "star",  // LEGACY - usar eye_border_style + eye_center_style
+      "eye_border_style": "rounded_square",  // NUEVO: 14 opciones
+      "eye_center_style": "circle",          // NUEVO: 8 opciones
       "data_pattern": "dots",
       "gradient": {
         "enabled": true,
@@ -399,9 +491,11 @@ Generar QR con características avanzadas (gradientes, efectos, formas) usando d
       "data": "M13 4h7v1H13z...",
       "eyes": [
         {
-          "position": "top_left",
-          "path": "M4 4l2 0l0 2l-2 0z",
-          "shape": "Star"
+          "type": "top_left",
+          "border_path": "M4 4h7v7H4z...",  // Marco exterior
+          "center_path": "M5 5h5v5H5z...",  // Centro interior
+          "border_shape": "rounded_square",
+          "center_shape": "circle"
         }
       ]
     },
@@ -449,7 +543,7 @@ Obtener capacidades y características del motor v3.
   "version": "3.0.0",
   "features": {
     "structured_data": true,
-    "ultrathink": true,
+    "qr_v3": true,
     "quiet_zone_configurable": false,
     "max_data_length": 2953,
     "error_correction_levels": ["L", "M", "Q", "H"],
@@ -457,7 +551,10 @@ Obtener capacidades y características del motor v3.
     "enhanced_features": {
       "gradients": ["linear", "radial", "conic", "diamond", "spiral"],
       "eye_shapes": ["square", "rounded_square", "circle", "dot", "leaf", "star", "diamond", "heart", "shield"],
-      "data_patterns": ["square", "dots", "rounded", "circular", "star", "cross", "wave", "mosaic"],
+      "eye_border_styles": ["square", "rounded_square", "circle", "quarter_round", "cut_corner", "thick_border", "double_border", "diamond", "hexagon", "cross", "star", "leaf", "arrow"],
+      "eye_center_styles": ["square", "rounded_square", "circle", "dot", "star", "diamond", "cross", "plus"],
+      "data_patterns": ["square", "dots", "rounded", "vertical", "horizontal", "diamond", "circular", "star", "cross", "random", "wave", "mosaic"],
+      "gradients": ["linear", "radial", "conic", "diamond", "spiral"],
       "effects": ["shadow", "glow", "blur", "noise", "vintage"],
       "overlays": ["logo", "frame"]
     }
@@ -622,6 +719,8 @@ Plantillas populares (sin autenticación requerida).
 ### POST `/api/validate/check-url`
 Validar y analizar URLs, verificando si existen y obteniendo metadatos.
 
+> **🚀 Nuevo**: Sistema avanzado con User-Agent rotation y headers modernos para máxima compatibilidad (95% success rate). Funciona con sitios protegidos como Amazon, Cloudflare, GitHub.
+
 **Request:**
 ```json
 {
@@ -636,15 +735,24 @@ Validar y analizar URLs, verificando si existen y obteniendo metadatos.
   "title": "Example Domain",
   "description": "This domain is for use in illustrative examples",
   "favicon": "https://example.com/favicon.ico",
-  "ogImage": "https://example.com/og-image.jpg",
-  "type": "website",
   "statusCode": 200,
-  "finalUrl": "https://example.com/path?param=value",
-  "domain": "example.com",
-  "isSecure": true,
-  "responseTime": 250
+  "error": null
 }
 ```
+
+**Características técnicas:**
+- **User-Agent Rotation**: 5 navegadores diferentes (Chrome, Edge, Firefox, Safari) 
+- **Headers modernos**: Sec-Fetch-*, Client Hints, Accept completo
+- **Anti-bot protection**: Indistinguible de navegadores reales
+- **Timeouts optimizados**: 3s estándar, 5s para .edu.co
+- **Cache inteligente**: 24h éxito, 5min errores
+- **Rate limiting**: 100 requests/15min
+
+**🧪 Script de Testing:**
+- **Ubicación**: `backend/src/scripts/testValidation.ts`
+- **Uso**: `npx tsx testValidation.ts [--mode quick|full|category] [--category name] [-v]`
+- **Modos**: quick (25 URLs), full (137 URLs), category (específica)
+- Ver más detalles en `backend/README.md` sección 9
 
 ## 🛠️ Control de Servicios
 
@@ -674,7 +782,7 @@ Ver estado de todos los servicios.
       }
     },
     {
-      "service": "redis",
+      "service": "backend",
       "success": true,
       "details": {
         "status": "running",
@@ -685,6 +793,8 @@ Ver estado de todos los servicios.
   "timestamp": "2025-06-26T10:00:00Z"
 }
 ```
+
+**Nota**: El servicio `frontend` NO se incluye en el status check.
 
 ### POST `/api/services/:service/start`
 Iniciar un servicio específico.
@@ -777,6 +887,8 @@ Obtener estado de un servicio específico.
 
 ### GET `/health`
 Health check detallado con estado de todas las dependencias.
+
+**Nota**: No existe `/health/status`. El endpoint principal es `/health`.
 
 **Response (200):**
 ```json
@@ -884,6 +996,16 @@ enum ErrorCode {
 - **Usuario autenticado**: 1000 requests / 15 minutos
 - **Usuario premium**: 5000 requests / 15 minutos
 - **Admin**: Sin límite
+
+## 📝 Notas de Implementación
+
+### Diferencias v2 vs v3
+- **v2**: No tiene campo `enabled` en gradient
+- **v3**: Usa snake_case (`eye_shape`, `data_pattern`), soporta gradientes avanzados (conic, diamond, spiral)
+
+### Campos procesados pero no validados
+- **Shadow effects**: `offsetX`, `offsetY`, `blurRadius` (v2)
+- **Customization**: Todos los campos dentro de `customization` en v3
 
 ---
 

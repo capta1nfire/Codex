@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { EnhancedUltrathinkQR } from '@/components/generator/EnhancedUltrathinkQR';
+import { EnhancedQRV3 } from '@/components/generator/EnhancedQRV3';
 import { useQRGenerationV3Enhanced } from '@/hooks/useQRGenerationV3Enhanced';
 import { QRV3Customization } from '@/hooks/useQRGenerationV3';
 import { Button } from '@/components/ui/button';
@@ -86,7 +86,7 @@ export default function TestV3EnhancedPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold text-center mb-8">
-          ULTRATHINK v3 Enhanced - Test Page
+          QR v3 Enhanced - Test Page
         </h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -348,7 +348,7 @@ export default function TestV3EnhancedPage() {
               {enhancedData ? (
                 <div className="space-y-4">
                   <div className="flex justify-center p-8 bg-white rounded-lg shadow-inner">
-                    <EnhancedUltrathinkQR
+                    <EnhancedQRV3
                       data={enhancedData}
                       totalModules={45} // Estos valores deberían venir del backend
                       dataModules={37}

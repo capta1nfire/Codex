@@ -1,18 +1,17 @@
 /**
- * Enterprise-Grade URL Validation API
+ * URL Validation API
  *
- * This module provides enterprise-level URL validation that can bypass
- * advanced anti-bot systems like CloudFlare, Amazon, and Shopify.
+ * This module provides reliable URL validation to enhance user experience
+ * by verifying links before QR code generation.
  *
  * Features:
- * - Multi-layer validation with intelligent fallbacks
- * - Realistic browser fingerprinting with 40+ headers
- * - TLS fingerprinting simulation
- * - Behavioral patterns matching real browsers
+ * - Fast validation with smart fallbacks
+ * - Realistic browser headers
  * - Redis caching for performance
- * - Comprehensive metadata extraction
+ * - Metadata extraction (title, description, favicon)
+ * - Distinction between "not exists" vs "not accessible"
  *
- * Updated: June 29, 2025 - Enterprise-grade implementation
+ * Updated: June 30, 2025 - Simplified for performance and maintainability
  */
 
 import express from 'express';
@@ -28,6 +27,7 @@ const validateRequestSchema = z.object({
   url: z.string().url('Invalid URL format'),
   forceRefresh: z.boolean().optional().default(false),
   timeout: z.number().min(1000).max(30000).optional().default(10000),
+  allowInsecure: z.boolean().optional().default(false),
 });
 
 interface UrlMetadata {
@@ -42,7 +42,7 @@ interface UrlMetadata {
   lastModified?: string;
   server?: string;
   cached: boolean;
-  validationMethod: string;
+  validationMethod: 'quick' | 'enhanced' | 'dns';
   attempts: number;
   debugInfo?: any;
 }
@@ -171,7 +171,7 @@ router.post('/', async (req, res) => {
     // Cache the result
     try {
       const cacheTime = formattedResult.exists ? 300 : 60; // 5min for existing, 1min for non-existing
-      await redis.setex(cacheKey, cacheTime, JSON.stringify(formattedResult));
+      await redis.setEx(cacheKey, cacheTime, JSON.stringify(formattedResult));
       console.log(`[URLValidation] 💾 Cached result for ${cacheTime}s`);
     } catch (cacheError) {
       console.warn('[URLValidation] Cache write error:', cacheError);
@@ -186,6 +186,8 @@ router.post('/', async (req, res) => {
       attempts: formattedResult.attempts,
       responseTime: formattedResult.responseTime + 'ms',
       statusCode: formattedResult.statusCode,
+      favicon: formattedResult.favicon,
+      title: formattedResult.title,
     });
 
     return res.json({
@@ -217,12 +219,12 @@ router.get('/health', async (req, res) => {
       success: true,
       status: 'healthy',
       capabilities: {
-        enterpriseValidation: true,
-        browserFingerprinting: true,
-        tlsFingerprinting: true,
-        behavioralSimulation: true,
-        multiLayerFallbacks: true,
-        caching: true,
+        headValidation: true,
+        getValidation: true,
+        dnsValidation: true,
+        metadataExtraction: true,
+        redisCaching: true,
+        smartFallbacks: true,
       },
       testResult: {
         url: 'https://google.com',
@@ -255,12 +257,12 @@ router.get('/stats', async (req, res) => {
         cachedUrls: cacheKeys.length,
         cacheKeyPattern: 'url_validation:v3:*',
         features: {
-          browserProfiles: 5,
-          headerTemplates: '40+',
-          fallbackLayers: 4,
-          tlsFingerprints: 3,
-          maxTimeout: 30000,
+          validationMethods: 3,
+          fallbackLevels: 3,
+          defaultTimeout: 3000,
+          maxTimeout: 5000,
           cacheTtl: '60-300s',
+          metadataFields: ['title', 'description', 'favicon'],
         },
       },
     });

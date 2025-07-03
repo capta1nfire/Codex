@@ -256,6 +256,8 @@ mod tests {
             format: OutputFormat::Svg,
             customization: Some(QrCustomization {
                 eye_shape: Some(EyeShape::RoundedSquare),
+                eye_border_style: None,
+                eye_center_style: None,
                 data_pattern: Some(DataPattern::Dots),
                 colors: None,
                 gradient: None,
@@ -281,6 +283,8 @@ mod tests {
             format: OutputFormat::Svg,
             customization: Some(QrCustomization {
                 eye_shape: Some(EyeShape::RoundedSquare),
+                eye_border_style: None,
+                eye_center_style: None,
                 data_pattern: None,
                 colors: None,
                 gradient: None,

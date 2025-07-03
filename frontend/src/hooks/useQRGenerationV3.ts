@@ -2,7 +2,7 @@
  * @deprecated Use useQRGenerationState instead (which uses useQRGenerationV3Enhanced internally)
  * This hook is kept for legacy test pages only
  * 
- * Hook para generación de QR v3 con datos estructurados (ULTRATHINK)
+ * Hook para generación de QR v3 con datos estructurados
  * 
  * Este hook consume la nueva API v3 que retorna datos estructurados
  * en lugar de SVG strings, permitiendo renderizado seguro sin
@@ -10,7 +10,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { QREnhancedData } from '@/components/generator/EnhancedUltrathinkQR';
+import { QREnhancedData } from '@/components/generator/EnhancedQRV3';
 
 // Tipos para la API v3
 export interface QRStructuredData {
@@ -65,10 +65,16 @@ export interface QRV3Customization {
     shape: 'square' | 'circle' | 'rounded_square';
   };
   frame?: {
-    frame_type: string;
+    frame_type: 'simple' | 'rounded' | 'decorated' | 'bubble' | 'speech' | 'badge';
     text?: string;
+    text_size?: number;
+    text_font?: string;
     color: string;
+    background_color?: string;
     text_position: 'top' | 'bottom' | 'left' | 'right';
+    padding?: number;
+    border_width?: number;
+    corner_radius?: number;
   };
   effects?: Array<{
     effect_type: 'shadow' | 'glow' | 'blur' | 'noise' | 'vintage';

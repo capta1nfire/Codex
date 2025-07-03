@@ -12,7 +12,57 @@ Este documento sirve como una referencia concisa para el agente IA Gemini, resum
 
 ---
 
-## 2. Arquitectura FLODEX - Los 3 Edificios
+## 2. Entorno de Desarrollo
+
+**Configuración Actual:**
+*   **SO:** macOS Sequoia 15.5 (24F74)
+*   **IDE:** Cursor PRO con integración Claude Code
+*   **Agentes IA:** Claude Code + Gemini CLI
+*   **Terminal:** Usar comandos de terminal macOS (no equivalentes de Linux)
+
+**Comandos Específicos de macOS:**
+```bash
+# Monitoreo de procesos
+lsof -i :3000        # Verificar puerto (no netstat -tulpn)
+lsof -i :3004        # Puerto backend
+lsof -i :3002        # Puerto Rust
+
+# Abrir navegador
+open http://localhost:3000    # Abre en navegador predeterminado
+
+# Copiar al portapapeles
+pbcopy < archivo.txt    # Copiar contenido de archivo al portapapeles
+
+# Uso de memoria
+vm_stat              # Estadísticas de memoria macOS (no free -h)
+
+# Operaciones de archivos
+ls -la               # Listar archivos con detalles
+find . -name "*.ts"  # Encontrar archivos TypeScript
+```
+
+**Integración Cursor PRO:**
+*   **Claude Code**: Agente principal de desarrollo
+*   **Gemini CLI**: Análisis forense y verificación
+*   **Coordinación**: Usar MULTI_AGENT_COLLABORATION_PROTOCOL.md
+
+**⚠️ DIFERENCIAS IMPORTANTES de Comandos:**
+```bash
+# NO usar comandos de Linux:
+❌ netstat -tulpn    # Usar: lsof -i :PUERTO
+❌ free -h           # Usar: vm_stat
+❌ sudo systemctl    # Usar: comandos pm2
+
+# SÍ usar equivalentes de macOS:
+✅ lsof -i :3000     # Verificar si el puerto está en uso
+✅ vm_stat           # Estadísticas de memoria
+✅ open .            # Abrir directorio actual en Finder
+✅ pbcopy/pbpaste    # Operaciones de portapapeles
+```
+
+---
+
+## 3. Arquitectura FLODEX - Los 3 Edificios
 
 CODEX se compone de tres servicios principales, cada uno con su propio `README.md` como fuente de verdad:
 
@@ -38,7 +88,7 @@ CODEX se compone de tres servicios principales, cada uno con su propio `README.m
 
 ---
 
-## 3. Principios Clave y Guías para Agentes IA
+## 4. Principios Clave y Guías para Agentes IA
 
 *   **Reglas FLODEX:**
     *   ✅ **HACER:** Trabajar en el `README.md` del servicio específico.
@@ -58,7 +108,7 @@ CODEX se compone de tres servicios principales, cada uno con su propio `README.m
 
 ---
 
-## 4. APIs y Endpoints Principales
+## 5. APIs y Endpoints Principales
 
 El Backend expone varias APIs, incluyendo:
 
@@ -66,8 +116,7 @@ El Backend expone varias APIs, incluyendo:
 *   **Generación de Códigos:**
     *   **Legacy (Deprecado):** `/api/generate`, `/api/qr/generate`.
     *   **API v1 (Códigos de Barras):** `/api/v1/barcode`.
-    *   **API v2 (QR Codes):** `/api/v2/qr/generate`, `/api/v2/qr/batch`, `/api/v2/qr/validate`, `/api/v2/qr/preview-url`, `/api/v2/qr/cache/stats`, `/api/v2/qr/cache/clear`.
-    *   **API v3 (QR Estructurado - ULTRATHINK):** `/api/v3/qr` (o `/api/v3/qr/generate`, `/api/v3/qr/enhanced`). Este es el motor principal actual para QR.
+    *   **API v3 (QR Estructurado):** `/api/v3/qr` (o `/api/v3/qr/generate`, `/api/v3/qr/enhanced`). Este es el motor principal actual para QR.
     *   **Smart QR:** `/api/smart-qr/generate`, `/api/smart-qr/templates`, `/api/smart-qr/templates/:id`.
 *   **Validación:** `/api/validate`.
 *   **Control de Servicios:** `/api/services/status`, `/api/services/:service/start/stop/restart`.
@@ -75,7 +124,7 @@ El Backend expone varias APIs, incluyendo:
 
 ---
 
-## 5. Flujo de Desarrollo y Herramientas
+## 6. Flujo de Desarrollo y Herramientas
 
 *   **Inicio Rápido:** `./pm2-start.sh` (inicia todos los servicios con PM2).
 *   **Gestión de Servicios:** `pm2 status`, `pm2 logs [servicio]`, `pm2 monit`.
@@ -88,7 +137,7 @@ El Backend expone varias APIs, incluyendo:
 
 ---
 
-## 6. Discrepancias Conocidas (Prioridad de Actualización)
+## 7. Discrepancias Conocidas (Prioridad de Actualización)
 
 Se ha identificado que la `docs/API_DOCUMENTATION.md` está considerablemente desactualizada. Las áreas críticas a corregir incluyen:
 

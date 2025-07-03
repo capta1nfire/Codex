@@ -146,6 +146,24 @@ export class ValidationCache<T = any> {
   }
   
   /**
+   * Invalidate entries that match a pattern
+   */
+  invalidatePattern(pattern: string | RegExp): number {
+    let count = 0;
+    const keysToDelete: string[] = [];
+    
+    this.cache.forEach((_, key) => {
+      if (typeof pattern === 'string' ? key.includes(pattern) : pattern.test(key)) {
+        keysToDelete.push(key);
+        count++;
+      }
+    });
+    
+    keysToDelete.forEach(key => this.delete(key));
+    return count;
+  }
+  
+  /**
    * Check if an entry is expired
    */
   private isExpired(entry: CacheEntry<T>): boolean {
@@ -182,7 +200,7 @@ export class ValidationCache<T = any> {
 // Singleton instances for different validation types
 export const urlValidationCache = new ValidationCache({
   maxSize: 200,
-  ttl: 10 * 60 * 1000, // 10 minutes for URL validations
+  ttl: 2 * 60 * 1000, // 2 minutes for URL validations - reduced from 10 minutes
 });
 
 export const qrValidationCache = new ValidationCache({

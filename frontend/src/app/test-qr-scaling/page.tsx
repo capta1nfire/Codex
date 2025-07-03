@@ -20,7 +20,7 @@ export default function TestQRScalingPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Test de Escalado QR Ultrathink</h1>
+        <h1 className="text-3xl font-bold mb-8">Test de Escalado QR v3</h1>
         
         {/* Controles */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
@@ -31,7 +31,7 @@ export default function TestQRScalingPage() {
               onClick={() => setShowOriginal(!showOriginal)}
               className={`px-4 py-2 rounded ${showOriginal ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}
             >
-              {showOriginal ? 'Original (con márgenes)' : 'Optimizado (ultrathink)'}
+              {showOriginal ? 'Original (con márgenes)' : 'Optimizado (v3)'}
             </button>
           </div>
           
@@ -81,7 +81,7 @@ export default function TestQRScalingPage() {
                 totalModules={33}
                 size={containerSize}
                 title="Código QR de prueba"
-                description="Este es un código QR optimizado con la técnica ultrathink"
+                description="Este es un código QR optimizado con la arquitectura v3"
               />
             </div>
             <p className="text-sm text-gray-600 mt-4">

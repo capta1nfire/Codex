@@ -1,0 +1,18 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Check if page.tsx is being modified
+if git diff --cached --name-only | grep -q "frontend/src/app/page.tsx"; then
+  echo "🛡️ Detected changes to protected file: page.tsx"
+  echo "Running guardian tests..."
+  
+  cd frontend && npm run test:guardian
+  
+  if [ $? -ne 0 ]; then
+    echo "❌ Guardian tests failed! page.tsx protection violated."
+    echo "📖 Please read: docs/policies/MAIN_PAGE_PROTECTION_POLICY.md"
+    exit 1
+  fi
+  
+  echo "✅ Guardian tests passed"
+fi

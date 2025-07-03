@@ -64,9 +64,13 @@ export const config: Config = {
         'http://localhost:3001',
         'http://192.168.1.36:3000',
         'http://192.168.1.36:3001',
+        'null', // Para archivos HTML locales (file://)
       ],
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-  RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX || '1000', 10),
+  RATE_LIMIT_MAX: parseInt(
+    process.env.RATE_LIMIT_MAX || (process.env.NODE_ENV === 'development' ? '50000' : '1000'), // 50x más en desarrollo
+    10
+  ),
   MAX_REQUEST_SIZE: process.env.MAX_REQUEST_SIZE || '1mb',
 
   JWT_SECRET: process.env.JWT_SECRET || 'dev-jwt-secret-key-change-in-production',

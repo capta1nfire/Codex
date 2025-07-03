@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Check, CircleX, RefreshCw, X } from 'lucide-react';
+import { useEditingIntent } from '@/hooks/useEditingIntent';
 
 interface LinkFormProps {
   data: {
@@ -19,6 +20,7 @@ interface LinkFormProps {
   urlExists?: boolean | null;
   onGenerateAnyway?: () => void;
   shouldShowGenerateAnywayButton?: boolean;
+  onEditingIntentChange?: (isEditing: boolean) => void;
 }
 
 export const LinkForm: React.FC<LinkFormProps> = ({ 
@@ -29,7 +31,8 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   urlValidation,
   onUrlValidationComplete,
   onGenerateAnyway,
-  shouldShowGenerateAnywayButton
+  shouldShowGenerateAnywayButton,
+  onEditingIntentChange
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -37,9 +40,107 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   const [showBadge, setShowBadge] = React.useState(false);
   const [maxUrlWidth, setMaxUrlWidth] = React.useState<number>(200);
   const badgeTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const hasValue = data.url && data.url.length > 0;
-  const hasRealValue = hasValue && data.url !== 'https://tu-sitio-web.com';
-  const isValidUrl = hasRealValue && !validationError && data.url !== '';
+  const [hasUserInteracted, setHasUserInteracted] = React.useState(false);
+  const [isMounted, setIsMounted] = React.useState(false);
+  const previousValueRef = useRef<string>(data.url);
+  const pendingValueRef = useRef<string | null>(null);
+  const editingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Local state for input display value (separate from data.url)
+  const [displayValue, setDisplayValue] = React.useState(data.url);
+  
+  const hasValue = displayValue && displayValue.length > 0;
+  const hasRealValue = hasValue && displayValue !== 'https://tu-sitio-web.com';
+  
+  // Basic URL format validation during editing
+  const isBasicValidUrl = (url: string): boolean => {
+    if (!url || url.trim() === '' || url === 'https://tu-sitio-web.com') {
+      return false;
+    }
+    
+    const trimmedUrl = url.trim();
+    
+    // Check for basic URL pattern (with or without protocol)
+    const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/.*)?$/i;
+    const hasProtocol = trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://');
+    
+    if (hasProtocol) {
+      return urlPattern.test(trimmedUrl);
+    } else {
+      // For URLs without protocol, require at least one dot and basic domain structure
+      return /^[\w-]+\.[\w-]+(\.[\w-]+)*(\/.*)?$/i.test(trimmedUrl);
+    }
+  };
+  
+  const isValidUrl = hasRealValue && !validationError && displayValue !== '' && isBasicValidUrl(displayValue);
+  
+  // Sync displayValue when data.url changes from external source
+  React.useEffect(() => {
+    // Only update if it's different and we're not currently editing
+    if (data.url !== displayValue && !editingIntent.isInEditingMode()) {
+      setDisplayValue(data.url);
+      previousValueRef.current = data.url;
+    }
+  }, [data.url, displayValue]);
+
+  // Only show badge for user-entered URLs, not defaults
+  const isUserEnteredUrl = hasRealValue && 
+    displayValue !== 'https://codex.app' && 
+    displayValue !== 'https://tu-sitio-web.com' &&
+    displayValue !== '';
+  
+  // Use editing intent detection
+  const editingIntent = useEditingIntent({
+    onIntentChange: (isEditing: boolean) => {
+      console.log('[LinkForm] Editing intent changed:', { isEditing, pendingValue: pendingValueRef.current });
+      
+      // Notify parent
+      onEditingIntentChange?.(isEditing);
+      
+      // If user stopped editing and we have a pending value, trigger onChange
+      if (!isEditing && pendingValueRef.current !== null) {
+        console.log('[LinkForm] User finished editing, triggering onChange with:', pendingValueRef.current);
+        
+        // Clear existing timeout
+        if (editingTimeoutRef.current) {
+          clearTimeout(editingTimeoutRef.current);
+        }
+        
+        // Set a small delay to ensure editing state is stable
+        editingTimeoutRef.current = setTimeout(() => {
+          if (pendingValueRef.current !== null) {
+            // Only send valid URLs or empty values
+            const isValidFormat = isBasicValidUrl(pendingValueRef.current) || pendingValueRef.current.trim() === '';
+            console.log('[LinkForm] Checking pending value format:', pendingValueRef.current, 'isValid:', isValidFormat);
+            
+            if (isValidFormat) {
+              onChange('url', pendingValueRef.current);
+              pendingValueRef.current = null;
+            } else {
+              console.log('[LinkForm] SKIPPING onChange for invalid pending URL:', pendingValueRef.current);
+              // Keep the value as pending, don't clear it yet
+            }
+          }
+        }, 100);
+      }
+    }
+  });
+  
+  // Debug log on mount and set mounted flag
+  useEffect(() => {
+    console.log('[LinkForm Mount] Initial state:', {
+      url: data.url,
+      hasUserInteracted,
+      isUserEnteredUrl,
+      isValidUrl,
+      urlValidation,
+      metadata: urlValidation?.metadata
+    });
+    // Set mounted after a small delay to prevent initial badge
+    setTimeout(() => {
+      setIsMounted(true);
+    }, 100);
+  }, []);
   
   // Format URL for display - prioritize showing end
   const formatUrlForDisplay = (url: string): string => {
@@ -55,6 +156,18 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   const isValidating = urlValidation?.isValidating || false;
   const metadata = urlValidation?.metadata || null;
   const validationUrlError = urlValidation?.error || null;
+  
+  // Debug logging for metadata
+  React.useEffect(() => {
+    if (metadata) {
+      console.log('[LinkForm] Metadata received:', {
+        exists: metadata.exists,
+        favicon: metadata.favicon,
+        title: metadata.title,
+        url: displayValue
+      });
+    }
+  }, [metadata, displayValue]);
   
   // Determinar si mostrar warning de sitio no disponible
   // Ahora también muestra el warning cuando está enfocado si ya se validó
@@ -88,19 +201,39 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   
   // Mostrar badge con delay apropiado según el estado
   useEffect(() => {
+    console.log('[LinkForm Badge Logic] Effect triggered:', {
+      hasUserInteracted,
+      isUserEnteredUrl,
+      isValidUrl,
+      isValidating,
+      hasMetadata: !!metadata,
+      metadataExists: metadata?.exists,
+      currentUrl: data.url,
+      showBadge
+    });
+    
     // Limpiar timer anterior
     if (badgeTimerRef.current) {
       clearTimeout(badgeTimerRef.current);
     }
     
-    if (isValidUrl && isValidating) {
+    // Only show badge for user-entered URLs, not defaults, and only after user interaction AND component is mounted
+    if (isMounted && hasUserInteracted && isUserEnteredUrl && isValidUrl && isValidating) {
+      console.log('[LinkForm Badge Logic] Setting badge TRUE - validating');
       // Mostrar badge inmediatamente cuando empieza a validar
       setShowBadge(true);
-    } else if (isValidUrl && metadata && metadata.exists) {
+    } else if (isMounted && hasUserInteracted && isUserEnteredUrl && isValidUrl && metadata && metadata.exists) {
+      console.log('[LinkForm Badge Logic] Setting badge TRUE - validation complete');
       // Mantener badge visible si ya se validó exitosamente
       setShowBadge(true);
-    } else if (!isValidUrl) {
-      // Si la URL no es válida, ocultar badge
+    } else {
+      console.log('[LinkForm Badge Logic] Setting badge FALSE - conditions not met:', {
+        isMounted,
+        hasUserInteracted,
+        isUserEnteredUrl,
+        isValidUrl
+      });
+      // Si no cumple TODAS las condiciones, ocultar badge
       setShowBadge(false);
     }
     
@@ -110,7 +243,7 @@ export const LinkForm: React.FC<LinkFormProps> = ({
         clearTimeout(badgeTimerRef.current);
       }
     };
-  }, [isValidUrl, isValidating, metadata]);
+  }, [isValidUrl, isValidating, metadata, isUserEnteredUrl, hasUserInteracted, isMounted]);
   
   // Ocultar badge cuando se enfoca el input SOLO si el usuario empieza a escribir
   useEffect(() => {
@@ -162,17 +295,37 @@ export const LinkForm: React.FC<LinkFormProps> = ({
     };
   }, [showBadge]);
   
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (editingTimeoutRef.current) {
+        clearTimeout(editingTimeoutRef.current);
+      }
+      if (badgeTimerRef.current) {
+        clearTimeout(badgeTimerRef.current);
+      }
+    };
+  }, []);
+  
   // Handle click on the entire component area
   const handleContainerClick = () => {
+    // Don't interfere if user is selecting text
+    if (editingIntent.isInEditingMode()) {
+      return;
+    }
+    
     if (inputRef.current && !isLoading) {
       inputRef.current.focus();
-      // Set cursor at the end of the text
-      setTimeout(() => {
-        if (inputRef.current) {
-          const len = inputRef.current.value.length;
-          inputRef.current.setSelectionRange(len, len);
-        }
-      }, 0);
+      // Only set cursor at end if no selection exists
+      const selection = window.getSelection();
+      if (!selection || selection.toString().length === 0) {
+        setTimeout(() => {
+          if (inputRef.current) {
+            const len = inputRef.current.value.length;
+            inputRef.current.setSelectionRange(len, len);
+          }
+        }, 0);
+      }
     }
   };
   
@@ -181,8 +334,8 @@ export const LinkForm: React.FC<LinkFormProps> = ({
     if (e.key === 'Enter') {
       e.preventDefault(); // Prevent form submission
       
-      // If valid URL, show badge immediately
-      if (isValidUrl) {
+      // If valid URL and user-entered AND user has interacted, show badge immediately
+      if (hasUserInteracted && isUserEnteredUrl && isValidUrl) {
         setShowBadge(true);
         // Blur the input to complete the action
         inputRef.current?.blur();
@@ -192,7 +345,8 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   
   // Clear input on first click if it has default value
   const handleInputClick = () => {
-    if (data.url === '' || data.url === 'https://tu-sitio-web.com') {
+    if (displayValue === '' || displayValue === 'https://tu-sitio-web.com') {
+      setDisplayValue('');
       onChange('url', '');
     }
   };
@@ -234,37 +388,105 @@ export const LinkForm: React.FC<LinkFormProps> = ({
           {/* Input area - always visible */}
           <Input
             ref={inputRef}
-            value={data.url}
+            value={displayValue}
             onChange={(e) => {
-              onChange('url', e.target.value);
-              // Ocultar badge cuando el usuario modifica la URL
-              if (showBadge && e.target.value !== data.url) {
+              const newValue = e.target.value;
+              const oldValue = previousValueRef.current;
+              
+              console.log('[LinkForm] onChange triggered:', {
+                inputValue: newValue,
+                currentDataUrl: data.url,
+                displayValue,
+                showBadge,
+                isFocused,
+                isEditing: editingIntent.isInEditingMode()
+              });
+              
+              // ALWAYS update display value immediately for visual feedback
+              setDisplayValue(newValue);
+              
+              // Track value changes for intent detection
+              editingIntent.handleChange(newValue, oldValue);
+              previousValueRef.current = newValue;
+              
+              // Mark that user has interacted
+              if (!hasUserInteracted) {
+                setHasUserInteracted(true);
+              }
+              
+              // Hide badge immediately when user starts typing
+              if (showBadge) {
+                console.log('[LinkForm] Hiding badge due to typing');
                 setShowBadge(false);
               }
+              
+              // Only trigger parent onChange if user is not in editing mode
+              const isCurrentlyEditing = editingIntent.isInEditingMode();
+              console.log('[LinkForm] Editing state check:', {
+                newValue,
+                isCurrentlyEditing,
+                willTriggerOnChange: !isCurrentlyEditing,
+                editingState: {
+                  isSelecting: editingIntent.handlers.onSelect,
+                  consecutiveDeletes: 'hidden', // Internal state
+                  smartDebounceTime: editingIntent.getSmartDebounceTime()
+                }
+              });
+              
+              if (!isCurrentlyEditing) {
+                // Only trigger onChange if the URL has valid basic format or is empty
+                const isValidFormat = isBasicValidUrl(newValue) || newValue.trim() === '';
+                console.log('[LinkForm] Calling onChange with:', newValue, 'isValidFormat:', isValidFormat);
+                
+                if (isValidFormat) {
+                  onChange('url', newValue);
+                  pendingValueRef.current = null; // Clear pending since we triggered
+                } else {
+                  console.log('[LinkForm] SKIPPING onChange - invalid URL format:', newValue);
+                  pendingValueRef.current = newValue; // Store for later when valid
+                }
+              } else {
+                console.log('[LinkForm] SKIPPING onChange - user is editing, storing as pending');
+                pendingValueRef.current = newValue; // Store for later
+              }
+              
+              // Reset editing state after change  
+              setTimeout(() => {
+                editingIntent.resetEditingState();
+              }, 50); // Reduced from 100ms to 50ms for faster response
             }}
             onFocus={() => {
               setIsFocused(true);
-              // Clear on focus if empty or has default value
-              if (data.url === '' || data.url === 'https://tu-sitio-web.com') {
+              // Mark user interaction on focus
+              if (!hasUserInteracted) {
+                setHasUserInteracted(true);
+              }
+              // Only clear if showing default placeholder value
+              if (data.url === 'https://tu-sitio-web.com') {
                 onChange('url', '');
               }
-              // Also hide badge when focusing to allow editing
+              // Hide badge when focusing to allow editing, but DON'T clear the URL
               if (showBadge) {
                 setShowBadge(false);
-                // Clear URL when clicking on input with badge showing
-                onChange('url', '');
+                // Reset validation tracking to allow re-validation
                 lastNotifiedUrl.current = '';
+                // DON'T clear the URL - let user edit it
               }
             }}
             onBlur={() => {
               setIsFocused(false);
-              // Restore badge if URL is still valid and has metadata
-              if (isValidUrl && metadata && metadata.exists) {
+              // Restore badge if URL is still valid and has metadata AND is user-entered AND user has interacted
+              if (hasUserInteracted && isUserEnteredUrl && isValidUrl && metadata && metadata.exists) {
                 setShowBadge(true);
               }
             }}
             onClick={handleInputClick}
-            onKeyDown={handleKeyDown}
+            onKeyDown={(e) => {
+              editingIntent.handlers.onKeyDown(e);
+              handleKeyDown(e);
+            }}
+            onSelect={editingIntent.handlers.onSelect}
+            onMouseDown={editingIntent.handlers.onMouseDown}
             placeholder="https://tu-sitio-web.com"
             className={cn(
               "h-10 w-full px-3 border-0 rounded-lg transition-all duration-200",
@@ -274,8 +496,8 @@ export const LinkForm: React.FC<LinkFormProps> = ({
               "bg-white dark:bg-slate-950",
               // Text color based on state
               validationError ? "text-slate-900 dark:text-white" : isValidUrl ? "text-corporate-blue-700 dark:text-corporate-blue-300" : "text-slate-900 dark:text-white",
-              // Hide text when showing badge
-              showBadge && isValidUrl && "text-transparent"
+              // Hide text when showing badge but keep cursor visible
+              showBadge && isValidUrl && "text-transparent caret-slate-900 dark:caret-white"
             )}
             disabled={isLoading}
           />
@@ -294,8 +516,7 @@ export const LinkForm: React.FC<LinkFormProps> = ({
                   setShowBadge(false);
                   // Reset validation tracking when user wants to edit
                   lastNotifiedUrl.current = '';
-                  // Clear the URL to start fresh
-                  onChange('url', '');
+                  // DON'T clear the URL - let user edit it
                   // Focus the input for immediate typing
                   inputRef.current?.focus();
                 }
@@ -325,11 +546,24 @@ export const LinkForm: React.FC<LinkFormProps> = ({
                       src={metadata.favicon} 
                       alt="" 
                       className="w-4 h-4 rounded-sm flex-shrink-0"
+                      onLoad={(e) => {
+                        console.log('[Favicon] Successfully loaded:', metadata.favicon);
+                      }}
                       onError={(e) => {
+                        console.log('[Favicon] Failed to load:', metadata.favicon);
                         // Si falla cargar el favicon, ocultarlo
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />
+                  )}
+                  
+                  {/* Fallback: mostrar icono genérico si no hay favicon */}
+                  {!isValidating && !metadata?.favicon && metadata?.exists && (
+                    <div className="w-4 h-4 rounded-sm flex-shrink-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center border border-slate-300 dark:border-slate-600">
+                      <svg className="w-2.5 h-2.5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                      </svg>
+                    </div>
                   )}
                   
                   {/* URL con truncamiento normal */}
@@ -337,7 +571,7 @@ export const LinkForm: React.FC<LinkFormProps> = ({
                     className="truncate"
                     style={{ maxWidth: `${maxUrlWidth}px` }}
                   >
-                    {formatUrlForDisplay(data.url)}
+                    {formatUrlForDisplay(displayValue)}
                   </span>
                   
                   {/* 3. Indicadores finales: Check o Error */}
@@ -417,7 +651,7 @@ export const LinkForm: React.FC<LinkFormProps> = ({
           >
             <div className="flex items-center gap-1.5">
               <CircleX className="h-3.5 w-3.5 flex-shrink-0" />
-              <span>Verifica que el sitio web esté disponible</span>
+              <span>URL no encontrada. Por favor, verifique la dirección.</span>
             </div>
             {shouldShowGenerateAnywayButton && onGenerateAnyway && (
               <button

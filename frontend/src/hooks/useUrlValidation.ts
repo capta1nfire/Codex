@@ -48,7 +48,7 @@ interface UseUrlValidationReturn {
  */
 export function useUrlValidation({
   enabled = true,
-  debounceMs = 2000 // Increased to 2 seconds for more aggressive debouncing
+  debounceMs = 600 // Balanced debouncing for responsive UX
 }: UseUrlValidationOptions = {}): UseUrlValidationReturn {
   const [isValidating, setIsValidating] = useState(false);
   const [metadata, setMetadata] = useState<UrlMetadata | null>(null);
@@ -77,13 +77,24 @@ export function useUrlValidation({
 
   // Función de validación principal
   const performValidation = useCallback(async (url: string) => {
-    // No validar si está deshabilitado o es la misma URL
-    if (!enabled || url === lastValidatedUrl.current) {
+    // No validar si está deshabilitado
+    if (!enabled) {
       return;
     }
-
-    // Clean and validate URL
-    const cleanUrl = url.trim();
+    
+    // Clean and normalize URL FIRST
+    let cleanUrl = url.trim();
+    
+    // Normalize URL to add protocol if missing
+    if (!cleanUrl.includes('://')) {
+      cleanUrl = `https://${cleanUrl}`;
+    }
+    
+    // No validar si es la misma URL normalizada
+    if (cleanUrl === lastValidatedUrl.current) {
+      return;
+    }
+    
     console.log(`[performValidation] Starting validation for: ${cleanUrl}`);
     
     // Skip URLs with special characters
@@ -91,24 +102,25 @@ export function useUrlValidation({
       return;
     }
 
-    // Don't validate very short URLs (less than 4 characters)
-    if (cleanUrl.length < 4) {
+    // Don't validate very short URLs (less than 4 characters for domain)
+    const urlForValidation = url.trim();
+    if (urlForValidation.length < 4) {
       setError(null);
       setMetadata(null);
       return;
     }
     
     // Don't validate single words without dots
-    if (!cleanUrl.includes('.') && !cleanUrl.includes('://')) {
+    if (!urlForValidation.includes('.')) {
       setError(null);
       setMetadata(null);
       return;
     }
 
-    // Validación básica - permitir URLs simples como www.google.com
-    const basicPattern = /^([\w-]+\.)+[\w-]+(\/.*)?$/i;
+    // Validación básica - usar URL normalizada
+    const fullUrlPattern = /^https?:\/\/([\w-]+\.)+[\w-]+(\/.*)?$/i;
     
-    if (!basicPattern.test(cleanUrl) && !cleanUrl.includes('://')) {
+    if (!fullUrlPattern.test(cleanUrl)) {
       setError('Formato de URL inválido');
       setMetadata(null);
       return;
@@ -136,22 +148,10 @@ export function useUrlValidation({
     lastValidatedUrl.current = cleanUrl;
 
     try {
-      // Extract domain to check if it's .edu.co
-      let domain = cleanUrl;
-      if (cleanUrl.includes('://')) {
-        try {
-          const urlObj = new URL(cleanUrl);
-          domain = urlObj.hostname;
-        } catch {
-          // If URL parsing fails, use the original
-        }
-      }
+      // Use optimized timeout for better UX
+      const timeoutMs = 6000; // 6 seconds total (backend uses 3-5s)
       
-      // Use longer timeout for .edu.co domains
-      const timeoutMs = domain.endsWith('.edu.co') ? 15000 : 10000;
-      
-      console.log(`[useUrlValidation] Sending enterprise validation request for: ${cleanUrl}`);
-      console.log(`[useUrlValidation] Domain: ${domain}`);
+      console.log(`[useUrlValidation] Sending validation request for: ${cleanUrl}`);
       console.log(`[useUrlValidation] Backend URL: ${process.env.NEXT_PUBLIC_BACKEND_URL}/api/validate`);
       console.log(`[useUrlValidation] Request timeout: ${timeoutMs}ms`);
       
@@ -165,7 +165,7 @@ export function useUrlValidation({
       );
 
       console.log(`[useUrlValidation] Response received:`, response.data);
-      // Enterprise validator returns data in response.data.data
+      // Validator returns data in response.data.data
       const data = (response.data.success && response.data.data ? response.data.data : response.data) as UrlMetadata;
       
       // Cache the result

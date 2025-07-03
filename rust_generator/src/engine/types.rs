@@ -22,8 +22,14 @@ pub struct QrRequest {
 /// Opciones de personalización
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QrCustomization {
-    /// Forma de los ojos
+    /// Forma de los ojos (LEGACY - usar eye_border_style y eye_center_style)
     pub eye_shape: Option<EyeShape>,
+    
+    /// Estilo del borde de los ojos (nuevo)
+    pub eye_border_style: Option<EyeBorderStyle>,
+    
+    /// Estilo del centro de los ojos (nuevo)
+    pub eye_center_style: Option<EyeCenterStyle>,
     
     /// Patrón de datos
     pub data_pattern: Option<DataPattern>,
@@ -40,8 +46,11 @@ pub struct QrCustomization {
     /// Marco
     pub frame: Option<FrameOptions>,
     
-    /// Efectos especiales con configuración
+    /// Efectos especiales con configuración (LEGACY - mantener para compatibilidad)
     pub effects: Option<Vec<EffectOptions>>,
+    
+    /// Efectos selectivos por componente (Fase 2.2)
+    pub selective_effects: Option<SelectiveEffects>,
     
     /// Nivel de corrección de errores
     pub error_correction: Option<ErrorCorrectionLevel>,
@@ -50,7 +59,7 @@ pub struct QrCustomization {
     pub logo_size_ratio: Option<f32>,
 }
 
-/// Formas de ojos disponibles
+/// Formas de ojos disponibles (LEGACY - mantener para compatibilidad)
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum EyeShape {
@@ -77,6 +86,48 @@ pub enum EyeShape {
     Crystal,
     Flower,
     Arrow,
+}
+
+/// Estilos de borde para los ojos (marco exterior)
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum EyeBorderStyle {
+    Square,           // Cuadrado básico
+    RoundedSquare,    // Cuadrado con esquinas redondeadas
+    Circle,           // Círculo
+    QuarterRound,     // Esquina redondeada (quarter circle)
+    CutCorner,        // Esquina cortada (cut corner)
+    ThickBorder,      // Marco grueso
+    DoubleBorder,     // Marco doble
+    Diamond,          // Diamante (como marco)
+    Hexagon,          // Hexágono (como marco)
+    Cross,            // Cruz (como marco)
+    // Mantenemos algunos ornamentales para compatibilidad hacia atrás
+    Star,             // Estrella (mejor como center)
+    Leaf,             // Forma de hoja (decorativo)
+    Arrow,            // Flecha (decorativo)
+    
+    // Nuevas formas orgánicas (Fase 2.1)
+    Teardrop,         // Gota de agua asimétrica
+    Wave,             // Bordes ondulados como agua
+    Petal,            // Pétalo de flor suave
+    Crystal,          // Cristal facetado suave
+    Flame,            // Llama estilizada
+    Organic,          // Forma orgánica aleatoria
+}
+
+/// Estilos de centro para los ojos (punto interior)
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum EyeCenterStyle {
+    Square,           // Cuadrado
+    RoundedSquare,    // Cuadrado redondeado
+    Circle,           // Círculo
+    Dot,              // Punto pequeño
+    Star,             // Estrella
+    Diamond,          // Diamante
+    Cross,            // Cruz
+    Plus,             // Símbolo más
 }
 
 /// Patrones de datos
@@ -195,6 +246,12 @@ pub enum Effect {
     Blur,
     Noise,
     Vintage,
+    // Nuevos efectos para Fase 2.2
+    Distort,
+    Emboss,
+    Outline,
+    DropShadow,
+    InnerShadow,
 }
 
 /// Opciones de efectos con configuración
@@ -233,6 +290,150 @@ pub enum EffectConfiguration {
         sepia_intensity: Option<f64>,
         vignette_intensity: Option<f64>,
     },
+    // Nuevos efectos Fase 2.2
+    Distort {
+        strength: Option<f64>,
+        frequency: Option<f64>,
+        direction: Option<String>, // "horizontal", "vertical", "radial"
+    },
+    Emboss {
+        height: Option<f64>,
+        direction: Option<f64>, // ángulo en grados
+        strength: Option<f64>,
+    },
+    Outline {
+        width: Option<f64>,
+        color: Option<String>,
+        opacity: Option<f64>,
+    },
+    DropShadow {
+        offset_x: Option<f64>,
+        offset_y: Option<f64>,
+        blur_radius: Option<f64>,
+        spread_radius: Option<f64>,
+        color: Option<String>,
+        opacity: Option<f64>,
+    },
+    InnerShadow {
+        offset_x: Option<f64>,
+        offset_y: Option<f64>,
+        blur_radius: Option<f64>,
+        color: Option<String>,
+        opacity: Option<f64>,
+    },
+}
+
+// ==================== SELECTIVE EFFECTS SYSTEM (FASE 2.2) ====================
+
+/// Sistema de efectos selectivos por componente
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelectiveEffects {
+    /// Efectos aplicados solo a los ojos
+    pub eyes: Option<ComponentEffects>,
+    
+    /// Efectos aplicados solo a los datos
+    pub data: Option<ComponentEffects>,
+    
+    /// Efectos aplicados solo al marco (si existe)
+    pub frame: Option<ComponentEffects>,
+    
+    /// Efectos aplicados al QR completo
+    pub global: Option<ComponentEffects>,
+}
+
+/// Efectos para un componente específico
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComponentEffects {
+    /// Lista de efectos a aplicar
+    pub effects: Vec<EffectOptions>,
+    
+    /// Modo de combinación de efectos
+    pub blend_mode: Option<BlendMode>,
+    
+    /// Prioridad de renderizado (mayor número = se aplica después)
+    pub render_priority: Option<u8>,
+    
+    /// Si los efectos se aplican solo al borde o también al relleno
+    pub apply_to_fill: Option<bool>,
+    
+    /// Si los efectos se aplican solo al relleno o también al borde
+    pub apply_to_stroke: Option<bool>,
+}
+
+/// Modos de combinación para efectos múltiples
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum BlendMode {
+    Normal,
+    Multiply,
+    Screen,
+    Overlay,
+    SoftLight,
+    HardLight,
+    ColorDodge,
+    ColorBurn,
+    Darken,
+    Lighten,
+    Difference,
+    Exclusion,
+}
+
+/// Tipos de componentes para aplicación selectiva
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum ComponentType {
+    Eyes,
+    EyeBorders,
+    EyeCenters,
+    Data,
+    Frame,
+    Logo,
+    Global,
+}
+
+/// Configuración avanzada de efectos con validación de compatibilidad
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdvancedEffectConfig {
+    /// Efectos base
+    pub base_effects: Vec<EffectOptions>,
+    
+    /// Reglas de compatibilidad
+    pub compatibility_rules: Option<CompatibilityRules>,
+    
+    /// Configuración de performance
+    pub performance_config: Option<PerformanceConfig>,
+}
+
+/// Reglas de compatibilidad entre efectos
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CompatibilityRules {
+    /// Efectos que no pueden combinarse
+    pub incompatible_combinations: Vec<Vec<Effect>>,
+    
+    /// Efectos que requieren otros efectos
+    pub required_dependencies: Vec<(Effect, Vec<Effect>)>,
+    
+    /// Límite máximo de efectos simultáneos
+    pub max_concurrent_effects: Option<u8>,
+    
+    /// Validación de intensidad automática
+    pub auto_intensity_validation: Option<bool>,
+}
+
+/// Configuración de performance para efectos
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerformanceConfig {
+    /// Límite de tiempo de renderizado en ms
+    pub max_render_time_ms: Option<u32>,
+    
+    /// Usar cache para efectos complejos
+    pub use_effect_cache: Option<bool>,
+    
+    /// Optimizar para escaneabilidad sobre efectos visuales
+    pub prioritize_scanability: Option<bool>,
+    
+    /// Degradar efectos automáticamente si impactan performance
+    pub auto_degrade_effects: Option<bool>,
 }
 
 /// Nivel de corrección de errores
@@ -351,7 +552,7 @@ pub struct ValidationIssue {
     pub message: String,
 }
 
-/// Salida estructurada para QR v3 (ULTRATHINK)
+/// Salida estructurada para QR v3
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QrStructuredOutput {
     /// Path data SVG (atributo 'd')
@@ -458,11 +659,24 @@ pub struct QrEyePath {
     /// Tipo de ojo (top_left, top_right, bottom_left)
     #[serde(rename = "type")]
     pub eye_type: String,
-    /// Path data SVG
+    /// Path data SVG (legacy - para compatibilidad hacia atrás)
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub path: String,
-    /// Forma usada (para metadata)
+    /// Path data SVG del borde (marco exterior)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub border_path: Option<String>,
+    /// Path data SVG del centro (punto interior)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub center_path: Option<String>,
+    /// Forma usada (para metadata legacy)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shape: Option<String>,
+    /// Forma del borde usada (para metadata)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub border_shape: Option<String>,
+    /// Forma del centro usada (para metadata)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub center_shape: Option<String>,
 }
 
 /// Estilos aplicables a paths
@@ -619,6 +833,8 @@ mod tests {
             format: OutputFormat::Svg,
             customization: Some(QrCustomization {
                 eye_shape: Some(EyeShape::RoundedSquare),
+                eye_border_style: None,
+                eye_center_style: None,
                 data_pattern: Some(DataPattern::Dots),
                 colors: Some(ColorOptions {
                     foreground: "#000000".to_string(),

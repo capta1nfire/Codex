@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sticky Position Diagnosis - CODEX</title>
+    <style>
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Root styles */
+        html, body {
+            height: 100%;
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+
+        /* Main container */
+        .main-container {
+            min-height: 100vh;
+            background: #f8f9fa;
+            padding: 2rem;
+        }
+
+        /* Grid container */
+        .generator-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            align-items: start; /* Critical for sticky */
+        }
+
+        /* Left column */
+        .config-column {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            min-height: 1500px; /* Force scroll */
+        }
+
+        /* Right column */
+        .preview-column {
+            position: relative;
+        }
+
+        /* Background element */
+        .preview-background {
+            position: absolute;
+            inset: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Sticky element */
+        .sticky-preview {
+            position: sticky;
+            position: -webkit-sticky;
+            top: 2rem;
+            z-index: 20;
+            background: #3b82f6;
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        /* Test content */
+        .test-content {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #e5e7eb;
+            border-radius: 4px;
+        }
+
+        /* Debug info */
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-info" id="debugInfo">
+        Scroll Y: <span id="scrollY">0</span>px<br>
+        Sticky Top: <span id="stickyTop">0</span>px<br>
+        Container Height: <span id="containerHeight">0</span>px
+    </div>
+
+    <div class="main-container">
+        <h1 style="text-align: center; margin-bottom: 2rem;">Sticky Position Test</h1>
+        
+        <div class="generator-grid">
+            <!-- Left column with scrollable content -->
+            <section class="config-column">
+                <h2>Configuration Column</h2>
+                <p>This column has lots of content to enable scrolling.</p>
+                
+                <div class="test-content">
+                    <h3>Section 1</h3>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                </div>
+                
+                <div class="test-content">
+                    <h3>Section 2</h3>
+                    <p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                </div>
+                
+                <div class="test-content">
+                    <h3>Section 3</h3>
+                    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco.</p>
+                </div>
+                
+                <div class="test-content">
+                    <h3>Section 4</h3>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit.</p>
+                </div>
+                
+                <div class="test-content">
+                    <h3>Section 5</h3>
+                    <p>Excepteur sint occaecat cupidatat non proident.</p>
+                </div>
+                
+                <div class="test-content">
+                    <h3>Section 6</h3>
+                    <p>Sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
+                
+                <div class="test-content">
+                    <h3>Section 7</h3>
+                    <p>Continue scrolling to see the sticky behavior...</p>
+                </div>
+                
+                <div class="test-content">
+                    <h3>Section 8</h3>
+                    <p>The preview on the right should stick to the top when scrolling.</p>
+                </div>
+            </section>
+            
+            <!-- Right column with sticky preview -->
+            <section class="preview-column">
+                <div class="preview-background"></div>
+                <div class="sticky-preview" id="stickyElement">
+                    <h3>Sticky Preview</h3>
+                    <p>This should stick to the top when scrolling</p>
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.2); border-radius: 4px;">
+                        <p>QR Code Preview</p>
+                        <div style="width: 200px; height: 200px; background: white; margin: 1rem auto; display: flex; align-items: center; justify-content: center; color: #333;">
+                            [QR Code]
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: #e5e7eb; text-align: center;">
+            <p>End of content - Scroll up to see sticky behavior</p>
+        </div>
+    </div>
+
+    <script>
+        // Debug script to monitor sticky behavior
+        const debugInfo = {
+            scrollY: document.getElementById('scrollY'),
+            stickyTop: document.getElementById('stickyTop'),
+            containerHeight: document.getElementById('containerHeight')
+        };
+        
+        const stickyElement = document.getElementById('stickyElement');
+        const container = document.querySelector('.main-container');
+        
+        function updateDebugInfo() {
+            debugInfo.scrollY.textContent = window.scrollY.toFixed(0);
+            
+            if (stickyElement) {
+                const rect = stickyElement.getBoundingClientRect();
+                debugInfo.stickyTop.textContent = rect.top.toFixed(0);
+            }
+            
+            if (container) {
+                debugInfo.containerHeight.textContent = container.offsetHeight;
+            }
+        }
+        
+        window.addEventListener('scroll', updateDebugInfo);
+        window.addEventListener('resize', updateDebugInfo);
+        updateDebugInfo();
+
+        // Check for CSS support
+        const supportsSticky = CSS.supports('position', 'sticky') || CSS.supports('position', '-webkit-sticky');
+        console.log('Browser supports sticky:', supportsSticky);
+        
+        // Check computed styles
+        const computedStyle = window.getComputedStyle(stickyElement);
+        console.log('Computed position:', computedStyle.position);
+        console.log('Computed top:', computedStyle.top);
+        console.log('Computed z-index:', computedStyle.zIndex);
+        
+        // Check parent elements for overflow
+        let parent = stickyElement.parentElement;
+        let overflowIssues = [];
+        while (parent && parent !== document.body) {
+            const parentStyle = window.getComputedStyle(parent);
+            if (parentStyle.overflow === 'hidden' || parentStyle.overflowX === 'hidden' || parentStyle.overflowY === 'hidden') {
+                overflowIssues.push({
+                    element: parent.className || parent.tagName,
+                    overflow: parentStyle.overflow,
+                    overflowX: parentStyle.overflowX,
+                    overflowY: parentStyle.overflowY
+                });
+            }
+            parent = parent.parentElement;
+        }
+        
+        if (overflowIssues.length > 0) {
+            console.warn('Found parent elements with overflow hidden:', overflowIssues);
+        } else {
+            console.log('No overflow issues found in parent elements');
+        }
+    </script>
+</body>
+</html>

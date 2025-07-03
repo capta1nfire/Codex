@@ -139,7 +139,7 @@ npm run test:integration
 ```
 
 #### POST `/api/v3/qr/generate` 🆕
-**Propósito**: Generar códigos QR con datos estructurados (ULTRATHINK)
+**Propósito**: Generar códigos QR con datos estructurados (QR v3)
 
 **Request**:
 ```json
@@ -336,3 +336,44 @@ curl http://localhost:3004/metrics
 - `/health` - Health check simple
 - `/health/detailed` - Health con estado de dependencias
 - `/metrics` - Métricas Prometheus
+
+---
+
+## 9. Scripts y Herramientas
+
+### Scripts de Testing y Validación
+
+#### 🧪 URL Validation Test Suite
+Script unificado para probar el sistema de validación de URLs.
+
+**Ubicación**: `src/scripts/testValidation.ts`
+
+**Uso**:
+```bash
+# Modo rápido (25 URLs esenciales)
+npx tsx src/scripts/testValidation.ts
+
+# Modo completo (137 URLs)
+npx tsx src/scripts/testValidation.ts --mode full
+
+# Probar categoría específica
+npx tsx src/scripts/testValidation.ts --category educational
+
+# Con salida detallada
+npx tsx src/scripts/testValidation.ts -v
+
+# Ver ayuda
+npx tsx src/scripts/testValidation.ts --help
+```
+
+**Categorías disponibles**:
+- `shortDomains` - Dominios cortos (x.com, bit.ly)
+- `popularDomains` - Sitios populares (Google, GitHub)
+- `educational` - Dominios .edu
+- `government` - Dominios .gov
+- `newTLDs` - Nuevos TLDs (.app, .dev)
+- `international` - Dominios internacionales
+- `edgeCases` - Casos especiales y edge cases
+- `invalid` - URLs inválidas para testing
+
+**Nota**: Respeta los límites de rate limiting (100 req/15 min)

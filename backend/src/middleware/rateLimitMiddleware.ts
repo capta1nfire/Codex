@@ -12,7 +12,14 @@ import logger from '../utils/logger.js';
 // Rate limiting básico para usuarios no autenticados
 export const basicRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // 100 requests por IP
+  max: (req) => {
+    // Si el entorno NO es producción, permitir un número muy alto de peticiones.
+    if (process.env.NODE_ENV !== 'production') {
+      return 10000; // Límite generoso para desarrollo y pruebas.
+    }
+    // Si es producción, mantener el límite estricto por defecto.
+    return 100;
+  },
   message: {
     success: false,
     error: {
@@ -29,7 +36,11 @@ export const basicRateLimit = rateLimit({
 export const generationRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
   max: (req: Request) => {
-    // 🚨 LÍMITES AUMENTADOS TEMPORALMENTE para reducir errores 429
+    // 🚨 LÍMITES MASIVAMENTE AUMENTADOS para desarrollo
+    if (process.env.NODE_ENV === 'development') {
+      return 50000; // 50k requests/hora en desarrollo
+    }
+
     const barcodeType = req.body?.barcode_type;
     switch (barcodeType) {
       case 'qrcode':

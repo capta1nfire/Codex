@@ -219,18 +219,18 @@ export const userApi = {
 };
 
 export const generatorApi = {
-  // Legacy v1 endpoint for all barcode types
-  generateCode: (payload: {
+  // V1 SOLO para códigos de barras (NO QR)
+  generateBarcode: (payload: {
     barcode_type: string;
     data: string;
     options?: Record<string, any>;
   }) => api.post('/api/v1/barcode', payload, false),
   
-  // v2 endpoint specifically for QR codes
-  generateQRv2: (payload: {
+  // V3 ÚNICAMENTE para QR codes (enhanced endpoint para gradientes y efectos)
+  generateQR: (payload: {
     data: string;
     options?: Record<string, any>;
-  }) => api.post('/api/v2/qr', payload, false),
+  }) => api.post('/api/v3/qr/enhanced', payload, false),
 };
 
 export const systemApi = {

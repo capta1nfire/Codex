@@ -11,7 +11,6 @@ interface OldQROptions {
   margin?: number;
   ecl?: 'L' | 'M' | 'Q' | 'H';
   fgcolor?: string;
-  bgcolor?: string;
   gradient_enabled?: boolean;
   gradient_type?: string;
   gradient_direction?: string;
@@ -42,7 +41,7 @@ export function migrateQRRequest(oldRequest: OldQRRequest): QRv2GenerateRequest 
       options.size = Math.max(100, Math.min(1000, old.scale * 50));
     }
 
-    // Force margin 0 for ultrathink QR codes
+    // Force margin 0 for QR v3 codes
     options.margin = 0;
     
     // Original margin logic preserved but overridden
@@ -59,9 +58,6 @@ export function migrateQRRequest(oldRequest: OldQRRequest): QRv2GenerateRequest 
       options.foregroundColor = old.fgcolor;
     }
 
-    if (old.bgcolor) {
-      options.backgroundColor = old.bgcolor;
-    }
 
     // Gradient - Handle both old format with gradient_colors and new format with individual colors
     if (old.gradient_enabled) {

@@ -128,7 +128,7 @@ cargo fmt
 ```
 
 #### POST `/api/v3/qr/generate` 🆕
-**Propósito**: Generar QR con datos estructurados (ULTRATHINK)
+**Propósito**: Generar QR con datos estructurados (QR v3)
 
 **Request**:
 ```json

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Sticky - CODEX Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 min-h-screen">
+        <h1 class="text-2xl font-bold mb-6 text-center">Sticky Position Test - CODEX Fix</h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 generator-grid">
+            <!-- Left column -->
+            <section class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-lg p-6" style="min-height: 1500px;">
+                    <h2 class="text-xl font-semibold mb-4">Configuration Column</h2>
+                    <p class="mb-4">This column has lots of content to enable scrolling.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="p-4 bg-gray-50 rounded">
+                            <h3 class="font-medium">Section 1</h3>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded">
+                            <h3 class="font-medium">Section 2</h3>
+                            <p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded">
+                            <h3 class="font-medium">Section 3</h3>
+                            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded">
+                            <h3 class="font-medium">Section 4</h3>
+                            <p>Duis aute irure dolor in reprehenderit in voluptate velit.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded">
+                            <h3 class="font-medium">Section 5</h3>
+                            <p>Excepteur sint occaecat cupidatat non proident.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded">
+                            <h3 class="font-medium">Section 6</h3>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded">
+                            <h3 class="font-medium">Section 7</h3>
+                            <p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded">
+                            <h3 class="font-medium">Section 8</h3>
+                            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded">
+                            <h3 class="font-medium">Section 9</h3>
+                            <p>Duis aute irure dolor in reprehenderit in voluptate velit.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded">
+                            <h3 class="font-medium">Section 10</h3>
+                            <p>Continue scrolling to see sticky behavior...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Right column with sticky -->
+            <section class="lg:col-span-1 relative lg:h-auto">
+                <div class="lg:sticky lg:top-8 relative">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Sticky Preview</h3>
+                        <div class="bg-blue-500 text-white p-8 rounded text-center">
+                            <p class="text-2xl font-bold mb-2">QR Code</p>
+                            <div class="w-48 h-48 bg-white mx-auto flex items-center justify-center text-gray-800">
+                                [QR Preview]
+                            </div>
+                            <p class="mt-4">This should stick when scrolling</p>
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <button class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                                Download PNG
+                            </button>
+                            <button class="w-full border border-gray-300 py-2 px-4 rounded hover:bg-gray-50">
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <style>
+        /* Match CODEX grid styles */
+        @media (min-width: 1024px) {
+            .generator-grid {
+                align-items: start;
+            }
+        }
+    </style>
+</body>
+</html>

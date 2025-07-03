@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sticky Actual - CODEX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Replicando las clases exactas del proyecto */
+        .generator-grid {
+            display: grid;
+            min-height: calc(100vh - 200px);
+        }
+        
+        @media (min-width: 1024px) {
+            .generator-grid {
+                grid-template-columns: 2fr 1fr;
+                gap: 1.5rem;
+                align-items: start;
+            }
+            
+            .generator-grid > section:first-child {
+                min-height: 1200px;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .generator-grid > section:last-child {
+                position: relative;
+                min-height: 0;
+                height: fit-content;
+            }
+            
+            .generator-grid > section:last-child.lg\:sticky {
+                position: sticky !important;
+                top: 2rem !important;
+                align-self: start !important;
+            }
+        }
+        
+        .hero-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-7xl mx-auto px-4 pt-10 pb-16">
+        <form>
+            <div class="generator-grid">
+                <!-- Columna izquierda -->
+                <section class="lg:col-span-2">
+                    <div class="hero-card h-full">
+                        <h2 class="text-2xl mb-4">Columna de Configuración</h2>
+                        <div style="height: 1500px; background: linear-gradient(to bottom, #f0f0f0, #d0d0d0);">
+                            <p>Contenido largo para forzar scroll...</p>
+                            <p>Scroll para ver si el preview se queda fijo...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Columna derecha - con sticky -->
+                <section class="lg:col-span-1 lg:sticky lg:top-8 lg:self-start">
+                    <div class="hero-card">
+                        <h3 class="text-xl mb-4">Preview (Debería ser Sticky)</h3>
+                        <div class="bg-white rounded-lg p-2">
+                            <div style="width: 300px; height: 300px; background: #3b82f6; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                                QR Code
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded">Descargar</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Debug para verificar sticky
+        window.addEventListener('load', () => {
+            const stickySection = document.querySelector('.lg\\:sticky');
+            if (stickySection) {
+                const styles = window.getComputedStyle(stickySection);
+                console.log('Sticky Debug:', {
+                    position: styles.position,
+                    top: styles.top,
+                    alignSelf: styles.alignSelf,
+                    height: styles.height,
+                    classList: stickySection.classList.toString()
+                });
+                
+                // Verificar padres con overflow
+                let parent = stickySection.parentElement;
+                while (parent && parent !== document.body) {
+                    const parentStyles = window.getComputedStyle(parent);
+                    if (parentStyles.overflow !== 'visible') {
+                        console.warn('Parent con overflow:', parent, parentStyles.overflow);
+                    }
+                    parent = parent.parentElement;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

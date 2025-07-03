@@ -3,7 +3,7 @@
 import SystemStatus from '@/components/SystemStatus';
 import RustAnalyticsDisplay from '@/components/RustAnalyticsDisplay';
 import CacheMetricsPanel from '@/components/CacheMetricsPanel';
-import QRv2AnalyticsDisplay from '@/components/QRv2AnalyticsDisplay';
+import QRv3AnalyticsDisplay from '@/components/QRv3AnalyticsDisplay';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -22,7 +22,7 @@ function DashboardContent() {
         <Tabs defaultValue="general" className="space-y-6">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="general">General Dashboard</TabsTrigger>
-            <TabsTrigger value="qrv2">QR Engine v2</TabsTrigger>
+            <TabsTrigger value="qrv3">QR Engine v3</TabsTrigger>
           </TabsList>
 
           {/* General Dashboard Tab */}
@@ -51,10 +51,10 @@ function DashboardContent() {
             </div>
           </TabsContent>
 
-          {/* QR Engine v2 Dashboard Tab */}
-          <TabsContent value="qrv2" className="space-y-0">
+          {/* QR Engine v3 Dashboard Tab */}
+          <TabsContent value="qrv3" className="space-y-0">
             <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-xl border border-corporate-blue-200/30 dark:border-corporate-blue-700/30 shadow-corporate-lg hover:shadow-corporate-hero transition-all duration-300">
-              <QRv2AnalyticsDisplay />
+              <QRv3AnalyticsDisplay />
             </div>
           </TabsContent>
         </Tabs>

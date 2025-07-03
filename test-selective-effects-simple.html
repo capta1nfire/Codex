@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Efectos Selectivos - Simple</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover { background: #0052a3; }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            overflow-x: auto;
+        }
+        .success { border-color: #28a745; background: #d4edda; }
+        .error { border-color: #dc3545; background: #f8d7da; }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Test Efectos Selectivos - Fase 2.3</h1>
+    <p>Prueba rápida del sistema de efectos selectivos implementado.</p>
+    
+    <div class="container">
+        <!-- Panel de Control -->
+        <div class="panel">
+            <h3>🔧 Control de Pruebas</h3>
+            
+            <label>Datos del QR:</label>
+            <input type="text" id="qrData" value="https://example.com/test-fase-2.3" />
+            
+            <div style="margin: 20px 0;">
+                <h4>Pruebas Predefinidas:</h4>
+                <button class="button" onclick="testBasic()">1. Básico (Sin efectos)</button>
+                <button class="button" onclick="testEyesGlow()">2. Brillo en Ojos</button>
+                <button class="button" onclick="testDataDistort()">3. Distorsión en Datos</button>
+                <button class="button" onclick="testCombined()">4. Efectos Combinados</button>
+                <button class="button" onclick="testAdvanced()">5. Avanzado (Múltiples)</button>
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <h4>Configuración Manual:</h4>
+                <textarea id="customConfig" rows="8" placeholder="Pega aquí configuración JSON personalizada..."></textarea>
+                <button class="button" onclick="testCustom()">Probar Configuración</button>
+            </div>
+            
+            <button class="button" onclick="clearResults()" style="background: #6c757d;">Limpiar Resultados</button>
+        </div>
+        
+        <!-- Panel de Resultados -->
+        <div class="panel">
+            <h3>📊 Resultados</h3>
+            <div id="results">
+                <p>Presiona un botón de prueba para comenzar...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testCounter = 0;
+
+        function addResult(title, status, data, config = null) {
+            testCounter++;
+            const results = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${status}`;
+            
+            const time = new Date().toLocaleTimeString();
+            let content = `<strong>#${testCounter} - ${title}</strong> (${time})<br/>`;
+            
+            if (config) {
+                content += `<details><summary>Configuración enviada:</summary><pre>${JSON.stringify(config, null, 2)}</pre></details>`;
+            }
+            
+            if (status === 'success') {
+                content += `<strong>✅ Éxito!</strong><br/>`;
+                content += `Efectos aplicados: ${data.definitions?.filter(d => d.type === 'effect').length || 0}<br/>`;
+                content += `Módulos totales: ${data.metadata?.total_modules || 0}<br/>`;
+                content += `Tiempo generación: ${data.metadata?.generation_time_ms || 0}ms<br/>`;
+                
+                if (data.definitions?.filter(d => d.type === 'effect').length > 0) {
+                    content += `<details><summary>Detalles de efectos:</summary><pre>${JSON.stringify(data.definitions.filter(d => d.type === 'effect'), null, 2)}</pre></details>`;
+                }
+            } else {
+                content += `<strong>❌ Error:</strong><br/>`;
+                content += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            resultDiv.innerHTML = content;
+            results.appendChild(resultDiv);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        async function testAPI(config, title) {
+            const qrData = document.getElementById('qrData').value;
+            
+            const payload = {
+                data: qrData,
+                options: {
+                    error_correction: 'H',
+                    customization: config
+                }
+            };
+
+            try {
+                const response = await fetch('http://localhost:3004/api/v3/qr/enhanced', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    addResult(title, 'success', result.data, config);
+                } else {
+                    addResult(title, 'error', result.error, config);
+                }
+            } catch (error) {
+                addResult(title, 'error', { message: error.message }, config);
+            }
+        }
+
+        function testBasic() {
+            testAPI({}, 'Sin Efectos (Básico)');
+        }
+
+        function testEyesGlow() {
+            const config = {
+                selective_effects: {
+                    eyes: {
+                        effects: [
+                            { type: 'glow', intensity: 70, color: '#ff0000' }
+                        ],
+                        blend_mode: 'overlay',
+                        render_priority: 8
+                    }
+                }
+            };
+            testAPI(config, 'Brillo Rojo en Ojos');
+        }
+
+        function testDataDistort() {
+            const config = {
+                selective_effects: {
+                    data: {
+                        effects: [
+                            { type: 'distort', strength: 40 }
+                        ],
+                        blend_mode: 'normal',
+                        render_priority: 5
+                    }
+                }
+            };
+            testAPI(config, 'Distorsión en Datos');
+        }
+
+        function testCombined() {
+            const config = {
+                selective_effects: {
+                    eyes: {
+                        effects: [
+                            { type: 'glow', intensity: 60, color: '#00ff88' }
+                        ],
+                        blend_mode: 'screen',
+                        render_priority: 8
+                    },
+                    data: {
+                        effects: [
+                            { type: 'distort', strength: 25 }
+                        ],
+                        blend_mode: 'normal',
+                        render_priority: 5
+                    }
+                }
+            };
+            testAPI(config, 'Efectos Combinados');
+        }
+
+        function testAdvanced() {
+            const config = {
+                selective_effects: {
+                    eyes: {
+                        effects: [
+                            { type: 'drop_shadow', offset_x: 3, offset_y: 3, blur_radius: 5, opacity: 0.7 },
+                            { type: 'glow', intensity: 40, color: '#0088ff' }
+                        ],
+                        blend_mode: 'multiply',
+                        render_priority: 9,
+                        apply_to_fill: true,
+                        apply_to_stroke: false
+                    },
+                    data: {
+                        effects: [
+                            { type: 'emboss', strength: 50 },
+                            { type: 'vintage', intensity: 30 }
+                        ],
+                        blend_mode: 'overlay',
+                        render_priority: 6
+                    },
+                    global: {
+                        effects: [
+                            { type: 'blur', blur_radius: 0.5 }
+                        ],
+                        blend_mode: 'normal',
+                        render_priority: 2
+                    }
+                }
+            };
+            testAPI(config, 'Avanzado (Múltiples Efectos)');
+        }
+
+        function testCustom() {
+            const customConfig = document.getElementById('customConfig').value;
+            if (!customConfig.trim()) {
+                alert('Por favor ingresa una configuración JSON');
+                return;
+            }
+            
+            try {
+                const config = JSON.parse(customConfig);
+                testAPI(config, 'Configuración Personalizada');
+            } catch (error) {
+                addResult('Configuración Personalizada', 'error', { message: 'JSON inválido: ' + error.message });
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '<p>Presiona un botón de prueba para comenzar...</p>';
+            testCounter = 0;
+        }
+
+        // Auto-test al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                addResult('Sistema Iniciado', 'success', { message: 'Página de pruebas cargada correctamente' });
+            }, 500);
+        });
+    </script>
+</body>
+</html>

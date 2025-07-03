@@ -34,11 +34,6 @@ import { z } from 'zod';
  *               format: color-hex
  *               description: Color de primer plano en hexadecimal.
  *               example: '#000000'
- *             bgcolor:
- *               type: string
- *               format: color-hex
- *               description: Color de fondo en hexadecimal.
- *               example: '#FFFFFF'
  *             height:
  *               type: integer
  *               description: Altura del código en píxeles (para códigos 1D).
@@ -68,10 +63,6 @@ export const generateSchema = z.object({
       fgcolor: z
         .string()
         .regex(/^#([0-9A-Fa-f]{6})$/, 'El color de primer plano debe ser un hex válido')
-        .optional(),
-      bgcolor: z
-        .string()
-        .regex(/^#([0-9A-Fa-f]{6})$/, 'El color de fondo debe ser un hex válido')
         .optional(),
       height: z.number().int().min(10).max(500).optional(),
       includetext: z.boolean().optional(),

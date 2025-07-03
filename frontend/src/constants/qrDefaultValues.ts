@@ -28,9 +28,9 @@ export interface QRDefaultValues {
 
 export const qrDefaultValues: QRDefaultValues = {
   email: { 
-    email: 'hello@codex.app', 
-    subject: 'CODEX QR', 
-    message: 'Generated with CODEX' 
+    email: 'correo@tu-sitio-web.com', 
+    subject: 'Asunto del mensaje', 
+    message: 'Mensaje generado con QR' 
   },
   call: { 
     countryCode: '+1', 
@@ -39,33 +39,33 @@ export const qrDefaultValues: QRDefaultValues = {
   sms: { 
     countryCode: '+1', 
     phoneNumber: '5555555555', 
-    message: 'CODEX QR Message' 
+    message: 'Mensaje de texto QR' 
   },
   whatsapp: { 
     countryCode: '+1', 
     phoneNumber: '5555555555', 
-    message: 'Hello from CODEX!' 
+    message: 'Hola desde QR!' 
   },
   wifi: { 
-    networkName: 'CODEX-WiFi', 
-    password: 'secure123', 
+    networkName: 'Mi-Red-WiFi', 
+    password: 'contraseña123', 
     security: 'WPA', 
     hidden: false 
   },
   vcard: { 
-    firstName: 'CODEX', 
-    lastName: 'User', 
-    organization: 'CODEX App', 
-    title: 'QR Generator',
+    firstName: 'Nombre', 
+    lastName: 'Apellido', 
+    organization: 'Mi Empresa', 
+    title: 'Cargo',
     phone: '+15555555555', 
-    email: 'info@codex.app', 
-    website: 'https://codex.app', 
-    address: '123 QR Street, Code City, QR 12345' 
+    email: 'contacto@tu-sitio-web.com', 
+    website: 'https://tu-sitio-web.com', 
+    address: 'Calle 123, Ciudad, País 12345' 
   },
   text: { 
-    message: 'CODEX - Professional QR Generator' 
+    message: 'Generador Profesional de QR' 
   },
   link: { 
-    url: 'https://codex.app' 
+    url: 'https://tu-sitio-web.com' 
   }
 };

@@ -23,6 +23,7 @@ interface QRFormProps {
   urlExists?: boolean | null;
   onGenerateAnyway?: () => void;
   shouldShowGenerateAnywayButton?: boolean;
+  onEditingIntentChange?: (isEditing: boolean) => void;
 }
 
 export const QRForm: React.FC<QRFormProps> = ({ 
@@ -35,9 +36,16 @@ export const QRForm: React.FC<QRFormProps> = ({
   onUrlValidationComplete,
   urlExists,
   onGenerateAnyway,
-  shouldShowGenerateAnywayButton
+  shouldShowGenerateAnywayButton,
+  onEditingIntentChange
 }) => {
   const handleChange = (field: string, value: any) => {
+    console.log('[QRForm] handleChange triggered:', {
+      type,
+      field,
+      value,
+      currentData: data
+    });
     onChange(type, field, value);
   };
 
@@ -66,6 +74,7 @@ export const QRForm: React.FC<QRFormProps> = ({
           urlExists={urlExists}
           onGenerateAnyway={onGenerateAnyway}
           shouldShowGenerateAnywayButton={shouldShowGenerateAnywayButton}
+          onEditingIntentChange={onEditingIntentChange}
         />
       );
     case 'vcard':

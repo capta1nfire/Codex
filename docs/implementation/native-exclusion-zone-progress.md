@@ -129,14 +129,14 @@
 - [x] Lógica para forma negra en zona del logo
 
 ### 4.2 Composición Visual ✅
-- [x] Modificar `EnhancedUltrathinkQR` para usar máscaras
+- [x] Modificar `EnhancedQRV3` para usar máscaras
 - [x] Logo renderizado con z-index correcto
 - [x] Efectos de transición suaves
 
 **Estado**: Completado  
 **Archivos creados/modificados**:
 - `frontend/src/components/generator/QRLogoMask.tsx` (nuevo componente de máscara)
-- `frontend/src/components/generator/EnhancedUltrathinkQR.tsx` (integración de máscaras)
+- `frontend/src/components/generator/EnhancedQRV3.tsx` (integración de máscaras)
 
 **Características implementadas**:
 - Máscara SVG dinámica basada en tamaño y forma del logo
@@ -224,7 +224,7 @@
 
 **Implementación realizada:**
 1. **Hook mejorado**: `useQRGenerationV3Enhanced` ahora calcula y envía `logo_size_ratio` automáticamente
-2. **Componente actualizado**: `PreviewSectionV3` extrae el ratio del logo y lo pasa a `EnhancedUltrathinkQR`
+2. **Componente actualizado**: `PreviewSectionV3` extrae el ratio del logo y lo pasa a `EnhancedQRV3`
 3. **Propagación completa**: El prop `logoSizeRatio` activa la exclusión nativa cuando hay logo
 
 **Verificación exitosa:**

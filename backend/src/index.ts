@@ -29,8 +29,7 @@ import { generateRoutes } from './routes/generate.routes.js';
 import healthRoutes from './routes/health.js';
 import { metricsRoutes } from './routes/metrics.routes.js';
 import qrV3Routes from './routes/qr-v3.routes.js';
-import { qrRoutes } from './routes/qr.routes.js';
-import qrV2Routes from './routes/qrV2.routes.js';
+// QR v2 routes removed - migrated to v3
 import { userRoutes } from './routes/user.routes.js';
 import validateRoutes from './routes/validate.js';
 
@@ -85,7 +84,18 @@ app.use(
 // CORS configuration
 app.use(
   cors({
-    origin: config.ALLOWED_ORIGINS,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, etc.) or from allowed origins
+      if (
+        !origin ||
+        config.ALLOWED_ORIGINS.includes(origin) ||
+        config.ALLOWED_ORIGINS.includes('null')
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
@@ -419,11 +429,10 @@ app.post('/api/services/health-check', async (_req: Request, res: Response) => {
 
 // Legacy routes (deprecated)
 app.use('/api/generate', generateRoutes);
-app.use('/api/qr', qrRoutes);
 
 // Versioned API routes
 app.use('/api/v1/barcode', generateRoutes);
-app.use('/api/v2/qr', qrV2Routes);
+// v2 removed - all QR generation now uses v3
 app.use('/api/v3/qr', qrV3Routes);
 
 // Feature routes

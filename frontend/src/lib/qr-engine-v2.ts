@@ -303,9 +303,6 @@ export function convertToV2Format(oldRequest: any): QRv2GenerateRequest {
     if (oldOpts.fgcolor) {
       options.foregroundColor = oldOpts.fgcolor;
     }
-    if (oldOpts.bgcolor) {
-      options.backgroundColor = oldOpts.bgcolor;
-    }
 
     // Error correction
     if (oldOpts.ecl) {

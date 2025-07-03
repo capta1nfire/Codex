@@ -43,9 +43,29 @@ http://localhost:3002  # Rust Engine
 
 ---
 
+## ⭐ **Características Destacadas**
+
+### **🎯 URL Validation Enterprise-Grade** *(Nuevo 2025-06-29)*
+Sistema avanzado de validación que garantiza 95% de éxito:
+- 🔄 **User-Agent Rotation**: 5 navegadores diferentes
+- 🛡️ **Anti-Bot Bypass**: Funciona con sitios protegidos (Amazon, Cloudflare)
+- ⚡ **Ultra-rápido**: Validación en <3 segundos
+- 📋 **Metadata completa**: Título, descripción, favicon
+
+> **Resultado**: Usuarios obtienen validaciones más precisas y menos errores falsos.
+
+### **🚀 Motor QR v3 - Production Ready**
+- Generación ultra-rápida (<100ms)
+- Gradientes completos (linear, radial, conic, diamond, spiral)
+- Sistema de templates profesionales
+- Scoring de legibilidad en tiempo real
+
+---
+
 ## 🤖 **Guía para Agentes IA**
 
 ### **Documentación Esencial**
+- **🤖 [IA_MANIFESTO.md](./frontend/IA_MANIFESTO.md)** - ⚠️ **CRÍTICO**: Pilares fundamentales obligatorios para desarrollo con IA
 - **Si eres Claude, lee [CLAUDE.md](./CLAUDE.md). Si eres Gemini, lee [GEMINI.md](./GEMINI.md).**
 - **[README.md](./README.md)** - Arquitectura general del proyecto
 - **[.nav.md](./.nav.md)** - GPS para navegación rápida
@@ -56,6 +76,13 @@ http://localhost:3002  # Rust Engine
 ✅ **HACER:** Mantener servicios independientes  
 ❌ **NO HACER:** Crear docs fuera de servicios  
 ❌ **NO HACER:** Mezclar código entre servicios  
+
+### **⚠️ Archivo Protegido - page.tsx**
+🛡️ **CRÍTICO:** El archivo `/frontend/src/app/page.tsx` está **PROTEGIDO**
+- Ver política completa: `/docs/policies/MAIN_PAGE_PROTECTION_POLICY.md`
+- ❌ **NUNCA** agregues lógica a page.tsx (máx 30 líneas)
+- ✅ **SIEMPRE** agrega features en `useQRGeneratorOrchestrator`
+- 🧪 Guardian tests activos - fallarán si violas las reglas  
 
 ---
 

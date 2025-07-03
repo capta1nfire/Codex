@@ -96,7 +96,7 @@ export const BarcodeTypeTabs: React.FC<BarcodeTypeTabsProps> = ({
 
           {/* Dropdown content */}
           {isDropdownOpen && (
-            <div className="absolute top-full right-0 mt-1 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-10">
+            <div className="absolute top-full right-0 mt-1 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50">
               <div className="p-2 space-y-1">
                 {additionalTypes.map((type) => {
                   const isSelected = selectedType === type.id;

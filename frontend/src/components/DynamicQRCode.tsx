@@ -6,7 +6,7 @@
  * 
  * Requiere que el backend envíe datos estructurados en lugar de SVG crudo.
  * 
- * NOTA: Este archivo se moverá a generator/UltrathinkQR.tsx en la siguiente iteración
+ * NOTA: Este archivo se moverá a generator/QRV3.tsx en la siguiente iteración
  */
 
 import React, { useMemo } from 'react';
@@ -57,6 +57,13 @@ const DynamicQRCode: React.FC<DynamicQRCodeProps> = ({
       return '0 0 1 1';
     }
     
+    // Debug log
+    console.log('[DynamicQRCode] ViewBox calculation:', {
+      totalModules,
+      QUIET_ZONE,
+      dataSize: totalModules - (2 * QUIET_ZONE)
+    });
+    
     // Fórmula del documento:
     // min-x = quietZone, min-y = quietZone
     // width = height = totalModules - (2 * quietZone)
@@ -97,6 +104,9 @@ const DynamicQRCode: React.FC<DynamicQRCodeProps> = ({
         viewBox={viewBox}
         width="100%"
         height="100%"
+        style={{ 
+          display: 'block' // Eliminar espacio extra del inline SVG
+        }}
         // preserveAspectRatio por defecto es "xMidYMid meet", que es lo que queremos
         // Lo incluimos explícitamente para mayor claridad según el documento
         preserveAspectRatio="xMidYMid meet"
@@ -163,10 +173,13 @@ export const DynamicQRCodeFromSVG: React.FC<{
   svgContent: string;
   size?: number;
   className?: string;
-}> = ({ svgContent, size = 300, className }) => {
+  transparentBackground?: boolean;
+}> = ({ svgContent, size = 300, className, transparentBackground = false }) => {
   // Extraemos pathData y totalModules del SVG string
-  const { pathData, totalModules } = useMemo(() => {
-    if (!svgContent) return { pathData: '', totalModules: 0 };
+  const { pathData, totalModules, backgroundColor } = useMemo(() => {
+    if (!svgContent) return { pathData: '', totalModules: 0, backgroundColor: 'transparent' };
+    
+    console.log('[DynamicQRCodeFromSVG] transparentBackground prop:', transparentBackground);
     
     try {
       const parser = new DOMParser();
@@ -174,8 +187,38 @@ export const DynamicQRCodeFromSVG: React.FC<{
       const svgElement = doc.querySelector('svg');
       const pathElement = doc.querySelector('path');
       
+      // Si queremos fondo transparente, removemos el rect de fondo
+      if (transparentBackground) {
+        console.log('[DynamicQRCodeFromSVG] Removing background rectangles...');
+        const rectElements = doc.querySelectorAll('rect');
+        console.log('[DynamicQRCodeFromSVG] Found', rectElements.length, 'rect elements');
+        
+        rectElements.forEach(rect => {
+          // Verificar si es el rect de fondo (generalmente el primero, con el tamaño completo)
+          const x = rect.getAttribute('x') || '0';
+          const y = rect.getAttribute('y') || '0';
+          const width = rect.getAttribute('width');
+          const height = rect.getAttribute('height');
+          const fill = rect.getAttribute('fill');
+          
+          console.log('[DynamicQRCodeFromSVG] Rect:', { x, y, width, height, fill });
+          
+          if (x === '0' && y === '0') {
+            console.log('[DynamicQRCodeFromSVG] Removing background rect');
+            rect.remove();
+          }
+        });
+      }
+      
+      // Buscar el color de fondo del rect si existe
+      let bgColor = 'transparent';
+      const backgroundRect = doc.querySelector('rect');
+      if (backgroundRect && !transparentBackground) {
+        bgColor = backgroundRect.getAttribute('fill') || '#FFFFFF';
+      }
+      
       if (!svgElement || !pathElement) {
-        return { pathData: '', totalModules: 0 };
+        return { pathData: '', totalModules: 0, backgroundColor: bgColor };
       }
       
       // Extraemos el viewBox para obtener totalModules
@@ -186,18 +229,34 @@ export const DynamicQRCodeFromSVG: React.FC<{
         return { pathData: '', totalModules: 0 };
       }
       
-      // El tercer valor del viewBox es el width (totalModules)
-      const [, , width] = viewBox.split(' ').map(Number);
+      // ViewBox format: "min-x min-y width height"
+      const viewBoxValues = viewBox.split(' ').map(Number);
+      const [minX, minY, width, height] = viewBoxValues;
+      
+      // Debug log para ver qué valores estamos obteniendo
+      console.log('[DynamicQRCodeFromSVG] ViewBox Debug:', {
+        viewBox,
+        viewBoxValues,
+        minX,
+        minY,
+        width,
+        height
+      });
+      
+      // Para QR codes, totalModules incluye el quiet zone
+      // Si minX y minY no son 0, significa que el viewBox ya considera el quiet zone
+      const totalModules = minX === 0 ? width : width + (2 * minX);
       
       return {
         pathData: pathD,
-        totalModules: width || 0
+        totalModules,
+        backgroundColor: bgColor
       };
     } catch (error) {
       console.error('Error parsing SVG:', error);
-      return { pathData: '', totalModules: 0 };
+      return { pathData: '', totalModules: 0, backgroundColor: 'transparent' };
     }
-  }, [svgContent]);
+  }, [svgContent, transparentBackground]);
   
   if (!pathData || !totalModules) {
     return null;
@@ -209,6 +268,7 @@ export const DynamicQRCodeFromSVG: React.FC<{
       totalModules={totalModules}
       size={size}
       className={className}
+      backgroundColor={backgroundColor}
       title="Código QR"
       description="Escanea este código QR"
     />

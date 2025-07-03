@@ -3,12 +3,12 @@
 ## Overview
 This directory contains documentation for CODEX's QR generation engines:
 - **QR Engine v2** - Current production system with SVG output
-- **ULTRATHINK v3** - Next-generation secure architecture with structured data output
+- **QR v3** - Next-generation secure architecture with structured data output
 
 ## Documentation Structure
 
-### ULTRATHINK v3 (New)
-- 🚀 [ULTRATHINK v3 Architecture](./ULTRATHINK_V3_ARCHITECTURE.md) - **NEW** - Revolutionary secure QR generation
+### QR v3 (New)
+- 🚀 [QR v3 Architecture](./QR_V3_ARCHITECTURE.md) - **NEW** - Revolutionary secure QR generation
 
 ### Core Documentation (v2)
 - [Technical Guide](./core/technical-guide.md) - Complete technical documentation
@@ -45,6 +45,14 @@ This directory contains documentation for CODEX's QR generation engines:
 5. **Integration & Optimization** - API migration, performance, caching
 
 ### ✅ Latest Updates:
+#### June 29, 2025 - Gradient Stroke Borders Implementation
+- ✨ **New Feature**: Gradient stroke borders (`stroke_style`) for enhanced visual separation
+- 🔧 **Backend**: Added Zod schema validation for `stroke_style` parameters
+- 🔧 **Frontend**: Implemented "Aplicar bordes al gradiente" toggle functionality
+- 📏 **Optimal Settings**: Width 0.1, opacity 0.3 for subtle, scannable borders
+- 📝 **Documented**: Complete usage guide in [QR v3 Customization Options](./QR_V3_CUSTOMIZATION_OPTIONS.md)
+- ✅ **Status**: Gradient borders fully functional with UI controls
+
 #### June 15, 2025 - Multiple Gradient Issues Resolved
 - 🔧 **Fixed #1**: Gradients not showing (customization not passed to SVG)
 - 🔧 **Fixed #2**: Per-module gradient effect (changed to userSpaceOnUse)

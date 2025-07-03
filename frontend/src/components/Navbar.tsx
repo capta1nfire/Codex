@@ -3,7 +3,7 @@
 // import { useState, useEffect } from 'react'; // Ya no se necesitan
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, BarChart2, QrCode, User, LogOut, Settings, FileText, Shield, Crown, Users, Zap, Star, Key } from 'lucide-react';
+import { Menu, X, BarChart2, QrCode, User, LogOut, Settings, FileText, Shield, Crown, Users, Zap, Star, Key, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext'; // Importar useAuth
 import { useState, useRef, useEffect } from 'react'; // Added useRef, useEffect
 import ProfilePicture from './ui/ProfilePicture'; // <-- Updated import
@@ -55,6 +55,13 @@ export default function Navbar() {
       label: 'Generador',
       icon: <QrCode className="h-4 w-4 md:mr-2 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />,
       isActive: pathname === '/',
+    },
+    {
+      href: '/test-selective-effects',
+      label: 'Efectos Selectivos',
+      icon: <Sparkles className="h-4 w-4 md:mr-2 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />,
+      isActive: pathname === '/test-selective-effects',
+      isBeta: true,
     },
     {
       href: 'http://localhost:3004/api-docs/',
@@ -137,6 +144,11 @@ export default function Navbar() {
                   >
                     <span className="mr-2 lg:mr-3">{link.icon}</span>
                     {link.label}
+                    {link.isBeta && (
+                      <span className="ml-2 px-1.5 py-0.5 text-xs bg-yellow-500 text-black rounded-full font-bold">
+                        BETA
+                      </span>
+                    )}
                   </Link>
                 )
               )}

@@ -200,7 +200,6 @@ class QrServiceUnified {
       eye_shape: options.eyeShape || options.eye_shape,
       data_pattern: options.dataPattern || options.data_pattern,
       foreground_color: options.foregroundColor || options.foreground_color,
-      background_color: options.backgroundColor || options.background_color,
       eye_color: options.eyeColor || options.eye_color,
       optimize_for_size: options.optimizeForSize || options.optimize_for_size,
       enable_cache: options.enableCache || options.enable_cache,
@@ -223,13 +222,19 @@ class QrServiceUnified {
         apply_to_eyes: options.gradient.applyToEyes || options.gradient.apply_to_eyes || false,
       };
 
-      if (options.gradient.strokeStyle) {
+      // Handle stroke_style (support both camelCase and snake_case)
+      if (options.gradient.strokeStyle || options.gradient.stroke_style) {
+        const strokeStyle = options.gradient.strokeStyle || options.gradient.stroke_style;
         transformed.gradient.stroke_style = {
-          enabled: options.gradient.strokeStyle.enabled,
-          color: options.gradient.strokeStyle.color,
-          width: options.gradient.strokeStyle.width,
-          opacity: options.gradient.strokeStyle.opacity,
+          enabled: strokeStyle.enabled,
+          color: strokeStyle.color,
+          width: strokeStyle.width,
+          opacity: strokeStyle.opacity,
         };
+        logger.info(
+          '[QR Service] Added stroke_style to gradient:',
+          transformed.gradient.stroke_style
+        );
       }
     }
 
@@ -439,51 +444,7 @@ class QrServiceUnified {
     }
   }
 
-  /**
-   * Get QR v2 analytics (extended functionality from qrService.ts)
-   */
-  async getAnalytics(): Promise<QrAnalytics> {
-    try {
-      const [stats, analyticsResponse] = await Promise.all([
-        this.getCacheStats(),
-        this.axiosClient.get('/api/qr/analytics'),
-      ]);
-
-      const analytics = analyticsResponse.data;
-
-      return {
-        totalGenerated: analytics.totalGenerated || 0,
-        averageGenerationTime: analytics.averageGenerationTime || 0,
-        popularOptions: {
-          eyeShapes: analytics.popularOptions?.eyeShapes || {},
-          dataPatterns: analytics.popularOptions?.dataPatterns || {},
-          errorCorrection: analytics.popularOptions?.errorCorrection || {},
-        },
-        cacheStats: stats,
-      };
-    } catch (error) {
-      logger.error('Failed to get analytics:', error);
-
-      // Return default analytics if service is unavailable
-      return {
-        totalGenerated: 0,
-        averageGenerationTime: 0,
-        popularOptions: {
-          eyeShapes: {},
-          dataPatterns: {},
-          errorCorrection: {},
-        },
-        cacheStats: {
-          hits: 0,
-          misses: 0,
-          hitRate: '0%',
-          totalRequests: 0,
-          cacheSize: 0,
-          evictions: 0,
-        },
-      };
-    }
-  }
+  // Analytics method removed - v2 analytics deprecated in favor of v3
 
   /**
    * Health check for QR engine
@@ -591,7 +552,7 @@ export const batchGenerateQRv2 = (request: QrBatchRequest) => qrService.batch(re
 export const validateQRv2 = (request: QrValidateRequest) => qrService.validate(request);
 export const getQRv2CacheStats = () => qrService.getCacheStats();
 export const clearQRv2Cache = () => qrService.clearCache();
-export const getQRv2Analytics = () => qrService.getAnalytics();
+// Analytics export removed - v2 analytics deprecated in favor of v3
 export const checkQREngineHealth = () => qrService.healthCheck();
 
 // Additional function for preview

@@ -52,15 +52,15 @@ export const useQRGenerationState = () => {
   // State transition function with validation
   const transitionTo = useCallback((newState: GenerationState, updates?: Partial<GenerationStateData>) => {
     setStateData(prev => {
-      // Validate state transitions
+      // Validate state transitions - FLUJO ORIGINAL MÁS PERMISIVO
       const validTransitions: Record<GenerationState, GenerationState[]> = {
         'IDLE': ['TYPING', 'GENERATING', 'VALIDATING', 'IDLE'], // Allow IDLE->IDLE for reset
-        'TYPING': ['IDLE', 'VALIDATING', 'TYPING'], // Allow TYPING->TYPING for continuous typing
-        'VALIDATING': ['READY_TO_GENERATE', 'ERROR', 'IDLE', 'VALIDATING', 'TYPING'],
+        'TYPING': ['IDLE', 'VALIDATING', 'TYPING', 'GENERATING'], // Allow direct generation from typing
+        'VALIDATING': ['READY_TO_GENERATE', 'ERROR', 'IDLE', 'VALIDATING', 'TYPING', 'GENERATING', 'COMPLETE'], // ✅ ALLOW DIRECT TRANSITIONS
         'READY_TO_GENERATE': ['GENERATING', 'IDLE', 'TYPING'],
         'GENERATING': ['COMPLETE', 'ERROR', 'IDLE'], // Allow cancel to IDLE
         'COMPLETE': ['IDLE', 'TYPING', 'GENERATING', 'VALIDATING'], // Allow immediate re-generation
-        'ERROR': ['IDLE', 'TYPING', 'GENERATING'] // Allow retry from error
+        'ERROR': ['IDLE', 'TYPING', 'GENERATING', 'VALIDATING'] // Allow retry from error
       };
 
       const currentState = prev.state;
@@ -107,11 +107,13 @@ export const useQRGenerationState = () => {
 
   // Handle validation state
   const setValidating = useCallback(() => {
+    console.log('[useQRGenerationState] 🔄 TRANSITIONING TO VALIDATING');
     transitionTo('VALIDATING');
   }, [transitionTo]);
 
   // Handle ready to generate state
   const setReadyToGenerate = useCallback(() => {
+    console.log('[useQRGenerationState] 🚀 TRANSITIONING TO READY_TO_GENERATE');
     transitionTo('READY_TO_GENERATE');
   }, [transitionTo]);
 
@@ -138,6 +140,91 @@ export const useQRGenerationState = () => {
     }
   };
 
+  // UX Enhancement: Minimum loading time for visual feedback
+  const MINIMUM_LOADING_TIME_MS = 800; // Adjusted to 800ms for optimal UX timing
+
+  /**
+   * Ensures minimum loading time for better UX
+   * If generation is too fast, adds delay to make loading animation visible
+   * Only applies to user-initiated QR generation, not initial/placeholder generation
+   */
+  const ensureMinimumLoadingTime = async (startTime: number, signal: AbortController['signal'], data: string) => {
+    // UNIVERSAL placeholder detection for ALL barcode types - should NOT get minimum loading time
+    const isPlaceholderData = (inputData: string): boolean => {
+      const placeholders = [
+        // URL/Link placeholders
+        'https://tu-sitio-web.com',
+        'tu-sitio-web.com',
+        'https://codex.app',
+        'codex.app',
+        
+        // Email placeholders
+        'correo@tu-sitio-web.com',
+        'contacto@tu-sitio-web.com',
+        'email@example.com',
+        'usuario@ejemplo.com',
+        
+        // Phone/SMS/WhatsApp placeholders
+        '5555555555',
+        '+1234567890',
+        '+525555555555',
+        
+        // WiFi placeholders
+        'Mi-Red-WiFi',
+        'contraseña123',
+        'password123',
+        
+        // VCard placeholders
+        'Nombre Apellido',
+        'Mi Empresa',
+        'Tu Empresa',
+        'Cargo/Título',
+        'Calle 123, Ciudad, País 12345',
+        
+        // Text/Message placeholders
+        'Generador Profesional de QR',
+        'Generador QR',
+        'Asunto del mensaje',
+        'Mensaje generado con QR',
+        'Mensaje de texto QR',
+        'Hola desde QR!',
+        'Tu mensaje aquí',
+        'Mensaje de ejemplo',
+        
+        // VCard format detection (common VCard structure)
+        'BEGIN:VCARD',
+        'VERSION:3.0',
+        
+        // Common default/example patterns
+        'ejemplo',
+        'example',
+        'placeholder',
+        'default',
+        'test',
+        'demo'
+      ];
+      
+      // Check if the data contains any placeholder value (case insensitive)
+      return placeholders.some(placeholder => 
+        inputData.toLowerCase().includes(placeholder.toLowerCase())
+      );
+    };
+
+    // Only apply minimum loading time for actual user data, not placeholders
+    if (isPlaceholderData(data)) {
+      console.log(`[UX Enhancement] Skipping minimum loading time for placeholder data: ${data.substring(0, 30)}...`);
+      return;
+    }
+
+    const elapsedTime = Date.now() - startTime;
+    const remainingTime = MINIMUM_LOADING_TIME_MS - elapsedTime;
+    
+    if (remainingTime > 0 && !signal.aborted) {
+      console.log(`[UX Enhancement] Adding ${remainingTime}ms delay (800ms total) for optimal UX: ${data.substring(0, 30)}...`);
+      await new Promise(resolve => setTimeout(resolve, remainingTime));
+    }
+  };
+
   // Main generation function
   const generateQR = useCallback(async (
     formData: GenerateFormData,
@@ -157,6 +244,9 @@ export const useQRGenerationState = () => {
     const signal = generationAbortController.current.signal;
 
     try {
+      // Start timing for UX enhancement
+      const startTime = Date.now();
+      
       transitionTo('GENERATING', { 
         isSmartQR: options?.isSmartQR || false 
       });
@@ -178,6 +268,12 @@ export const useQRGenerationState = () => {
         const customization: any = {
           eye_shape: smartConfig.eyeShape,
           data_pattern: smartConfig.dataPattern,
+          // Color configuration for Smart QR - backend requires both foreground and background
+          // NOTE: Backend doesn't support transparent backgrounds yet, always use a hex color
+          colors: {
+            foreground: smartConfig.fgcolor || '#000000',
+            background: smartConfig.bgcolor || '#FFFFFF'
+          },
           effects: smartConfig.effects?.map((effect: string) => ({
             effect_type: effect === 'subtle-shadow' ? 'shadow' : effect,
             config: {}
@@ -192,7 +288,15 @@ export const useQRGenerationState = () => {
             colors: smartConfig.gradient.colors || ['#000000', '#666666'],
             angle: smartConfig.gradient.angle || 0,
             apply_to_data: true,
-            apply_to_eyes: false
+            apply_to_eyes: false,
+            stroke_style: smartConfig.gradient.borders ? {
+              enabled: true,
+              color: '#FFFFFF',
+              width: 0.1,
+              opacity: 0.3
+            } : {
+              enabled: false
+            }
           };
           console.log('Mapped Gradient:', customization.gradient);
         }
@@ -242,66 +346,113 @@ export const useQRGenerationState = () => {
         );
 
         if (!signal.aborted) {
-          transitionTo('COMPLETE', { 
-            hasEnhancedData: true,
-            isSmartQR: true 
-          });
+          // UX Enhancement: Ensure minimum loading time
+          await ensureMinimumLoadingTime(startTime, signal, formData.data);
+          
+          if (!signal.aborted) {
+            transitionTo('COMPLETE', { 
+              hasEnhancedData: true,
+              isSmartQR: true 
+            });
+          }
         }
       } else if (formData.barcode_type === 'qrcode') {
         // Generate with v3 Enhanced for regular QR
+        console.log('[useQRGenerationState] Full formData.options:', JSON.stringify(formData.options, null, 2));
+        console.log('[useQRGenerationState] use_separated_eye_styles:', formData.options?.use_separated_eye_styles);
+        console.log('[useQRGenerationState] eye_shape:', formData.options?.eye_shape);
+        console.log('[useQRGenerationState] eye_border_style:', formData.options?.eye_border_style);
+        console.log('[useQRGenerationState] eye_center_style:', formData.options?.eye_center_style);
+        
+        const customizationConfig = {
+          // Only include eye_shape if NOT using separated styles
+          ...(formData.options?.use_separated_eye_styles ? {} : {
+            eye_shape: formData.options?.eye_shape || 'square'
+          }),
+          // Only include separated styles if using separated mode
+          ...(formData.options?.use_separated_eye_styles ? {
+            eye_border_style: formData.options?.eye_border_style || 'square',
+            eye_center_style: formData.options?.eye_center_style || 'square'
+          } : {}),
+          data_pattern: formData.options?.data_pattern || 'square',
+          // Color configuration - backend requires both foreground and background
+          // NOTE: Backend doesn't support transparent backgrounds yet, always use a hex color
+          colors: {
+            foreground: formData.options?.fgcolor || '#000000',
+            background: formData.options?.bgcolor || '#FFFFFF'
+          },
+          gradient: formData.options?.gradient_enabled ? {
+            enabled: true,
+            gradient_type: formData.options.gradient_type || 'linear',
+            colors: [
+              formData.options.gradient_color1 || '#000000',
+              formData.options.gradient_color2 || '#666666'
+            ],
+            apply_to_data: true,
+            apply_to_eyes: false,
+            stroke_style: formData.options?.gradient_borders ? {
+              enabled: true,
+              color: '#FFFFFF',
+              width: 0.1,
+              opacity: 0.3
+            } : {
+              enabled: false
+            }
+          } : undefined,
+          logo: formData.options?.logo_enabled && formData.options?.logo_data ? {
+            data: formData.options.logo_data,
+            size_percentage: formData.options.logo_size || 20,
+            shape: formData.options.logo_shape || 'square',
+            padding: formData.options.logo_padding || 5
+          } : undefined,
+          effects: formData.options?.effects && formData.options.effects.length > 0 ? 
+            formData.options.effects.map((effect: string) => ({
+              effect_type: effect as 'shadow' | 'glow' | 'blur' | 'noise' | 'vintage',
+              config: {}
+            })) : undefined,
+          frame: formData.options?.frame_enabled !== false ? {
+            frame_type: formData.options?.frame_style || 'simple',
+            text: formData.options?.frame_text || 'ESCANEA AQUÍ',
+            text_position: formData.options?.frame_text_position || 'bottom',
+            color: formData.options?.fgcolor || '#000000'
+          } : undefined
+        };
+        
+        console.log('[useQRGenerationState] Final customizationConfig:', customizationConfig);
+        
         await v3Enhanced.generateEnhancedQR(
           formData.data,
           {
             error_correction: formData.options?.ecl || 'M',
-            customization: {
-              eye_shape: formData.options?.eye_shape,
-              data_pattern: formData.options?.data_pattern,
-              gradient: formData.options?.gradient_enabled ? {
-                enabled: true,
-                gradient_type: formData.options.gradient_type || 'linear',
-                colors: [
-                  formData.options.gradient_color1 || '#000000',
-                  formData.options.gradient_color2 || '#666666'
-                ],
-                apply_to_data: true,
-                apply_to_eyes: false
-              } : undefined,
-              logo: formData.options?.logo_enabled && formData.options?.logo_data ? {
-                data: formData.options.logo_data,
-                size_percentage: formData.options.logo_size || 20,
-                shape: formData.options.logo_shape || 'square',
-                padding: formData.options.logo_padding || 5
-              } : undefined,
-              effects: formData.options?.effects && formData.options.effects.length > 0 ? 
-                formData.options.effects.map((effect: string) => ({
-                  effect_type: effect as 'shadow' | 'glow' | 'blur' | 'noise' | 'vintage',
-                  config: {}
-                })) : undefined,
-              frame: formData.options?.frame_enabled ? {
-                frame_type: formData.options.frame_style || 'simple',
-                text: formData.options.frame_text || 'SCAN ME',
-                text_position: formData.options.frame_text_position || 'bottom',
-                color: formData.options.fgcolor || '#000000'
-              } : undefined
-            }
+            customization: customizationConfig
           }
         );
 
         if (!signal.aborted) {
-          transitionTo('COMPLETE', { 
-            hasEnhancedData: true,
-            isSmartQR: false 
-          });
+          // UX Enhancement: Ensure minimum loading time
+          await ensureMinimumLoadingTime(startTime, signal, formData.data);
+          
+          if (!signal.aborted) {
+            transitionTo('COMPLETE', { 
+              hasEnhancedData: true,
+              isSmartQR: false 
+            });
+          }
         }
       } else {
         // Generate other barcode types with v2
         await v2Barcode.generateBarcode(formData);
 
         if (!signal.aborted) {
-          transitionTo('COMPLETE', { 
-            hasEnhancedData: false,
-            isSmartQR: false 
-          });
+          // UX Enhancement: Ensure minimum loading time
+          await ensureMinimumLoadingTime(startTime, signal, formData.data);
+          
+          if (!signal.aborted) {
+            transitionTo('COMPLETE', { 
+              hasEnhancedData: false,
+              isSmartQR: false 
+            });
+          }
         }
       }
     } catch (error) {
@@ -403,7 +554,7 @@ export const useQRGenerationState = () => {
         return getValueWithDefault('url');
         
       default:
-        return 'CODEX QR Generator';
+        return 'Generador QR';
     }
   }, []);
 
@@ -427,6 +578,7 @@ export const useQRGenerationState = () => {
     svgContent: v2Barcode.svgContent,
     isLoading: v3Enhanced.isLoading || v2Barcode.isLoading,
     error: stateData.error || v3Enhanced.error || v2Barcode.serverError?.error || null,
+    scannabilityAnalysis: v3Enhanced.scannability,
     
     // Flags
     isUsingV3Enhanced: stateData.state === 'COMPLETE' && stateData.hasEnhancedData,

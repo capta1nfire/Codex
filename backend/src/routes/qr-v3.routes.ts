@@ -1,5 +1,5 @@
 /**
- * QR v3 Routes - Structured data for ULTRATHINK implementation
+ * QR v3 Routes - Structured data for QR v3 implementation
  *
  * This module provides access to the v3 QR generation API that returns
  * structured data instead of SVG strings, enabling secure frontend rendering
@@ -13,40 +13,387 @@ import { z } from 'zod';
 import { authenticateJwt } from '../middleware/authMiddleware.js';
 import { generationRateLimit } from '../middleware/rateLimitMiddleware.js';
 // import { incrementUsage } from '../services/usageService.js'; // TODO: Implement usage service
+import { scannabilityService } from '../services/scannabilityService.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
 
 // Schema de validación mejorado para v3
-const customizationSchema = z.object({
-  colors: z.object({
-    foreground: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-    background: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-  }).optional(),
-  eye_shape: z.enum(['square', 'rounded_square', 'circle', 'dot', 'leaf', 'star', 'diamond', 'heart', 'shield']).optional(),
-  data_pattern: z.enum(['square', 'dots', 'rounded', 'circular', 'star', 'cross', 'wave', 'mosaic']).optional(),
-  gradient: z.object({
-    enabled: z.boolean(),
-    gradient_type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']).optional(),
-    colors: z.array(z.string().regex(/^#[0-9A-Fa-f]{6}$/)).min(2).max(5).optional(),
-    apply_to_eyes: z.boolean().optional(),
-    apply_to_data: z.boolean().optional(),
-  }).optional(),
-  effects: z.array(z.object({
-    type: z.enum(['shadow', 'glow', 'blur', 'noise', 'vintage']),
-    intensity: z.number().min(0).max(100).optional(),
-    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-  })).max(3).optional(),
-  logo_size_ratio: z.number().min(0.05).max(0.3).optional(),
-  frame_style: z.enum(['simple', 'rounded', 'bubble', 'speech', 'badge']).optional(),
-}).optional();
+const customizationSchema = z
+  .object({
+    colors: z
+      .object({
+        foreground: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+        background: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+      })
+      .optional(),
+    eye_shape: z
+      .enum([
+        'square',
+        'rounded_square',
+        'circle',
+        'dot',
+        'star',
+        'leaf',
+        'bars_horizontal',
+        'bars_vertical',
+        'diamond',
+        'cross',
+        'hexagon',
+        'heart',
+        'shield',
+        'crystal',
+        'flower',
+        'arrow',
+      ])
+      .optional(),
+    eye_border_style: z
+      .enum([
+        'square',
+        'rounded_square',
+        'circle',
+        'quarter_round',
+        'cut_corner',
+        'thick_border',
+        'double_border',
+        'diamond',
+        'hexagon',
+        'cross',
+        'star',
+        'leaf',
+        'arrow',
+        'teardrop',
+        'wave',
+        'petal',
+        'crystal',
+        'flame',
+        'organic',
+      ])
+      .optional(),
+    eye_center_style: z
+      .enum(['square', 'rounded_square', 'circle', 'dot', 'star', 'diamond', 'cross', 'plus'])
+      .optional(),
+    data_pattern: z
+      .enum(['square', 'dots', 'rounded', 'circular', 'star', 'cross', 'wave', 'mosaic'])
+      .optional(),
+    gradient: z
+      .object({
+        enabled: z.boolean(),
+        gradient_type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']).optional(),
+        colors: z
+          .array(z.string().regex(/^#[0-9A-Fa-f]{6}$/))
+          .min(2)
+          .max(5)
+          .optional(),
+        apply_to_eyes: z.boolean().optional(),
+        apply_to_data: z.boolean().optional(),
+        stroke_style: z
+          .object({
+            enabled: z.boolean(),
+            color: z
+              .string()
+              .regex(/^#[0-9A-Fa-f]{6}$/)
+              .optional(),
+            width: z.number().min(0.1).max(2.0).optional(),
+            opacity: z.number().min(0.1).max(1.0).optional(),
+          })
+          .optional(),
+      })
+      .optional(),
+    effects: z
+      .array(
+        z.object({
+          type: z.enum([
+            'shadow',
+            'glow',
+            'blur',
+            'noise',
+            'vintage',
+            'distort',
+            'emboss',
+            'outline',
+            'drop_shadow',
+            'inner_shadow',
+          ]),
+          intensity: z.number().min(0).max(100).optional(),
+          color: z
+            .string()
+            .regex(/^#[0-9A-Fa-f]{6}$/)
+            .optional(),
+          // Configuraciones específicas para nuevos efectos
+          strength: z.number().min(0).max(100).optional(),
+          frequency: z.number().min(0).max(10).optional(),
+          direction: z.string().optional(),
+          width: z.number().min(0).max(10).optional(),
+          offset_x: z.number().min(-10).max(10).optional(),
+          offset_y: z.number().min(-10).max(10).optional(),
+          blur_radius: z.number().min(0).max(20).optional(),
+          spread_radius: z.number().min(0).max(10).optional(),
+          opacity: z.number().min(0).max(1).optional(),
+        })
+      )
+      .max(5)
+      .optional(),
+    // Nuevo sistema de efectos selectivos (Fase 2.2)
+    selective_effects: z
+      .object({
+        eyes: z
+          .object({
+            effects: z
+              .array(
+                z.object({
+                  type: z.enum([
+                    'shadow',
+                    'glow',
+                    'blur',
+                    'noise',
+                    'vintage',
+                    'distort',
+                    'emboss',
+                    'outline',
+                    'drop_shadow',
+                    'inner_shadow',
+                  ]),
+                  intensity: z.number().min(0).max(100).optional(),
+                  color: z
+                    .string()
+                    .regex(/^#[0-9A-Fa-f]{6}$/)
+                    .optional(),
+                  strength: z.number().min(0).max(100).optional(),
+                  frequency: z.number().min(0).max(10).optional(),
+                  direction: z.string().optional(),
+                  width: z.number().min(0).max(10).optional(),
+                  offset_x: z.number().min(-10).max(10).optional(),
+                  offset_y: z.number().min(-10).max(10).optional(),
+                  blur_radius: z.number().min(0).max(20).optional(),
+                  spread_radius: z.number().min(0).max(10).optional(),
+                  opacity: z.number().min(0).max(1).optional(),
+                })
+              )
+              .max(3),
+            blend_mode: z
+              .enum([
+                'normal',
+                'multiply',
+                'screen',
+                'overlay',
+                'soft_light',
+                'hard_light',
+                'color_dodge',
+                'color_burn',
+                'darken',
+                'lighten',
+                'difference',
+                'exclusion',
+              ])
+              .optional(),
+            render_priority: z.number().min(0).max(10).optional(),
+            apply_to_fill: z.boolean().optional(),
+            apply_to_stroke: z.boolean().optional(),
+          })
+          .optional(),
+        data: z
+          .object({
+            effects: z
+              .array(
+                z.object({
+                  type: z.enum([
+                    'shadow',
+                    'glow',
+                    'blur',
+                    'noise',
+                    'vintage',
+                    'distort',
+                    'emboss',
+                    'outline',
+                    'drop_shadow',
+                    'inner_shadow',
+                  ]),
+                  intensity: z.number().min(0).max(100).optional(),
+                  color: z
+                    .string()
+                    .regex(/^#[0-9A-Fa-f]{6}$/)
+                    .optional(),
+                  strength: z.number().min(0).max(100).optional(),
+                  frequency: z.number().min(0).max(10).optional(),
+                  direction: z.string().optional(),
+                  width: z.number().min(0).max(10).optional(),
+                  offset_x: z.number().min(-10).max(10).optional(),
+                  offset_y: z.number().min(-10).max(10).optional(),
+                  blur_radius: z.number().min(0).max(20).optional(),
+                  spread_radius: z.number().min(0).max(10).optional(),
+                  opacity: z.number().min(0).max(1).optional(),
+                })
+              )
+              .max(3),
+            blend_mode: z
+              .enum([
+                'normal',
+                'multiply',
+                'screen',
+                'overlay',
+                'soft_light',
+                'hard_light',
+                'color_dodge',
+                'color_burn',
+                'darken',
+                'lighten',
+                'difference',
+                'exclusion',
+              ])
+              .optional(),
+            render_priority: z.number().min(0).max(10).optional(),
+            apply_to_fill: z.boolean().optional(),
+            apply_to_stroke: z.boolean().optional(),
+          })
+          .optional(),
+        frame: z
+          .object({
+            effects: z
+              .array(
+                z.object({
+                  type: z.enum([
+                    'shadow',
+                    'glow',
+                    'blur',
+                    'noise',
+                    'vintage',
+                    'distort',
+                    'emboss',
+                    'outline',
+                    'drop_shadow',
+                    'inner_shadow',
+                  ]),
+                  intensity: z.number().min(0).max(100).optional(),
+                  color: z
+                    .string()
+                    .regex(/^#[0-9A-Fa-f]{6}$/)
+                    .optional(),
+                  strength: z.number().min(0).max(100).optional(),
+                  frequency: z.number().min(0).max(10).optional(),
+                  direction: z.string().optional(),
+                  width: z.number().min(0).max(10).optional(),
+                  offset_x: z.number().min(-10).max(10).optional(),
+                  offset_y: z.number().min(-10).max(10).optional(),
+                  blur_radius: z.number().min(0).max(20).optional(),
+                  spread_radius: z.number().min(0).max(10).optional(),
+                  opacity: z.number().min(0).max(1).optional(),
+                })
+              )
+              .max(3),
+            blend_mode: z
+              .enum([
+                'normal',
+                'multiply',
+                'screen',
+                'overlay',
+                'soft_light',
+                'hard_light',
+                'color_dodge',
+                'color_burn',
+                'darken',
+                'lighten',
+                'difference',
+                'exclusion',
+              ])
+              .optional(),
+            render_priority: z.number().min(0).max(10).optional(),
+            apply_to_fill: z.boolean().optional(),
+            apply_to_stroke: z.boolean().optional(),
+          })
+          .optional(),
+        global: z
+          .object({
+            effects: z
+              .array(
+                z.object({
+                  type: z.enum([
+                    'shadow',
+                    'glow',
+                    'blur',
+                    'noise',
+                    'vintage',
+                    'distort',
+                    'emboss',
+                    'outline',
+                    'drop_shadow',
+                    'inner_shadow',
+                  ]),
+                  intensity: z.number().min(0).max(100).optional(),
+                  color: z
+                    .string()
+                    .regex(/^#[0-9A-Fa-f]{6}$/)
+                    .optional(),
+                  strength: z.number().min(0).max(100).optional(),
+                  frequency: z.number().min(0).max(10).optional(),
+                  direction: z.string().optional(),
+                  width: z.number().min(0).max(10).optional(),
+                  offset_x: z.number().min(-10).max(10).optional(),
+                  offset_y: z.number().min(-10).max(10).optional(),
+                  blur_radius: z.number().min(0).max(20).optional(),
+                  spread_radius: z.number().min(0).max(10).optional(),
+                  opacity: z.number().min(0).max(1).optional(),
+                })
+              )
+              .max(3),
+            blend_mode: z
+              .enum([
+                'normal',
+                'multiply',
+                'screen',
+                'overlay',
+                'soft_light',
+                'hard_light',
+                'color_dodge',
+                'color_burn',
+                'darken',
+                'lighten',
+                'difference',
+                'exclusion',
+              ])
+              .optional(),
+            render_priority: z.number().min(0).max(10).optional(),
+            apply_to_fill: z.boolean().optional(),
+            apply_to_stroke: z.boolean().optional(),
+          })
+          .optional(),
+      })
+      .optional(),
+    logo_size_ratio: z.number().min(0.05).max(0.3).optional(),
+    frame: z
+      .object({
+        frame_type: z.enum(['simple', 'rounded', 'decorated', 'bubble', 'speech', 'badge']),
+        text: z.string().min(1).max(50).optional(),
+        text_size: z.number().min(10).max(20).optional(),
+        text_font: z.string().optional(),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+        background_color: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+        text_position: z.enum(['top', 'bottom', 'left', 'right']),
+        padding: z.number().min(5).max(20).optional(),
+        border_width: z.number().min(1).max(5).optional(),
+        corner_radius: z.number().min(0).max(20).optional(),
+      })
+      .optional(),
+  })
+  .optional();
 
 const qrV3RequestSchema = z.object({
   data: z.string().min(1).max(2953), // QR v40 max capacity
-  options: z.object({
-    error_correction: z.enum(['L', 'M', 'Q', 'H']).optional(),
-    customization: customizationSchema,
-  }).optional(),
+  options: z
+    .object({
+      error_correction: z.enum(['L', 'M', 'Q', 'H']).optional(),
+      customization: customizationSchema,
+    })
+    .optional(),
 });
 
 // Tipo para la respuesta v3
@@ -142,6 +489,23 @@ router.post(
         }
       }
 
+      // Calcular scannability score
+      let scannabilityAnalysis = null;
+      if (rustResponse.success && options?.customization) {
+        try {
+          scannabilityAnalysis = scannabilityService.calculateScore(options.customization);
+          logger.info('Scannability score calculated', {
+            score: scannabilityAnalysis.score,
+            issueCount: scannabilityAnalysis.issues.length,
+          });
+        } catch (scoreError) {
+          logger.error('Failed to calculate scannability score', {
+            error: scoreError,
+          });
+          // No fallar la solicitud por esto
+        }
+      }
+
       // Agregar tiempo total de procesamiento
       const totalTime = Date.now() - startTime;
 
@@ -153,6 +517,8 @@ router.post(
           total_processing_time_ms: totalTime,
           backend_version: '1.0.0',
         },
+        // Incluir análisis de escaneabilidad si está disponible
+        ...(scannabilityAnalysis && { scannability: scannabilityAnalysis }),
       });
     } catch (error: any) {
       logger.error('QR v3 generation error', {
@@ -212,6 +578,12 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
       dataLength: data.length,
       hasGradient: !!options?.customization?.gradient,
       hasEffects: !!options?.customization?.effects,
+      hasSelectiveEffects: !!options?.customization?.selective_effects,
+      selectiveEffectsComponents: options?.customization?.selective_effects
+        ? Object.keys(options.customization.selective_effects).filter(
+            (key) => options.customization.selective_effects[key] != null
+          )
+        : [],
       options,
     });
 
@@ -227,9 +599,73 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
                 colors: options.customization.colors,
                 gradient: options.customization.gradient,
                 eye_shape: options.customization.eye_shape || options.customization.eyeShape,
+                eye_border_style:
+                  options.customization.eye_border_style || options.customization.eyeBorderStyle,
+                eye_center_style:
+                  options.customization.eye_center_style || options.customization.eyeCenterStyle,
                 data_pattern:
                   options.customization.data_pattern || options.customization.dataPattern,
                 effects: options.customization.effects,
+                selective_effects: options.customization.selective_effects
+                  ? {
+                      ...(options.customization.selective_effects.eyes && {
+                        eyes: {
+                          ...options.customization.selective_effects.eyes,
+                          effects: options.customization.selective_effects.eyes.effects?.map(
+                            (effect) => {
+                              const { type, ...otherProps } = effect;
+                              return {
+                                ...otherProps,
+                                effect_type: type || effect.effect_type,
+                              };
+                            }
+                          ),
+                        },
+                      }),
+                      ...(options.customization.selective_effects.data && {
+                        data: {
+                          ...options.customization.selective_effects.data,
+                          effects: options.customization.selective_effects.data.effects?.map(
+                            (effect) => {
+                              const { type, ...otherProps } = effect;
+                              return {
+                                ...otherProps,
+                                effect_type: type || effect.effect_type,
+                              };
+                            }
+                          ),
+                        },
+                      }),
+                      ...(options.customization.selective_effects.frame && {
+                        frame: {
+                          ...options.customization.selective_effects.frame,
+                          effects: options.customization.selective_effects.frame.effects?.map(
+                            (effect) => {
+                              const { type, ...otherProps } = effect;
+                              return {
+                                ...otherProps,
+                                effect_type: type || effect.effect_type,
+                              };
+                            }
+                          ),
+                        },
+                      }),
+                      ...(options.customization.selective_effects.global && {
+                        global: {
+                          ...options.customization.selective_effects.global,
+                          effects: options.customization.selective_effects.global.effects?.map(
+                            (effect) => {
+                              const { type, ...otherProps } = effect;
+                              return {
+                                ...otherProps,
+                                effect_type: type || effect.effect_type,
+                              };
+                            }
+                          ),
+                        },
+                      }),
+                    }
+                  : undefined,
                 frame_style: options.customization.frame_style || options.customization.frameStyle,
                 logo: options.customization.logo,
                 logo_size_ratio:
@@ -244,6 +680,11 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
       data,
       options: transformedOptions,
       logoSizeRatio: transformedOptions?.customization?.logo_size_ratio,
+      selectiveEffects: JSON.stringify(
+        transformedOptions?.customization?.selective_effects,
+        null,
+        2
+      ),
     });
 
     // Llamar al generador Rust v3 Enhanced
@@ -275,6 +716,23 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
       }
     }
 
+    // Calcular scannability score
+    let scannabilityAnalysis = null;
+    if (rustResponse.success && options?.customization) {
+      try {
+        scannabilityAnalysis = scannabilityService.calculateScore(options.customization);
+        logger.info('Scannability score calculated', {
+          score: scannabilityAnalysis.score,
+          issueCount: scannabilityAnalysis.issues.length,
+        });
+      } catch (scoreError) {
+        logger.error('Failed to calculate scannability score', {
+          error: scoreError,
+        });
+        // No fallar la solicitud por esto
+      }
+    }
+
     // Agregar tiempo total de procesamiento
     const totalTime = Date.now() - startTime;
 
@@ -286,6 +744,8 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
         total_processing_time_ms: totalTime,
         backend_version: '1.0.0-enhanced',
       },
+      // Incluir análisis de escaneabilidad si está disponible
+      ...(scannabilityAnalysis && { scannability: scannabilityAnalysis }),
     });
   } catch (error: any) {
     logger.error('QR v3 Enhanced generation error', {
@@ -339,7 +799,7 @@ router.get('/capabilities', async (req, res) => {
     version: '3.0.0',
     features: {
       structured_data: true,
-      ultrathink: true,
+      qr_v3: true,
       quiet_zone_configurable: false, // Hardcoded to 4
       max_data_length: 2953,
       error_correction_levels: ['L', 'M', 'Q', 'H'],
@@ -352,13 +812,95 @@ router.get('/capabilities', async (req, res) => {
           'circle',
           'dot',
           'leaf',
+          'bars_horizontal',
+          'bars_vertical',
           'star',
           'diamond',
+          'cross',
+          'hexagon',
           'heart',
           'shield',
+          'crystal',
+          'flower',
+          'arrow',
         ],
-        data_patterns: ['square', 'dots', 'rounded', 'circular', 'star', 'cross', 'wave', 'mosaic'],
-        effects: ['shadow', 'glow', 'blur', 'noise', 'vintage'],
+        eye_border_styles: [
+          'square',
+          'rounded_square',
+          'circle',
+          'quarter_round',
+          'cut_corner',
+          'thick_border',
+          'double_border',
+          'diamond',
+          'hexagon',
+          'cross',
+          'star',
+          'leaf',
+          'arrow',
+          // Formas orgánicas (Fase 2.1)
+          'teardrop',
+          'wave',
+          'petal',
+          'crystal',
+          'flame',
+          'organic',
+        ],
+        eye_center_styles: [
+          'square',
+          'rounded_square',
+          'circle',
+          'dot',
+          'star',
+          'diamond',
+          'cross',
+          'plus',
+        ],
+        data_patterns: [
+          'square',
+          'dots',
+          'rounded',
+          'vertical',
+          'horizontal',
+          'diamond',
+          'circular',
+          'star',
+          'cross',
+          'random',
+          'wave',
+          'mosaic',
+        ],
+        effects: [
+          'shadow',
+          'glow',
+          'blur',
+          'noise',
+          'vintage',
+          'distort',
+          'emboss',
+          'outline',
+          'drop_shadow',
+          'inner_shadow',
+        ],
+        selective_effects: {
+          supported_components: ['eyes', 'data', 'frame', 'global'],
+          blend_modes: [
+            'normal',
+            'multiply',
+            'screen',
+            'overlay',
+            'soft_light',
+            'hard_light',
+            'color_dodge',
+            'color_burn',
+            'darken',
+            'lighten',
+            'difference',
+            'exclusion',
+          ],
+          max_effects_per_component: 3,
+          render_priority_range: [0, 10],
+        },
         overlays: ['logo', 'frame'],
       },
     },
@@ -369,6 +911,186 @@ router.get('/capabilities', async (req, res) => {
       customization: 'Full visual customization with enhanced API',
     },
   });
+});
+
+// Batch generation endpoint
+const batchRequestSchema = z.object({
+  codes: z.array(qrV3RequestSchema).min(1).max(50),
+  options: z
+    .object({
+      maxConcurrent: z.number().min(1).max(20).default(10),
+      includeMetadata: z.boolean().default(true),
+      stopOnError: z.boolean().default(false),
+    })
+    .optional(),
+});
+
+router.post('/batch', generationRateLimit, async (req, res) => {
+  try {
+    const validation = batchRequestSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid batch request',
+          details: validation.error.errors,
+        },
+      });
+    }
+
+    const { codes, options } = validation.data;
+    const results = [];
+    const rustGeneratorUrl = process.env.RUST_GENERATOR_URL || 'http://localhost:3002';
+
+    // Process in chunks for better performance
+    const chunkSize = options?.maxConcurrent || 10;
+    for (let i = 0; i < codes.length; i += chunkSize) {
+      const chunk = codes.slice(i, i + chunkSize);
+      const promises = chunk.map(async (codeRequest) => {
+        try {
+          const response = await axios.post(`${rustGeneratorUrl}/api/v3/qr/enhanced`, codeRequest, {
+            timeout: 5000,
+          });
+          return {
+            success: true,
+            data: response.data.data,
+            index: i + chunk.indexOf(codeRequest),
+          };
+        } catch (error) {
+          if (options?.stopOnError) {
+            throw error;
+          }
+          return {
+            success: false,
+            error: error.message,
+            index: i + chunk.indexOf(codeRequest),
+          };
+        }
+      });
+
+      const chunkResults = await Promise.all(promises);
+      results.push(...chunkResults);
+    }
+
+    const successful = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success).length;
+
+    res.json({
+      success: true,
+      data: {
+        results: options?.includeMetadata ? results : results.map((r) => r.data),
+        summary: {
+          total: codes.length,
+          successful,
+          failed,
+          processingTime: Date.now() - req.startTime,
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('Batch generation error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'BATCH_GENERATION_ERROR',
+        message: error.message,
+      },
+    });
+  }
+});
+
+// Preview endpoint with GET support
+router.get('/preview', generationRateLimit, async (req, res) => {
+  try {
+    // Parse query parameters
+    const data = req.query.data as string;
+    if (!data) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Data parameter is required',
+        },
+      });
+    }
+
+    // Build options from query params
+    const options: any = {
+      error_correction: req.query.error_correction || 'M',
+      customization: {},
+    };
+
+    // Parse customization options
+    if (req.query.eye_shape) {
+      options.customization.eye_shape = req.query.eye_shape;
+    }
+    if (req.query.data_pattern) {
+      options.customization.data_pattern = req.query.data_pattern;
+    }
+    if (req.query.fg_color || req.query.bg_color) {
+      options.customization.colors = {
+        foreground: req.query.fg_color || '#000000',
+        background: req.query.bg_color || '#FFFFFF',
+      };
+    }
+
+    const rustGeneratorUrl = process.env.RUST_GENERATOR_URL || 'http://localhost:3002';
+
+    // Generate QR
+    const response = await axios.post(
+      `${rustGeneratorUrl}/api/v3/qr/enhanced`,
+      { data, options },
+      { timeout: 5000 }
+    );
+
+    // Cache for 1 hour
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.json({
+      success: true,
+      data: response.data.data,
+      metadata: {
+        cached: false,
+        engine_version: '3.0.0',
+      },
+    });
+  } catch (error) {
+    logger.error('Preview generation error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'PREVIEW_ERROR',
+        message: error.message,
+      },
+    });
+  }
+});
+
+// Validation endpoint (already exists in v2, keeping for compatibility)
+router.post('/validate', async (req, res) => {
+  try {
+    const validation = qrV3RequestSchema.safeParse(req.body);
+
+    res.json({
+      success: validation.success,
+      errors: validation.success ? null : validation.error.errors,
+      metadata: validation.success
+        ? {
+            dataLength: validation.data.data.length,
+            maxCapacity: 2953,
+            estimatedVersion: Math.ceil(validation.data.data.length / 100),
+          }
+        : null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: error.message,
+      },
+    });
+  }
 });
 
 export default router;

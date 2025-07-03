@@ -144,6 +144,8 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
                     _ => None
                 }
             }),
+            eye_border_style: None,
+            eye_center_style: None,
             data_pattern: options.data_pattern.as_ref().and_then(|s| {
                 // Convert string to DataPattern enum
                 match s.as_str() {
@@ -287,6 +289,7 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
                     _ => None
                 }
             }),
+            selective_effects: None,
             logo_size_ratio: None,
         })
     } else {

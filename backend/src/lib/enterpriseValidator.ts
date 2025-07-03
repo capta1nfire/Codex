@@ -61,20 +61,27 @@ async function stealthValidation(url: string): Promise<ValidationResult> {
     const timing = getRealisticTiming();
 
     // Realistic pre-request delay (browsers don't connect instantly)
-    await new Promise((resolve) => setTimeout(resolve, timing.preDelay));
+    // Skip delay for .edu.co domains to improve speed
+    if (!urlObj.hostname.endsWith('.edu.co')) {
+      await new Promise((resolve) => setTimeout(resolve, timing.preDelay));
+    }
 
+    // Check if this is an .edu.co domain (common SSL certificate issues)
+    const isEduCoDomain = urlObj.hostname.endsWith('.edu.co');
+
+    // For better performance, use GET directly to get both validation and metadata in one request
     const axiosConfig: any = {
-      method: 'HEAD',
+      method: 'GET',
       url: url,
-      timeout: 8000,
+      timeout: 3000, // Reduced from 8000ms to 3000ms
       maxRedirects: 5,
-      headers,
+      headers: generateEnterpriseHeaders(url, false), // Use GET headers
       validateStatus: () => true, // Don't throw on 4xx/5xx
       httpsAgent: new https.Agent({
         ...tlsConfig,
         keepAlive: true,
         keepAliveMsecs: 1000,
-        rejectUnauthorized: true,
+        rejectUnauthorized: !isEduCoDomain, // Allow self-signed for .edu.co domains
       }),
     };
 
@@ -87,10 +94,48 @@ async function stealthValidation(url: string): Promise<ValidationResult> {
 
     console.log(`[StealthValidator] Response: ${response.status} in ${responseTime}ms`);
 
+    // Extract metadata directly from the GET response
+    let title, description, favicon;
+    if (response.data && response.headers['content-type']?.includes('text/html')) {
+      try {
+        const cheerio = await import('cheerio');
+        const $ = cheerio.load(response.data);
+        title = $('title').text()?.trim();
+        description = $('meta[name="description"]').attr('content')?.trim();
+
+        // Enhanced favicon detection with multiple fallbacks
+        favicon =
+          $('link[rel="icon"]').attr('href') ||
+          $('link[rel="shortcut icon"]').attr('href') ||
+          $('link[rel="apple-touch-icon"]').attr('href') ||
+          $('link[rel="apple-touch-icon-precomposed"]').attr('href');
+
+        // Check for favicon.ico at root before falling back to og:image
+        if (!favicon) {
+          // For sites like Apple.com that use favicon.ico without link tags
+          favicon = '/favicon.ico';
+        }
+
+        // Convert relative favicon URLs to absolute
+        if (favicon && !favicon.startsWith('http')) {
+          const baseUrl = new URL(url);
+          favicon = new URL(favicon, baseUrl.origin).toString();
+        }
+        console.log(
+          `[StealthValidator] Metadata extracted: title=${title?.substring(0, 50)}..., favicon=${favicon}`
+        );
+      } catch (metadataError: any) {
+        console.log(`[StealthValidator] Metadata extraction failed: ${metadataError.message}`);
+      }
+    }
+
     return {
       exists,
       accessible,
       metadata: {
+        title,
+        description,
+        favicon,
         statusCode: response.status,
         responseTime,
         redirectUrl: response.request?.res?.responseUrl || url,
@@ -127,6 +172,7 @@ async function stealthValidation(url: string): Promise<ValidationResult> {
 async function enhancedValidation(url: string): Promise<ValidationResult> {
   console.log(`[EnhancedValidator] Starting enhanced validation for: ${url}`);
 
+  const urlObj = new URL(url);
   const strategies = [
     { method: 'GET', timeout: 5000, headers: generateEnterpriseHeaders(url, false) },
     { method: 'GET', timeout: 8000, headers: generateEnterpriseHeaders(url, false) },
@@ -141,11 +187,17 @@ async function enhancedValidation(url: string): Promise<ValidationResult> {
       // Progressive delays between attempts
       await new Promise((resolve) => setTimeout(resolve, timing.betweenRequests * (i + 1)));
 
+      const urlObj = new URL(url);
+      const isEduCoDomain = urlObj.hostname.endsWith('.edu.co');
+
       const response = await axios({
         ...strategy,
         url,
         maxRedirects: 5,
         validateStatus: () => true,
+        httpsAgent: new https.Agent({
+          rejectUnauthorized: !isEduCoDomain,
+        }),
       });
 
       if (response.status < 500) {
@@ -160,7 +212,18 @@ async function enhancedValidation(url: string): Promise<ValidationResult> {
           const $ = cheerio.load(response.data);
           title = $('title').text()?.trim();
           description = $('meta[name="description"]').attr('content')?.trim();
-          favicon = $('link[rel="icon"], link[rel="shortcut icon"]').attr('href');
+          // Enhanced favicon detection - prioritizing actual favicons over og:image
+          favicon =
+            $('link[rel="icon"]').attr('href') ||
+            $('link[rel="shortcut icon"]').attr('href') ||
+            $('link[rel="apple-touch-icon"]').attr('href') ||
+            $('link[rel="apple-touch-icon-precomposed"]').attr('href');
+
+          // Check for favicon.ico at root before falling back to og:image
+          if (!favicon) {
+            // For sites like Apple.com that use favicon.ico without link tags
+            favicon = '/favicon.ico';
+          }
 
           // Convert relative favicon URLs to absolute
           if (favicon && !favicon.startsWith('http')) {
@@ -193,6 +256,75 @@ async function enhancedValidation(url: string): Promise<ValidationResult> {
         return { exists: false, accessible: false, method: 'enhanced', attempts: i + 1 };
       }
 
+      // For SSL certificate errors on .edu.co domains, try one more time with metadata extraction
+      if (
+        (error.message.includes('certificate') || error.message.includes('unable to verify')) &&
+        urlObj.hostname.endsWith('.edu.co') &&
+        i === strategies.length - 1
+      ) {
+        console.log(
+          `[EnhancedValidator] SSL certificate issue for .edu.co domain, attempting metadata extraction...`
+        );
+
+        try {
+          const getResponse = await axios({
+            method: 'GET',
+            url,
+            timeout: 8000,
+            maxRedirects: 5,
+            headers: generateEnterpriseHeaders(url, false),
+            validateStatus: () => true,
+            httpsAgent: new https.Agent({
+              rejectUnauthorized: false, // Allow self-signed certificates for .edu.co
+            }),
+          });
+
+          if (getResponse.data && getResponse.headers['content-type']?.includes('text/html')) {
+            const $ = cheerio.load(getResponse.data);
+            const title = $('title').text()?.trim();
+            const description = $('meta[name="description"]').attr('content')?.trim();
+            // Enhanced favicon detection - using proven logic from previous version
+            let favicon =
+              $('link[rel="icon"]').attr('href') ||
+              $('link[rel="shortcut icon"]').attr('href') ||
+              $('link[rel="apple-touch-icon"]').attr('href') ||
+              $('link[rel="apple-touch-icon-precomposed"]').attr('href') ||
+              $('meta[property="og:image"]').attr('content'); // Fallback to og:image
+
+            // Additional fallback - check for favicon.ico at root
+            if (!favicon) {
+              favicon = '/favicon.ico';
+            }
+
+            if (favicon && !favicon.startsWith('http')) {
+              const baseUrl = new URL(url);
+              favicon = new URL(favicon, baseUrl.origin).toString();
+            }
+
+            return {
+              exists: true,
+              accessible: getResponse.status >= 200 && getResponse.status < 400,
+              metadata: {
+                title,
+                description,
+                favicon,
+                statusCode: getResponse.status,
+                contentType: getResponse.headers['content-type'],
+                server: 'SSL Certificate Issue',
+              },
+              method: 'enhanced',
+              attempts: strategies.length + 1,
+              debugInfo: {
+                note: 'SSL certificate issue bypassed for .edu.co domain',
+                lastError: error.message,
+              },
+            };
+          }
+        } catch (metadataError: any) {
+          console.log(`[EnhancedValidator] Metadata extraction failed: ${metadataError.message}`);
+        }
+      }
+
       // Continue to next strategy
     }
   }
@@ -222,6 +354,9 @@ async function behavioralValidation(url: string): Promise<ValidationResult> {
     console.log(`[BehavioralValidator] Simulating DNS prefetch...`);
     await new Promise((resolve) => setTimeout(resolve, 50));
 
+    // Check if this is an .edu.co domain (common SSL certificate issues)
+    const isEduCoDomain = urlObj.hostname.endsWith('.edu.co');
+
     // Step 2: Make initial connection with realistic headers
     const response1 = await axios({
       method: 'GET',
@@ -235,6 +370,9 @@ async function behavioralValidation(url: string): Promise<ValidationResult> {
         'Sec-Fetch-User': '?1',
       },
       validateStatus: () => true,
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: !isEduCoDomain,
+      }),
     });
 
     if (response1.status < 500) {
@@ -254,6 +392,9 @@ async function behavioralValidation(url: string): Promise<ValidationResult> {
             'Sec-Fetch-Dest': 'image',
           },
           validateStatus: () => true,
+          httpsAgent: new https.Agent({
+            rejectUnauthorized: !isEduCoDomain,
+          }),
         }).catch(() => null)
       );
 
@@ -266,7 +407,17 @@ async function behavioralValidation(url: string): Promise<ValidationResult> {
         const $ = cheerio.load(response1.data);
         title = $('title').text()?.trim();
         description = $('meta[name="description"]').attr('content')?.trim();
-        favicon = $('link[rel="icon"], link[rel="shortcut icon"]').attr('href');
+        // Enhanced favicon detection - same logic as stealth validator
+        favicon =
+          $('link[rel="icon"]').attr('href') ||
+          $('link[rel="shortcut icon"]').attr('href') ||
+          $('link[rel="apple-touch-icon"]').attr('href') ||
+          $('link[rel="apple-touch-icon-precomposed"]').attr('href');
+
+        // Check for favicon.ico at root
+        if (!favicon) {
+          favicon = '/favicon.ico';
+        }
 
         if (favicon && !favicon.startsWith('http')) {
           favicon = new URL(favicon, `${urlObj.protocol}//${urlObj.host}`).toString();

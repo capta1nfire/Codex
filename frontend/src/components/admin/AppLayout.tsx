@@ -22,7 +22,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       {/* Main Content Area with dynamic sidebar offset */}
       <div 
         className={cn(
-          "transition-all duration-300 ease-smooth min-h-screen",
+          "transition-[margin-left] duration-300 ease-smooth min-h-screen",
           // Desktop: Ajustar margen dinámicamente según el estado del sidebar
           isCollapsed ? "lg:ml-16" : "lg:ml-72", // w-16 = 64px collapsed, w-72 = 288px expanded
           // Mobile: Sin margen

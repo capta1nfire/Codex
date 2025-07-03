@@ -415,6 +415,8 @@ mod tests {
             quiet_zone: 4,
             customization: Some(crate::engine::types::QrCustomization {
                 eye_shape: None,
+                eye_border_style: None,
+                eye_center_style: None,
                 data_pattern: None,
                 colors: None,
                 gradient: None,

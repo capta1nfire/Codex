@@ -2,9 +2,92 @@
 
 All notable changes to the CODEX project are documented in the [docs/](./docs/) directory.
 
+## 2025-07-03
+
+### ✅ Added
+- **Transparent Background Toggle**: Control de fondo transparente para códigos QR
+  - **Ubicación**: Sección Color, disponible para modos sólido y gradiente
+  - **Comportamiento**: Cambio instantáneo sin regeneración del QR
+  - **Visual**: Fondo blanco por defecto, transparente muestra el contenedor verde
+  - **Optimización**: Solo cambio visual frontend, sin llamadas al backend
+
+### 🔧 Fixed  
+- **Gradient Borders Toggle**: Corregido funcionamiento del toggle "Aplicar bordes al gradiente"
+  - **Problema**: Los bordes se mostraban siempre, ignorando el estado del toggle
+  - **Solución**: Verificar flag `stroke.enabled` en lugar de solo existencia del objeto
+  - **Resultado**: Bordes blancos semitransparentes solo cuando el toggle está activado
+  - **Archivos**: EnhancedQRV3.tsx con condiciones `stroke?.enabled`
+
+### 🎨 Fixed
+- **QR Code Preview Border**: Eliminado borde de colores gradiente del generador
+  - **Eliminado**: Borde gradiente azul-púrpura-rosa en PreviewSectionV3.tsx
+  - **Afectados**: Estado de carga, vista previa del código y estado vacío
+  - **Resultado**: Interfaz más limpia y profesional con solo shadow estándar
+
+### 🛡️ Protected
+- **Critical Code Sections**: Agregados comentarios de protección en código sensible
+  - **Transparent Background Logic**: EnhancedQRV3.tsx y GenerationOptions.tsx
+  - **Gradient Borders Logic**: EnhancedQRV3.tsx stroke rendering
+  - **Warnings**: Emojis 🚨 y texto explicativo para prevenir modificaciones accidentales
+
+## 2025-06-30
+
+### 🔧 Enhanced
+- **URL Validation Test Scripts**: Consolidados en un único script unificado
+  - **Nuevo script**: `testValidation.ts` con modos flexible (quick/full/category)
+  - **Eliminados**: `testSimplifiedValidation.ts` y `testUrlValidation.ts` (redundantes)
+  - **Modos**: `--mode quick` (25 URLs), `--mode full` (137 URLs), `--category [name]`
+  - **Mejora**: Evita duplicación y mejora mantenibilidad
+
+### 🎯 Fixed
+- **QR Eye Rendering**: Corregido problema de ojos circulares simples vs concéntricos
+  - **Problema**: Modo unificado (`eye_shape: 'circle'`) generaba ojos de 2 capas
+  - **Solución**: Estilos separados (`use_separated_eye_styles: true`) para anillos concéntricos de 3 capas
+  - **Efecto**: Ojos ahora muestran: anillo azul exterior → anillo blanco medio → centro azul
+  - **Archivo**: `/frontend/src/constants/defaultFormValues.ts` (cambio quirúrgico en defaults)
+
+### 📝 Updated
+- **Marketing Documentation**: Alineada con realidad del código
+  - **Actualizado**: `URL_VALIDATION_FEATURE_BRIEF.md` para reflejar capacidades reales
+  - **Eliminadas**: Promesas exageradas (5 navegadores, anti-bot bypass, 95% success rate)
+  - **Agregada**: Nota de transparencia sobre simplificación del sistema
+  - **Nuevo enfoque**: Honesto sobre beneficios reales sin sobrevender
+- **QR v3 Architecture**: Documentado problema/solución de eye styles configuration
+  - **Agregada**: Sección "Eye Styles Configuration" con ejemplos visuales
+  - **Explicado**: Diferencia entre modo unificado vs separado
+  - **Referenciado**: Implementación FLODEX en defaultFormValues.ts
+
+### 🚀 Enhanced
+- **Hybrid URL Validator**: Mejor de ambos mundos implementado
+  - **Nuevo método**: `hybrid` que combina HEAD + GET inteligentemente
+  - **Garantiza favicon**: SIEMPRE extrae favicon para sitios accesibles
+  - **Performance optimizado**: HEAD para chequeo rápido, GET solo cuando necesario
+  - **Fallback favicon.ico**: Busca en `/favicon.ico` si no está declarado
+  - **Tiempo promedio**: 500-800ms con metadata completa
+
 ## 2025-06-29
 
+### 🚀 Added
+- **QR Selective Effects System (Phase 2.3)**: Complete test interface for component-based effect application
+  - **Test page**: `/test-selective-effects` with comprehensive UI controls for testing selective effects
+  - **10 effect types**: shadow, glow, blur, noise, vintage, distort, emboss, outline, drop_shadow, inner_shadow
+  - **4 component targets**: Eyes, Data, Frame, Global with independent effect configurations
+  - **12 blend modes**: normal, multiply, screen, overlay, darken, lighten, color-dodge, color-burn, hard-light, soft-light, difference, exclusion
+  - **Advanced controls**: Intensity sliders (0.0-1.0), priority ordering, real-time preview
+  - **5 automated test cases**: Predefined configurations for quick validation
+  - **Debug tools**: JSON configuration display, server response inspection
+  - **Navigation integration**: Added to navbar with BETA badge and Sparkles icon
+  - **QRSelectiveRenderer component**: Handles SVG filter generation and application
+  - **Standalone HTML tester**: `test-selective-effects-simple.html` for API validation
+  - **Complete API integration**: Uses `/api/v3/qr/enhanced` endpoint with selective_effects parameter
+
 ### 🐛 Fixed
+- **CRITICAL Backend Startup**: Fixed backend service crashing due to ESM module error
+  - **Issue**: `browserFingerprinting.ts` used reserved word "protected" in variable names
+  - **Error**: `Transform failed with 2 errors: "protected" is a reserved word and cannot be used in an ECMAScript module`
+  - **Solution**: Renamed `protectedDomains` → `securityDomains` and `protectedDomain` → `securityDomain`
+  - **Impact**: Backend now starts properly, selective effects API `/api/v3/qr/enhanced` fully operational
+  - **Status**: All services (Frontend:3000, Backend:3004, Rust:3002) now running correctly
 - **Gradient Borders Toggle**: Fixed "Aplicar bordes al gradiente" toggle not working
   - Toggle now properly maps to `stroke_style.enabled` in QR v3 API
   - When enabled: applies subtle white borders around gradient with 0.1 width and 0.3 opacity

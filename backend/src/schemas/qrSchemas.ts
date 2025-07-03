@@ -96,7 +96,6 @@ const qrOptionsSchema = z
 
     // Colors
     foregroundColor: colorSchema.default('#000000'),
-    backgroundColor: colorSchema.default('#FFFFFF'),
     eyeColor: colorSchema.optional(),
 
     // Advanced features
@@ -123,7 +122,6 @@ export const qrPreviewSchema = z.object({
   eyeShape: z.enum(eyeShapes).optional(),
   dataPattern: z.enum(dataPatterns).optional(),
   fgColor: colorSchema.optional(),
-  bgColor: colorSchema.optional(),
   size: z.coerce.number().min(100).max(500).optional(),
 });
 

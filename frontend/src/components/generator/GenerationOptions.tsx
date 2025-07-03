@@ -20,6 +20,13 @@ import {
   Settings2, 
   ArrowLeftRight
 } from 'lucide-react';
+import { 
+  QR_V3_GRADIENTS, 
+  QR_V3_EYE_SHAPES, 
+  QR_V3_DATA_PATTERNS,
+  QR_V3_EYE_BORDER_STYLES,
+  QR_V3_EYE_CENTER_STYLES
+} from '@/constants/qrV3Options';
 
 // Importar dinámicamente AdvancedBarcodeOptions
 const AdvancedBarcodeOptions = dynamic(() => import('./AdvancedBarcodeOptions'), {
@@ -63,6 +70,19 @@ function GenerationOptions({
   
   // Calculate conditional visibility
   const isQrCode = selectedType === 'qrcode';
+  
+  // Watch the separated eye styles toggle specifically
+  const useSeparatedEyeStyles = watch('options.use_separated_eye_styles');
+  
+  // Force re-render when toggle changes
+  React.useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'options.use_separated_eye_styles') {
+        console.log('[GenerationOptions] Toggle changed via subscription:', value.options?.use_separated_eye_styles);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [watch]);
 
 
   // ColorInput como componente interno memoizado
@@ -71,7 +91,7 @@ function GenerationOptions({
     label, 
     defaultValue 
   }: { 
-    name: 'options.fgcolor' | 'options.bgcolor' | 'options.gradient_color1' | 'options.gradient_color2'; 
+    name: 'options.fgcolor' | 'options.gradient_color1' | 'options.gradient_color2'; 
     label: string; 
     defaultValue: string;
   }) => (
@@ -209,18 +229,50 @@ function GenerationOptions({
 
                 {/* Color Controls */}
                 {!watch('options.gradient_enabled') ? (
-                  // Solid Colors Mode - 2 columnas
-                  <div className="grid grid-cols-2 gap-4">
+                  // Solid Color Mode
+                  <div className="space-y-4">
                     <ColorInput 
                       name="options.fgcolor" 
                       label="Color Principal" 
                       defaultValue="#000000" 
                     />
-                    <ColorInput 
-                      name="options.bgcolor" 
-                      label="Color Fondo" 
-                      defaultValue="#FFFFFF" 
-                    />
+                    
+                    {/* Background Toggle - NOW WORKING via frontend manipulation */}
+                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="transparent-bg" className="text-sm font-medium cursor-pointer">
+                          Fondo Transparente
+                        </Label>
+                        <Controller
+                          name="options.transparent_background"
+                          control={control}
+                          defaultValue={false}
+                          render={({ field }) => (
+                            <Switch
+                              id="transparent-bg"
+                              checked={field.value}
+                              onCheckedChange={(checked) => {
+                                // 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
+                                // This toggle ONLY changes the visual appearance of the QR background
+                                // It does NOT regenerate the QR code to avoid unnecessary backend calls
+                                // The change is instant and handled purely in the frontend
+                                // ⚠️ DO NOT add onSubmit() or any form regeneration here ⚠️
+                                field.onChange(checked);
+                              }}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Background Color - Always show since transparent is not supported */}
+                    <div className="animate-in slide-in-from-top-2 duration-200">
+                      <ColorInput 
+                        name="options.bgcolor" 
+                        label="Color de Fondo" 
+                        defaultValue="#FFFFFF" 
+                      />
+                    </div>
                   </div>
                 ) : (
                   // Gradient Mode - Organizado en una fila de 4 columnas
@@ -251,18 +303,14 @@ function GenerationOptions({
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="radial">
-                                  <span className="flex items-center gap-2">
-                                    <span className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></span>
-                                    Radial
-                                  </span>
-                                </SelectItem>
-                                <SelectItem value="linear">
-                                  <span className="flex items-center gap-2">
-                                    <span className="w-4 h-4 bg-gradient-to-r from-blue-500 to-purple-500"></span>
-                                    Lineal
-                                  </span>
-                                </SelectItem>
+                                {QR_V3_GRADIENTS.map((gradient) => (
+                                  <SelectItem key={gradient.value} value={gradient.value}>
+                                    <span className="flex items-center gap-2">
+                                      <span className={cn("w-4 h-4", gradient.icon, "from-blue-500 to-purple-500")}></span>
+                                      {gradient.label}
+                                    </span>
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           )}
@@ -277,10 +325,10 @@ function GenerationOptions({
                             <Controller
                               name="options.gradient_borders"
                               control={control}
-                              defaultValue={true}
+                              defaultValue={false}
                               render={({ field }) => (
                                   <Switch
-                                    checked={field.value ?? true}
+                                    checked={field.value ?? false}
                                     onCheckedChange={(checked) => {
                                       field.onChange(checked);
                                       // Trigger form re-generation
@@ -433,6 +481,43 @@ function GenerationOptions({
                       </div>
                     )}
 
+                    {/* Background Toggle for Gradient Mode - NOW WORKING via frontend manipulation */}
+                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="transparent-bg-gradient" className="text-sm font-medium cursor-pointer">
+                          Fondo Transparente
+                        </Label>
+                        <Controller
+                          name="options.transparent_background"
+                          control={control}
+                          defaultValue={false}
+                          render={({ field }) => (
+                            <Switch
+                              id="transparent-bg-gradient"
+                              checked={field.value}
+                              onCheckedChange={(checked) => {
+                                // 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
+                                // This toggle ONLY changes the visual appearance of the QR background
+                                // It does NOT regenerate the QR code to avoid unnecessary backend calls
+                                // The change is instant and handled purely in the frontend
+                                // ⚠️ DO NOT add onSubmit() or any form regeneration here ⚠️
+                                field.onChange(checked);
+                              }}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Background Color for Gradient Mode - Always show since transparent is not supported */}
+                    <div className="animate-in slide-in-from-top-2 duration-200">
+                      <ColorInput 
+                        name="options.bgcolor" 
+                        label="Color de Fondo" 
+                        defaultValue="#FFFFFF" 
+                      />
+                    </div>
+
                   </div>
                 )}
               </div>
@@ -461,52 +546,176 @@ function GenerationOptions({
           <div className="animate-in fade-in-50 duration-200 space-y-4">
             {/* Eye Shapes Section */}
             <div className="space-y-3">
-              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Forma de Ojos (Esquinas)
-              </Label>
-              <Controller
-                name="options.eye_shape"
-                control={control}
-                defaultValue="square"
-                render={({ field }) => (
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { value: 'square', label: 'Cuadrado', icon: '◼' },
-                      { value: 'rounded_square', label: 'Redondeado', icon: '▢' },
-                      { value: 'circle', label: 'Círculo', icon: '●' },
-                      { value: 'dot', label: 'Punto', icon: '•' },
-                      { value: 'leaf', label: 'Hoja', icon: '🍃' },
-                      { value: 'bars-horizontal', label: 'Barras Horiz.', icon: '☰' },
-                      { value: 'bars-vertical', label: 'Barras Vert.', icon: '☷' },
-                      { value: 'star', label: 'Estrella', icon: '⭐' },
-                      { value: 'diamond', label: 'Diamante', icon: '◆' },
-                      { value: 'cross', label: 'Cruz', icon: '➕' },
-                      { value: 'hexagon', label: 'Hexágono', icon: '⬢' },
-                      { value: 'heart', label: 'Corazón', icon: '❤️' },
-                      { value: 'shield', label: 'Escudo', icon: '🛡️' },
-                      { value: 'crystal', label: 'Cristal', icon: '💎' },
-                      { value: 'flower', label: 'Flor', icon: '🌸' },
-                      { value: 'arrow', label: 'Flecha', icon: '⬆️' },
-                      { value: 'custom', label: 'Personalizado', icon: '✨' },
-                    ].map((shape) => (
-                      <button
-                        key={shape.value}
-                        type="button"
-                        onClick={() => field.onChange(shape.value)}
-                        className={cn(
-                          "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
-                          field.value === shape.value
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                        )}
-                      >
-                        <span className="text-2xl mb-1">{shape.icon}</span>
-                        <span className="text-xs font-medium">{shape.label}</span>
-                      </button>
-                    ))}
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Forma de Ojos (Esquinas)
+                </Label>
+                <Controller
+                  name="options.use_separated_eye_styles"
+                  control={control}
+                  defaultValue={true}
+                  render={({ field }) => {
+                    console.log('[GenerationOptions] Switch field value:', field.value);
+                    return (
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="separated-eyes" className="text-xs text-slate-600 dark:text-slate-400">
+                        Estilos separados
+                      </Label>
+                      <Switch
+                        id="separated-eyes"
+                        checked={field.value || false}
+                        onCheckedChange={(checked) => {
+                          console.log('[GenerationOptions] Switch onCheckedChange:', checked);
+                          field.onChange(checked);
+                          // Clear unified style when enabling separated styles
+                          if (checked) {
+                            setValue('options.eye_shape', undefined, { shouldValidate: true });
+                            // Set default values for separated styles
+                            setValue('options.eye_border_style', 'square', { shouldValidate: true });
+                            setValue('options.eye_center_style', 'square', { shouldValidate: true });
+                          } else {
+                            // Clear separated styles when disabling
+                            setValue('options.eye_border_style', undefined, { shouldValidate: true });
+                            setValue('options.eye_center_style', undefined, { shouldValidate: true });
+                            // Set default unified style
+                            setValue('options.eye_shape', 'square', { shouldValidate: true });
+                          }
+                          // Force immediate form update and re-render
+                          setValue('options.use_separated_eye_styles', checked, { shouldValidate: true });
+                          
+                          // Trigger form re-generation with delay to ensure state is updated
+                          setTimeout(() => {
+                            const currentFormValues = getValues();
+                            onSubmit(currentFormValues);
+                          }, 0);
+                        }}
+                        className="scale-90"
+                      />
+                    </div>
+                    );
+                  }}
+                />
+              </div>
+
+              {/* Unified Eye Shape Selection */}
+              {!useSeparatedEyeStyles && (
+                <Controller
+                  key="unified-style"
+                  name="options.eye_shape"
+                  control={control}
+                  defaultValue="square"
+                  render={({ field }) => (
+                    <div className="grid grid-cols-3 gap-2">
+                      {QR_V3_EYE_SHAPES.map((shape) => (
+                        <button
+                          key={shape.value}
+                          type="button"
+                          onClick={() => field.onChange(shape.value)}
+                          className={cn(
+                            "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
+                            field.value === shape.value
+                              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                              : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                          )}
+                        >
+                          <span className="text-2xl mb-1">{shape.icon}</span>
+                          <span className="text-xs font-medium">{shape.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                />
+              )}
+
+              {/* Separated Eye Styles */}
+              {console.log('[GenerationOptions] use_separated_eye_styles value:', useSeparatedEyeStyles)}
+              {useSeparatedEyeStyles && (
+                <div key="separated-styles" className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+                  {/* Eye Border Style */}
+                  <div>
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
+                      Estilo del Borde
+                    </Label>
+                    <Controller
+                      name="options.eye_border_style"
+                      control={control}
+                      defaultValue="square"
+                      render={({ field }) => (
+                        <Select 
+                          value={field.value || 'square'} 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Trigger form re-generation
+                            setTimeout(() => {
+                              const currentFormValues = getValues();
+                              onSubmit(currentFormValues);
+                            }, 100);
+                          }}
+                        >
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Selecciona un estilo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {QR_V3_EYE_BORDER_STYLES.map((shape) => (
+                              <SelectItem key={shape.value} value={shape.value}>
+                                <span className="flex items-center gap-2">
+                                  <span className="text-lg">{shape.icon}</span>
+                                  <span>{shape.label}</span>
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
-                )}
-              />
+
+                  {/* Eye Center Style */}
+                  <div>
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
+                      Estilo del Centro
+                    </Label>
+                    <Controller
+                      name="options.eye_center_style"
+                      control={control}
+                      defaultValue="square"
+                      render={({ field }) => (
+                        <Select 
+                          value={field.value || 'square'} 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Trigger form re-generation
+                            setTimeout(() => {
+                              const currentFormValues = getValues();
+                              onSubmit(currentFormValues);
+                            }, 100);
+                          }}
+                        >
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Selecciona un estilo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {QR_V3_EYE_CENTER_STYLES.map((style) => (
+                              <SelectItem key={style.value} value={style.value}>
+                                <span className="flex items-center gap-2">
+                                  <span className="text-lg">{style.icon}</span>
+                                  <span>{style.label}</span>
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                    <p className="text-xs text-blue-800 dark:text-blue-200">
+                      <strong>Nota:</strong> Ahora puedes personalizar el borde y el centro de los ojos de forma independiente.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Data Pattern Section */}
@@ -520,20 +729,7 @@ function GenerationOptions({
                 defaultValue="square"
                 render={({ field }) => (
                   <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { value: 'square', label: 'Cuadrado', preview: '■' },
-                      { value: 'dots', label: 'Puntos', preview: '●' },
-                      { value: 'rounded', label: 'Redondeado', preview: '▢' },
-                      { value: 'vertical', label: 'Vertical', preview: '|||' },
-                      { value: 'horizontal', label: 'Horizontal', preview: '===' },
-                      { value: 'diamond', label: 'Diamante', preview: '◆' },
-                      { value: 'circular', label: 'Circular', preview: '○' },
-                      { value: 'star', label: 'Estrella', preview: '★' },
-                      { value: 'cross', label: 'Cruz', preview: '➕' },
-                      { value: 'random', label: 'Aleatorio', preview: '?' },
-                      { value: 'wave', label: 'Onda', preview: '∿' },
-                      { value: 'mosaic', label: 'Mosaico', preview: '▦' },
-                    ].map((pattern) => (
+                    {QR_V3_DATA_PATTERNS.map((pattern) => (
                       <button
                         key={pattern.value}
                         type="button"
@@ -796,7 +992,7 @@ function GenerationOptions({
                   <Controller
                     name="options.frame_enabled"
                     control={control}
-                    defaultValue={false}
+                    defaultValue={true}
                     render={({ field: enableField }) => (
                       <div className="space-y-3">
                         {/* Enable Frame Toggle */}
@@ -960,13 +1156,14 @@ function GenerationOptions({
 
 // Función de comparación personalizada para React.memo
 const arePropsEqual = (prevProps: GenerationOptionsProps, nextProps: GenerationOptionsProps) => {
-  // Comparar solo las props que realmente deberían causar un re-render
-  return (
-    prevProps.isLoading === nextProps.isLoading &&
-    prevProps.selectedType === nextProps.selectedType
-    // No comparar funciones ni objetos complejos que cambian frecuentemente
-    // Las funciones watch, setValue, etc. son estables gracias a react-hook-form
-  );
+  // Always re-render when these props change
+  if (prevProps.isLoading !== nextProps.isLoading) return false;
+  if (prevProps.selectedType !== nextProps.selectedType) return false;
+  
+  // For form changes, we need to allow re-renders
+  // React Hook Form's watch will trigger re-renders internally
+  // So we should not block them here
+  return false; // Always allow re-render for now to fix the toggle issue
 };
 
 // Exportar el componente memoizado con comparación personalizada

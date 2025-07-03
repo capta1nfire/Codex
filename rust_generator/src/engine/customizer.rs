@@ -85,9 +85,16 @@ impl QrCustomizer {
             None
         };
         
-        // Aplicar efectos si existen
+        // Aplicar efectos si existen (modo legacy)
         let effects_info = if let Some(effect_options) = &customization.effects {
             let filter_defs = self.apply_effects(effect_options)?;
+            Some(EffectsInfo {
+                filter_definitions: filter_defs,
+                filter_ids: self.effect_processor.get_active_filter_ids(),
+            })
+        } else if let Some(selective_effects) = &customization.selective_effects {
+            // Usar nuevo sistema de efectos selectivos (Fase 2.2)
+            let filter_defs = self.apply_selective_effects(selective_effects)?;
             Some(EffectsInfo {
                 filter_definitions: filter_defs,
                 filter_ids: self.effect_processor.get_active_filter_ids(),
@@ -299,6 +306,39 @@ impl QrCustomizer {
                     vignette_intensity: vignette_intensity.unwrap_or(0.4),
                 }))
             },
+            // Nuevos efectos Fase 2.2 - configuraciones básicas por ahora
+            EffectConfiguration::Distort { .. } => {
+                // Por ahora usamos configuración por defecto, se puede expandir después
+                Ok(EffectConfig::Blur(BlurConfig { radius: 1.0 }))
+            },
+            EffectConfiguration::Emboss { .. } => {
+                // Por ahora usamos configuración por defecto, se puede expandir después
+                Ok(EffectConfig::Blur(BlurConfig { radius: 0.5 }))
+            },
+            EffectConfiguration::Outline { .. } => {
+                // Por ahora usamos configuración por defecto, se puede expandir después
+                Ok(EffectConfig::Blur(BlurConfig { radius: 0.5 }))
+            },
+            EffectConfiguration::DropShadow { .. } => {
+                // Por ahora usamos configuración shadow, se puede expandir después
+                Ok(EffectConfig::Shadow(ShadowConfig {
+                    offset_x: 2.0,
+                    offset_y: 2.0,
+                    blur_radius: 3.0,
+                    color: "#000000".to_string(),
+                    opacity: 0.3,
+                }))
+            },
+            EffectConfiguration::InnerShadow { .. } => {
+                // Por ahora usamos configuración shadow, se puede expandir después
+                Ok(EffectConfig::Shadow(ShadowConfig {
+                    offset_x: 1.0,
+                    offset_y: 1.0,
+                    blur_radius: 2.0,
+                    color: "#000000".to_string(),
+                    opacity: 0.4,
+                }))
+            },
         }
     }
     
@@ -349,12 +389,84 @@ impl QrCustomizer {
                     };
                     self.effect_processor.create_vintage_filter(&filter_id, Some(config))?
                 },
+                // Nuevos efectos Fase 2.2
+                Effect::Distort => {
+                    self.effect_processor.create_distort_filter(&filter_id, None)?
+                },
+                Effect::Emboss => {
+                    self.effect_processor.create_emboss_filter(&filter_id, None)?
+                },
+                Effect::Outline => {
+                    self.effect_processor.create_outline_filter(&filter_id, None)?
+                },
+                Effect::DropShadow => {
+                    self.effect_processor.create_drop_shadow_filter(&filter_id, None)?
+                },
+                Effect::InnerShadow => {
+                    self.effect_processor.create_inner_shadow_filter(&filter_id, None)?
+                },
             };
             
             filter_definitions.push_str(&filter_def);
         }
         
         Ok(filter_definitions)
+    }
+    
+    /// Aplica efectos selectivos por componente (Fase 2.2)
+    pub fn apply_selective_effects(&mut self, selective_effects: &SelectiveEffects) -> QrResult<String> {
+        // Validar compatibilidad de efectos si hay reglas definidas
+        let components = [&selective_effects.eyes, &selective_effects.data, &selective_effects.frame, &selective_effects.global];
+        for component_effects in components.iter().filter_map(|opt| opt.as_ref()) {
+            if let Some(warnings) = self.validate_component_effects(&component_effects.effects)? {
+                if !warnings.is_empty() {
+                    tracing::warn!("Advertencias de compatibilidad de efectos: {:?}", warnings);
+                }
+            }
+        }
+        
+        // Generar un SVG base temporal para aplicar los efectos
+        let base_svg = r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <g fill="black">
+                <!-- Placeholder para efectos selectivos -->
+            </g>
+        </svg>"#;
+        
+        // Aplicar efectos selectivos usando el procesador de efectos
+        let processed_svg = self.effect_processor.apply_selective_effects(base_svg, selective_effects)?;
+        
+        // Extraer solo las definiciones de filtros del SVG procesado
+        if let Some(start) = processed_svg.find("<defs>") {
+            if let Some(end) = processed_svg.find("</defs>") {
+                let defs_content = &processed_svg[start + 6..end]; // +6 para saltar "<defs>"
+                return Ok(defs_content.to_string());
+            }
+        }
+        
+        Ok(String::new())
+    }
+    
+    /// Valida efectos de un componente específico
+    fn validate_component_effects(&self, effects: &[EffectOptions]) -> QrResult<Option<Vec<String>>> {
+        if effects.is_empty() {
+            return Ok(None);
+        }
+        
+        // Usar reglas de compatibilidad básicas por defecto
+        let default_rules = CompatibilityRules {
+            incompatible_combinations: vec![
+                // Blur y Noise no se combinan bien
+                vec![Effect::Blur, Effect::Noise],
+                // Shadow y DropShadow son redundantes
+                vec![Effect::Shadow, Effect::DropShadow],
+            ],
+            required_dependencies: vec![],
+            max_concurrent_effects: Some(3),
+            auto_intensity_validation: Some(true),
+        };
+        
+        let warnings = self.effect_processor.validate_effect_compatibility(effects, Some(&default_rules))?;
+        Ok(if warnings.is_empty() { None } else { Some(warnings) })
     }
 }
 

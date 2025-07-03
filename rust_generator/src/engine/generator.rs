@@ -811,7 +811,7 @@ impl QrCode {
         svg
     }
     
-    /// Convierte el QR a datos estructurados para ULTRATHINK
+    /// Convierte el QR a datos estructurados para QR v3
     pub fn to_structured_data(&self) -> crate::engine::types::QrStructuredOutput {
         use std::time::Instant;
         use sha2::{Sha256, Digest};
@@ -1078,14 +1078,48 @@ impl QrCode {
         
         // Generar paths para cada ojo
         for (eye_type, region) in eye_regions.iter() {
-            let eye_path = self.generate_eye_path(region);
-            eye_paths.push(crate::engine::types::QrEyePath {
-                eye_type: eye_type.clone(),
-                path: eye_path,
-                shape: self.customization.as_ref()
-                    .and_then(|c| c.eye_shape)
-                    .map(|shape| format!("{:?}", shape)),
-            });
+            // Verificar si tenemos estilos separados para usar la nueva estructura
+            if let Some(customization) = &self.customization {
+                if customization.eye_border_style.is_some() || customization.eye_center_style.is_some() {
+                    // Usar la nueva estructura separada
+                    let (border_path, center_path, border_shape, center_shape) = 
+                        self.generate_eye_paths_separated(region, eye_type);
+                    
+                    eye_paths.push(crate::engine::types::QrEyePath {
+                        eye_type: eye_type.clone(),
+                        path: String::new(), // Vacío para la nueva estructura
+                        border_path: Some(border_path),
+                        center_path: Some(center_path),
+                        shape: customization.eye_shape.map(|s| format!("{:?}", s)), // Legacy
+                        border_shape: Some(border_shape),
+                        center_shape: Some(center_shape),
+                    });
+                } else {
+                    // Usar la estructura legacy
+                    let eye_path = self.generate_eye_path(region, eye_type);
+                    eye_paths.push(crate::engine::types::QrEyePath {
+                        eye_type: eye_type.clone(),
+                        path: eye_path,
+                        border_path: None,
+                        center_path: None,
+                        shape: customization.eye_shape.map(|s| format!("{:?}", s)),
+                        border_shape: None,
+                        center_shape: None,
+                    });
+                }
+            } else {
+                // Sin personalización, usar estructura legacy con valores por defecto
+                let eye_path = self.generate_eye_path(region, eye_type);
+                eye_paths.push(crate::engine::types::QrEyePath {
+                    eye_type: eye_type.clone(),
+                    path: eye_path,
+                    border_path: None,
+                    center_path: None,
+                    shape: None,
+                    border_shape: None,
+                    center_shape: None,
+                });
+            }
         }
         
         crate::engine::types::QrPaths {
@@ -1122,10 +1156,21 @@ impl QrCode {
     }
     
     /// Genera el path para un ojo específico
-    fn generate_eye_path(&self, region: &EyeRegion) -> String {
+    fn generate_eye_path(&self, region: &EyeRegion, eye_type: &str) -> String {
+        // Primero verificar si tenemos los nuevos estilos separados
+        if let Some(customization) = &self.customization {
+            if customization.eye_border_style.is_some() || customization.eye_center_style.is_some() {
+                return self.generate_eye_path_separated(region, eye_type);
+            }
+        }
+        
+        // Fallback al sistema antiguo si no hay estilos separados
         let eye_shape = self.customization.as_ref()
             .and_then(|c| c.eye_shape)
             .unwrap_or(EyeShape::Square);
+        
+        let x = region.x + self.quiet_zone;
+        let y = region.y + self.quiet_zone;
         
         // Generar paths para el marco exterior (7x7) y el centro (3x3)
         let mut path_parts = Vec::new();
@@ -1133,29 +1178,57 @@ impl QrCode {
         // Marco exterior (7x7)
         match eye_shape {
             EyeShape::Square => {
-                let x = region.x + self.quiet_zone;
-                let y = region.y + self.quiet_zone;
                 path_parts.push(format!("M {} {} h 7 v 7 h -7 Z", x, y));
+                path_parts.push(format!("M {} {} h 3 v 3 h -3 Z", x + 2, y + 2));
             }
             EyeShape::RoundedSquare => {
-                let x = region.x + self.quiet_zone;
-                let y = region.y + self.quiet_zone;
                 path_parts.push(format!(
                     "M {:.1} {} h 5.6 a 0.7 0.7 0 0 1 0.7 0.7 v 5.6 a 0.7 0.7 0 0 1 -0.7 0.7 h -5.6 a 0.7 0.7 0 0 1 -0.7 -0.7 v -5.6 a 0.7 0.7 0 0 1 0.7 -0.7 Z",
                     x as f32 + 0.7, y
                 ));
+                path_parts.push(format!("M {} {} h 3 v 3 h -3 Z", x + 2, y + 2));
             }
             EyeShape::Circle => {
-                let cx = (region.x + self.quiet_zone) as f32 + 3.5;
-                let cy = (region.y + self.quiet_zone) as f32 + 3.5;
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
                 path_parts.push(format!(
                     "M {} {} A 3.5 3.5 0 1 0 {} {} A 3.5 3.5 0 1 0 {} {} Z",
                     cx - 3.5, cy, cx + 3.5, cy, cx - 3.5, cy
                 ));
+                let cx_inner = (x + 2) as f32 + 1.5;
+                let cy_inner = (y + 2) as f32 + 1.5;
+                path_parts.push(format!(
+                    "M {} {} A 1.5 1.5 0 1 0 {} {} A 1.5 1.5 0 1 0 {} {} Z",
+                    cx_inner - 1.5, cy_inner, cx_inner + 1.5, cy_inner, cx_inner - 1.5, cy_inner
+                ));
+            }
+            EyeShape::Dot => {
+                // Marco exterior cuadrado
+                path_parts.push(format!("M {} {} h 7 v 7 h -7 Z", x, y));
+                // Centro circular
+                let cx = (x + 2) as f32 + 1.5;
+                let cy = (y + 2) as f32 + 1.5;
+                path_parts.push(format!(
+                    "M {} {} A 1.5 1.5 0 1 0 {} {} A 1.5 1.5 0 1 0 {} {} Z",
+                    cx - 1.5, cy, cx + 1.5, cy, cx - 1.5, cy
+                ));
+            }
+            EyeShape::Leaf => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                path_parts.push(format!(
+                    "M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z",
+                    cx, y as f32,
+                    x as f32 + 5.6, y as f32 + 1.4, x as f32 + 7.0, cy,
+                    x as f32 + 5.6, y as f32 + 5.6, cx, y as f32 + 7.0,
+                    x as f32 + 1.4, y as f32 + 5.6, x as f32, cy,
+                    x as f32 + 1.4, y as f32 + 1.4, cx, y as f32
+                ));
+                path_parts.push(format!("M {} {} h 3 v 3 h -3 Z", x + 2, y + 2));
             }
             EyeShape::Star => {
-                let cx = (region.x + self.quiet_zone) as f32 + 3.5;
-                let cy = (region.y + self.quiet_zone) as f32 + 3.5;
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
                 let outer_r = 3.5;
                 let inner_r = 1.75;
                 
@@ -1163,8 +1236,8 @@ impl QrCode {
                 for i in 0..10 {
                     let angle = (i as f32 * 36.0 - 90.0).to_radians();
                     let r = if i % 2 == 0 { outer_r } else { inner_r };
-                    let px = cx as f32 + r * angle.cos();
-                    let py = cy as f32 + r * angle.sin();
+                    let px = cx + r * angle.cos();
+                    let py = cy + r * angle.sin();
                     
                     if i == 0 {
                         star_path.push_str(&format!("{:.2} {:.2}", px, py));
@@ -1174,31 +1247,645 @@ impl QrCode {
                 }
                 star_path.push_str(" Z");
                 path_parts.push(star_path);
+                
+                // Centro estrella más pequeña
+                let cx_inner = (x + 2) as f32 + 1.5;
+                let cy_inner = (y + 2) as f32 + 1.5;
+                let outer_r_inner = 1.5;
+                let inner_r_inner = 0.75;
+                
+                let mut star_path_inner = String::from("M ");
+                for i in 0..10 {
+                    let angle = (i as f32 * 36.0 - 90.0).to_radians();
+                    let r = if i % 2 == 0 { outer_r_inner } else { inner_r_inner };
+                    let px = cx_inner + r * angle.cos();
+                    let py = cy_inner + r * angle.sin();
+                    
+                    if i == 0 {
+                        star_path_inner.push_str(&format!("{:.2} {:.2}", px, py));
+                    } else {
+                        star_path_inner.push_str(&format!(" L {:.2} {:.2}", px, py));
+                    }
+                }
+                star_path_inner.push_str(" Z");
+                path_parts.push(star_path_inner);
             }
-            _ => {
-                // Para otras formas, usar la implementación legacy por ahora
-                let x = region.x + self.quiet_zone;
-                let y = region.y + self.quiet_zone;
+            EyeShape::Diamond => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                path_parts.push(format!(
+                    "M {} {} L {} {} L {} {} L {} {} Z",
+                    cx, y as f32,
+                    x as f32 + 7.0, cy,
+                    cx, y as f32 + 7.0,
+                    x as f32, cy
+                ));
+                // Centro diamante
+                let cx_inner = (x + 2) as f32 + 1.5;
+                let cy_inner = (y + 2) as f32 + 1.5;
+                path_parts.push(format!(
+                    "M {} {} L {} {} L {} {} L {} {} Z",
+                    cx_inner, (y + 2) as f32,
+                    (x + 2) as f32 + 3.0, cy_inner,
+                    cx_inner, (y + 2) as f32 + 3.0,
+                    (x + 2) as f32, cy_inner
+                ));
+            }
+            EyeShape::Cross => {
+                let thickness = 7.0 / 3.0;
+                let offset = (7.0 - thickness) / 2.0;
+                path_parts.push(format!(
+                    "M {} {} h {} v {} h {} v {} h -{} v {} h -{} v -{} h -{} v -{} h {} Z",
+                    x as f32 + offset, y as f32,
+                    thickness, offset,
+                    offset, thickness,
+                    offset, offset,
+                    thickness, offset,
+                    thickness, thickness,
+                    offset
+                ));
+                path_parts.push(format!("M {} {} h 3 v 3 h -3 Z", x + 2, y + 2));
+            }
+            EyeShape::Hexagon => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                let r = 3.5;
+                
+                let mut hex_path = String::from("M ");
+                for i in 0..6 {
+                    let angle = (i as f32 * 60.0 - 30.0).to_radians();
+                    let px = cx + r * angle.cos();
+                    let py = cy + r * angle.sin();
+                    
+                    if i == 0 {
+                        hex_path.push_str(&format!("{:.2} {:.2}", px, py));
+                    } else {
+                        hex_path.push_str(&format!(" L {:.2} {:.2}", px, py));
+                    }
+                }
+                hex_path.push_str(" Z");
+                path_parts.push(hex_path);
+                path_parts.push(format!("M {} {} h 3 v 3 h -3 Z", x + 2, y + 2));
+            }
+            EyeShape::Heart => {
+                // Marco exterior - corazón con rotación según posición
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                
+                // Determinar el ángulo de rotación según la posición del ojo
+                let rotation_angle = match eye_type {
+                    "top_left" => -std::f32::consts::PI / 4.0,          // -45° en radianes (apunta hacia abajo-derecha)
+                    "top_right" => std::f32::consts::PI / 4.0,          // 45° en radianes (apunta hacia abajo-izquierda)
+                    "bottom_left" => -std::f32::consts::PI * 3.0 / 4.0, // -135° en radianes (apunta hacia arriba-derecha)
+                    _ => 0.0,                                            // 0° en radianes (sin rotación)
+                };
+                
+                // Función para rotar un punto alrededor del centro
+                let rotate_point = |px: f32, py: f32, angle: f32| -> (f32, f32) {
+                    let cos_a = angle.cos();
+                    let sin_a = angle.sin();
+                    let dx = px - cx;
+                    let dy = py - cy;
+                    let rx = dx * cos_a - dy * sin_a + cx;
+                    let ry = dx * sin_a + dy * cos_a + cy;
+                    (rx, ry)
+                };
+                
+                // Puntos del corazón (orientado hacia abajo inicialmente)
+                let points = [
+                    (cx, cy - 1.5),           // Valle entre lóbulos
+                    (cx, cy - 3.5),           // Control 1
+                    (cx - 3.5, cy - 3.5),     // Control 2
+                    (cx - 3.5, cy - 1.5),     // Fin lóbulo izquierdo
+                    (cx - 3.5, cy + 0.5),     // Control 3
+                    (cx, cy + 3.5),           // Control 4
+                    (cx, cy + 3.5),           // Punta
+                    (cx, cy + 3.5),           // Control 5
+                    (cx + 3.5, cy + 0.5),     // Control 6
+                    (cx + 3.5, cy - 1.5),     // Fin lóbulo derecho
+                    (cx + 3.5, cy - 3.5),     // Control 7
+                    (cx, cy - 3.5),           // Control 8
+                    (cx, cy - 1.5),           // Vuelta al inicio
+                ];
+                
+                // Rotar todos los puntos
+                let rotated: Vec<(f32, f32)> = points.iter()
+                    .map(|&(px, py)| rotate_point(px, py, rotation_angle))
+                    .collect();
+                
+                // Construir el path del corazón rotado
+                path_parts.push(format!(
+                    "M {:.2} {:.2} \
+                     C {:.2} {:.2} {:.2} {:.2} {:.2} {:.2} \
+                     C {:.2} {:.2} {:.2} {:.2} {:.2} {:.2} \
+                     C {:.2} {:.2} {:.2} {:.2} {:.2} {:.2} \
+                     C {:.2} {:.2} {:.2} {:.2} {:.2} {:.2} \
+                     Z",
+                    rotated[0].0, rotated[0].1,
+                    rotated[1].0, rotated[1].1, rotated[2].0, rotated[2].1, rotated[3].0, rotated[3].1,
+                    rotated[4].0, rotated[4].1, rotated[5].0, rotated[5].1, rotated[6].0, rotated[6].1,
+                    rotated[7].0, rotated[7].1, rotated[8].0, rotated[8].1, rotated[9].0, rotated[9].1,
+                    rotated[10].0, rotated[10].1, rotated[11].0, rotated[11].1, rotated[12].0, rotated[12].1
+                ));
+                
+                // Centro sólido (3x3)
+                path_parts.push(format!("M {} {} h 3 v 3 h -3 Z", x + 2, y + 2));
+            }
+            // These variants are deprecated and use Square as fallback
+            EyeShape::BarsHorizontal | 
+            EyeShape::BarsVertical | 
+            EyeShape::Shield | 
+            EyeShape::Crystal | 
+            EyeShape::Flower => {
+                // Fallback to square shape
                 path_parts.push(format!("M {} {} h 7 v 7 h -7 Z", x, y));
+                path_parts.push(format!("M {} {} h 3 v 3 h -3 Z", x + 2, y + 2));
+            }
+            EyeShape::Arrow => {
+                let cx = x as f32 + 3.5;
+                let arrow_width = 4.2;
+                let arrow_offset = (7.0 - arrow_width) / 2.0;
+                let shaft_width = 2.1;
+                let shaft_offset = (7.0 - shaft_width) / 2.0;
+                
+                path_parts.push(format!(
+                    "M {} {} L {} {} L {} {} L {} {} L {} {} L {} {} L {} {} Z",
+                    cx, y as f32,
+                    x as f32 + 7.0, y as f32 + 3.5,
+                    x as f32 + 7.0 - arrow_offset, y as f32 + 3.5,
+                    x as f32 + 7.0 - arrow_offset, y as f32 + 7.0,
+                    x as f32 + arrow_offset, y as f32 + 7.0,
+                    x as f32 + arrow_offset, y as f32 + 3.5,
+                    x as f32, y as f32 + 3.5
+                ));
+                path_parts.push(format!("M {} {} h 3 v 3 h -3 Z", x + 2, y + 2));
             }
         }
         
-        // Centro interior (3x3)
-        let inner_x = region.x + self.quiet_zone + 2;
-        let inner_y = region.y + self.quiet_zone + 2;
+        path_parts.join(" ")
+    }
+    
+    /// Genera los paths separados para un ojo con estilos de borde y centro separados
+    fn generate_eye_paths_separated(&self, region: &EyeRegion, eye_type: &str) -> (String, String, String, String) {
+        let border_style = self.customization.as_ref()
+            .and_then(|c| c.eye_border_style)
+            .unwrap_or(EyeBorderStyle::Square);
         
-        match eye_shape {
-            EyeShape::Circle | EyeShape::Dot => {
-                let cx = inner_x as f32 + 1.5;
-                let cy = inner_y as f32 + 1.5;
-                path_parts.push(format!(
+        let center_style = self.customization.as_ref()
+            .and_then(|c| c.eye_center_style)
+            .unwrap_or(EyeCenterStyle::Square);
+        
+        let x = region.x + self.quiet_zone;
+        let y = region.y + self.quiet_zone;
+        
+        // Generar el borde exterior (7x7)
+        let border_path = self.generate_eye_border_path(border_style, x, y, eye_type);
+        
+        // Generar el centro (3x3)
+        let center_path = self.generate_eye_center_path(center_style, x + 2, y + 2);
+        
+        // Retornar también los nombres de los estilos para metadata
+        let border_shape = format!("{:?}", border_style);
+        let center_shape = format!("{:?}", center_style);
+        
+        (border_path, center_path, border_shape, center_shape)
+    }
+    
+    /// Genera el path para un ojo con estilos de borde y centro separados (legacy)
+    fn generate_eye_path_separated(&self, region: &EyeRegion, eye_type: &str) -> String {
+        let (border_path, center_path, _, _) = self.generate_eye_paths_separated(region, eye_type);
+        
+        // Para compatibilidad hacia atrás, combinar ambos paths
+        format!("{} {}", border_path, center_path)
+    }
+    
+    /// Genera el path para el borde de un ojo (marco hueco)
+    fn generate_eye_border_path(&self, style: EyeBorderStyle, x: usize, y: usize, eye_type: &str) -> String {
+        match style {
+            EyeBorderStyle::Square => {
+                // Marco cuadrado hueco: perímetro exterior menos agujero interior
+                format!("M {} {} h 7 v 7 h -7 Z M {} {} h 5 v 5 h -5 Z", 
+                    x, y, x + 1, y + 1)
+            }
+            EyeBorderStyle::RoundedSquare => {
+                // Marco redondeado hueco: exterior redondeado menos interior redondeado
+                format!(
+                    "M {:.1} {} h 5.6 a 0.7 0.7 0 0 1 0.7 0.7 v 5.6 a 0.7 0.7 0 0 1 -0.7 0.7 h -5.6 a 0.7 0.7 0 0 1 -0.7 -0.7 v -5.6 a 0.7 0.7 0 0 1 0.7 -0.7 Z M {:.1} {} h 3.6 a 0.7 0.7 0 0 1 0.7 0.7 v 3.6 a 0.7 0.7 0 0 1 -0.7 0.7 h -3.6 a 0.7 0.7 0 0 1 -0.7 -0.7 v -3.6 a 0.7 0.7 0 0 1 0.7 -0.7 Z",
+                    x as f32 + 0.7, y,
+                    x as f32 + 1.7, y + 1
+                )
+            }
+            EyeBorderStyle::Circle => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                // Marco circular hueco: círculo exterior menos círculo interior
+                format!(
+                    "M {} {} A 3.5 3.5 0 1 0 {} {} A 3.5 3.5 0 1 0 {} {} Z M {} {} A 2.5 2.5 0 1 0 {} {} A 2.5 2.5 0 1 0 {} {} Z",
+                    cx - 3.5, cy, cx + 3.5, cy, cx - 3.5, cy,
+                    cx - 2.5, cy, cx + 2.5, cy, cx - 2.5, cy
+                )
+            }
+            EyeBorderStyle::Leaf => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                // Marco de hoja hueco: forma exterior menos forma interior
+                format!(
+                    "M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z",
+                    cx, y as f32,
+                    x as f32 + 5.6, y as f32 + 1.4, x as f32 + 7.0, cy,
+                    x as f32 + 5.6, y as f32 + 5.6, cx, y as f32 + 7.0,
+                    x as f32 + 1.4, y as f32 + 5.6, x as f32, cy,
+                    x as f32 + 1.4, y as f32 + 1.4, cx, y as f32,
+                    // Interior más pequeño
+                    cx, y as f32 + 1.0,
+                    x as f32 + 4.6, y as f32 + 2.0, x as f32 + 6.0, cy,
+                    x as f32 + 4.6, y as f32 + 5.0, cx, y as f32 + 6.0,
+                    x as f32 + 2.4, y as f32 + 5.0, x as f32 + 1.0, cy,
+                    x as f32 + 2.4, y as f32 + 2.0, cx, y as f32 + 1.0
+                )
+            }
+            EyeBorderStyle::Star => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                let outer_r = 3.5;
+                let inner_r = 1.75;
+                
+                // Estrella exterior
+                let mut star_path = String::from("M ");
+                for i in 0..10 {
+                    let angle = (i as f32 * 36.0 - 90.0).to_radians();
+                    let r = if i % 2 == 0 { outer_r } else { inner_r };
+                    let px = cx + r * angle.cos();
+                    let py = cy + r * angle.sin();
+                    
+                    if i == 0 {
+                        star_path.push_str(&format!("{:.2} {:.2}", px, py));
+                    } else {
+                        star_path.push_str(&format!(" L {:.2} {:.2}", px, py));
+                    }
+                }
+                star_path.push_str(" Z");
+                
+                // Estrella interior (más pequeña)
+                star_path.push_str(" M ");
+                let outer_r_inner = 2.5;
+                let inner_r_inner = 1.25;
+                for i in 0..10 {
+                    let angle = (i as f32 * 36.0 - 90.0).to_radians();
+                    let r = if i % 2 == 0 { outer_r_inner } else { inner_r_inner };
+                    let px = cx + r * angle.cos();
+                    let py = cy + r * angle.sin();
+                    
+                    if i == 0 {
+                        star_path.push_str(&format!("{:.2} {:.2}", px, py));
+                    } else {
+                        star_path.push_str(&format!(" L {:.2} {:.2}", px, py));
+                    }
+                }
+                star_path.push_str(" Z");
+                star_path
+            }
+            EyeBorderStyle::Diamond => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                // Marco de diamante hueco: diamante exterior menos diamante interior
+                format!(
+                    "M {} {} L {} {} L {} {} L {} {} Z M {} {} L {} {} L {} {} L {} {} Z",
+                    cx, y as f32,                    // Diamante exterior
+                    x as f32 + 7.0, cy,
+                    cx, y as f32 + 7.0,
+                    x as f32, cy,
+                    cx, y as f32 + 1.0,              // Diamante interior más pequeño
+                    x as f32 + 6.0, cy,
+                    cx, y as f32 + 6.0,
+                    x as f32 + 1.0, cy
+                )
+            }
+            EyeBorderStyle::Cross => {
+                // Marco de cruz hueco: cruz exterior menos cruz interior
+                let outer_thickness = 7.0 / 3.0;
+                let inner_thickness = 3.0 / 3.0;
+                let outer_offset = (7.0 - outer_thickness) / 2.0;
+                let inner_offset = (7.0 - inner_thickness) / 2.0;
+                
+                format!(
+                    "M {} {} h {} v {} h {} v {} h -{} v {} h -{} v -{} h -{} v -{} h {} Z M {} {} h {} v {} h {} v {} h -{} v {} h -{} v -{} h -{} v -{} h {} Z",
+                    // Cruz exterior
+                    x as f32 + outer_offset, y as f32,
+                    outer_thickness, outer_offset,
+                    outer_offset, outer_thickness,
+                    outer_offset, outer_offset,
+                    outer_thickness, outer_offset,
+                    outer_thickness, outer_thickness,
+                    outer_offset,
+                    // Cruz interior (más pequeña)
+                    x as f32 + inner_offset, y as f32 + 1.0,
+                    inner_thickness, inner_offset - 1.0,
+                    inner_offset - 1.0, inner_thickness,
+                    inner_offset - 1.0, inner_offset - 1.0,
+                    inner_thickness, inner_offset - 1.0,
+                    inner_thickness, inner_thickness,
+                    inner_offset - 1.0
+                )
+            }
+            EyeBorderStyle::Hexagon => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                let outer_r = 3.5;
+                let inner_r = 2.5;
+                
+                // Marco hexagonal hueco: hexágono exterior menos hexágono interior
+                let mut hex_path = String::from("M ");
+                
+                // Hexágono exterior
+                for i in 0..6 {
+                    let angle = (i as f32 * 60.0 - 30.0).to_radians();
+                    let px = cx + outer_r * angle.cos();
+                    let py = cy + outer_r * angle.sin();
+                    
+                    if i == 0 {
+                        hex_path.push_str(&format!("{:.2} {:.2}", px, py));
+                    } else {
+                        hex_path.push_str(&format!(" L {:.2} {:.2}", px, py));
+                    }
+                }
+                hex_path.push_str(" Z M ");
+                
+                // Hexágono interior
+                for i in 0..6 {
+                    let angle = (i as f32 * 60.0 - 30.0).to_radians();
+                    let px = cx + inner_r * angle.cos();
+                    let py = cy + inner_r * angle.sin();
+                    
+                    if i == 0 {
+                        hex_path.push_str(&format!("{:.2} {:.2}", px, py));
+                    } else {
+                        hex_path.push_str(&format!(" L {:.2} {:.2}", px, py));
+                    }
+                }
+                hex_path.push_str(" Z");
+                hex_path
+            }
+            EyeBorderStyle::Arrow => {
+                let cx = x as f32 + 3.5;
+                let outer_arrow_width = 4.2;
+                let outer_arrow_offset = (7.0 - outer_arrow_width) / 2.0;
+                let inner_arrow_width = 2.8;
+                let inner_arrow_offset = (7.0 - inner_arrow_width) / 2.0;
+                
+                // Marco de flecha hueco: flecha exterior menos flecha interior
+                format!(
+                    "M {} {} L {} {} L {} {} L {} {} L {} {} L {} {} L {} {} Z M {} {} L {} {} L {} {} L {} {} L {} {} L {} {} L {} {} Z",
+                    // Flecha exterior
+                    cx, y as f32,
+                    x as f32 + 7.0, y as f32 + 3.5,
+                    x as f32 + 7.0 - outer_arrow_offset, y as f32 + 3.5,
+                    x as f32 + 7.0 - outer_arrow_offset, y as f32 + 7.0,
+                    x as f32 + outer_arrow_offset, y as f32 + 7.0,
+                    x as f32 + outer_arrow_offset, y as f32 + 3.5,
+                    x as f32, y as f32 + 3.5,
+                    // Flecha interior (más pequeña)
+                    cx, y as f32 + 0.8,
+                    x as f32 + 6.0, y as f32 + 3.5,
+                    x as f32 + 6.0 - inner_arrow_offset, y as f32 + 3.5,
+                    x as f32 + 6.0 - inner_arrow_offset, y as f32 + 6.0,
+                    x as f32 + inner_arrow_offset + 1.0, y as f32 + 6.0,
+                    x as f32 + inner_arrow_offset + 1.0, y as f32 + 3.5,
+                    x as f32 + 1.0, y as f32 + 3.5
+                )
+            }
+            EyeBorderStyle::QuarterRound => {
+                // Marco con esquinas redondeadas tipo quarter circle
+                let r = 1.5; // Radio de esquina
+                format!(
+                    "M {} {} L {} {} A {} {} 0 0 1 {} {} L {} {} A {} {} 0 0 1 {} {} L {} {} A {} {} 0 0 1 {} {} L {} {} A {} {} 0 0 1 {} {} Z M {} {} L {} {} A {} {} 0 0 0 {} {} L {} {} A {} {} 0 0 0 {} {} L {} {} A {} {} 0 0 0 {} {} L {} {} A {} {} 0 0 0 {} {} Z",
+                    // Marco exterior con quarter rounds
+                    x as f32 + r, y,                           // Start
+                    x as f32 + 7.0 - r, y,                     // Top line
+                    r, r, x as f32 + 7.0, y as f32 + r,       // Top-right quarter round
+                    x as f32 + 7.0, y as f32 + 7.0 - r,       // Right line
+                    r, r, x as f32 + 7.0 - r, y as f32 + 7.0, // Bottom-right quarter round
+                    x as f32 + r, y as f32 + 7.0,             // Bottom line
+                    r, r, x as f32, y as f32 + 7.0 - r,       // Bottom-left quarter round
+                    x as f32, y as f32 + r,                   // Left line
+                    r, r, x as f32 + r, y,                    // Top-left quarter round back to start
+                    // Marco interior (más pequeño)
+                    x as f32 + 1.0 + r*0.7, y + 1,                        // Start interior
+                    x as f32 + 6.0 - r*0.7, y + 1,                        // Top line interior
+                    r*0.7, r*0.7, x as f32 + 6.0, y as f32 + 1.0 + r*0.7, // Top-right interior
+                    x as f32 + 6.0, y as f32 + 6.0 - r*0.7,               // Right line interior
+                    r*0.7, r*0.7, x as f32 + 6.0 - r*0.7, y as f32 + 6.0, // Bottom-right interior
+                    x as f32 + 1.0 + r*0.7, y as f32 + 6.0,               // Bottom line interior
+                    r*0.7, r*0.7, x as f32 + 1.0, y as f32 + 6.0 - r*0.7, // Bottom-left interior
+                    x as f32 + 1.0, y as f32 + 1.0 + r*0.7,               // Left line interior
+                    r*0.7, r*0.7, x as f32 + 1.0 + r*0.7, y + 1          // Top-left interior back to start
+                )
+            }
+            EyeBorderStyle::CutCorner => {
+                let cut = 1.2; // Tamaño del corte de esquina
+                // Marco con esquinas cortadas diagonalmente
+                format!(
+                    "M {} {} L {} {} L {} {} L {} {} L {} {} L {} {} L {} {} L {} {} Z M {} {} L {} {} L {} {} L {} {} L {} {} L {} {} L {} {} L {} {} Z",
+                    // Marco exterior con esquinas cortadas
+                    x as f32 + cut, y,                       // Start (esquina cortada)
+                    x as f32 + 7.0 - cut, y,                 // Top line
+                    x as f32 + 7.0, y as f32 + cut,         // Top-right cut
+                    x as f32 + 7.0, y as f32 + 7.0 - cut,   // Right line
+                    x as f32 + 7.0 - cut, y as f32 + 7.0,   // Bottom-right cut
+                    x as f32 + cut, y as f32 + 7.0,         // Bottom line
+                    x as f32, y as f32 + 7.0 - cut,         // Bottom-left cut
+                    x as f32, y as f32 + cut,               // Left line
+                    // Marco interior (más pequeño)
+                    x as f32 + 1.0 + cut*0.6, y + 1,                  // Start interior
+                    x as f32 + 6.0 - cut*0.6, y + 1,                  // Top line interior
+                    x as f32 + 6.0, y as f32 + 1.0 + cut*0.6,         // Top-right cut interior
+                    x as f32 + 6.0, y as f32 + 6.0 - cut*0.6,         // Right line interior
+                    x as f32 + 6.0 - cut*0.6, y as f32 + 6.0,         // Bottom-right cut interior
+                    x as f32 + 1.0 + cut*0.6, y as f32 + 6.0,         // Bottom line interior
+                    x as f32 + 1.0, y as f32 + 6.0 - cut*0.6,         // Bottom-left cut interior
+                    x as f32 + 1.0, y as f32 + 1.0 + cut*0.6          // Left line interior
+                )
+            }
+            EyeBorderStyle::ThickBorder => {
+                // Marco más grueso (borde de 2 módulos en lugar de 1)
+                format!("M {} {} h 7 v 7 h -7 Z M {} {} h 3 v 3 h -3 Z", 
+                    x, y,           // Marco exterior (7x7)
+                    x + 2, y + 2    // Hueco interior más pequeño (3x3)
+                )
+            }
+            EyeBorderStyle::DoubleBorder => {
+                // Marco doble: borde exterior + borde interior
+                format!(
+                    "M {} {} h 7 v 7 h -7 Z M {} {} h 5 v 5 h -5 Z M {} {} h 3 v 3 h -3 Z M {} {} h 1 v 1 h -1 Z",
+                    x, y,                    // Marco exterior (7x7)
+                    x + 1, y + 1,            // Primer hueco (5x5)
+                    x + 2, y + 2,            // Marco interior (3x3)
+                    x + 3, y + 3             // Hueco final (1x1)
+                )
+            }
+            
+            // ===== FORMAS ORGÁNICAS (FASE 2.1) =====
+            EyeBorderStyle::Teardrop => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                // Gota asimétrica con punta arriba y base redondeada
+                format!(
+                    "M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z",
+                    // Exterior (gota completa 7x7)
+                    cx, y as f32,                           // Punta superior
+                    cx + 2.8, y as f32 + 1.2, cx + 3.5, cy,       // Curva derecha superior
+                    cx + 3.5, cy + 2.5, cx, y as f32 + 7.0,       // Base redondeada
+                    cx - 3.5, cy + 2.5, cx - 3.5, cy,            // Curva izquierda
+                    cx - 2.8, y as f32 + 1.2, cx, y as f32,       // Vuelta a punta
+                    
+                    // Interior (gota más pequeña 5x5)
+                    cx, y as f32 + 1.0,                     // Punta interior
+                    cx + 1.8, y as f32 + 1.8, cx + 2.5, cy,       // Curva derecha interior
+                    cx + 2.5, cy + 1.5, cx, y as f32 + 6.0,       // Base interior
+                    cx - 2.5, cy + 1.5, cx - 2.5, cy,            // Curva izquierda interior
+                    cx - 1.8, y as f32 + 1.8, cx, y as f32 + 1.0  // Vuelta a punta interior
+                )
+            }
+            EyeBorderStyle::Wave => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                // Bordes ondulados como agua - versión simplificada
+                format!(
+                    "M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z",
+                    // Exterior ondulado
+                    x as f32, cy,                           // Punto izquierdo
+                    x as f32 + 1.0, y as f32 + 0.5, cx, y as f32,         // Onda superior
+                    x as f32 + 6.0, y as f32 + 0.5, x as f32 + 7.0, cy,   // Curva a derecha
+                    x as f32 + 6.0, y as f32 + 6.5, cx, y as f32 + 7.0,   // Onda inferior
+                    x as f32 + 1.0, y as f32 + 6.5, x as f32, cy,         // Vuelta a izquierda
+                    
+                    // Interior ondulado más suave
+                    x as f32 + 1.0, cy,                     // Punto izquierdo interior
+                    x as f32 + 1.5, y as f32 + 1.2, cx, y as f32 + 1.0,   // Onda superior interior
+                    x as f32 + 5.5, y as f32 + 1.2, x as f32 + 6.0, cy,   // Curva derecha interior
+                    x as f32 + 5.5, y as f32 + 5.8, cx, y as f32 + 6.0,   // Onda inferior interior
+                    x as f32 + 1.5, y as f32 + 5.8, x as f32 + 1.0, cy    // Vuelta interior
+                )
+            }
+            EyeBorderStyle::Petal => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                // Pétalo de flor suave
+                format!(
+                    "M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z",
+                    // Exterior pétalo
+                    cx, y as f32,                           // Punta superior
+                    x as f32 + 5.5, y as f32 + 1.0, x as f32 + 7.0, cy,   // Curva derecha suave
+                    x as f32 + 5.5, y as f32 + 6.0, cx, y as f32 + 7.0,   // Base redondeada
+                    x as f32 + 1.5, y as f32 + 6.0, x as f32, cy,         // Curva izquierda
+                    x as f32 + 1.5, y as f32 + 1.0, cx, y as f32,         // Vuelta a punta
+                    
+                    // Interior pétalo más pequeño
+                    cx, y as f32 + 1.0,                     // Punta interior
+                    x as f32 + 4.5, y as f32 + 1.5, x as f32 + 6.0, cy,   // Curva derecha interior
+                    x as f32 + 4.5, y as f32 + 5.5, cx, y as f32 + 6.0,   // Base interior
+                    x as f32 + 2.5, y as f32 + 5.5, x as f32 + 1.0, cy,   // Curva izquierda interior
+                    x as f32 + 2.5, y as f32 + 1.5, cx, y as f32 + 1.0    // Vuelta interior
+                )
+            }
+            EyeBorderStyle::Crystal => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                // Cristal facetado con ángulos suaves - versión simplificada
+                format!(
+                    "M {} {} L {} {} L {} {} L {} {} L {} {} Z M {} {} L {} {} L {} {} L {} {} L {} {} Z",
+                    // Exterior cristal - pentágono
+                    cx, y as f32,                           // Punta superior
+                    x as f32 + 5.5, y as f32 + 1.5,        // Faceta superior derecha
+                    x as f32 + 7.0, cy + 0.5,              // Medio derecha
+                    x as f32 + 5.5, y as f32 + 5.5,        // Faceta inferior derecha
+                    cx, y as f32 + 7.0,                     // Base
+                    
+                    // Interior cristal
+                    cx, y as f32 + 1.0,                     // Punta interior
+                    x as f32 + 4.5, y as f32 + 2.0,        // Faceta interior derecha
+                    x as f32 + 6.0, cy,                     // Medio derecha interior
+                    x as f32 + 4.5, y as f32 + 5.0,        // Faceta inferior interior
+                    cx, y as f32 + 6.0                      // Base interior
+                )
+            }
+            EyeBorderStyle::Flame => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                // Llama estilizada con movimiento
+                format!(
+                    "M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z",
+                    // Exterior llama
+                    cx, y as f32,                           // Punta de llama
+                    cx + 1.5, y as f32 + 0.8, cx + 2.2, y as f32 + 2.0,   // Primera curva derecha
+                    cx + 3.5, y as f32 + 3.2, cx + 2.8, y as f32 + 4.5,   // Oscilación derecha
+                    cx + 3.0, y as f32 + 6.0, cx, y as f32 + 7.0,         // Base derecha
+                    cx - 3.0, y as f32 + 6.0, cx - 1.5, y as f32 + 0.8,   // Base izquierda y vuelta
+                    
+                    // Interior llama
+                    cx, y as f32 + 1.0,                     // Punta interior
+                    cx + 1.0, y as f32 + 1.5, cx + 1.5, y as f32 + 2.5,   // Curva interior derecha
+                    cx + 2.5, y as f32 + 3.8, cx + 2.0, y as f32 + 5.0,   // Oscilación interior
+                    cx + 2.2, y as f32 + 5.8, cx, y as f32 + 6.0,         // Base interior
+                    cx - 2.2, y as f32 + 5.8, cx, y as f32 + 1.0          // Base izquierda interior y vuelta
+                )
+            }
+            EyeBorderStyle::Organic => {
+                let cx = x as f32 + 3.5;
+                let cy = y as f32 + 3.5;
+                // Forma orgánica libre con variaciones aleatorias - simplificada
+                format!(
+                    "M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z M {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Q {} {} {} {} Z",
+                    // Exterior orgánico
+                    x as f32 + 0.3, cy,                     // Punto izquierdo irregular
+                    x as f32 + 1.2, y as f32 + 0.8, cx + 2.2, y as f32 + 0.9, // Curva superior
+                    x as f32 + 6.8, y as f32 + 2.1, x as f32 + 6.7, cy + 0.4, // Curva derecha
+                    x as f32 + 6.2, y as f32 + 5.8, cx - 0.7, y as f32 + 7.2, // Curva inferior
+                    x as f32 + 0.8, y as f32 + 4.9, x as f32 + 0.3, cy,       // Vuelta a izquierda
+                    
+                    // Interior orgánico
+                    x as f32 + 1.2, cy,                     // Punto interior izquierdo
+                    x as f32 + 1.8, y as f32 + 1.4, cx + 1.5, y as f32 + 1.5, // Interior superior
+                    x as f32 + 5.7, y as f32 + 2.8, x as f32 + 5.8, cy + 0.2, // Interior derecha
+                    x as f32 + 5.3, y as f32 + 5.1, cx - 0.4, y as f32 + 6.1, // Interior inferior
+                    x as f32 + 1.5, y as f32 + 4.1, x as f32 + 1.2, cy        // Vuelta interior
+                )
+            }
+        }
+    }
+    
+    /// Genera el path para el centro de un ojo
+    fn generate_eye_center_path(&self, style: EyeCenterStyle, x: usize, y: usize) -> String {
+        match style {
+            EyeCenterStyle::Square => {
+                format!("M {} {} h 3 v 3 h -3 Z", x, y)
+            }
+            EyeCenterStyle::RoundedSquare => {
+                format!(
+                    "M {:.1} {} h 1.6 a 0.7 0.7 0 0 1 0.7 0.7 v 1.6 a 0.7 0.7 0 0 1 -0.7 0.7 h -1.6 a 0.7 0.7 0 0 1 -0.7 -0.7 v -1.6 a 0.7 0.7 0 0 1 0.7 -0.7 Z",
+                    x as f32 + 0.7, y
+                )
+            }
+            EyeCenterStyle::Circle => {
+                let cx = x as f32 + 1.5;
+                let cy = y as f32 + 1.5;
+                format!(
                     "M {} {} A 1.5 1.5 0 1 0 {} {} A 1.5 1.5 0 1 0 {} {} Z",
                     cx - 1.5, cy, cx + 1.5, cy, cx - 1.5, cy
-                ));
+                )
             }
-            EyeShape::Star => {
-                let cx = inner_x as f32 + 1.5;
-                let cy = inner_y as f32 + 1.5;
+            EyeCenterStyle::Dot => {
+                let cx = x as f32 + 1.5;
+                let cy = y as f32 + 1.5;
+                let r = 0.75;
+                format!(
+                    "M {} {} A {} {} 0 1 0 {} {} A {} {} 0 1 0 {} {} Z",
+                    cx - r, cy, r, r, cx + r, cy, r, r, cx - r, cy
+                )
+            }
+            EyeCenterStyle::Star => {
+                let cx = x as f32 + 1.5;
+                let cy = y as f32 + 1.5;
                 let outer_r = 1.5;
                 let inner_r = 0.75;
                 
@@ -1216,15 +1903,49 @@ impl QrCode {
                     }
                 }
                 star_path.push_str(" Z");
-                path_parts.push(star_path);
+                star_path
             }
-            _ => {
-                // Cuadrado por defecto
-                path_parts.push(format!("M {} {} h 3 v 3 h -3 Z", inner_x, inner_y));
+            EyeCenterStyle::Diamond => {
+                let cx = x as f32 + 1.5;
+                let cy = y as f32 + 1.5;
+                format!(
+                    "M {} {} L {} {} L {} {} L {} {} Z",
+                    cx, y as f32,
+                    x as f32 + 3.0, cy,
+                    cx, y as f32 + 3.0,
+                    x as f32, cy
+                )
+            }
+            EyeCenterStyle::Cross => {
+                let thickness = 3.0 / 3.0;
+                let offset = (3.0 - thickness) / 2.0;
+                format!(
+                    "M {} {} h {} v {} h {} v {} h -{} v {} h -{} v -{} h -{} v -{} h {} Z",
+                    x as f32 + offset, y as f32,
+                    thickness, offset,
+                    offset, thickness,
+                    offset, offset,
+                    thickness, offset,
+                    thickness, thickness,
+                    offset
+                )
+            }
+            EyeCenterStyle::Plus => {
+                // Simple plus sign
+                let thickness = 0.6;
+                let center = 1.5;
+                format!(
+                    "M {} {} h {} v {} h {} v {} h -{} v {} h -{} v -{} h -{} v -{} h {} Z",
+                    x as f32 + center - thickness/2.0, y as f32,
+                    thickness, center - thickness/2.0,
+                    center - thickness/2.0, thickness,
+                    center - thickness/2.0, center - thickness/2.0,
+                    thickness, center - thickness/2.0,
+                    thickness, thickness,
+                    center - thickness/2.0
+                )
             }
         }
-        
-        path_parts.join(" ")
     }
     
     /// Genera el path para un ojo específico (implementación anterior para compatibilidad)
@@ -1496,7 +2217,204 @@ impl QrCode {
                             }
                         ));
                     },
-                    _ => {},
+                    crate::engine::types::Effect::Blur => {
+                        definitions.push(crate::engine::types::QrDefinition::Effect(
+                            crate::engine::types::QrEffectDef {
+                                id: "filter_blur".to_string(),
+                                effect_type: "blur".to_string(),
+                                params: serde_json::json!({
+                                    "stdDeviation": 2,
+                                }),
+                            }
+                        ));
+                    },
+                    crate::engine::types::Effect::Noise => {
+                        definitions.push(crate::engine::types::QrDefinition::Effect(
+                            crate::engine::types::QrEffectDef {
+                                id: "filter_noise".to_string(),
+                                effect_type: "noise".to_string(),
+                                params: serde_json::json!({
+                                    "baseFrequency": 0.2,
+                                    "numOctaves": 3,
+                                }),
+                            }
+                        ));
+                    },
+                    crate::engine::types::Effect::Vintage => {
+                        definitions.push(crate::engine::types::QrDefinition::Effect(
+                            crate::engine::types::QrEffectDef {
+                                id: "filter_vintage".to_string(),
+                                effect_type: "vintage".to_string(),
+                                params: serde_json::json!({
+                                    "sepia_intensity": 0.8,
+                                    "vignette_intensity": 0.4,
+                                }),
+                            }
+                        ));
+                    },
+                    // Nuevos efectos Fase 2.2
+                    crate::engine::types::Effect::Distort => {
+                        definitions.push(crate::engine::types::QrDefinition::Effect(
+                            crate::engine::types::QrEffectDef {
+                                id: "filter_distort".to_string(),
+                                effect_type: "distort".to_string(),
+                                params: serde_json::json!({
+                                    "baseFrequency": 0.02,
+                                    "scale": 10,
+                                }),
+                            }
+                        ));
+                    },
+                    crate::engine::types::Effect::Emboss => {
+                        definitions.push(crate::engine::types::QrDefinition::Effect(
+                            crate::engine::types::QrEffectDef {
+                                id: "filter_emboss".to_string(),
+                                effect_type: "emboss".to_string(),
+                                params: serde_json::json!({
+                                    "kernelMatrix": "-2 -1 0 -1 1 1 0 1 2",
+                                }),
+                            }
+                        ));
+                    },
+                    crate::engine::types::Effect::Outline => {
+                        definitions.push(crate::engine::types::QrDefinition::Effect(
+                            crate::engine::types::QrEffectDef {
+                                id: "filter_outline".to_string(),
+                                effect_type: "outline".to_string(),
+                                params: serde_json::json!({
+                                    "radius": 1,
+                                    "color": "black",
+                                }),
+                            }
+                        ));
+                    },
+                    crate::engine::types::Effect::DropShadow => {
+                        definitions.push(crate::engine::types::QrDefinition::Effect(
+                            crate::engine::types::QrEffectDef {
+                                id: "filter_drop_shadow".to_string(),
+                                effect_type: "drop_shadow".to_string(),
+                                params: serde_json::json!({
+                                    "dx": 2,
+                                    "dy": 2,
+                                    "stdDeviation": 3,
+                                    "opacity": 0.3,
+                                }),
+                            }
+                        ));
+                    },
+                    crate::engine::types::Effect::InnerShadow => {
+                        definitions.push(crate::engine::types::QrDefinition::Effect(
+                            crate::engine::types::QrEffectDef {
+                                id: "filter_inner_shadow".to_string(),
+                                effect_type: "inner_shadow".to_string(),
+                                params: serde_json::json!({
+                                    "dx": 2,
+                                    "dy": 2,
+                                    "stdDeviation": 3,
+                                    "opacity": 0.3,
+                                }),
+                            }
+                        ));
+                    },
+                }
+            }
+        }
+        
+        // Agregar efectos selectivos (Fase 2.2)
+        if let Some(selective_effects) = custom.and_then(|c| c.selective_effects.as_ref()) {
+            // Efectos para los ojos
+            if let Some(eyes_effects) = &selective_effects.eyes {
+                for (idx, effect_opt) in eyes_effects.effects.iter().enumerate() {
+                    let effect_id = format!("filter_eyes_{}_{}", 
+                        format!("{:?}", effect_opt.effect_type).to_lowercase(), idx);
+                    
+                    definitions.push(crate::engine::types::QrDefinition::Effect(
+                        crate::engine::types::QrEffectDef {
+                            id: effect_id,
+                            effect_type: format!("{:?}", effect_opt.effect_type).to_lowercase(),
+                            params: serde_json::json!({
+                                "component": "eyes",
+                                "blend_mode": eyes_effects.blend_mode.as_ref()
+                                    .map(|b| format!("{:?}", b).to_lowercase())
+                                    .unwrap_or_else(|| "normal".to_string()),
+                                "render_priority": eyes_effects.render_priority.unwrap_or(5),
+                                "apply_to_fill": eyes_effects.apply_to_fill.unwrap_or(true),
+                                "apply_to_stroke": eyes_effects.apply_to_stroke.unwrap_or(false),
+                            }),
+                        }
+                    ));
+                }
+            }
+            
+            // Efectos para los datos
+            if let Some(data_effects) = &selective_effects.data {
+                for (idx, effect_opt) in data_effects.effects.iter().enumerate() {
+                    let effect_id = format!("filter_data_{}_{}", 
+                        format!("{:?}", effect_opt.effect_type).to_lowercase(), idx);
+                    
+                    definitions.push(crate::engine::types::QrDefinition::Effect(
+                        crate::engine::types::QrEffectDef {
+                            id: effect_id,
+                            effect_type: format!("{:?}", effect_opt.effect_type).to_lowercase(),
+                            params: serde_json::json!({
+                                "component": "data",
+                                "blend_mode": data_effects.blend_mode.as_ref()
+                                    .map(|b| format!("{:?}", b).to_lowercase())
+                                    .unwrap_or_else(|| "normal".to_string()),
+                                "render_priority": data_effects.render_priority.unwrap_or(5),
+                                "apply_to_fill": data_effects.apply_to_fill.unwrap_or(true),
+                                "apply_to_stroke": data_effects.apply_to_stroke.unwrap_or(false),
+                            }),
+                        }
+                    ));
+                }
+            }
+            
+            // Efectos para el marco
+            if let Some(frame_effects) = &selective_effects.frame {
+                for (idx, effect_opt) in frame_effects.effects.iter().enumerate() {
+                    let effect_id = format!("filter_frame_{}_{}", 
+                        format!("{:?}", effect_opt.effect_type).to_lowercase(), idx);
+                    
+                    definitions.push(crate::engine::types::QrDefinition::Effect(
+                        crate::engine::types::QrEffectDef {
+                            id: effect_id,
+                            effect_type: format!("{:?}", effect_opt.effect_type).to_lowercase(),
+                            params: serde_json::json!({
+                                "component": "frame",
+                                "blend_mode": frame_effects.blend_mode.as_ref()
+                                    .map(|b| format!("{:?}", b).to_lowercase())
+                                    .unwrap_or_else(|| "normal".to_string()),
+                                "render_priority": frame_effects.render_priority.unwrap_or(5),
+                                "apply_to_fill": frame_effects.apply_to_fill.unwrap_or(true),
+                                "apply_to_stroke": frame_effects.apply_to_stroke.unwrap_or(false),
+                            }),
+                        }
+                    ));
+                }
+            }
+            
+            // Efectos globales
+            if let Some(global_effects) = &selective_effects.global {
+                for (idx, effect_opt) in global_effects.effects.iter().enumerate() {
+                    let effect_id = format!("filter_global_{}_{}", 
+                        format!("{:?}", effect_opt.effect_type).to_lowercase(), idx);
+                    
+                    definitions.push(crate::engine::types::QrDefinition::Effect(
+                        crate::engine::types::QrEffectDef {
+                            id: effect_id,
+                            effect_type: format!("{:?}", effect_opt.effect_type).to_lowercase(),
+                            params: serde_json::json!({
+                                "component": "global",
+                                "blend_mode": global_effects.blend_mode.as_ref()
+                                    .map(|b| format!("{:?}", b).to_lowercase())
+                                    .unwrap_or_else(|| "normal".to_string()),
+                                "render_priority": global_effects.render_priority.unwrap_or(5),
+                                "apply_to_fill": global_effects.apply_to_fill.unwrap_or(true),
+                                "apply_to_stroke": global_effects.apply_to_stroke.unwrap_or(false),
+                            }),
+                        }
+                    ));
                 }
             }
         }

@@ -1,4 +1,4 @@
-// routes/qr_v3.rs - API v3 con datos estructurados (ULTRATHINK)
+// routes/qr_v3.rs - API v3 con datos estructurados (QR v3)
 
 use axum::{
     extract::State,

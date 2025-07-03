@@ -8,7 +8,12 @@ import SystemAlerts from '@/components/SystemAlerts';
 import AppLayout from '@/components/admin/AppLayout';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap', // Mejora el rendering inicial
+  preload: true, // Solo preload cuando sea crítico
+  variable: '--font-inter', // CSS variable para uso eficiente
+});
 
 export const metadata: Metadata = {
   title: 'Codex - Generador Códigos',
@@ -27,7 +32,7 @@ export default function RootLayout({
           <AuthProvider>
             <ErrorBoundary>
               <AppLayout>
-                <main>{children}</main>
+                {children}
               </AppLayout>
               
               <SystemAlerts />

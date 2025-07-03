@@ -35,7 +35,7 @@ The `handleQRFormChange` function in `page.tsx` treats the default URL as empty 
 
 ## Backend Issues
 
-### ULTRATHINK v3 Gradient Support
+### QR v3 Gradient Support
 **Clarification**: v3 DOES support gradients, but frontend implementation is incomplete.
 
 **Current State**:

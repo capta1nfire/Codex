@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { UltrathinkQR } from '@/components/generator/UltrathinkQR';
+import { QRV3 } from '@/components/generator/QRV3';
 import { useQRGenerationV3 } from '@/hooks/useQRGenerationV3';
 
 export default function TestV3Page() {
-  const [inputData, setInputData] = useState('Test ULTRATHINK QR v3');
+  const [inputData, setInputData] = useState('Test QR v3');
   const { structuredData, isLoading, error, generateQR, metadata } = useQRGenerationV3();
   const [directTestData, setDirectTestData] = useState<any>(null);
   const [directTestLoading, setDirectTestLoading] = useState(false);
@@ -49,7 +49,7 @@ export default function TestV3Page() {
 
   return (
     <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8">Test ULTRATHINK QR v3</h1>
+      <h1 className="text-3xl font-bold mb-8">Test QR v3</h1>
       
       <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
         <p className="text-sm text-blue-800 dark:text-blue-200">
@@ -96,15 +96,15 @@ export default function TestV3Page() {
         
         <Card>
           <CardHeader>
-            <CardTitle>ULTRATHINK QR Preview</CardTitle>
+            <CardTitle>QR v3 Preview</CardTitle>
           </CardHeader>
           <CardContent>
             {(structuredData || directTestData) ? (
               <div className="space-y-4">
-                <UltrathinkQR
+                <QRV3
                   data={structuredData || directTestData}
                   size={300}
-                  title="ULTRATHINK QR Code"
+                  title="QR Code v3"
                   description="Secure v3 implementation without dangerouslySetInnerHTML"
                 />
                 

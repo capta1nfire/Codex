@@ -25,11 +25,6 @@ export const generateFormSchema = z.object({
         .regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido (ej. #FF0000)')
         .optional()
         .or(z.literal('')), // Permitir vacío para usar el default
-      bgcolor: z
-        .string()
-        .regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido (ej. #FFFFFF)')
-        .optional()
-        .or(z.literal('')), // Permitir vacío para usar el default
 
       // Opciones de gradiente (principalmente para QR)
       gradient_enabled: z.boolean().optional(),
@@ -46,6 +41,14 @@ export const generateFormSchema = z.object({
         .or(z.literal('')),
       gradient_direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
       gradient_borders: z.boolean().optional(), // Control para mostrar/ocultar bordes en gradientes
+      
+      // Background options for QR codes
+      transparent_background: z.boolean().optional(),
+      bgcolor: z
+        .string()
+        .regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido (ej. #FFFFFF)')
+        .optional()
+        .or(z.literal('')),
 
       // Opciones específicas 1D (ej. Code128)
       height: z
@@ -103,6 +106,9 @@ export const generateFormSchema = z.object({
       
       // Opciones v3 Enhanced para QR
       eye_shape: z.enum(['square', 'rounded_square', 'circle', 'dot', 'leaf', 'bars-horizontal', 'bars-vertical', 'star', 'diamond', 'cross', 'hexagon', 'heart', 'shield', 'crystal', 'flower', 'arrow', 'custom']).optional(),
+      use_separated_eye_styles: z.boolean().optional(),
+      eye_border_style: z.enum(['square', 'rounded_square', 'circle', 'leaf', 'bars_horizontal', 'bars_vertical', 'star', 'diamond', 'cross', 'hexagon', 'heart', 'shield', 'crystal', 'flower', 'arrow']).optional(),
+      eye_center_style: z.enum(['square', 'rounded_square', 'circle', 'dot', 'star', 'diamond', 'cross', 'plus']).optional(),
       data_pattern: z.enum(['square', 'dots', 'rounded', 'vertical', 'horizontal', 'diamond', 'circular', 'star', 'cross', 'random', 'wave', 'mosaic']).optional(),
       
       // Logo options

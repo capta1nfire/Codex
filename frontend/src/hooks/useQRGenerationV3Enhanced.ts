@@ -7,8 +7,21 @@
  */
 
 import { useState, useCallback } from 'react';
-import { QREnhancedData } from '@/components/generator/EnhancedUltrathinkQR';
+import { QREnhancedData } from '@/components/generator/EnhancedQRV3';
 import { QRV3Options } from './useQRGenerationV3';
+
+interface ScannabilityAnalysis {
+  score: number;
+  issues: Array<{
+    type: 'contrast' | 'logo_size' | 'pattern_complexity' | 'eye_visibility' | 'gradient_complexity';
+    severity: 'warning' | 'error';
+    message: string;
+    suggestion?: string;
+  }>;
+  recommendations: string[];
+  suggestedECC?: 'L' | 'M' | 'Q' | 'H';
+  contrastRatio: number;
+}
 
 interface QRV3EnhancedResponse {
   success: boolean;
@@ -21,6 +34,7 @@ interface QRV3EnhancedResponse {
     cached: boolean;
     processing_time_ms: number;
   };
+  scannability?: ScannabilityAnalysis;
 }
 
 interface UseQRGenerationV3EnhancedReturn {
@@ -29,6 +43,7 @@ interface UseQRGenerationV3EnhancedReturn {
   error: string | null;
   isUsingCache: boolean;
   metadata: QRV3EnhancedResponse['metadata'] | null;
+  scannability: ScannabilityAnalysis | null;
   generateEnhancedQR: (data: string, options?: QRV3Options) => Promise<void>;
   clearData: () => void;
   clearError: () => void;
@@ -40,6 +55,7 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
   const [error, setError] = useState<string | null>(null);
   const [isUsingCache, setIsUsingCache] = useState(false);
   const [metadata, setMetadata] = useState<QRV3EnhancedResponse['metadata'] | null>(null);
+  const [scannability, setScannability] = useState<ScannabilityAnalysis | null>(null);
 
   const generateEnhancedQR = useCallback(async (data: string, options?: QRV3Options) => {
     console.log('[useQRGenerationV3Enhanced] Generating QR with data:', data, 'options:', options);
@@ -49,6 +65,7 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
     setEnhancedData(null);
     setMetadata(null);
     setIsUsingCache(false);
+    setScannability(null);
 
     try {
       const headers: Record<string, string> = {
@@ -131,6 +148,12 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
         setEnhancedData(result.data);
         setIsUsingCache(result.metadata.cached);
         setMetadata(result.metadata);
+        
+        // Set scannability data if available
+        if (result.scannability) {
+          console.log('[useQRGenerationV3Enhanced] Setting scannability:', result.scannability);
+          setScannability(result.scannability);
+        }
       } else {
         console.warn('[useQRGenerationV3Enhanced] No data in result:', result);
       }
@@ -147,6 +170,7 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
     setError(null);
     setIsUsingCache(false);
     setMetadata(null);
+    setScannability(null);
   }, []);
 
   const clearError = useCallback(() => {
@@ -159,6 +183,7 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
     error,
     isUsingCache,
     metadata,
+    scannability,
     generateEnhancedQR,
     clearData,
     clearError,

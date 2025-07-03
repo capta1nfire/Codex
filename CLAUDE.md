@@ -6,14 +6,85 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **📋 Note**: If you're a new AI agent, start with `START_HERE.md` first for project orientation. This file is your practical toolkit after understanding the project context.
 
-> **🔄 Living Document**: This file should be iterated and improved based on effectiveness. Last updated: June 26, 2025
+> **🔄 Living Document**: This file should be iterated and improved based on effectiveness. Last updated: June 27, 2025
 
-### Recent Updates (June 26, 2025)
+### Recent Updates (June 27, 2025)
+- ✅ **NEW**: Added Development Environment section with macOS Sequoia 15.5 specifics
+- ✅ **NEW**: Added Cursor PRO + Claude Code integration details
+- ✅ **NEW**: Added multi-agent environment context (Claude + Gemini CLI)
+- ✅ **CRITICAL**: Added macOS vs Linux command differences to prevent confusion
 - ✅ Added Multi-Agent Collaboration Protocol integration
-- ✅ Updated QR Engine status (v3 ULTRATHINK is primary)
+- ✅ Updated QR Engine status (v3 is primary)
 - ✅ Fixed critical security information (checkRole middleware)
 - ✅ Consolidated best practices from CLAUDE_BK.md
-- ✅ Added current project status section
+
+---
+
+## 💻 Development Environment
+
+**Current Setup:**
+- **OS**: macOS Sequoia 15.5 (24F74)
+- **IDE**: Cursor PRO with Claude Code integration
+- **AI Agents**: Claude Code + Gemini CLI
+- **Terminal**: Use macOS terminal commands (not Linux equivalents)
+
+**macOS-Specific Commands:**
+```bash
+# Process monitoring
+lsof -i :3000        # Check port (not netstat -tulpn)
+lsof -i :3004        # Backend port
+lsof -i :3002        # Rust port
+
+# Open browser
+open http://localhost:3000    # Opens in default browser
+
+# Copy to clipboard
+pbcopy < file.txt    # Copy file contents to clipboard
+
+# Memory usage
+vm_stat              # macOS memory stats (not free -h)
+
+# File operations
+ls -la               # List files with details
+find . -name "*.ts"  # Find TypeScript files
+
+# Screenshots (for UI verification)
+# Use Cmd+Shift+5 for screenshot tool
+# Screenshots saved to ~/Desktop by default
+```
+
+**Cursor PRO Integration:**
+```bash
+# Claude Code shortcuts
+Cmd+K                # Inline Claude Code editing
+Cmd+L                # Claude Code chat panel
+Cmd+Shift+P          # Command palette
+Cmd+P                # Quick file search
+
+# Terminal integration
+# Use integrated terminal: View > Terminal
+# Or external: Cmd+Shift+C to open in external terminal
+```
+
+**Multi-Agent Environment:**
+- **Claude Code**: Primary development agent (this context)
+- **Gemini CLI**: Forensic analysis and verification
+- **Coordination**: Use MULTI_AGENT_COLLABORATION_PROTOCOL.md
+
+**⚠️ IMPORTANT Commands Differences:**
+```bash
+# DON'T use Linux commands:
+❌ netstat -tulpn    # Use: lsof -i :PORT
+❌ free -h           # Use: vm_stat
+❌ ps aux | grep     # Use: ps aux | grep (same)
+❌ sudo systemctl    # Use: pm2 commands instead
+
+# DO use macOS equivalents:
+✅ lsof -i :3000     # Check if port is in use
+✅ vm_stat           # Memory statistics
+✅ open .            # Open current directory in Finder
+✅ pbcopy/pbpaste    # Clipboard operations
+```
 
 ---
 
@@ -104,17 +175,19 @@ CODEX Project/
 
 ### Critical Files to Read First
 1. `START_HERE.md` - Understand project rules and current state
-2. `.nav.md` - Quick navigation to find files and workflows efficiently
-3. `MULTI_AGENT_COLLABORATION_PROTOCOL.md` - Multi-agent collaboration rules
-4. `docs/qr-engine/ULTRATHINK_V3_ARCHITECTURE.md` - ⚠️ Primary QR Engine (MUST READ)
-5. `docs/qr-engine/QR_ENGINE_V2_REFERENCE.md` - Legacy v2 reference
+2. **🤖 `frontend/IA_MANIFESTO.md`** - ⚠️ **OBLIGATORIO**: Pilares fundamentales para desarrollo con IA
+3. `.nav.md` - Quick navigation to find files and workflows efficiently
+4. `MULTI_AGENT_COLLABORATION_PROTOCOL.md` - Multi-agent collaboration rules
+5. `docs/qr-engine/QR_V3_ARCHITECTURE.md` - ⚠️ Primary QR Engine (MUST READ)
+6. `docs/qr-engine/QR_ENGINE_V2_REFERENCE.md` - Legacy v2 reference
+7. **🛡️ `docs/policies/MAIN_PAGE_PROTECTION_POLICY.md`** - ⚠️ CRITICAL: Rules for modifying page.tsx
 
 ---
 
 ## 🎯 Current Project Status
 
 ### QR Engine Status
-- **✅ QR v3 ULTRATHINK**: **100% Active** - Primary engine for all QR generation
+- **✅ QR v3**: **100% Active** - Primary engine for all QR generation
 - **✅ Full gradient support**: Linear, radial, conic, diamond, spiral - all working
 - **✅ Free for everyone**: No authentication required for v3
 - **✅ Performance**: ~1ms generation time maintained
@@ -414,7 +487,16 @@ className="w-full md:w-1/2 lg:w-1/3"
 - ❌ Add console.logs in production code
 - ❌ Modify Gemini forensic reports in `/docs/forensic/`
 
+### 🛡️ PROTECTED FILE - page.tsx:
+- ⚠️ **CRITICAL**: `/frontend/src/app/page.tsx` is protected (see `docs/policies/MAIN_PAGE_PROTECTION_POLICY.md`)
+- ❌ **NEVER** add logic, state, or effects to page.tsx
+- ❌ **NEVER** exceed 30 lines of code in page.tsx
+- ✅ **ALWAYS** add new features to `useQRGeneratorOrchestrator` or child components
+- 🧪 **Guardian tests** will fail if you violate these rules
+- 📊 Run `scripts/check-page-health.js` before modifying
+
 ### ALWAYS DO:
+- ✅ **Adherir a IA_MANIFESTO.md** - Los 5 pilares son obligatorios en todo código
 - ✅ Use PM2 for service management
 - ✅ Check existing patterns before implementing
 - ✅ Run tests before committing
@@ -441,7 +523,7 @@ Quick reminder:
 
 #### Current API Structure (v3 Primary)
 ```bash
-# QR Code v3 (ULTRATHINK - Primary Engine)
+# QR Code v3 (Primary Engine)
 curl -X POST http://localhost:3004/api/v3/qr/generate \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -481,7 +563,7 @@ curl -X POST http://localhost:3004/api/v1/barcode \
 ```
 
 #### ⚠️ CRITICAL: QR Engine Status
-- **✅ v3 ULTRATHINK**: Primary engine with full features
+- **✅ v3**: Primary engine with full features
 - **✅ Gradients**: Fully working (linear, radial, conic, diamond, spiral)
 - **✅ Free access**: No authentication required for basic generation
 - **📅 v2 Deprecation**: Remove June 2025
@@ -493,6 +575,15 @@ curl -X POST http://localhost:3004/api/v1/barcode \
 4. Add tests in `backend/src/__tests__/`
 5. Update API documentation
 6. Run `./scripts/validate-flodex.sh`
+
+### Run URL Validation Test Suite
+```bash
+# Execute comprehensive URL validation tests (~140 requests)
+cd backend && npx tsx src/scripts/testUrlValidation.ts
+
+# Note: Rate limiter allows 10k requests in development mode
+# Production maintains 100 requests per 15 minutes
+```
 
 ### Add a New UI Component
 1. Create component in `frontend/src/components/`

@@ -161,20 +161,22 @@ export const checkRole = (requiredRoles: UserRole | UserRole[]) => {
     }
 
     const userRole = (req.user as any).role;
-    
+
     // Normalizar a array para simplificar lógica
     const rolesArray = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
-    
+
     // Verificar si el usuario tiene alguno de los roles requeridos
-    const hasAccess = rolesArray.some(role => authService.hasRole(userRole, role));
-    
+    const hasAccess = rolesArray.some((role) => authService.hasRole(userRole, role));
+
     if (!hasAccess) {
       const rolesList = rolesArray.join(', ');
-      return next(new AppError(
-        `Acceso denegado. Se requiere uno de estos roles: ${rolesList}`, 
-        403, 
-        ErrorCode.FORBIDDEN
-      ));
+      return next(
+        new AppError(
+          `Acceso denegado. Se requiere uno de estos roles: ${rolesList}`,
+          403,
+          ErrorCode.FORBIDDEN
+        )
+      );
     }
 
     next();
