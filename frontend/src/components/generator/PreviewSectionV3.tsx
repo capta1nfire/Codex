@@ -44,6 +44,7 @@ interface PreviewSectionProps {
   urlGenerationState?: string;
   qrData?: string; // The actual data encoded in the QR
   transparentBackground?: boolean; // Whether to show transparent background
+  backgroundColor?: string; // The background color from form
 }
 
 /**
@@ -60,6 +61,7 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
   urlGenerationState,
   qrData = '', // Add prop to receive the actual QR data
   transparentBackground = false,
+  backgroundColor,
   className,
 }) => {
   const { handleDownload } = useBarcodeActions(svgContent, barcodeType);
@@ -332,6 +334,7 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
           className="animate-fadeIn"
           logoSizeRatio={logoSizeRatio}
           transparentBackground={transparentBackground}
+          backgroundColor={backgroundColor}
         />
       );
     } else if (barcodeType === 'qrcode' || barcodeType === 'qr') {

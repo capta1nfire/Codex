@@ -761,6 +761,7 @@ export function QRGeneratorContainer() {
                     console.log('[QRGeneratorContainer] transparent_background value:', value);
                     return value;
                   })()}
+                  backgroundColor={watch('options.bgcolor')}
                 />
               </div>
             </section>

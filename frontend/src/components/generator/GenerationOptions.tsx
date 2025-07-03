@@ -91,7 +91,7 @@ function GenerationOptions({
     label, 
     defaultValue 
   }: { 
-    name: 'options.fgcolor' | 'options.gradient_color1' | 'options.gradient_color2'; 
+    name: 'options.fgcolor' | 'options.gradient_color1' | 'options.gradient_color2' | 'options.bgcolor'; 
     label: string; 
     defaultValue: string;
   }) => (

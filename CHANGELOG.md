@@ -18,6 +18,12 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - **Resultado**: Bordes blancos semitransparentes solo cuando el toggle está activado
   - **Archivos**: EnhancedQRV3.tsx con condiciones `stroke?.enabled`
 
+- **QR Background Coverage**: El color de fondo ahora cubre toda el área incluyendo quiet zone
+  - **Problema**: El fondo solo cubría el área de datos, dejando quiet zone transparente
+  - **Solución**: Ajustar viewBox SVG para incluir quiet zone y agregar rectángulo de fondo
+  - **Resultado**: Color de fondo y transparencia ahora se extienden a toda el área del QR
+  - **Archivos**: EnhancedQRV3.tsx con viewBox `0 0 ${totalModules} ${totalModules}`
+
 ### 🎨 Fixed
 - **QR Code Preview Border**: Eliminado borde de colores gradiente del generador
   - **Eliminado**: Borde gradiente azul-púrpura-rosa en PreviewSectionV3.tsx
