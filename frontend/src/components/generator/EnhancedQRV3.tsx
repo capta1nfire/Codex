@@ -260,8 +260,19 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
       style={{ 
         width: size, 
         height: size,
+        // 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
+        // This backgroundColor logic extends the QR background to cover the quiet zone
+        // - When transparentBackground is true: Shows container background (green debug border)
+        // - When false: Uses bgColor which includes user-selected colors from Color tab
+        // ⚠️ Changing this breaks the quiet zone background coverage feature ⚠️
         backgroundColor: transparentBackground ? 'transparent' : bgColor,
         cursor: onClick ? 'pointer' : 'default',
+        // 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
+        // This padding calculation creates the visual quiet zone with background color
+        // - Formula: size * QUIET_ZONE / totalModules * 0.35
+        // - The 0.35 factor provides subtle padding (35% of full quiet zone)
+        // - boxSizing: 'border-box' ensures total size remains consistent
+        // ⚠️ ANY change to these values will break the quiet zone appearance ⚠️
         padding: `${size * QUIET_ZONE / totalModules * 0.35}px`,
         boxSizing: 'border-box',
       }}

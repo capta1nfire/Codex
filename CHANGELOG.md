@@ -35,6 +35,7 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 - **Critical Code Sections**: Agregados comentarios de protección en código sensible
   - **Transparent Background Logic**: EnhancedQRV3.tsx y GenerationOptions.tsx
   - **Gradient Borders Logic**: EnhancedQRV3.tsx stroke rendering
+  - **Quiet Zone Background Coverage**: EnhancedQRV3.tsx backgroundColor y padding del contenedor
   - **Warnings**: Emojis 🚨 y texto explicativo para prevenir modificaciones accidentales
 
 ## 2025-06-30
