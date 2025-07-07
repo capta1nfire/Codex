@@ -1770,6 +1770,7 @@ async fn qr_v2_preview_handler(
             Some(ColorOptions {
                 foreground: fg.clone(),
                 background: bg.clone(),
+                eye_colors: None,
             })
         } else {
             None
@@ -1785,9 +1786,10 @@ async fn qr_v2_preview_handler(
             logo: None,
             frame: None,
             effects: None,
-            selective_effects: None,
             error_correction: None,
             logo_size_ratio: None,
+            selective_effects: None,
+            fixed_size: None,
         })
     } else {
         None

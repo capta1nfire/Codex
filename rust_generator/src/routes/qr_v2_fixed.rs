@@ -207,6 +207,7 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
                 Some(ColorOptions {
                     foreground: opts.foreground_color.clone().unwrap_or_else(|| "#000000".to_string()),
                     background: opts.background_color.clone().unwrap_or_else(|| "#FFFFFF".to_string()),
+                    eye_colors: None,
                 })
             } else {
                 None
@@ -268,6 +269,7 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
             }),
             error_correction: opts.error_correction.as_ref().map(|ec| parse_error_correction(ec)),
             logo_size_ratio: None,
+            selective_effects: None,
         }
     });
     

@@ -57,6 +57,7 @@
     "redis": "^4.7.0",
     "rust_generator": "file:../rust_generator/pkg",
     "sharp": "^0.34.1",
+    "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "undici": "^7.10.0",

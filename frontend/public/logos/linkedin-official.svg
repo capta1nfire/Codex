@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- LinkedIn Official Logo -->
+  <rect width="512" height="512" rx="64" fill="#0A66C2"/>
+  <g fill="white">
+    <!-- "in" text -->
+    <circle cx="142" cy="138" r="37"/>
+    <path d="M122 216h40v196h-40z"/>
+    <path d="M210 216h38v27h1c5.4-10 18.5-21 38.1-21 40.8 0 48.3 26.9 48.3 61.8V412h-40.3V291.3c0-15.1-.3-34.5-21-34.5-21 0-24.2 16.4-24.2 33.4V412H210V216z"/>
+  </g>
+</svg>

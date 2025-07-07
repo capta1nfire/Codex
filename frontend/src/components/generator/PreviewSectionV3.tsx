@@ -1,12 +1,12 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, CheckCircle } from 'lucide-react';
+import { Download } from 'lucide-react';
 import BarcodeDisplay from '@/app/BarcodeDisplay';
 import { DynamicQRCodeFromSVG } from '@/components/DynamicQRCode';
 import { EnhancedQRV3 } from '@/components/generator/EnhancedQRV3';
 import { QREnhancedData } from '@/components/generator/EnhancedQRV3';
 import { useBarcodeActions } from '@/hooks/useBarcodeActions';
-import { ScannabilityMeter } from '@/components/generator/ScannabilityMeter';
+import { HeroScannabilityDisplay } from '@/components/generator/HeroScannabilityDisplay';
 
 interface ScannabilityAnalysis {
   score: number;
@@ -33,7 +33,6 @@ interface PreviewSectionProps {
   isUserTyping?: boolean;
   validationError?: string | null;
   isInitialDisplay?: boolean;
-  className?: string;
   gradientOptions?: {
     enabled: boolean;
     type?: string;
@@ -62,14 +61,17 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
   qrData = '', // Add prop to receive the actual QR data
   transparentBackground = false,
   backgroundColor,
-  className,
 }) => {
   const { handleDownload } = useBarcodeActions(svgContent, barcodeType);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [showHeroMoment, setShowHeroMoment] = useState(false);
+  const enhancedQRRef = useRef<HTMLDivElement>(null);
+  const [isNewGeneration, setIsNewGeneration] = useState(false);
   const [previousEnhancedData, setPreviousEnhancedData] = useState<QREnhancedData | null>(null);
   const [previousSvgContent, setPreviousSvgContent] = useState<string>('');
   const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [showDownloadOverlay, setShowDownloadOverlay] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+  const overlayTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   // UNIVERSAL placeholder detection for ALL barcode types
   const isPlaceholderData = (data: string): boolean => {
@@ -181,7 +183,7 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
     };
   }, [isLoading, urlGenerationState, barcodeType, isUsingV3Enhanced, enhancedData, svgContent, qrData]);
   
-  // Hero moment effect - optimized to prevent multiple triggers
+  // Hero moment effect - simplified
   useEffect(() => {
     // Determine if we have new content
     let hasNewContent = false;
@@ -209,13 +211,14 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
     // Show hero moment only for real user data, not placeholders
     const isRealUserData = qrData && !isPlaceholderData(qrData);
     
-    if (hasNewContent && !isFirstLoad && isRealUserData) {
-      console.log('[PreviewSectionV3] Showing hero moment for user data:', qrData);
-      setShowHeroMoment(true);
+    if (hasNewContent && !isFirstLoad && isRealUserData && barcodeType === 'qrcode') {
+      console.log('[PreviewSectionV3] New generation for real user data:', qrData);
+      setIsNewGeneration(true);
       
+      // Reset flag after a short delay to allow component to register it
       const timer = setTimeout(() => {
-        setShowHeroMoment(false);
-      }, 4000);
+        setIsNewGeneration(false);
+      }, 100);
       
       return () => clearTimeout(timer);
     }
@@ -224,6 +227,16 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
       setIsFirstLoad(false);
     }
   }, [svgContent, enhancedData, barcodeType, isUsingV3Enhanced, isLoading, isFirstLoad, previousEnhancedData, previousSvgContent, qrData]);
+
+  // Overlay auto-show/hide logic - removed automatic showing
+  useEffect(() => {
+    // Only show overlay on hover, not automatically
+    return () => {
+      if (overlayTimerRef.current) {
+        clearTimeout(overlayTimerRef.current);
+      }
+    };
+  }, []);
   
   // Video loop logic - memoized callback
   const startVideoCycle = useCallback(() => {
@@ -280,7 +293,7 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
   const loadingSkeleton = useMemo(() => (
     <div className="relative mx-auto w-fit animate-fadeIn">
       <div className="p-6 pb-4 flex justify-center">
-        <div className="bg-transparent rounded-lg shadow-lg p-2">
+        <div className="bg-transparent rounded-lg p-2">
             <div className="w-[300px] h-[300px] rounded flex flex-col items-center justify-center">
               <div className="relative">
                 <div className="grid grid-cols-5 gap-1 p-2">
@@ -322,26 +335,28 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
       const logoSizeRatio = enhancedData.overlays?.logo?.size || undefined;
       
       return (
-        <EnhancedQRV3
-          data={enhancedData}
-          totalModules={enhancedData.metadata.total_modules}
-          dataModules={enhancedData.metadata.data_modules}
-          version={enhancedData.metadata.version}
-          errorCorrection={enhancedData.metadata.error_correction}
-          size={326}
-          title="Código QR"
-          description="Escanea este código QR"
-          className="animate-fadeIn"
-          logoSizeRatio={logoSizeRatio}
-          transparentBackground={transparentBackground}
-          backgroundColor={backgroundColor}
-        />
+        <div ref={enhancedQRRef}>
+          <EnhancedQRV3
+            data={enhancedData}
+            totalModules={enhancedData.metadata.total_modules}
+            dataModules={enhancedData.metadata.data_modules}
+            version={enhancedData.metadata.version}
+            errorCorrection={enhancedData.metadata.error_correction}
+            size={310} // ⚠️ CRÍTICO: Tamaño exacto calibrado - NO MODIFICAR
+            title="Código QR"
+            description="Escanea este código QR"
+            className="animate-fadeIn"
+            logoSizeRatio={logoSizeRatio}
+            transparentBackground={transparentBackground}
+            backgroundColor={backgroundColor}
+          />
+        </div>
       );
     } else if (barcodeType === 'qrcode' || barcodeType === 'qr') {
       return (
         <DynamicQRCodeFromSVG
           svgContent={svgContent}
-          size={326}
+          size={310} // ⚠️ CRÍTICO: Tamaño exacto calibrado - NO MODIFICAR
           className="qr-v3"
           transparentBackground={transparentBackground}
         />
@@ -357,111 +372,272 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
     }
   }, [displayState.showRealBarcode, barcodeType, isUsingV3Enhanced, enhancedData, svgContent]);
   
-  // Memoized download handlers
-  const handleDownloadPNG = useCallback(() => handleDownload(), [handleDownload]);
-  const handleDownloadSVG = useCallback(() => handleDownload('svg'), [handleDownload]);
+  // Enhanced download handlers for v3
+  const extractSVGFromDOM = useCallback(() => {
+    if (!enhancedQRRef.current) return null;
+    const svgElement = enhancedQRRef.current.querySelector('svg');
+    if (!svgElement) return null;
+    
+    // Clone the SVG to avoid modifying the original
+    const clonedSvg = svgElement.cloneNode(true) as SVGElement;
+    
+    // Get the outer HTML
+    const svgString = new XMLSerializer().serializeToString(clonedSvg);
+    return svgString;
+  }, []);
+
+  const handleDownloadPNG = useCallback(() => {
+    if (isUsingV3Enhanced && enhancedData) {
+      const svgString = extractSVGFromDOM();
+      if (svgString) {
+        // Create a temporary hook instance with the extracted SVG
+        const tempDownload = (format: string = 'png') => {
+          const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+          const svgUrl = URL.createObjectURL(svgBlob);
+          
+          if (format === 'png') {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              canvas.width = 1024; // High resolution
+              canvas.height = 1024;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                // Only fill with white if not transparent background
+                if (!transparentBackground) {
+                  ctx.fillStyle = backgroundColor || 'white';
+                  ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                canvas.toBlob((blob) => {
+                  if (blob) {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `qr_${Date.now()}.png`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                  }
+                }, 'image/png');
+              }
+              URL.revokeObjectURL(svgUrl);
+            };
+            img.src = svgUrl;
+          }
+        };
+        tempDownload('png');
+      }
+    } else {
+      handleDownload();
+    }
+  }, [isUsingV3Enhanced, enhancedData, extractSVGFromDOM, handleDownload]);
+
+  const handleDownloadSVG = useCallback(() => {
+    if (isUsingV3Enhanced && enhancedData) {
+      const svgString = extractSVGFromDOM();
+      if (svgString) {
+        const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `qr_${Date.now()}.svg`;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+    } else {
+      handleDownload('svg');
+    }
+  }, [isUsingV3Enhanced, enhancedData, extractSVGFromDOM, handleDownload]);
 
   return (
-    <>
-      {/* Loading state */}
-      {displayState.showLoadingState && (
-        <>
-          {console.log('[PreviewSection] 🎯 SHOWING LOADING ANIMATION!')}
-          {loadingSkeleton}
-        </>
-      )}
+    <div className="w-[350px]">
+      {/* ⚠️ ESTRUCTURA CRÍTICA - NO MODIFICAR SIN AUTORIZACIÓN
+          Esta configuración fue cuidadosamente calibrada durante una sesión completa de trabajo.
           
-      {/* Real barcode display */}
-      {displayState.showRealBarcode && (
-        <>
-          <div className="relative mx-auto animate-fadeIn">
-            <div className="bg-transparent rounded-lg shadow-lg">
-              <div className="relative w-[350px] h-[350px] p-2 flex items-center justify-center border-2 border-green-600">
-                <div className="w-full h-full flex items-center justify-center">
-                  {qrDisplay}
-                </div>
-                {/* Indicador de quiet zone - ahora encima del QR */}
-                <div className="absolute inset-0 pointer-events-none z-10">
-                  <div className="absolute top-0 left-0 right-0 h-2 bg-green-400 opacity-30"></div>
-                  <div className="absolute bottom-0 left-0 right-0 h-2 bg-green-400 opacity-30"></div>
-                  <div className="absolute top-0 left-0 bottom-0 w-2 bg-green-400 opacity-30"></div>
-                  <div className="absolute top-0 right-0 bottom-0 w-2 bg-green-400 opacity-30"></div>
-                  <span className="absolute top-2 left-2 text-xs text-green-700 font-semibold bg-white bg-opacity-90 px-1 rounded">ISO/IEC 18004</span>
-                </div>
-              </div>
-              
-              {/* Hero moment checkmark */}
-              {showHeroMoment && (
-                <div className="absolute -top-2 -right-2 animate-subtleSuccess z-60">
-                  <div className="bg-green-500 text-white rounded-full p-1 shadow-md">
-                    <CheckCircle className="w-5 h-5" />
+          DIMENSIONES PROTEGIDAS:
+          - Contenedor principal: w-[350px] - NO CAMBIAR
+          - Contenedor QR: w-[320px] h-[320px] - CRÍTICO para alineación
+          - QR size: 310px - OPTIMIZADO para spacing
+          
+          Cualquier cambio puede romper:
+          - Alineación del QR
+          - Fondo blanco redondeado
+          - Overlay de descarga
+          - Comportamiento del video placeholder
+      */}
+      {/* Main container structure - always present */}
+      <div className="relative animate-fadeIn">
+        <div className="bg-transparent rounded-lg w-[350px]">
+          <div className="relative w-[350px] h-[350px] flex items-center justify-center">
+            {/* ⚠️ CAPA DE FONDO CRÍTICA - AHORA DINÁMICA
+                - Posición: DEBE estar fuera del overflow container
+                - Dimensiones: 320x320px exactos
+                - Sombra: shadow-[0_0_3px_rgba(0,0,0,0.1)] calibrada
+                - Condición: Respeta transparentBackground toggle
+                - Color: Dinámico según backgroundColor del formulario
+                
+                Esta capa proporciona el fondo dinámico redondeado sin afectar descargas
+            */}
+            {(displayState.showRealBarcode || displayState.showEmptyState) && !transparentBackground && (
+              <div 
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] rounded-lg shadow-[0_0_3px_rgba(0,0,0,0.1)]"
+                style={{ backgroundColor: backgroundColor || '#FFFFFF' }}
+              />
+            )}
+            
+            {/* ⚠️ CONTENEDOR QR CRÍTICO - MANTENER ESTRUCTURA
+                - Dimensiones: 320x320px exactos
+                - overflow-hidden: REQUERIDO
+                - z-10: NECESARIO para estar sobre el fondo
+                - Eventos mouse: CONTROLAN overlay de descarga
+            */}
+            <div 
+              className="relative w-[320px] h-[320px] flex items-center justify-center overflow-hidden z-10"
+              onMouseEnter={() => {
+                setIsHovering(true);
+                if (qrData && !isPlaceholderData(qrData) && displayState.showRealBarcode) {
+                  setShowDownloadOverlay(true);
+                }
+              }}
+              onMouseLeave={() => {
+                setIsHovering(false);
+                setShowDownloadOverlay(false);
+              }}
+            >
+              {/* Loading state */}
+              {displayState.showLoadingState && (
+                <div 
+                  className="absolute inset-0 flex items-center justify-center z-20"
+                  style={{ backgroundColor: transparentBackground ? 'transparent' : (backgroundColor || '#FFFFFF') }}
+                >
+                  <div className="flex flex-col items-center">
+                    <div className="grid grid-cols-5 gap-1 p-2">
+                      {[...Array(25)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="w-4 h-4 rounded-sm bg-slate-200 dark:bg-slate-300 animate-pulse"
+                          style={{
+                            animationDelay: `${i * 50}ms`,
+                            opacity: Math.random() > 0.3 ? 1 : 0.3
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-sm text-slate-600 font-medium mt-4">
+                      Generando código...
+                    </p>
                   </div>
                 </div>
               )}
-                
-                {/* Download actions */}
-                <div className="p-4 space-y-4 border-t border-gray-100">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button
-                  onClick={handleDownloadPNG}
-                  className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all duration-200 ${
-                    svgContent ? 'animate-pulse-subtle' : ''
-                  }`}
-                  disabled={!svgContent}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Descargar PNG
-                </Button>
-                <Button
-                  onClick={handleDownloadSVG}
-                  variant="outline"
-                  className="flex-1"
-                  disabled={!svgContent}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Descargar SVG
-                </Button>
-              </div>
-              
-              {/* Scannability Analysis - only show for QR codes with customizations */}
-              {(() => {
-                console.log('[ScannabilityMeter Debug] barcodeType:', barcodeType);
-                console.log('[ScannabilityMeter Debug] scannabilityAnalysis:', scannabilityAnalysis);
-                console.log('[ScannabilityMeter Debug] Should show:', barcodeType === 'qrcode' && scannabilityAnalysis);
-                
-                return barcodeType === 'qrcode' && scannabilityAnalysis && (
-                  <div className="mx-auto">
-                    <ScannabilityMeter 
-                      analysis={scannabilityAnalysis}
-                      isLoading={isLoading}
-                    />
-                  </div>
-                );
-              })()}
+
+              {/* ⚠️ QR DISPLAY CRÍTICO - ALINEACIÓN PERFECTA
+                  - pt-[6px]: CALIBRADO para centrado vertical perfecto
+                  - absolute inset-0: REQUERIDO para posicionamiento
+                  - flex center: MANTENER para alineación
+                  
+                  NO MODIFICAR el padding-top, fue ajustado píxel por píxel
+              */}
+              {displayState.showRealBarcode && (
+                <div className="absolute inset-0 flex items-center justify-center pt-[6px]">
+                  {qrDisplay}
                 </div>
-              </div>
-            </div>
-        </>
-      )}
-      
-      {/* Empty state with video placeholder */}
-      {displayState.showEmptyState && (
-        <div className="relative mx-auto w-fit animate-fadeIn">
-          <div className="p-6 pb-4 flex justify-center">
-            <div className="bg-transparent rounded-lg shadow-lg p-2">
+              )}
+
+              {/* ⚠️ VIDEO PLACEHOLDER - DIMENSIONES SINCRONIZADAS
+                  - Tamaño: 310x310px - MISMO que el QR
+                  - rounded-lg: NECESARIO para que no se superpongan esquinas
+                  - object-cover: MANTENER para proporción correcta
+                  
+                  Debe coincidir exactamente con el tamaño del QR
+              */}
+              {displayState.showEmptyState && (
                 <video
                   ref={videoRef}
                   muted
                   playsInline
                   loop
-                  className="w-[300px] h-[300px] rounded"
+                  className="w-[310px] h-[310px] object-cover rounded-lg"
                   src="/assets/videos/qr-placeholder.mp4"
                 />
+              )}
+              
+              {/* ⚠️ OVERLAY DE DESCARGA - CONFIGURACIÓN PRECISA
+                  Siguiendo los 5 pilares del IA_MANIFESTO:
+                  - Pilar 1: Seguro por defecto - Control de estados
+                  - Pilar 2: Robusto - Manejo de transiciones
+                  - Pilar 3: Simple - Un solo overlay
+                  - Pilar 4: Modular - Autocontenido
+                  - Pilar 5: Valor para usuario - Acceso rápido
+                  
+                  DIMENSIONES CRÍTICAS:
+                  - bottom-6: Posición desde la base calibrada
+                  - w-[90%] h-[20%]: Proporciones exactas
+                  - bg-white/80: Transparencia óptima
+                  - rounded-2xl: Radio de bordes consistente
+                  - z-40: Capa correcta sobre QR pero bajo badge
+                  
+                  NO MODIFICAR sin pruebas exhaustivas
+              */}
+              <div
+                className={`
+                  absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] h-[20%]
+                  bg-white/80
+                  backdrop-blur-md
+                  rounded-2xl
+                  flex flex-col items-center justify-center gap-2
+                  transition-all duration-300 ease-out
+                  z-40
+                  ${showDownloadOverlay ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}
+                `}
+              >
+                <div className="flex flex-row gap-2 w-full px-3">
+                  <Button
+                    onClick={handleDownloadPNG}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all duration-200 h-8 text-xs"
+                    size="sm"
+                  >
+                    <Download className="w-3 h-3 mr-1" />
+                    PNG
+                  </Button>
+                  <Button
+                    onClick={handleDownloadSVG}
+                    variant="outline"
+                    className="flex-1 bg-white/80 hover:bg-white border-gray-300 text-gray-700 shadow-sm h-8 text-xs"
+                    size="sm"
+                  >
+                    <Download className="w-3 h-3 mr-1" />
+                    SVG
+                  </Button>
+                </div>
+              </div>
             </div>
+            
+            {/* 🎯 Elite Hero Implementation - Componente Unificado */}
+            {/* ⚠️ IMPORTANTE: Esta funcionalidad está completamente implementada y probada.
+                NO MODIFICAR este código a menos que sea explícitamente autorizado por el usuario.
+                El componente HeroScannabilityDisplay incluye:
+                - Auto-despliegue/replegado automático
+                - Animación morphing badge → check
+                - Análisis de escaneabilidad en tiempo real
+                - Temporización precisa de 5 segundos
+            */}
+            {barcodeType === 'qrcode' && 
+             scannabilityAnalysis && 
+             qrData && 
+             !isPlaceholderData(qrData) && 
+             displayState.showRealBarcode && (
+              <div className="absolute -top-2 -right-2 z-50">
+                <HeroScannabilityDisplay
+                  analysis={scannabilityAnalysis}
+                  isNewGeneration={isNewGeneration}
+                />
+              </div>
+            )}
           </div>
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 };
 

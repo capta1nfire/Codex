@@ -176,13 +176,43 @@ The `stroke_style` option adds subtle borders around gradient elements:
 ```json
 {
   "foreground": "#000000",  // Data and eye color
-  "background": "#FFFFFF"   // Background color
+  "background": "#FFFFFF",  // Background color
+  "eye_colors": {           // Independent eye colors (optional)
+    "outer": "#FF0066",     // Border color for all eyes
+    "inner": "#6600FF",     // Center color for all eyes
+    "per_eye": {            // Different colors per eye (optional)
+      "top_left": {
+        "outer": "#FF0000",
+        "inner": "#FF6666"
+      },
+      "top_right": {
+        "outer": "#00FF00",
+        "inner": "#66FF66"
+      },
+      "bottom_left": {
+        "outer": "#0000FF",
+        "inner": "#6666FF"
+      }
+    }
+  }
 }
 ```
 
+### Eye Colors (New in v3.4)
+- **eye_colors**: Optional object for independent eye coloring
+- **outer**: Hex color for eye borders (applies to all eyes)
+- **inner**: Hex color for eye centers (applies to all eyes)
+- **per_eye**: Override colors for specific eyes
+  - `top_left`: Top-left finder pattern
+  - `top_right`: Top-right finder pattern
+  - `bottom_left`: Bottom-left finder pattern
+
+### Color Notes
 - Must be valid hex colors (#RRGGBB)
 - High contrast recommended for scanning
 - Gradients override solid colors when enabled
+- Eye colors override foreground color for eyes
+- Per-eye colors override general eye colors
 
 ## 🖼️ Logos
 
@@ -303,6 +333,63 @@ The `stroke_style` option adds subtle borders around gradient elements:
         "text": "SCAN FOR MENU",
         "color": "#1A1A1A",
         "text_position": "bottom"
+      }
+    }
+  }
+}
+```
+
+### Instagram Style with Purple Eyes
+```json
+{
+  "data": "https://instagram.com/myprofile",
+  "options": {
+    "error_correction": "M",
+    "customization": {
+      "eye_border_style": "rounded_square",
+      "eye_center_style": "rounded_square",
+      "data_pattern": "dots",
+      "colors": {
+        "foreground": "#000000",
+        "background": "#FFFFFF",
+        "eye_colors": {
+          "outer": "#833AB4",  // Instagram purple
+          "inner": "#833AB4"   // Instagram purple
+        }
+      }
+    }
+  }
+}
+```
+
+### Rainbow Eyes Example
+```json
+{
+  "data": "https://pride.example.com",
+  "options": {
+    "error_correction": "H",
+    "customization": {
+      "eye_shape": "circle",
+      "data_pattern": "dots",
+      "colors": {
+        "foreground": "#000000",
+        "background": "#FFFFFF",
+        "eye_colors": {
+          "per_eye": {
+            "top_left": {
+              "outer": "#FF0000",    // Red
+              "inner": "#FF6666"
+            },
+            "top_right": {
+              "outer": "#00FF00",    // Green
+              "inner": "#66FF66"
+            },
+            "bottom_left": {
+              "outer": "#0000FF",    // Blue
+              "inner": "#6666FF"
+            }
+          }
+        }
       }
     }
   }

@@ -35,6 +35,7 @@ mod tests {
                 ]),
                 error_correction: None,
                 logo_size_ratio: None,
+                selective_effects: None,
             }),
         };
         
@@ -71,6 +72,7 @@ mod tests {
                 colors: Some(ColorOptions {
                     foreground: "#2563eb".to_string(),
                     background: "#ffffff".to_string(),
+                    eye_colors: None,
                 }),
                 gradient: None,
                 logo: None,
@@ -96,6 +98,7 @@ mod tests {
                 ]),
                 error_correction: Some(ErrorCorrectionLevel::High),
                 logo_size_ratio: None,
+                selective_effects: None,
             }),
         };
         

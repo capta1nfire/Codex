@@ -177,6 +177,7 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
                 Some(crate::engine::types::ColorOptions {
                     foreground,
                     background,
+                    eye_colors: None,
                 })
             },
             gradient: options.gradient.as_ref().map(|g| {
@@ -291,6 +292,7 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
             }),
             selective_effects: None,
             logo_size_ratio: None,
+            fixed_size: None,
         })
     } else {
         None

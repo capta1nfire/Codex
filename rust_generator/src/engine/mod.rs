@@ -12,6 +12,7 @@ pub mod constants;
 pub mod zones;
 pub mod geometry;
 pub mod ecl_optimizer;
+pub mod segmenter;
 
 // Re-exportar tipos principales
 pub use generator::QrGenerator;
@@ -190,8 +191,28 @@ impl QrEngine {
     async fn generate_basic(&self, request: QrRequest) -> QrResult<QrOutput> {
         let start = std::time::Instant::now();
         
-        // Generar QR básico
-        let qr_code = self.generator.generate_basic(&request.data, request.size)?;
+        // Verificar si hay tamaño fijo solicitado
+        let qr_code = if let Some(customization) = &request.customization {
+            if let Some(fixed_size) = customization.fixed_size {
+                // Generar con tamaño fijo
+                self.generator.generate_with_fixed_size(
+                    &request.data,
+                    request.size,
+                    fixed_size,
+                    customization.error_correction,
+                )?
+            } else {
+                // Generar normal con ECL si está especificado
+                if let Some(ecl) = customization.error_correction {
+                    self.generator.generate_with_ecl(&request.data, request.size, ecl)?
+                } else {
+                    self.generator.generate_basic(&request.data, request.size)?
+                }
+            }
+        } else {
+            // Generar QR básico
+            self.generator.generate_basic(&request.data, request.size)?
+        };
         
         // Convertir a output
         let output = QrOutput {
@@ -212,8 +233,23 @@ impl QrEngine {
     async fn generate_medium(&self, request: QrRequest) -> QrResult<QrOutput> {
         let start = std::time::Instant::now();
         
-        // Generar base
-        let mut qr_code = self.generator.generate_basic(&request.data, request.size)?;
+        // Generar base considerando tamaño fijo si está presente
+        let mut qr_code = if let Some(customization) = &request.customization {
+            if let Some(fixed_size) = customization.fixed_size {
+                self.generator.generate_with_fixed_size(
+                    &request.data,
+                    request.size,
+                    fixed_size,
+                    customization.error_correction,
+                )?
+            } else if let Some(ecl) = customization.error_correction {
+                self.generator.generate_with_ecl(&request.data, request.size, ecl)?
+            } else {
+                self.generator.generate_basic(&request.data, request.size)?
+            }
+        } else {
+            self.generator.generate_basic(&request.data, request.size)?
+        };
         
         // Aplicar personalizaciones medias
         if let Some(customization) = &request.customization {
@@ -224,7 +260,31 @@ impl QrEngine {
         qr_code = self.optimizer.optimize_for_scan(qr_code)?;
         
         // Validar
-        let validation = self.validator.validate_basic(&qr_code)?;
+        let mut validation = self.validator.validate_basic(&qr_code)?;
+        
+        // Validar contraste de ojos si hay colores personalizados
+        if let Some(customization) = &request.customization {
+            if let Some(colors) = &customization.colors {
+                if let Some(eye_colors) = &colors.eye_colors {
+                    let eye_issues = self.validator.validate_eye_contrast(
+                        eye_colors,
+                        &colors.background
+                    )?;
+                    validation.issues.extend(eye_issues);
+                    
+                    // Ajustar score según advertencias de contraste
+                    let contrast_warnings = validation.issues.iter()
+                        .filter(|i| i.severity == IssueSeverity::Warning)
+                        .count();
+                    if contrast_warnings > 0 {
+                        validation.score -= 0.1 * contrast_warnings as f32;
+                        validation.recommendations.push(
+                            "Considere usar colores con mayor contraste para mejorar la escaneabilidad".to_string()
+                        );
+                    }
+                }
+            }
+        }
         
         let output = QrOutput {
             data: qr_code.to_svg(),
@@ -248,7 +308,25 @@ impl QrEngine {
         let (qr_code, logo_result, frame_info, effects_info) = rayon::scope(|_s| -> QrResult<(QrCode, Option<crate::engine::customizer::LogoIntegrationResult>, Option<crate::engine::customizer::FrameInfo>, Option<crate::engine::customizer::EffectsInfo>)> {
             // Generar base en paralelo con preparación de assets
             let (qr_code, assets) = rayon::join(
-                || self.generator.generate_basic(&request.data, request.size),
+                || {
+                    // Generar considerando tamaño fijo si está presente
+                    if let Some(customization) = &request.customization {
+                        if let Some(fixed_size) = customization.fixed_size {
+                            self.generator.generate_with_fixed_size(
+                                &request.data,
+                                request.size,
+                                fixed_size,
+                                customization.error_correction,
+                            )
+                        } else if let Some(ecl) = customization.error_correction {
+                            self.generator.generate_with_ecl(&request.data, request.size, ecl)
+                        } else {
+                            self.generator.generate_basic(&request.data, request.size)
+                        }
+                    } else {
+                        self.generator.generate_basic(&request.data, request.size)
+                    }
+                },
                 || self.prepare_advanced_assets(&request),
             );
             
@@ -274,7 +352,33 @@ impl QrEngine {
         let qr_code = self.optimizer.optimize_advanced(qr_code)?;
         
         // Validación exhaustiva
-        let validation = self.validator.validate_comprehensive(&qr_code)?;
+        let mut validation = self.validator.validate_comprehensive(&qr_code)?;
+        
+        // Validar contraste de ojos si hay colores personalizados
+        if let Some(customization) = &request.customization {
+            if let Some(colors) = &customization.colors {
+                if let Some(eye_colors) = &colors.eye_colors {
+                    let eye_issues = self.validator.validate_eye_contrast(
+                        eye_colors,
+                        &colors.background
+                    )?;
+                    validation.issues.extend(eye_issues);
+                    
+                    // Ajustar score y agregar recomendaciones
+                    let contrast_warnings = validation.issues.iter()
+                        .filter(|i| i.severity == IssueSeverity::Warning)
+                        .count();
+                    if contrast_warnings > 0 {
+                        validation.score = (validation.score - 0.05 * contrast_warnings as f32).max(0.0);
+                        if !validation.recommendations.contains(&"Considere usar colores con mayor contraste para mejorar la escaneabilidad".to_string()) {
+                            validation.recommendations.push(
+                                "Considere usar colores con mayor contraste para mejorar la escaneabilidad".to_string()
+                            );
+                        }
+                    }
+                }
+            }
+        }
         
         // Generar SVG con logo, marco y efectos si existen
         let svg = qr_code.to_svg_with_options(
@@ -351,6 +455,9 @@ impl QrEngine {
                         features.push(format!("effect_{:?}", effect_opt.effect_type).to_lowercase());
                     }
                 }
+            }
+            if let Some(fixed_size) = customization.fixed_size {
+                features.push(format!("fixed_size_{:?}", fixed_size).to_lowercase());
             }
         }
         

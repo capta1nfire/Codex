@@ -425,6 +425,7 @@ mod tests {
                 effects: None,
                 error_correction: Some(crate::engine::types::ErrorCorrectionLevel::High),
                 logo_size_ratio: None,
+                selective_effects: None,
             }),
             logo_zone: None,
         }

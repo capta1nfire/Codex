@@ -17,7 +17,11 @@ export interface TemplateDefinition {
       angle?: number;
     };
     eyeShape?: string;
+    eyeBorderStyle?: string;
+    eyeCenterStyle?: string;
+    eyeColor?: string;
     dataPattern?: string;
+    dataColor?: string;
     logo?: {
       url: string;
       size: number;
@@ -42,13 +46,17 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
     config: {
       gradient: {
         type: 'radial',
-        colors: ['#833AB4', '#FD1D1D', '#FCAF45', '#F77737', '#FF5E3A'],
+        colors: ['#833AB4', '#833AB4', '#FD1D1D', '#2563EB', '#FCAF45'],
         angle: 45,
+        applyToEyes: false, // NO aplicar gradiente a los ojos
       },
-      eyeShape: 'star',
+      // Usar estilos separados como los valores por defecto
+      eyeBorderStyle: 'circle',
+      eyeCenterStyle: 'circle',
+      eyeColor: '#833AB4', // Color sólido púrpura para los ojos
       dataPattern: 'dots',
       logo: {
-        url: '/logos/instagram-new.png',
+        url: '/logos/instagram-official.svg',
         size: 0.2,
         padding: 8,
         shape: 'rounded_square',
@@ -72,7 +80,7 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'square',
       dataPattern: 'dots',
       logo: {
-        url: '/logos/instagram-new.png',
+        url: '/logos/instagram-official.svg',
         size: 0.2,
         padding: 8,
         shape: 'rounded_square',
@@ -95,7 +103,7 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'rounded-square',
       dataPattern: 'dots',
       logo: {
-        url: '/logos/instagram-new.png',
+        url: '/logos/instagram-official.svg',
         size: 0.2,
         padding: 8,
         shape: 'rounded_square',
@@ -118,7 +126,7 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'circle',
       dataPattern: 'dots',
       logo: {
-        url: '/logos/instagram-new.png',
+        url: '/logos/instagram-official.svg',
         size: 0.2,
         padding: 8,
         shape: 'rounded_square',
@@ -141,7 +149,7 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'dot',
       dataPattern: 'dots',
       logo: {
-        url: '/logos/instagram-new.png',
+        url: '/logos/instagram-official.svg',
         size: 0.2,
         padding: 8,
         shape: 'rounded_square',
@@ -164,7 +172,7 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'star',
       dataPattern: 'dots',
       logo: {
-        url: '/logos/instagram-new.png',
+        url: '/logos/instagram-official.svg',
         size: 0.2,
         padding: 8,
         shape: 'rounded_square',
@@ -187,7 +195,7 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'diamond',
       dataPattern: 'dots',
       logo: {
-        url: '/logos/instagram-new.png',
+        url: '/logos/instagram-official.svg',
         size: 0.2,
         padding: 8,
         shape: 'rounded_square',
@@ -210,7 +218,7 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'heart',
       dataPattern: 'dots',
       logo: {
-        url: '/logos/instagram-new.png',
+        url: '/logos/instagram-official.svg',
         size: 0.2,
         padding: 8,
         shape: 'rounded_square',
@@ -233,7 +241,7 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'hexagon',
       dataPattern: 'dots',
       logo: {
-        url: '/logos/instagram-new.png',
+        url: '/logos/instagram-official.svg',
         size: 0.2,
         padding: 8,
         shape: 'rounded_square',
@@ -256,7 +264,7 @@ export const INITIAL_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'square',
       dataPattern: 'square',
       logo: {
-        url: '/logos/youtube.svg',
+        url: '/logos/youtube-official.svg',
         size: 0.25,
         padding: 8,
         shape: 'square',
@@ -286,7 +294,7 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'square',
       dataPattern: 'square',
       logo: {
-        url: '/logos/linkedin.svg',
+        url: '/logos/linkedin-official.svg',
         size: 0.28,
         padding: 12,
         shape: 'rounded_square',
@@ -309,7 +317,7 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'rounded_square',
       dataPattern: 'circular',
       logo: {
-        url: '/logos/tiktok.svg',
+        url: '/logos/tiktok-official.svg',
         size: 0.3,
         padding: 10,
         shape: 'circle',
@@ -332,7 +340,7 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'circle',
       dataPattern: 'dots',
       logo: {
-        url: '/logos/twitter.svg',
+        url: '/logos/twitter-official.svg',
         size: 0.25,
         padding: 8,
         shape: 'circle',
@@ -354,7 +362,7 @@ export const FUTURE_TEMPLATES: TemplateDefinition[] = [
       eyeShape: 'rounded_square',
       dataPattern: 'square',
       logo: {
-        url: '/logos/facebook.svg',
+        url: '/logos/facebook-official.svg',
         size: 0.3,
         padding: 10,
         shape: 'rounded_square',

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GenerationOptions } from '@/types/generatorStates';
-import GenerationOptionsComponent from '../GenerationOptions';
+// import GenerationOptionsComponent from '../GenerationOptions';
 import { FrameEditor } from '../FrameEditor';
 
 interface GenerationControlsProps {
@@ -116,11 +116,12 @@ export function GenerationControls({
         {showAdvanced && (
           <Card>
             <CardContent className="p-6 space-y-6">
-              <GenerationOptionsComponent
+              {/* TODO: Implement GenerationOptionsComponent with proper props */}
+              {/* <GenerationOptionsComponent
                 options={options}
                 onChange={handleBatchOptionChange}
                 barcodeType={barcodeType}
-              />
+              /> */}
 
               {/* Frame Editor - Only for QR codes */}
               {barcodeType === 'qrcode' && (

@@ -396,6 +396,18 @@ async fn generate_qr_v3_enhanced(
             // Aplicar customization si está presente
             let mut qr_code = qr_code;
             if let Some(customization) = options.customization {
+                // Debug log eye_colors
+                if let Some(colors) = customization.colors.as_ref() {
+                    if let Some(eye_colors) = colors.eye_colors.as_ref() {
+                        eprintln!("[DEBUG Enhanced] eye_colors received: outer={:?}, inner={:?}", 
+                                 eye_colors.outer, eye_colors.inner);
+                    } else {
+                        eprintln!("[DEBUG Enhanced] No eye_colors found in colors");
+                    }
+                } else {
+                    eprintln!("[DEBUG Enhanced] No colors found in customization");
+                }
+                
                 qr_code.customization = Some(customization);
             }
             

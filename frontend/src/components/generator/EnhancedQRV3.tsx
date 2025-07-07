@@ -28,6 +28,8 @@ export interface QREnhancedData {
       border_path?: string; // New separated border path
       center_path?: string; // New separated center path
       shape?: string;
+      border_color?: string; // Per-eye border color
+      center_color?: string; // Per-eye center color
     }>;
   };
   styles: {
@@ -185,14 +187,25 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
   debugUntouchableZones = false,
   logoSizeRatio,
 }) => {
-  const QUIET_ZONE = data.metadata.quiet_zone;
+  const QUIET_ZONE = data?.metadata?.quiet_zone || 4;
+  
+  // Helper para acceso seguro a estilos
+  const getStyle = (path: string, defaultValue: any = undefined) => {
+    const paths = path.split('.');
+    let current: any = data?.styles;
+    for (const p of paths) {
+      current = current?.[p];
+      if (current === undefined) return defaultValue;
+    }
+    return current;
+  };
   
   // 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
   // This logic determines the QR background color based on the transparent toggle
   // - When transparentBackground is true: Always use 'transparent' (shows container background)
   // - When false: Use data background if available, otherwise backgroundColor prop, otherwise white (#FFFFFF)
   // ⚠️ This is a VISUAL-ONLY change, no backend regeneration needed ⚠️
-  const bgColor = transparentBackground ? 'transparent' : (data.styles?.background?.fill || backgroundColor || '#FFFFFF');
+  const bgColor = transparentBackground ? 'transparent' : (getStyle('background.fill') || backgroundColor || '#FFFFFF');
   
   // Debug log
   console.log('[EnhancedQRV3] Rendering with data:', {
@@ -251,8 +264,19 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
   
   // Determinar si necesitamos usar máscara de exclusión
   const hasLogoWithExclusion = useMemo(() => {
-    return data.overlays?.logo && data.metadata.exclusion_info && logoSizeRatio;
-  }, [data.overlays?.logo, data.metadata.exclusion_info, logoSizeRatio]);
+    return data?.overlays?.logo && data?.metadata?.exclusion_info && logoSizeRatio;
+  }, [data?.overlays?.logo, data?.metadata?.exclusion_info, logoSizeRatio]);
+  
+  // Verificación temprana de datos mínimos
+  if (!data || !data.paths || !data.paths.data) {
+    return (
+      <div className={`enhanced-qr-v3-container ${className}`} style={{ width: size, height: size }}>
+        <div className="flex items-center justify-center h-full text-gray-400">
+          <p>No QR data available</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div
@@ -319,7 +343,7 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
         
         {/* Grupo principal con efectos y máscara si existe */}
         <g 
-          filter={getFilterString(data.styles.data.effects)}
+          filter={getFilterString(data?.styles?.data?.effects)}
           mask={hasLogoWithExclusion ? `url(#${maskId})` : undefined}
         >
           {/* Path de datos */}
@@ -330,24 +354,24 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
               - This ensures borders only appear when user explicitly enables them
               ⚠️ DO NOT change to check only stroke existence - must check enabled flag ⚠️ */}
           <path
-            d={data.paths.data}
-            fill={data.styles.data.fill}
+            d={data?.paths?.data || ''}
+            fill={getStyle('data.fill', '#000000')}
             shapeRendering="crispEdges"
-            {...(data.styles.data.stroke?.enabled ? {
-              stroke: data.styles.data.stroke.color || '#FFFFFF',
-              strokeWidth: data.styles.data.stroke.width || 0.1,
-              strokeOpacity: data.styles.data.stroke.opacity || 0.3,
+            {...(getStyle('data.stroke.enabled') ? {
+              stroke: getStyle('data.stroke.color', '#FFFFFF'),
+              strokeWidth: getStyle('data.stroke.width', 0.1),
+              strokeOpacity: getStyle('data.stroke.opacity', 0.3),
             } : {})}
           />
         </g>
         
         {/* Grupo de ojos con efectos y máscara si existe */}
         <g 
-          filter={getFilterString(data.styles.eyes.effects)}
+          filter={getFilterString(getStyle('eyes.effects'))}
           mask={hasLogoWithExclusion ? `url(#${maskId})` : undefined}
         >
           {/* Paths de ojos */}
-          {data.paths.eyes.map((eye, index) => {
+          {(data?.paths?.eyes || []).map((eye, index) => {
             // Handle new separated border_path and center_path structure
             if (eye.border_path && eye.center_path) {
               return (
@@ -355,30 +379,30 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
                   {/* Border path */}
                   <path
                     d={eye.border_path}
-                    fill={data.styles.eyes.fill}
+                    fill={eye.border_color || getStyle('eyes.fill', '#000000')}
                     fillRule="evenodd"
                     shapeRendering="crispEdges"
                     data-eye-type={eye.type}
                     data-eye-shape={eye.shape}
                     data-eye-part="border"
-                    {...(data.styles.eyes.stroke?.enabled ? {
-                      stroke: data.styles.eyes.stroke.color || '#FFFFFF',
-                      strokeWidth: data.styles.eyes.stroke.width || 0.1,
-                      strokeOpacity: data.styles.eyes.stroke.opacity || 0.3,
+                    {...(getStyle('eyes.stroke.enabled') ? {
+                      stroke: getStyle('eyes.stroke.color', '#FFFFFF'),
+                      strokeWidth: getStyle('eyes.stroke.width', 0.1),
+                      strokeOpacity: getStyle('eyes.stroke.opacity', 0.3),
                     } : {})}
                   />
                   {/* Center path */}
                   <path
                     d={eye.center_path}
-                    fill={data.styles.eyes.fill}
+                    fill={eye.center_color || getStyle('eyes.fill', '#000000')}
                     shapeRendering="crispEdges"
                     data-eye-type={eye.type}
                     data-eye-shape={eye.shape}
                     data-eye-part="center"
-                    {...(data.styles.eyes.stroke?.enabled ? {
-                      stroke: data.styles.eyes.stroke.color || '#FFFFFF',
-                      strokeWidth: data.styles.eyes.stroke.width || 0.1,
-                      strokeOpacity: data.styles.eyes.stroke.opacity || 0.3,
+                    {...(getStyle('eyes.stroke.enabled') ? {
+                      stroke: getStyle('eyes.stroke.color', '#FFFFFF'),
+                      strokeWidth: getStyle('eyes.stroke.width', 0.1),
+                      strokeOpacity: getStyle('eyes.stroke.opacity', 0.3),
                     } : {})}
                   />
                 </g>
@@ -391,15 +415,15 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
                 <path
                   key={`eye-${eye.type}-${index}`}
                   d={eye.path}
-                  fill={data.styles.eyes.fill}
+                  fill={eye.border_color || getStyle('eyes.fill', '#000000')}
                   fillRule="evenodd"
                   shapeRendering="crispEdges"
                   data-eye-type={eye.type}
                   data-eye-shape={eye.shape}
-                  {...(data.styles.eyes.stroke?.enabled ? {
-                    stroke: data.styles.eyes.stroke.color || '#FFFFFF',
-                    strokeWidth: data.styles.eyes.stroke.width || 0.1,
-                    strokeOpacity: data.styles.eyes.stroke.opacity || 0.3,
+                  {...(getStyle('eyes.stroke.enabled') ? {
+                    stroke: getStyle('eyes.stroke.color', '#FFFFFF'),
+                    strokeWidth: getStyle('eyes.stroke.width', 0.1),
+                    strokeOpacity: getStyle('eyes.stroke.opacity', 0.3),
                   } : {})}
                 />
               );

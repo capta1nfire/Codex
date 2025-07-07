@@ -4,7 +4,7 @@ export { useAuth } from '@/context/AuthContext';
 // Hook personalizado para verificación de roles y permisos
 import { useAuth as useAuthContext } from '@/context/AuthContext';
 
-export type UserRole = 'STARTER' | 'PRO' | 'ENTERPRISE' | 'ADMIN' | 'SUPERADMIN';
+export type UserRole = 'USER' | 'STARTER' | 'PRO' | 'ENTERPRISE' | 'PREMIUM' | 'ADVANCED' | 'WEBADMIN' | 'ADMIN' | 'SUPERADMIN';
 
 export interface RolePermissions {
   // Permisos para usuarios clientes (generación de códigos)

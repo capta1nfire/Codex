@@ -19,6 +19,46 @@ pub struct QrRequest {
     pub customization: Option<QrCustomization>,
 }
 
+/// Tamaño fijo para QR codes
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum QrSize {
+    /// Pequeño: Version 1-5 (21x21 a 37x37 módulos)
+    Small,
+    /// Mediano: Version 6-10 (41x41 a 57x57 módulos)
+    Medium,
+    /// Grande: Version 11-15 (61x61 a 77x77 módulos)
+    Large,
+    /// Extra grande: Version 16-25 (81x81 a 117x117 módulos)
+    ExtraLarge,
+    /// Automático: El tamaño mínimo necesario
+    Auto,
+}
+
+impl QrSize {
+    /// Obtiene el rango de versiones para este tamaño
+    pub fn version_range(&self) -> (i16, i16) {
+        match self {
+            QrSize::Small => (1, 5),
+            QrSize::Medium => (6, 10),
+            QrSize::Large => (11, 15),
+            QrSize::ExtraLarge => (16, 25),
+            QrSize::Auto => (1, 40),
+        }
+    }
+    
+    /// Obtiene la versión objetivo para este tamaño
+    pub fn target_version(&self) -> Option<i16> {
+        match self {
+            QrSize::Small => Some(3),      // Version 3 (29x29) como objetivo
+            QrSize::Medium => Some(8),      // Version 8 (49x49) como objetivo
+            QrSize::Large => Some(13),      // Version 13 (69x69) como objetivo
+            QrSize::ExtraLarge => Some(20), // Version 20 (97x97) como objetivo
+            QrSize::Auto => None,
+        }
+    }
+}
+
 /// Opciones de personalización
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QrCustomization {
@@ -57,6 +97,9 @@ pub struct QrCustomization {
     
     /// Ratio del tamaño del logo (0.0 - 0.3)
     pub logo_size_ratio: Option<f32>,
+    
+    /// Tamaño fijo del QR (para batch uniforme)
+    pub fixed_size: Option<QrSize>,
 }
 
 /// Formas de ojos disponibles (LEGACY - mantener para compatibilidad)
@@ -158,6 +201,39 @@ pub enum DataPattern {
 pub struct ColorOptions {
     pub foreground: String,  // Hex color
     pub background: String,  // Hex color
+    /// Colores específicos para los ojos (opcional)
+    pub eye_colors: Option<EyeColors>,
+}
+
+/// Colores independientes para ojos
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EyeColors {
+    /// Color del borde exterior de los ojos
+    pub outer: Option<String>,  // Hex color
+    /// Color del centro interior de los ojos
+    pub inner: Option<String>,  // Hex color
+    /// Aplicar colores diferentes a cada ojo
+    pub per_eye: Option<PerEyeColors>,
+}
+
+/// Colores por cada ojo individual
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerEyeColors {
+    /// Ojo superior izquierdo
+    pub top_left: Option<EyeColorPair>,
+    /// Ojo superior derecho
+    pub top_right: Option<EyeColorPair>,
+    /// Ojo inferior izquierdo
+    pub bottom_left: Option<EyeColorPair>,
+}
+
+/// Par de colores para un ojo específico
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EyeColorPair {
+    /// Color del borde exterior
+    pub outer: String,  // Hex color
+    /// Color del centro interior
+    pub inner: String,  // Hex color
 }
 
 /// Opciones de gradiente
@@ -537,6 +613,21 @@ pub struct Gradient {
     pub fill_reference: String,
 }
 
+/// Información sobre boost ECL aplicado
+#[derive(Debug, Clone, Serialize)]
+pub struct BoostInfo {
+    /// ECL original solicitado
+    pub original_ecl: ErrorCorrectionLevel,
+    /// ECL final después del boost
+    pub final_ecl: ErrorCorrectionLevel,
+    /// Si se aplicó boost
+    pub boost_applied: bool,
+    /// Versión del QR generado
+    pub version: i16,
+    /// Número total de módulos
+    pub modules_count: i32,
+}
+
 /// Resultado de validación
 #[derive(Debug, Clone, Serialize)]
 pub struct ValidationResult {
@@ -677,6 +768,12 @@ pub struct QrEyePath {
     /// Forma del centro usada (para metadata)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub center_shape: Option<String>,
+    /// Color del borde (si es diferente al global)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub border_color: Option<String>,
+    /// Color del centro (si es diferente al global)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub center_color: Option<String>,
 }
 
 /// Estilos aplicables a paths
@@ -839,6 +936,7 @@ mod tests {
                 colors: Some(ColorOptions {
                     foreground: "#000000".to_string(),
                     background: "#FFFFFF".to_string(),
+                    eye_colors: None,
                 }),
                 gradient: None,
                 logo: None,
@@ -846,6 +944,7 @@ mod tests {
                 effects: None,
                 error_correction: Some(ErrorCorrectionLevel::Medium),
                 logo_size_ratio: None,
+                selective_effects: None,
             }),
         };
         

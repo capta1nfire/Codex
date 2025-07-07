@@ -30,6 +30,7 @@ import healthRoutes from './routes/health.js';
 import { metricsRoutes } from './routes/metrics.routes.js';
 import qrV3Routes from './routes/qr-v3.routes.js';
 // QR v2 routes removed - migrated to v3
+import studioRoutes from './routes/studio.routes.js';
 import { userRoutes } from './routes/user.routes.js';
 import validateRoutes from './routes/validate.js';
 
@@ -442,6 +443,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/validate', validateRoutes);
 
 app.use('/api/smart-qr', smartQRRoutes);
+app.use('/api/studio', studioRoutes);
 
 // Swagger documentation
 const swaggerOptions = {

@@ -32,10 +32,14 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
       {
         gradient: {
           type: 'radial',
-          colors: ['#833AB4', '#FD1D1D', '#FCAF45', '#F77737', '#FF5E3A'],
+          colors: ['#833AB4', '#833AB4', '#FD1D1D', '#2563EB', '#FCAF45'],
           angle: 45,
+          applyToEyes: false, // NO aplicar gradiente a los ojos
         },
-        eyeShape: 'star',
+        // Usar estilos separados como los valores por defecto
+        eyeBorderStyle: 'circle',
+        eyeCenterStyle: 'circle',
+        eyeColor: '#833AB4', // Color sólido púrpura para los ojos
         dataPattern: 'dots',
         logo: {
           url: '/logos/instagram-new.png',

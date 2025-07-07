@@ -131,7 +131,7 @@
   
   @media (min-width: 1024px) {
     .generator-grid {
-      grid-template-columns: 2fr 1fr; /* Proporción 2:1 */
+      grid-template-columns: 1fr auto; /* Columna 1 flexible, columna 2 auto */
       gap: 1.5rem;
       align-items: stretch; /* Para altura igual */
     }
@@ -468,25 +468,46 @@
 
   /* Enhanced range slider for crop controls */
   
-  /* ✅ CODEX Design System v2.0 - Security Section Styles */
+  /* ✅ CODEX Design System v2.0 - Column Card Styles */
+  .column-card {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(229, 231, 235, 0.4);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    position: relative;
+  }
+  
+  /* Legacy hero-card for backwards compatibility */
   .hero-card {
     background: linear-gradient(135deg, 
-      hsl(var(--corporate-blue-50) / 0.05) 0%, 
-      hsl(var(--corporate-blue-100) / 0.05) 100%);
-    border: 2px solid hsl(var(--corporate-blue-300) / 0.15);
+      rgba(255, 255, 255, 0.8) 0%, 
+      rgba(249, 250, 251, 0.8) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(229, 231, 235, 0.6);
     border-radius: 0.75rem;
     padding: 1.5rem;
     position: relative;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     /* Removed transition to eliminate hover effects */
   }
 
   /* Hover effect removed for hero-card */
 
+  .dark .column-card {
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(71, 85, 105, 0.4);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
   .dark .hero-card {
     background: linear-gradient(135deg, 
-      hsl(var(--corporate-blue-950) / 0.05) 0%, 
-      hsl(var(--corporate-blue-900) / 0.05) 100%);
-    border-color: hsl(var(--corporate-blue-700) / 0.15);
+      rgba(30, 41, 59, 0.8) 0%, 
+      rgba(15, 23, 42, 0.8) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(71, 85, 105, 0.6);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
   }
 
   /* Dark mode hover effect also removed */
@@ -943,4 +964,61 @@ html {
 
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
+}
+
+/* Color Picker Popover Styles */
+.color-picker-wrapper {
+  @apply bg-white dark:bg-slate-900 rounded-lg shadow-lg;
+}
+
+/* Customize @uiw/react-color-sketch styles */
+.color-picker-wrapper .w-color-sketch {
+  @apply border-0 shadow-none bg-transparent;
+  font-family: var(--font-sans) !important;
+}
+
+/* Style the preset colors section */
+.color-picker-wrapper .w-color-sketch-presets {
+  @apply border-t border-slate-200 dark:border-slate-700 pt-2 mt-2;
+}
+
+/* Style preset color swatches */
+.color-picker-wrapper .w-color-sketch-presets-color {
+  @apply rounded border-2 border-transparent hover:border-slate-400 dark:hover:border-slate-500 transition-all duration-200;
+  width: 20px !important;
+  height: 20px !important;
+  margin: 2px !important;
+}
+
+/* Active preset color */
+.color-picker-wrapper .w-color-sketch-presets-color.active {
+  @apply border-blue-500 scale-110 shadow-sm;
+}
+
+/* Style the saturation/brightness area */
+.color-picker-wrapper .w-color-saturation {
+  @apply rounded-md;
+}
+
+/* Style the hue slider */
+.color-picker-wrapper .w-color-hue {
+  @apply rounded-md;
+}
+
+/* Style input fields */
+.color-picker-wrapper input[type="text"] {
+  @apply bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md px-2 py-1 text-sm;
+}
+
+/* Dark mode adjustments */
+.dark .color-picker-wrapper {
+  color: var(--color-foreground);
+}
+
+.dark .color-picker-wrapper .w-color-sketch {
+  background: transparent;
+}
+
+.dark .color-picker-wrapper input[type="text"] {
+  @apply text-slate-100;
 }

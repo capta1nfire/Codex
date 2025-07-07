@@ -54,4 +54,39 @@ model User {
   @@index([isActive, createdAt]) // Índice para consultas de usuarios activos ordenados por fecha
   @@index([lastLogin]) // Índice para consultas de actividad de usuarios
   @@index([username]) // Índice adicional para username (ya existe @unique pero esto optimiza búsquedas)
+
+  // Relaciones
+  studioConfigs StudioConfig[]
+}
+
+// Enumeración para tipos de configuración de Studio
+enum StudioConfigType {
+  PLACEHOLDER // Configuración para QR de placeholder/ejemplo
+  TEMPLATE    // Configuración para plantillas específicas por dominio
+  GLOBAL      // Configuración global que aplica a todos los QR
+}
+
+// Modelo para configuraciones de QR Studio
+model StudioConfig {
+  id            String           @id @default(uuid())
+  type          StudioConfigType // Tipo de configuración
+  name          String           // Nombre descriptivo
+  description   String?          // Descripción opcional
+  templateType  String?          // Tipo de plantilla (instagram, youtube, etc) si type = TEMPLATE
+  config        Json             // Configuración QR en formato JSON
+  isActive      Boolean          @default(true)
+  version       Int              @default(1)
+  
+  // Relaciones
+  createdBy     User             @relation(fields: [createdById], references: [id])
+  createdById   String
+  
+  // Timestamps
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  
+  // Índices
+  @@unique([type, templateType]) // Solo una config activa por tipo+template
+  @@index([type, isActive])      // Búsqueda rápida por tipo activo
+  @@index([createdById])         // Búsqueda por creador
 }

@@ -19,15 +19,15 @@ export const defaultFormValues: GenerateFormData = {
     gradient_direction: 'top-bottom', // No se usa en radial pero mantenemos por consistencia
     gradient_borders: false, // White semi-transparent borders for gradient modules (disabled by default)
     
-    // QR v3 Eye & Pattern defaults - CORRECCIÓN QUIRÚRGICA
+    // QR v3 Eye & Pattern defaults - Circle style
     eye_shape: undefined, // No usar modo unificado
-    data_pattern: 'square', // Default data pattern - cuadrado estándar
+    data_pattern: 'dots', // Default data pattern - círculos (dots)
     use_separated_eye_styles: true, // ✅ USAR ESTILOS SEPARADOS para anillos concéntricos
-    eye_border_style: 'square', // ✅ Anillo exterior cuadrado
-    eye_center_style: 'square', // ✅ Centro cuadrado
+    eye_border_style: 'circle', // ✅ Anillo exterior circular
+    eye_center_style: 'circle', // ✅ Centro circular
     
     // Frame defaults
-    frame_enabled: true, // Enable frame by default
+    frame_enabled: false, // Disable frame temporarily
     frame_style: 'simple', // Default frame style
     frame_text: 'ESCANEA AQUÍ', // Default frame text
     frame_text_position: 'bottom', // Default frame text position

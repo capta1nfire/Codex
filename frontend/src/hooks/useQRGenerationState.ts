@@ -117,25 +117,56 @@ export const useQRGenerationState = () => {
     transitionTo('READY_TO_GENERATE');
   }, [transitionTo]);
 
-  // Helper function to load SVG and convert to Base64
+  // ⚠️ FUNCIÓN CRÍTICA - CARGA DE LOGOS PARA SMART QR
+  // Esta función maneja la carga de logos tanto SVG como PNG/JPG
+  // Es crucial para el funcionamiento correcto de Smart QR
+  //
+  // FORMATOS SOPORTADOS:
+  // - SVG: Se procesa el texto y se hacen únicos los IDs de gradientes
+  // - PNG/JPG/WEBP: Se convierte a Base64 directamente
+  //
+  // NO MODIFICAR sin probar con todos los tipos de logos
   const loadSvgAsBase64 = async (url: string): Promise<string> => {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`Failed to load SVG: ${response.status}`);
+        throw new Error(`Failed to load image: ${response.status}`);
       }
-      let svgText = await response.text();
       
-      // Make gradient IDs unique to avoid conflicts
-      const uniqueId = Math.random().toString(36).substr(2, 9);
-      svgText = svgText.replace(/id="([^"]*)"/g, `id="$1-${uniqueId}"`);
-      svgText = svgText.replace(/url\(#([^)]*)\)/g, `url(#$1-${uniqueId})`);
+      // Check if it's an SVG by content type or URL
+      const contentType = response.headers.get('content-type') || '';
+      const isSvg = contentType.includes('svg') || url.toLowerCase().endsWith('.svg');
       
-      // Convert SVG text to Base64
-      const base64 = btoa(unescape(encodeURIComponent(svgText)));
-      return `data:image/svg+xml;base64,${base64}`;
+      if (isSvg) {
+        // Handle SVG files
+        let svgText = await response.text();
+        
+        // Make gradient IDs unique to avoid conflicts
+        const uniqueId = Math.random().toString(36).substr(2, 9);
+        svgText = svgText.replace(/id="([^"]*)"/g, `id="$1-${uniqueId}"`);
+        svgText = svgText.replace(/url\(#([^)]*)\)/g, `url(#$1-${uniqueId})`);
+        
+        // Convert SVG text to Base64
+        const base64 = btoa(unescape(encodeURIComponent(svgText)));
+        return `data:image/svg+xml;base64,${base64}`;
+      } else {
+        // Handle binary images (PNG, JPG, etc)
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (reader.result && typeof reader.result === 'string') {
+              resolve(reader.result);
+            } else {
+              reject(new Error('Failed to convert image to base64'));
+            }
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
     } catch (error) {
-      console.error('Error loading SVG:', error);
+      console.error('Error loading image:', error);
       throw error;
     }
   };
@@ -265,14 +296,25 @@ export const useQRGenerationState = () => {
         console.log('=== SMART QR CONFIG MAPPING DEBUG ===');
         console.log('Input Smart Config:', JSON.stringify(smartConfig, null, 2));
         
+        // When using a Smart QR with a specific eyeShape, don't use separated eye styles
+        const hasSpecificEyeShape = smartConfig.eyeShape && smartConfig.eyeShape !== 'square';
+        
         const customization: any = {
-          eye_shape: smartConfig.eyeShape,
+          // Check if template uses separated eye styles
+          ...(smartConfig.eyeBorderStyle && smartConfig.eyeCenterStyle ? {
+            eye_border_style: smartConfig.eyeBorderStyle,
+            eye_center_style: smartConfig.eyeCenterStyle,
+          } : {
+            eye_shape: smartConfig.eyeShape,
+          }),
           data_pattern: smartConfig.dataPattern,
           // Color configuration for Smart QR - backend requires both foreground and background
           // NOTE: Backend doesn't support transparent backgrounds yet, always use a hex color
           colors: {
-            foreground: smartConfig.fgcolor || '#000000',
-            background: smartConfig.bgcolor || '#FFFFFF'
+            foreground: smartConfig.fgcolor || smartConfig.dataColor || '#000000',
+            background: smartConfig.bgcolor || '#FFFFFF',
+            // Add eye color if specified
+            ...(smartConfig.eyeColor && { eyes: smartConfig.eyeColor })
           },
           effects: smartConfig.effects?.map((effect: string) => ({
             effect_type: effect === 'subtle-shadow' ? 'shadow' : effect,
@@ -288,7 +330,7 @@ export const useQRGenerationState = () => {
             colors: smartConfig.gradient.colors || ['#000000', '#666666'],
             angle: smartConfig.gradient.angle || 0,
             apply_to_data: true,
-            apply_to_eyes: false,
+            apply_to_eyes: smartConfig.gradient.applyToEyes === true, // false por defecto
             stroke_style: smartConfig.gradient.borders ? {
               enabled: true,
               color: '#FFFFFF',
@@ -381,6 +423,17 @@ export const useQRGenerationState = () => {
             foreground: formData.options?.fgcolor || '#000000',
             background: formData.options?.bgcolor || '#FFFFFF'
           },
+          // Add eye colors if specified (at the same level as colors, not inside)
+          ...(formData.options?.eye_colors ? {
+            eye_colors: {
+              outer: formData.options.eye_colors.outer,
+              inner: formData.options.eye_colors.inner
+            }
+          } : {}),
+          // Add fixed size if specified
+          ...(formData.options?.fixed_size && formData.options.fixed_size !== 'auto' ? {
+            fixed_size: formData.options.fixed_size
+          } : {}),
           gradient: formData.options?.gradient_enabled ? {
             enabled: true,
             gradient_type: formData.options.gradient_type || 'linear',

@@ -31,6 +31,22 @@ const customizationSchema = z
           .string()
           .regex(/^#[0-9A-Fa-f]{6}$/)
           .optional(),
+        eyes: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+      })
+      .optional(),
+    eye_colors: z
+      .object({
+        outer: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+        inner: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
       })
       .optional(),
     eye_shape: z
@@ -365,6 +381,14 @@ const customizationSchema = z
           .optional(),
       })
       .optional(),
+    logo: z
+      .object({
+        data: z.string().min(1), // Base64 image data
+        size_percentage: z.number().min(5).max(30).optional(),
+        padding: z.number().min(0).max(20).optional(),
+        shape: z.enum(['square', 'circle', 'rounded_square']).optional(),
+      })
+      .optional(),
     logo_size_ratio: z.number().min(0.05).max(0.3).optional(),
     frame: z
       .object({
@@ -596,7 +620,18 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
           error_correction: options.error_correction || options.errorCorrection || 'M',
           customization: options.customization
             ? {
-                colors: options.customization.colors,
+                colors: options.customization.colors
+                  ? {
+                      ...options.customization.colors,
+                      eye_colors: options.customization.eye_colors,
+                    }
+                  : options.customization.eye_colors
+                  ? {
+                      foreground: '#000000',
+                      background: '#FFFFFF',
+                      eye_colors: options.customization.eye_colors,
+                    }
+                  : undefined,
                 gradient: options.customization.gradient,
                 eye_shape: options.customization.eye_shape || options.customization.eyeShape,
                 eye_border_style:
@@ -680,6 +715,8 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
       data,
       options: transformedOptions,
       logoSizeRatio: transformedOptions?.customization?.logo_size_ratio,
+      hasLogo: !!transformedOptions?.customization?.logo,
+      logoData: transformedOptions?.customization?.logo?.data?.substring(0, 50) + '...',
       selectiveEffects: JSON.stringify(
         transformedOptions?.customization?.selective_effects,
         null,
@@ -703,6 +740,14 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
     );
 
     const rustResponse = response.data;
+    
+    // Debug log to check overlays
+    logger.info('Rust response structure:', {
+      hasOverlays: !!rustResponse.data?.overlays,
+      overlaysKeys: rustResponse.data?.overlays ? Object.keys(rustResponse.data.overlays) : null,
+      hasLogo: !!rustResponse.data?.overlays?.logo,
+      dataKeys: rustResponse.data ? Object.keys(rustResponse.data) : null
+    });
 
     // Si la generación fue exitosa, incrementar uso
     if (rustResponse.success && req.user) {

@@ -28,9 +28,16 @@ import {
   QR_V3_EYE_CENTER_STYLES
 } from '@/constants/qrV3Options';
 
+
 // Importar dinámicamente AdvancedBarcodeOptions
 const AdvancedBarcodeOptions = dynamic(() => import('./AdvancedBarcodeOptions'), {
   ssr: false,
+});
+
+// Importar dinámicamente ColorPickerPopover para optimizar bundle
+const ColorPickerPopover = dynamic(() => import('@/components/ui/color-picker-popover'), {
+  ssr: false,
+  loading: () => <div className="h-8 w-full animate-pulse bg-slate-200 dark:bg-slate-700 rounded" />
 });
 
 interface GenerationOptionsProps {
@@ -76,10 +83,8 @@ function GenerationOptions({
   
   // Force re-render when toggle changes
   React.useEffect(() => {
-    const subscription = watch((value, { name }) => {
-      if (name === 'options.use_separated_eye_styles') {
-        console.log('[GenerationOptions] Toggle changed via subscription:', value.options?.use_separated_eye_styles);
-      }
+    const subscription = watch(() => {
+      // Re-render will happen automatically when the value changes
     });
     return () => subscription.unsubscribe();
   }, [watch]);
@@ -96,7 +101,7 @@ function GenerationOptions({
     defaultValue: string;
   }) => (
     <div className="space-y-1">
-      <Label className="text-xs font-medium text-slate-600 dark:text-slate-400">{label}</Label>
+      <Label className="text-sm text-slate-600 dark:text-slate-400">{label}</Label>
       <Controller
         name={name}
         control={control}
@@ -114,7 +119,7 @@ function GenerationOptions({
                   onSubmit(currentFormValues);
                 }, 100);
               }}
-              className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+              className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded-md cursor-pointer"
               disabled={isLoading}
               aria-label={`Seleccionar ${label.toLowerCase()}`}
             />
@@ -157,6 +162,51 @@ function GenerationOptions({
     onSubmit(currentFormValues);
   }, [watch, setValue, getValues, onSubmit]);
 
+  // Colores predefinidos para selección rápida
+  const presetColors = useMemo(() => [
+    '#000000', // Negro
+    '#FFFFFF', // Blanco
+    '#FF0000', // Rojo
+    '#00FF00', // Verde
+    '#0000FF', // Azul
+    '#FFFF00', // Amarillo
+    '#FF00FF', // Magenta
+    '#00FFFF', // Cyan
+    '#FF6B6B', // Rojo suave
+    '#4ECDC4', // Turquesa
+    '#45B7D1', // Azul cielo
+    '#F7DC6F', // Amarillo suave
+    '#BB8FCE', // Púrpura suave
+    '#85C1E2', // Azul claro
+    '#F8C471', // Naranja suave
+    '#82E0AA', // Verde menta
+  ], []);
+
+  // Componente de paleta de colores predefinidos
+  const ColorPresets = React.memo(({ onColorSelect, currentColor }: { 
+    onColorSelect: (color: string) => void;
+    currentColor?: string;
+  }) => (
+    <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50 dark:bg-slate-900/30 rounded-md">
+      {presetColors.map((color) => (
+        <button
+          key={color}
+          type="button"
+          onClick={() => onColorSelect(color)}
+          className={cn(
+            "w-6 h-6 rounded border-2 transition-all duration-200",
+            currentColor === color 
+              ? "border-blue-500 scale-110 shadow-md" 
+              : "border-transparent hover:border-slate-400"
+          )}
+          style={{ backgroundColor: color }}
+          title={color}
+        />
+      ))}
+    </div>
+  ));
+  ColorPresets.displayName = 'ColorPresets';
+
   // Definir los tabs - memoizado para evitar recreación
   const tabs = useMemo(() => [
     {
@@ -186,26 +236,26 @@ function GenerationOptions({
     switch (activeTab) {
       case 'color':
         return (
-          <div className="space-y-3 animate-in fade-in-50 duration-200">
+          <div className="space-y-3 animate-in fade-in-50 duration-300">
             {/* QR Code Color Options */}
             {isQrCode && (
-              <div className="space-y-4">
-                {/* Color Mode Toggle - Centered with better styling */}
-                <div className="flex justify-center pb-3 border-b border-slate-200 dark:border-slate-700">
+              <div className="space-y-3">
+                {/* Compact Color Mode Toggle */}
+                <div className="flex items-center gap-2">
                   <Controller
                     name="options.gradient_enabled"
                     control={control}
                     defaultValue={true}
                     render={({ field }) => (
-                      <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full p-1">
+                      <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800/50 rounded-md p-0.5">
                         <button
                           type="button"
                           onClick={() => field.onChange(false)}
                           className={cn(
-                            "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                            "px-3 py-1 rounded text-sm font-medium transition-all duration-200",
                             !field.value 
                               ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm" 
-                              : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                              : "text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                           )}
                         >
                           Sólido
@@ -214,10 +264,10 @@ function GenerationOptions({
                           type="button"
                           onClick={() => field.onChange(true)}
                           className={cn(
-                            "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                            "px-3 py-1 rounded text-sm font-medium transition-all duration-200",
                             field.value 
                               ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm" 
-                              : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                              : "text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                           )}
                         >
                           Gradiente
@@ -229,59 +279,98 @@ function GenerationOptions({
 
                 {/* Color Controls */}
                 {!watch('options.gradient_enabled') ? (
-                  // Solid Color Mode
-                  <div className="space-y-4">
-                    <ColorInput 
-                      name="options.fgcolor" 
-                      label="Color Principal" 
-                      defaultValue="#000000" 
-                    />
-                    
-                    {/* Background Toggle - NOW WORKING via frontend manipulation */}
-                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="transparent-bg" className="text-sm font-medium cursor-pointer">
-                          Fondo Transparente
-                        </Label>
+                  // Solid Color Mode - Compact layout
+                  <div className="space-y-3">
+                    {/* Colors in 2 columns */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Foreground Color */}
+                      <div className="space-y-1">
+                        <Label className="text-sm text-slate-600 dark:text-slate-400">Color principal</Label>
                         <Controller
-                          name="options.transparent_background"
+                          name="options.fgcolor"
                           control={control}
-                          defaultValue={false}
+                          defaultValue="#000000"
                           render={({ field }) => (
-                            <Switch
-                              id="transparent-bg"
-                              checked={field.value}
-                              onCheckedChange={(checked) => {
-                                // 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
-                                // This toggle ONLY changes the visual appearance of the QR background
-                                // It does NOT regenerate the QR code to avoid unnecessary backend calls
-                                // The change is instant and handled purely in the frontend
-                                // ⚠️ DO NOT add onSubmit() or any form regeneration here ⚠️
-                                field.onChange(checked);
+                            <ColorPickerPopover
+                              value={field.value || "#000000"}
+                              onChange={(color) => {
+                                field.onChange(color);
+                                setTimeout(() => {
+                                  const currentFormValues = getValues();
+                                  onSubmit(currentFormValues);
+                                }, 100);
                               }}
+                              disabled={isLoading}
+                              placeholder="#000000"
+                              id="qr-fg-color"
+                              aria-label="Color principal del código QR"
+                            />
+                          )}
+                        />
+                      </div>
+                      
+                      {/* Background Color */}
+                      <div className="space-y-1">
+                        <Label className="text-sm text-slate-600 dark:text-slate-400">Color de fondo</Label>
+                        <Controller
+                          name="options.bgcolor"
+                          control={control}
+                          defaultValue="#FFFFFF"
+                          render={({ field }) => (
+                            <ColorPickerPopover
+                              value={field.value || "#FFFFFF"}
+                              onChange={(color) => {
+                                field.onChange(color);
+                                setTimeout(() => {
+                                  const currentFormValues = getValues();
+                                  onSubmit(currentFormValues);
+                                }, 100);
+                              }}
+                              presetColors={presetColors}
+                              disabled={isLoading}
+                              placeholder="#FFFFFF"
+                              aria-label="Color de fondo"
                             />
                           )}
                         />
                       </div>
                     </div>
                     
-                    {/* Background Color - Always show since transparent is not supported */}
-                    <div className="animate-in slide-in-from-top-2 duration-200">
-                      <ColorInput 
-                        name="options.bgcolor" 
-                        label="Color de Fondo" 
-                        defaultValue="#FFFFFF" 
+                    {/* Background Options */}
+                    <div className="flex items-center justify-between py-2 px-3 rounded-md bg-slate-50 dark:bg-slate-900/30">
+                      <Label htmlFor="transparent-bg" className="text-sm cursor-pointer text-slate-600 dark:text-slate-400">
+                        Fondo transparente
+                      </Label>
+                      <Controller
+                        name="options.transparent_background"
+                        control={control}
+                        defaultValue={false}
+                        render={({ field }) => (
+                          <Switch
+                            id="transparent-bg"
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              // 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
+                              // This toggle ONLY changes the visual appearance of the QR background
+                              // It does NOT regenerate the QR code to avoid unnecessary backend calls
+                              // The change is instant and handled purely in the frontend
+                              // ⚠️ DO NOT add onSubmit() or any form regeneration here ⚠️
+                              field.onChange(checked);
+                            }}
+                            className="data-[state=checked]:bg-blue-600 scale-90"
+                          />
+                        )}
                       />
                     </div>
                   </div>
                 ) : (
-                  // Gradient Mode - Organizado en una fila de 4 columnas
-                  <div className="space-y-4">
-                    {/* Grid de 2x2 para opciones de color */}
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Primera columna, primera fila - Tipo de gradiente */}
+                  // Gradient Mode - Compact optimized layout
+                  <div className="space-y-3">
+                    {/* Type and Colors in grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Left Column - Gradient Type */}
                       <div>
-                        <Label className="text-xs font-medium mb-1.5 block">Tipo de gradiente</Label>
+                        <Label className="text-sm mb-1.5 block text-slate-600 dark:text-slate-400">Tipo</Label>
                         <Controller
                           name="options.gradient_type"
                           control={control}
@@ -291,7 +380,6 @@ function GenerationOptions({
                               value={field.value} 
                               onValueChange={(value) => {
                                 field.onChange(value);
-                                // Trigger form re-generation
                                 setTimeout(() => {
                                   const currentFormValues = getValues();
                                   onSubmit(currentFormValues);
@@ -315,207 +403,196 @@ function GenerationOptions({
                             </Select>
                           )}
                         />
-                      </div>
-
-                      {/* Segunda columna, primera fila - Aplicar bordes */}
-                      <div className="flex items-end">
-                        <div className="w-full p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <Label className="text-xs font-medium">Aplicar bordes al gradiente</Label>
+                        
+                        {/* Gradient Direction (only for linear) */}
+                        {watch('options.gradient_type') === 'linear' && (
+                          <div className="mt-3 animate-in slide-in-from-top-1 duration-200">
+                            <Label className="text-sm mb-1.5 block text-slate-600 dark:text-slate-400">Dirección</Label>
                             <Controller
-                              name="options.gradient_borders"
+                              name="options.gradient_direction"
                               control={control}
-                              defaultValue={false}
+                              defaultValue="top-bottom"
                               render={({ field }) => (
-                                  <Switch
-                                    checked={field.value ?? false}
-                                    onCheckedChange={(checked) => {
-                                      field.onChange(checked);
-                                      // Trigger form re-generation
-                                      setTimeout(() => {
-                                        const currentFormValues = getValues();
-                                        onSubmit(currentFormValues);
-                                      }, 100);
-                                    }}
-                                    disabled={isLoading}
-                                    className="data-[state=checked]:bg-blue-600"
-                                  />
+                                <Select 
+                                  value={field.value} 
+                                  onValueChange={(value) => {
+                                    field.onChange(value);
+                                    setTimeout(() => {
+                                      const currentFormValues = getValues();
+                                      onSubmit(currentFormValues);
+                                    }, 100);
+                                  }} 
+                                  disabled={isLoading}
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="top-bottom">↓ Vertical</SelectItem>
+                                    <SelectItem value="left-right">→ Horizontal</SelectItem>
+                                    <SelectItem value="diagonal">↘ Diagonal</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               )}
                             />
                           </div>
-                        </div>
+                        )}
                       </div>
 
-                      {/* Primera columna, segunda fila - Color 1 */}
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium text-slate-600 dark:text-slate-400">Color 1</Label>
-                        <Controller
-                          name="options.gradient_color1"
-                          control={control}
-                          defaultValue="#2563EB"
-                          render={({ field }) => (
-                            <div className="flex gap-2 items-center">
-                              <input
-                                type="color"
-                                value={field.value || "#2563EB"}
-                                onChange={(e) => {
-                                  field.onChange(e.target.value);
-                                  // Trigger form re-generation
-                                  setTimeout(() => {
-                                    const currentFormValues = getValues();
-                                    onSubmit(currentFormValues);
-                                  }, 100);
-                                }}
-                                className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
-                                disabled={isLoading}
-                              />
-                              <Input
-                                type="text"
-                                value={field.value || "#2563EB"}
-                                disabled={isLoading}
-                                placeholder="#2563EB"
-                                onChange={(e) => {
-                                  field.onChange(e.target.value);
-                                  // Trigger form re-generation
-                                  setTimeout(() => {
-                                    const currentFormValues = getValues();
-                                    onSubmit(currentFormValues);
-                                  }, 100);
-                                }}
-                                className="h-8 text-sm flex-1"
-                              />
-                            </div>
-                          )}
-                        />
-                      </div>
-
-                      {/* Segunda columna, segunda fila - Color 2 con botón intercambiar */}
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium text-slate-600 dark:text-slate-400">Color 2</Label>
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <Controller
-                              name="options.gradient_color2"
-                              control={control}
-                              defaultValue="#000000"
-                              render={({ field }) => (
-                                <div className="flex gap-2 items-center">
-                                  <input
-                                    type="color"
-                                    value={field.value || "#000000"}
-                                    onChange={(e) => {
-                                      field.onChange(e.target.value);
-                                      // Trigger form re-generation
-                                      setTimeout(() => {
-                                        const currentFormValues = getValues();
-                                        onSubmit(currentFormValues);
-                                      }, 100);
-                                    }}
-                                    className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
-                                    disabled={isLoading}
-                                  />
-                                  <Input
-                                    type="text"
-                                    value={field.value || "#000000"}
-                                    disabled={isLoading}
-                                    placeholder="#000000"
-                                    onChange={(e) => {
-                                      field.onChange(e.target.value);
-                                      // Trigger form re-generation
-                                      setTimeout(() => {
-                                        const currentFormValues = getValues();
-                                        onSubmit(currentFormValues);
-                                      }, 100);
-                                    }}
-                                    className="h-8 text-sm flex-1"
-                                  />
-                                </div>
-                              )}
-                            />
-                          </div>
+                      {/* Right Column - Colors */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm text-slate-600 dark:text-slate-400">Colores</Label>
                           <button
                             type="button"
                             onClick={handleSwapColors}
                             disabled={isLoading}
-                            className="w-8 h-8 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md flex items-center justify-center transition-all border border-blue-200 dark:border-blue-800"
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                             title="Intercambiar colores"
                           >
-                            <ArrowLeftRight className="h-4 w-4" />
+                            <ArrowLeftRight className="h-3.5 w-3.5" />
                           </button>
+                        </div>
+                        
+                        {/* Color inputs in compact format */}
+                        <div className="space-y-3">
+                          <Controller
+                            name="options.gradient_color1"
+                            control={control}
+                            defaultValue="#2563EB"
+                            render={({ field }) => (
+                              <div className="space-y-1">
+                                <Label className="text-xs text-slate-600 dark:text-slate-400">Inicio</Label>
+                                <ColorPickerPopover
+                                  value={field.value || "#2563EB"}
+                                  onChange={(color) => {
+                                    field.onChange(color);
+                                    setTimeout(() => {
+                                      const currentFormValues = getValues();
+                                      onSubmit(currentFormValues);
+                                    }, 100);
+                                  }}
+                                  presetColors={presetColors}
+                                  disabled={isLoading}
+                                  placeholder="#2563EB"
+                                  aria-label="Color de inicio del gradiente"
+                                />
+                              </div>
+                            )}
+                          />
+                          
+                          <Controller
+                            name="options.gradient_color2"
+                            control={control}
+                            defaultValue="#000000"
+                            render={({ field }) => (
+                              <div className="space-y-1">
+                                <Label className="text-xs text-slate-600 dark:text-slate-400">Fin</Label>
+                                <ColorPickerPopover
+                                  value={field.value || "#000000"}
+                                  onChange={(color) => {
+                                    field.onChange(color);
+                                    setTimeout(() => {
+                                      const currentFormValues = getValues();
+                                      onSubmit(currentFormValues);
+                                    }, 100);
+                                  }}
+                                  presetColors={presetColors}
+                                  disabled={isLoading}
+                                  placeholder="#000000"
+                                  aria-label="Color de fin del gradiente"
+                                />
+                              </div>
+                            )}
+                          />
                         </div>
                       </div>
                     </div>
 
-                    {/* Dirección del gradiente (solo para linear) */}
-                    {watch('options.gradient_type') === 'linear' && (
-                      <div>
-                        <Label className="text-xs font-medium mb-1.5 block">Dirección del gradiente</Label>
-                        <Controller
-                          name="options.gradient_direction"
-                          control={control}
-                          defaultValue="top-bottom"
-                          render={({ field }) => (
-                            <Select 
-                              value={field.value} 
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                // Trigger form re-generation
-                                setTimeout(() => {
-                                  const currentFormValues = getValues();
-                                  onSubmit(currentFormValues);
-                                }, 100);
-                              }} 
-                              disabled={isLoading}
-                            >
-                              <SelectTrigger className="h-8">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="top-bottom">↓ Vertical</SelectItem>
-                                <SelectItem value="left-right">→ Horizontal</SelectItem>
-                                <SelectItem value="diagonal">↘ Diagonal</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                      </div>
-                    )}
-
-                    {/* Background Toggle for Gradient Mode - NOW WORKING via frontend manipulation */}
-                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="transparent-bg-gradient" className="text-sm font-medium cursor-pointer">
-                          Fondo Transparente
-                        </Label>
-                        <Controller
-                          name="options.transparent_background"
-                          control={control}
-                          defaultValue={false}
-                          render={({ field }) => (
-                            <Switch
-                              id="transparent-bg-gradient"
-                              checked={field.value}
-                              onCheckedChange={(checked) => {
-                                // 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
-                                // This toggle ONLY changes the visual appearance of the QR background
-                                // It does NOT regenerate the QR code to avoid unnecessary backend calls
-                                // The change is instant and handled purely in the frontend
-                                // ⚠️ DO NOT add onSubmit() or any form regeneration here ⚠️
-                                field.onChange(checked);
-                              }}
-                            />
-                          )}
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* Background Color for Gradient Mode - Always show since transparent is not supported */}
-                    <div className="animate-in slide-in-from-top-2 duration-200">
-                      <ColorInput 
-                        name="options.bgcolor" 
-                        label="Color de Fondo" 
-                        defaultValue="#FFFFFF" 
+                    {/* Background Color */}
+                    <div className="space-y-1">
+                      <Label className="text-sm text-slate-600 dark:text-slate-400">Color de fondo</Label>
+                      <Controller
+                        name="options.bgcolor"
+                        control={control}
+                        defaultValue="#FFFFFF"
+                        render={({ field }) => (
+                          <ColorPickerPopover
+                            value={field.value || "#FFFFFF"}
+                            onChange={(color) => {
+                              field.onChange(color);
+                              setTimeout(() => {
+                                const currentFormValues = getValues();
+                                onSubmit(currentFormValues);
+                              }, 100);
+                            }}
+                            presetColors={presetColors}
+                            disabled={isLoading}
+                            placeholder="#FFFFFF"
+                            aria-label="Color de fondo"
+                          />
+                        )}
                       />
+                    </div>
+
+                    {/* Options in compact horizontal layout */}
+                    <div className="space-y-2">
+                      <Label className="text-sm text-slate-600 dark:text-slate-400">Opciones</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* Gradient Borders */}
+                        <div className="flex items-center justify-between py-2 px-3 rounded-md bg-slate-50 dark:bg-slate-900/30">
+                          <Label htmlFor="gradient-borders" className="text-sm cursor-pointer text-slate-600 dark:text-slate-400">
+                            Bordes
+                          </Label>
+                          <Controller
+                            name="options.gradient_borders"
+                            control={control}
+                            defaultValue={false}
+                            render={({ field }) => (
+                              <Switch
+                                id="gradient-borders"
+                                checked={field.value ?? false}
+                                onCheckedChange={(checked) => {
+                                  field.onChange(checked);
+                                  setTimeout(() => {
+                                    const currentFormValues = getValues();
+                                    onSubmit(currentFormValues);
+                                  }, 100);
+                                }}
+                                disabled={isLoading}
+                                className="data-[state=checked]:bg-blue-600 scale-90"
+                              />
+                            )}
+                          />
+                        </div>
+                        
+                        {/* Transparent Background */}
+                        <div className="flex items-center justify-between py-2 px-3 rounded-md bg-slate-50 dark:bg-slate-900/30">
+                          <Label htmlFor="transparent-bg-gradient" className="text-sm cursor-pointer text-slate-600 dark:text-slate-400">
+                            Transparente
+                          </Label>
+                          <Controller
+                            name="options.transparent_background"
+                            control={control}
+                            defaultValue={false}
+                            render={({ field }) => (
+                              <Switch
+                                id="transparent-bg-gradient"
+                                checked={field.value}
+                                onCheckedChange={(checked) => {
+                                  // 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
+                                  // This toggle ONLY changes the visual appearance of the QR background
+                                  // It does NOT regenerate the QR code to avoid unnecessary backend calls
+                                  // The change is instant and handled purely in the frontend
+                                  // ⚠️ DO NOT add onSubmit() or any form regeneration here ⚠️
+                                  field.onChange(checked);
+                                }}
+                                className="data-[state=checked]:bg-blue-600 scale-90"
+                              />
+                            )}
+                          />
+                        </div>
+                      </div>
                     </div>
 
                   </div>
@@ -523,20 +600,205 @@ function GenerationOptions({
               </div>
             )}
 
+            {/* Eye Colors Control - Moved here to be grouped with main colors */}
+            {isQrCode && (
+              <div className="space-y-3 mt-4">
+                <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Colores de Ojos Personalizados
+                </Label>
+                <Controller
+                  name="options.eye_colors"
+                  control={control}
+                  render={({ field }) => {
+                    const eyeColors = field.value || {};
+                    const hasCustomColors = !!(eyeColors.outer || eyeColors.inner);
+                    
+                    return (
+                      <div className="space-y-3">
+                        {/* Enable Custom Eye Colors */}
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                          <div className="flex-1">
+                            <Label htmlFor="eye-colors-enabled" className="text-sm font-medium cursor-pointer">
+                              Colores Personalizados
+                            </Label>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                              Define colores específicos para los ojos del QR
+                            </p>
+                          </div>
+                          <Switch
+                            id="eye-colors-enabled"
+                            checked={hasCustomColors}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                field.onChange({
+                                  outer: watch('options.fgcolor') || '#000000',
+                                  inner: watch('options.fgcolor') || '#000000',
+                                });
+                              } else {
+                                field.onChange(undefined);
+                              }
+                              setTimeout(() => {
+                                const currentFormValues = getValues();
+                                onSubmit(currentFormValues);
+                              }, 100);
+                            }}
+                          />
+                        </div>
+
+                        {/* Color Controls */}
+                        {hasCustomColors && (
+                          <div className="grid grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-200">
+                            {/* Outer Color */}
+                            <div className="space-y-1">
+                              <Label className="text-sm text-slate-600 dark:text-slate-400">Color Exterior</Label>
+                              <div className="flex gap-2 items-center">
+                                <input
+                                  type="color"
+                                  value={eyeColors.outer || '#000000'}
+                                  onChange={(e) => {
+                                    field.onChange({
+                                      ...eyeColors,
+                                      outer: e.target.value,
+                                    });
+                                    setTimeout(() => {
+                                      const currentFormValues = getValues();
+                                      onSubmit(currentFormValues);
+                                    }, 100);
+                                  }}
+                                  className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded-md cursor-pointer"
+                                  disabled={isLoading}
+                                />
+                                <Input
+                                  type="text"
+                                  value={eyeColors.outer || '#000000'}
+                                  disabled={isLoading}
+                                  placeholder="#000000"
+                                  onChange={(e) => {
+                                    field.onChange({
+                                      ...eyeColors,
+                                      outer: e.target.value,
+                                    });
+                                    setTimeout(() => {
+                                      const currentFormValues = getValues();
+                                      onSubmit(currentFormValues);
+                                    }, 100);
+                                  }}
+                                  className="h-8 text-sm flex-1"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Inner Color */}
+                            <div className="space-y-1">
+                              <Label className="text-sm text-slate-600 dark:text-slate-400">Color Interior</Label>
+                              <div className="flex gap-2 items-center">
+                                <input
+                                  type="color"
+                                  value={eyeColors.inner || '#000000'}
+                                  onChange={(e) => {
+                                    field.onChange({
+                                      ...eyeColors,
+                                      inner: e.target.value,
+                                    });
+                                    setTimeout(() => {
+                                      const currentFormValues = getValues();
+                                      onSubmit(currentFormValues);
+                                    }, 100);
+                                  }}
+                                  className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded-md cursor-pointer"
+                                  disabled={isLoading}
+                                />
+                                <Input
+                                  type="text"
+                                  value={eyeColors.inner || '#000000'}
+                                  disabled={isLoading}
+                                  placeholder="#000000"
+                                  onChange={(e) => {
+                                    field.onChange({
+                                      ...eyeColors,
+                                      inner: e.target.value,
+                                    });
+                                    setTimeout(() => {
+                                      const currentFormValues = getValues();
+                                      onSubmit(currentFormValues);
+                                    }, 100);
+                                  }}
+                                  className="h-8 text-sm flex-1"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {hasCustomColors && (
+                          <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                            <p className="text-xs text-blue-800 dark:text-blue-200">
+                              <strong>Tip:</strong> Usa colores con alto contraste respecto al fondo para mejor escaneabilidad. Se validará automáticamente el contraste WCAG AA.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+              </div>
+            )}
+
             {/* Solid Colors for Non-QR Codes */}
             {!isQrCode && (
               <div className="grid grid-cols-2 gap-3">
-                <ColorInput 
-                  name="options.fgcolor" 
-                  label="Color Principal" 
-                  defaultValue="#000000" 
-                />
-                <ColorInput 
-                  name="options.bgcolor" 
-                  label="Color Fondo" 
-                  defaultValue="#FFFFFF" 
-                />
-              </div>
+                {/* Foreground Color */}
+                <div className="space-y-1">
+                  <Label className="text-sm text-slate-600 dark:text-slate-400">Color principal</Label>
+                  <Controller
+                    name="options.fgcolor"
+                    control={control}
+                    defaultValue="#000000"
+                    render={({ field }) => (
+                      <ColorPickerPopover
+                        value={field.value || "#000000"}
+                        onChange={(color) => {
+                          field.onChange(color);
+                          setTimeout(() => {
+                            const currentFormValues = getValues();
+                            onSubmit(currentFormValues);
+                          }, 100);
+                        }}
+                        presetColors={presetColors}
+                        disabled={isLoading}
+                        placeholder="#000000"
+                        aria-label="Color principal del código de barras"
+                      />
+                    )}
+                  />
+                </div>
+                
+                {/* Background Color */}
+                <div className="space-y-1">
+                  <Label className="text-sm text-slate-600 dark:text-slate-400">Color de fondo</Label>
+                  <Controller
+                    name="options.bgcolor"
+                    control={control}
+                    defaultValue="#FFFFFF"
+                    render={({ field }) => (
+                      <ColorPickerPopover
+                        value={field.value || "#FFFFFF"}
+                        onChange={(color) => {
+                          field.onChange(color);
+                          setTimeout(() => {
+                            const currentFormValues = getValues();
+                            onSubmit(currentFormValues);
+                          }, 100);
+                        }}
+                        presetColors={presetColors}
+                        disabled={isLoading}
+                        placeholder="#FFFFFF"
+                        aria-label="Color de fondo del código de barras"
+                      />
+                    )}
+                  />
+                </div>
+                            </div>
             )}
           </div>
         );
@@ -555,7 +817,6 @@ function GenerationOptions({
                   control={control}
                   defaultValue={true}
                   render={({ field }) => {
-                    console.log('[GenerationOptions] Switch field value:', field.value);
                     return (
                     <div className="flex items-center gap-2">
                       <Label htmlFor="separated-eyes" className="text-xs text-slate-600 dark:text-slate-400">
@@ -565,7 +826,6 @@ function GenerationOptions({
                         id="separated-eyes"
                         checked={field.value || false}
                         onCheckedChange={(checked) => {
-                          console.log('[GenerationOptions] Switch onCheckedChange:', checked);
                           field.onChange(checked);
                           // Clear unified style when enabling separated styles
                           if (checked) {
@@ -628,7 +888,6 @@ function GenerationOptions({
               )}
 
               {/* Separated Eye Styles */}
-              {console.log('[GenerationOptions] use_separated_eye_styles value:', useSeparatedEyeStyles)}
               {useSeparatedEyeStyles && (
                 <div key="separated-styles" className="space-y-4 animate-in slide-in-from-top-2 duration-200">
                   {/* Eye Border Style */}
@@ -717,6 +976,8 @@ function GenerationOptions({
                 </div>
               )}
             </div>
+
+
 
             {/* Data Pattern Section */}
             <div className="space-y-3">
@@ -1095,6 +1356,84 @@ function GenerationOptions({
                             </div>
                           </div>
                         )}
+                      </div>
+                    )}
+                  />
+                </div>
+
+                {/* Fixed Size Control - QR v3 Optimization */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    Tamaño Fijo del QR
+                  </Label>
+                  <Controller
+                    name="options.fixed_size"
+                    control={control}
+                    defaultValue="auto"
+                    render={({ field }) => (
+                      <div className="space-y-3">
+                        {/* Fixed Size Toggle */}
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                          <div className="flex-1">
+                            <Label htmlFor="fixed-size-enabled" className="text-sm font-medium cursor-pointer">
+                              Usar Tamaño Fijo
+                            </Label>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                              Garantiza que todos los QR tengan el mismo tamaño exacto
+                            </p>
+                          </div>
+                          <Switch
+                            id="fixed-size-enabled"
+                            checked={field.value !== 'auto'}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked ? 'medium' : 'auto');
+                              setTimeout(() => {
+                                const currentFormValues = getValues();
+                                onSubmit(currentFormValues);
+                              }, 100);
+                            }}
+                          />
+                        </div>
+
+                        {/* Size Selection */}
+                        {field.value !== 'auto' && (
+                          <div className="grid grid-cols-2 gap-2 animate-in slide-in-from-top-2 duration-200">
+                            {[
+                              { value: 'small', label: 'Pequeño', desc: 'v1-5', icon: '🔸' },
+                              { value: 'medium', label: 'Mediano', desc: 'v6-10', icon: '🔶' },
+                              { value: 'large', label: 'Grande', desc: 'v11-15', icon: '🔷' },
+                              { value: 'extra_large', label: 'Extra Grande', desc: 'v16-25', icon: '🔵' },
+                            ].map((size) => (
+                              <button
+                                key={size.value}
+                                type="button"
+                                onClick={() => {
+                                  field.onChange(size.value);
+                                  setTimeout(() => {
+                                    const currentFormValues = getValues();
+                                    onSubmit(currentFormValues);
+                                  }, 100);
+                                }}
+                                className={cn(
+                                  "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
+                                  field.value === size.value
+                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                    : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                                )}
+                              >
+                                <span className="text-2xl mb-1">{size.icon}</span>
+                                <span className="text-sm font-medium">{size.label}</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400">{size.desc}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="p-3 bg-amber-50 dark:bg-amber-950 rounded-lg">
+                          <p className="text-xs text-amber-800 dark:text-amber-200">
+                            <strong>Nota:</strong> El tamaño fijo garantiza uniformidad en lotes. Si los datos no caben, se reducirá automáticamente el nivel de corrección de errores.
+                          </p>
+                        </div>
                       </div>
                     )}
                   />

@@ -54,40 +54,26 @@ const SmartQRButtonComponent: React.FC<SmartQRButtonProps> = ({
 
   return (
     <>
-      {/* Main container with teaser design */}
+      {/* Minimalist container */}
       <div className={cn(
-        "mt-6 p-4 rounded-lg transition-all duration-200",
-        "border-2 border-dashed",
-        isLocked 
-          ? "border-blue-300 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20" 
-          : "border-blue-400 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/30",
-        "hover:border-blue-500 hover:bg-blue-50/70 dark:hover:border-blue-600 dark:hover:bg-blue-950/40",
+        "p-6 rounded-xl transition-all duration-300",
+        "bg-gradient-to-r from-slate-50 to-slate-50/50 dark:from-slate-900/50 dark:to-slate-900/30",
+        "border border-slate-200 dark:border-slate-800",
+        "hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-700",
         className
       )}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              "p-2 rounded-lg",
-              isLocked 
-                ? "bg-blue-100 dark:bg-blue-900/30" 
-                : "bg-blue-200 dark:bg-blue-800/50"
-            )}>
-              <Sparkles className={cn(
-                "h-5 w-5 transition-colors",
-                isLocked 
-                  ? "text-blue-500 dark:text-blue-400" 
-                  : "text-blue-600 dark:text-blue-300"
-              )} />
-            </div>
+          <div className="flex items-center gap-4">
+            <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 QR Inteligentes
-                <span className="text-xs px-2 py-0.5 bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-200 rounded-full font-medium">
-                  Beta
+                <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded font-medium">
+                  BETA
                 </span>
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Genera QR con estilo Instagram o YouTube automáticamente
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Estilos profesionales automáticos
               </p>
             </div>
           </div>
@@ -96,53 +82,36 @@ const SmartQRButtonComponent: React.FC<SmartQRButtonProps> = ({
             <Button
               onClick={handleClick}
               disabled={isDisabled}
-              variant={isLocked ? "outline" : "default"}
+              variant="ghost"
+              size="sm"
               className={cn(
-                "relative transition-all duration-200",
-                isLocked && "border-2",
-                !isDisabled && !isLocked && "shadow-sm hover:shadow-md"
+                "relative transition-all duration-300",
+                "text-sm font-medium",
+                isLocked 
+                  ? "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" 
+                  : "text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300",
+                !isDisabled && !isLocked && "hover:bg-blue-50 dark:hover:bg-blue-950/30"
               )}
             >
-              {isLocked && <Lock className="h-4 w-4 mr-2" />}
-              {isLocked ? "Solo usuarios registrados" : "Generar QR Inteligente"}
+              {isLocked ? (
+                <>
+                  <Lock className="h-3.5 w-3.5 mr-1.5" />
+                  Iniciar sesión
+                </>
+              ) : (
+                "Probar ahora →"
+              )}
             </Button>
 
-            {/* Login prompt tooltip */}
+            {/* Simplified login prompt */}
             {showLoginPrompt && (
-              <div className="absolute top-full right-0 mt-2 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg z-50 w-64 animate-in fade-in slide-in-from-top-1">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 text-yellow-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium">Inicia sesión para continuar</p>
-                    <p className="text-xs text-gray-300 mt-1">
-                      Los QR Inteligentes están disponibles solo para usuarios registrados.
-                    </p>
-                  </div>
-                </div>
-                <div className="absolute top-0 right-8 -mt-2 w-0 h-0 
-                  border-l-[6px] border-l-transparent
-                  border-b-[8px] border-b-gray-900
-                  border-r-[6px] border-r-transparent">
-                </div>
+              <div className="absolute top-full right-0 mt-2 p-2.5 bg-slate-900 text-white text-xs rounded-lg shadow-xl z-50 whitespace-nowrap animate-in fade-in slide-in-from-top-1">
+                Inicia sesión para usar QR Inteligentes
+                <div className="absolute -top-1 right-4 w-2 h-2 bg-slate-900 rotate-45" />
               </div>
             )}
           </div>
         </div>
-
-        {/* Features preview */}
-        {user && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            <span className="text-xs px-2 py-1 bg-white dark:bg-gray-800 rounded-md text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
-              ✨ Detección automática
-            </span>
-            <span className="text-xs px-2 py-1 bg-white dark:bg-gray-800 rounded-md text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
-              🎨 Estilos personalizados
-            </span>
-            <span className="text-xs px-2 py-1 bg-white dark:bg-gray-800 rounded-md text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
-              ⚡ 3 por día gratis
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Smart QR Modal - only render when open and user exists */}

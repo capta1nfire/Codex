@@ -126,6 +126,15 @@ export const generateFormSchema = z.object({
       frame_style: z.enum(['simple', 'rounded', 'bubble', 'speech', 'badge']).optional(),
       frame_text: z.string().max(50).optional(),
       frame_text_position: z.enum(['top', 'bottom', 'left', 'right']).optional(),
+      
+      // Fixed size control (QR v3 optimization)
+      fixed_size: z.enum(['small', 'medium', 'large', 'extra_large', 'auto']).optional(),
+      
+      // Eye colors (QR v3 optimization)
+      eye_colors: z.object({
+        outer: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
+        inner: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
+      }).optional(),
     })
     .optional(),
 });

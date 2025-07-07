@@ -68,3 +68,4 @@ proptest = "1.4" # Property-based testing
 [[bench]]
 name = "qr_benchmarks"
 harness = false
+

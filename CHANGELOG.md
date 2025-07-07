@@ -2,6 +2,88 @@
 
 All notable changes to the CODEX project are documented in the [docs/](./docs/) directory.
 
+## 2025-07-07
+
+### 🚀 QR Studio Implementation Fixes
+- **Fixed Button ref forwarding**: Added React.forwardRef() to Button component for Radix UI compatibility
+- **Created missing Studio pages**: Added /studio/global, /studio/effects, /studio/permissions routes
+- **Fixed QRPreview component**: Created dedicated preview component to handle EnhancedQRV3 props correctly
+- **Disabled WebSocket temporarily**: Prevented connection errors until backend implementation is complete
+- **Fixed EnhancedQRV3 runtime errors**: Added safe property access with optional chaining throughout
+
+### 🔧 Fixed
+- **QR v3 Eye Colors**: Backend ahora pasa correctamente eye_colors al servicio Rust
+  - Agregado eye_colors al schema de validación en qr-v3.routes.ts
+  - Incluido eye_colors en la transformación de opciones al servicio Rust
+  - Corregido mapeo en frontend (eye_colors al mismo nivel que colors)
+  - Motor Rust ahora usa eye_colors en build_styles() en lugar de foreground
+  - Agregado campos border_color/center_color a QrEyePath para colores por ojo
+  - Frontend actualizado para usar colores individuales de cada ojo
+  - **FIX CRÍTICO**: eye_colors ahora se coloca dentro del objeto colors en Node.js backend
+  - Agregado debug logging para rastrear el flujo de eye_colors
+
+### ✅ Added
+- **QR v3 Data Segmentation**: Implementado análisis inteligente de contenido para optimización de tamaño
+  - ContentSegmenter detecta segmentos numéricos, alfanuméricos y de bytes
+  - Integrado con generator.rs usando `encode_segments()` de qrcodegen
+  - Reducción promedio del 20% en tamaño de QR (hasta 52% en datos numéricos)
+  - Totalmente compatible con API existente, habilitado por defecto
+  - Tests exhaustivos agregados en test_integration.rs
+  
+- **QR v3 Boost ECC**: Mejora automática del nivel de corrección de errores
+  - Usa `encode_segments_advanced()` con boost_ecl=true de qrcodegen
+  - 100% de QRs mejoran ECL sin aumentar tamaño (Low→Medium, Quartile→High)
+  - Integrado con generate_with_dynamic_ecl para logos
+  - Nueva estructura BoostInfo para métricas de boost aplicado
+  
+- **QR v3 Fixed Size**: Control de tamaño/versión fijo para batch uniforme
+  - Nuevo enum QrSize: Small (v1-5), Medium (v6-10), Large (v11-15), ExtraLarge (v16-25), Auto
+  - Campo fixed_size en QrCustomization para especificar tamaño deseado
+  - Degradación ECL automática si los datos no caben en el tamaño solicitado
+  - 100% consistencia en batch - todos los QR del mismo tamaño exacto
+
+- **QR v3 Independent Eye Colors**: Colores independientes para ojos del QR
+  - Nuevo campo eye_colors en ColorOptions con estructura EyeColors
+  - Soporte para colores outer/inner separados para todos los ojos
+  - Colores por ojo individual: TopLeft, TopRight, BottomLeft configurables
+  - render_custom_eyes() actualizado para aplicar colores específicos
+  - Solución al problema de Instagram: ojos púrpura (#833AB4) funcionando
+  - Validación automática de contraste WCAG AA (4.5:1 mínimo)
+  - Quality score ajustado según advertencias de contraste
+  - 100% retrocompatible - eye_colors es opcional
+  
+- **Frontend UI para nuevas características v3**: Controles implementados
+  - Selector de tamaño fijo en pestaña Advanced con 4 opciones visuales
+  - Control de colores personalizados para ojos con switches intuitivos
+  - Validación de esquema Zod actualizada para nuevos campos
+  - Integración completa con useQRGenerationState para envío al backend
+  - UI responsive con animaciones suaves y tooltips informativos
+
+## 2025-07-06
+
+### ✅ Added
+- **Column 2 Protection Comments**: Documentación crítica para estructura calibrada
+  - PreviewSectionV3.tsx: Dimensiones exactas (350/320/310px)
+  - QRGeneratorContainer.tsx: Configuración sticky y column-card
+  - globals.css: Transparencia 50% con blur para columnas
+
+- **Official Social Media Logos**: Creados logos SVG optimizados para Smart QR
+  - Instagram, YouTube, Facebook, TikTok, Twitter/X
+  - LinkedIn, WhatsApp, Spotify, GitHub, Pinterest, Snapchat
+  - Todos con colores oficiales y formas vectoriales precisas
+  - Actualizados templates en backend para usar logos oficiales
+
+### 🔧 Fixed
+- **URL Validation UX**: Mensaje informativo para validaciones lentas (>2s)
+  - LinkForm.tsx: Timer de 2 segundos detecta validación lenta
+  - Mensaje: "Estamos validando el sitio web, esto podría tomar algunos segundos..."
+  - Sin icono duplicado (input ya muestra spinner)
+
+- **Smart QR Integration**: Conectado callback para generar QR inteligentes
+  - QRGeneratorContainer.tsx: onSmartQRGenerate ahora genera el QR con configuración
+  - useQRGenerationState.ts: loadSvgAsBase64 actualizado para manejar PNG/JPG
+  - 🔍 Nota: Logos de Smart QR vienen embebidos en paths del backend
+
 ## 2025-07-03
 
 ### ✅ Added

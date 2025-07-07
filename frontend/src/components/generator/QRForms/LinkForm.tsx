@@ -46,12 +46,56 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   const pendingValueRef = useRef<string | null>(null);
   const editingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Estado para mostrar mensaje de validación lenta
+  const [showSlowValidationMessage, setShowSlowValidationMessage] = React.useState(false);
+  const slowValidationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
   // Local state for input display value (separate from data.url)
   const [displayValue, setDisplayValue] = React.useState(data.url);
   
   const hasValue = displayValue && displayValue.length > 0;
   const hasRealValue = hasValue && displayValue !== 'https://tu-sitio-web.com';
   
+  /**
+   * 🛡️ Normalización de URL para QR Code siguiendo mejores prácticas ISO/IEC 18004
+   * 
+   * IMPORTANTE: Siempre incluir protocolo completo para máxima compatibilidad
+   * 
+   * Mejores prácticas basadas en investigación:
+   * - ✅ SIEMPRE incluir protocolo (http:// o https://)
+   * - ✅ Usar minúsculas para el protocolo
+   * - ✅ HTTPS por defecto (seguro por defecto)
+   * 
+   * Razones:
+   * 1. Compatibilidad universal con todos los lectores QR
+   * 2. iOS/Android tienen problemas sin protocolo
+   * 3. Evita interpretación como texto plano
+   * 4. Seguridad: dispositivo sabe usar HTTPS
+   * 
+   * Trade-off aceptado:
+   * - "apple.com" → 9 caracteres → ~21 módulos QR
+   * - "https://apple.com" → 17 caracteres → ~29 módulos QR
+   * - 8 módulos extra valen la pena por compatibilidad garantizada
+   * 
+   * @param url - URL ingresada por el usuario
+   * @returns URL normalizada con protocolo
+   */
+  const normalizeUrlForQR = (url: string): string => {
+    if (!url || url.trim() === '') {
+      return '';
+    }
+    
+    const trimmedUrl = url.trim();
+    
+    // Si ya tiene protocolo, devolverlo tal cual
+    if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+      return trimmedUrl;
+    }
+    
+    // 🛡️ Pilar 1: Seguro por defecto - Agregar https:// 
+    return `https://${trimmedUrl}`;
+  };
+
   // Basic URL format validation during editing
   const isBasicValidUrl = (url: string): boolean => {
     if (!url || url.trim() === '' || url === 'https://tu-sitio-web.com') {
@@ -114,7 +158,9 @@ export const LinkForm: React.FC<LinkFormProps> = ({
             console.log('[LinkForm] Checking pending value format:', pendingValueRef.current, 'isValid:', isValidFormat);
             
             if (isValidFormat) {
-              onChange('url', pendingValueRef.current);
+              // 🛡️ Normalizar URL antes de enviar (solo si no es vacía)
+              const normalizedUrl = pendingValueRef.current.trim() === '' ? '' : normalizeUrlForQR(pendingValueRef.current);
+              onChange('url', normalizedUrl);
               pendingValueRef.current = null;
             } else {
               console.log('[LinkForm] SKIPPING onChange for invalid pending URL:', pendingValueRef.current);
@@ -156,6 +202,41 @@ export const LinkForm: React.FC<LinkFormProps> = ({
   const isValidating = urlValidation?.isValidating || false;
   const metadata = urlValidation?.metadata || null;
   const validationUrlError = urlValidation?.error || null;
+  
+  // ⚠️ TIMER DE VALIDACIÓN LENTA - CONFIGURACIÓN CRÍTICA
+  // Este efecto detecta cuando la validación tarda más de 2 segundos
+  // Casos de uso: tesla.com, sitios lentos, CDNs con alta latencia
+  // 
+  // TIMING CRÍTICO:
+  // - 2000ms (2 segundos) es el punto óptimo calibrado
+  // - Menos tiempo: Mensaje aparece muy rápido (molesto)
+  // - Más tiempo: Usuario piensa que se congeló
+  //
+  // NO MODIFICAR el timeout sin pruebas exhaustivas con sitios lentos
+  React.useEffect(() => {
+    // Limpiar timer anterior
+    if (slowValidationTimerRef.current) {
+      clearTimeout(slowValidationTimerRef.current);
+      slowValidationTimerRef.current = null;
+    }
+    
+    if (isValidating) {
+      // ⚠️ TIMER DE 2 SEGUNDOS - NO CAMBIAR
+      slowValidationTimerRef.current = setTimeout(() => {
+        setShowSlowValidationMessage(true);
+      }, 2000); // 2000ms calibrado para UX óptima
+    } else {
+      // Si no está validando, ocultar mensaje inmediatamente
+      setShowSlowValidationMessage(false);
+    }
+    
+    // Cleanup
+    return () => {
+      if (slowValidationTimerRef.current) {
+        clearTimeout(slowValidationTimerRef.current);
+      }
+    };
+  }, [isValidating]);
   
   // Debug logging for metadata
   React.useEffect(() => {
@@ -304,6 +385,9 @@ export const LinkForm: React.FC<LinkFormProps> = ({
       if (badgeTimerRef.current) {
         clearTimeout(badgeTimerRef.current);
       }
+      if (slowValidationTimerRef.current) {
+        clearTimeout(slowValidationTimerRef.current);
+      }
     };
   }, []);
   
@@ -439,7 +523,9 @@ export const LinkForm: React.FC<LinkFormProps> = ({
                 console.log('[LinkForm] Calling onChange with:', newValue, 'isValidFormat:', isValidFormat);
                 
                 if (isValidFormat) {
-                  onChange('url', newValue);
+                  // 🛡️ Normalizar URL antes de enviar (solo si no es vacía)
+                  const normalizedUrl = newValue.trim() === '' ? '' : normalizeUrlForQR(newValue);
+                  onChange('url', normalizedUrl);
                   pendingValueRef.current = null; // Clear pending since we triggered
                 } else {
                   console.log('[LinkForm] SKIPPING onChange - invalid URL format:', newValue);
@@ -462,7 +548,8 @@ export const LinkForm: React.FC<LinkFormProps> = ({
                 setHasUserInteracted(true);
               }
               // Only clear if showing default placeholder value
-              if (data.url === 'https://tu-sitio-web.com') {
+              if (displayValue === 'https://tu-sitio-web.com') {
+                setDisplayValue('');
                 onChange('url', '');
               }
               // Hide badge when focusing to allow editing, but DON'T clear the URL
@@ -526,7 +613,7 @@ export const LinkForm: React.FC<LinkFormProps> = ({
               <div className="relative flex items-center max-w-full">
                 
                 <a
-                  href={data.url.startsWith('http') ? data.url : `https://${data.url}`}
+                  href={normalizeUrlForQR(data.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex px-3 py-0.5 rounded-full bg-gradient-to-r from-corporate-blue-50 to-corporate-blue-100 text-corporate-blue-700 font-normal text-sm border border-corporate-blue-200 items-center gap-1.5 no-underline hover:from-corporate-blue-100 hover:to-corporate-blue-200 hover:border-corporate-blue-300 transition-all duration-200 cursor-pointer badge-link relative max-w-full"
@@ -605,16 +692,43 @@ export const LinkForm: React.FC<LinkFormProps> = ({
           )}
         </div>
         
-        {/* Error or initial message - appears as extension below input */}
-        {validationError && (
+        {/* ⚠️ SISTEMA DE MENSAJES CRÍTICO - NO MODIFICAR SIN AUTORIZACIÓN
+            Este bloque maneja TODOS los mensajes de feedback del input de URL.
+            Fue calibrado para manejar múltiples estados con prioridades específicas.
+            
+            JERARQUÍA DE MENSAJES (en orden de prioridad):
+            1. Validación lenta (>2s) - SIEMPRE tiene prioridad máxima
+            2. Mensajes de guía - "Añade .com", "Completa el dominio", etc.
+            3. Errores de validación - URLs inválidas o no encontradas
+            
+            CONDICIONES CRÍTICAS:
+            - showSlowValidationMessage: Se activa después de 2 segundos exactos
+            - isGuidanceMessage: Detecta mensajes informativos vs errores
+            - validationError: Contiene mensajes de SmartValidators
+            
+            ESTILOS PROTEGIDOS:
+            - Azul corporativo: Mensajes informativos y validación lenta
+            - Rojo (#D52E4C): Solo para errores reales
+            - Animación slide-in: Transición suave entre mensajes
+            
+            ⚠️ CAMBIAR ESTAS CONDICIONES ROMPERÁ:
+            - Mensajes de ayuda como "Añade .com"
+            - Feedback de validación lenta para sitios como tesla.com
+            - Distinción visual entre guías y errores
+        */}
+        {(isValidating && showSlowValidationMessage) || validationError ? (
           <div 
             className={cn(
               "border border-t-0 rounded-b-lg px-3 py-1.5",
               "text-xs font-medium",
               "animate-in slide-in-from-top-1 fade-in duration-200",
               "cursor-text",
-              isGuidanceMessage ? "text-corporate-blue-700 dark:text-corporate-blue-700" : "text-white",
-              isGuidanceMessage ? [
+              // ⚠️ LÓGICA DE COLORES CRÍTICA
+              // Si está validando lentamente, siempre usar estilo azul informativo
+              (isValidating && showSlowValidationMessage) || isGuidanceMessage 
+                ? "text-corporate-blue-700 dark:text-corporate-blue-700" 
+                : "text-white",
+              (isValidating && showSlowValidationMessage) || isGuidanceMessage ? [
                 "border-corporate-blue-400 dark:border-corporate-blue-400",
                 "bg-gradient-to-br from-corporate-blue-50 to-corporate-blue-100/50"
               ] : [
@@ -623,13 +737,17 @@ export const LinkForm: React.FC<LinkFormProps> = ({
               ]
             )}
             onClick={(e) => {
-              e.stopPropagation(); // Prevent double-click handling
+              e.stopPropagation();
               handleContainerClick();
             }}
           >
-            {validationError}
+            {/* ⚠️ PRIORIDAD DE MENSAJES - ORDEN CRÍTICO */}
+            {isValidating && showSlowValidationMessage 
+              ? "Estamos validando el sitio web, esto podría tomar algunos segundos..."
+              : validationError
+            }
           </div>
-        )}
+        ) : null}
         
         {/* Warning message - site not available */}
         {showWarning && (

@@ -122,7 +122,7 @@ export function DataCard({
             
             {/* Smart QR Button - Premium feature indicator */}
             {selectedQRType === 'link' && qrFormData.link?.url && (
-              <div className="pt-2 animate-fade-in-delayed">
+              <div className="animate-fade-in-delayed">
                 <SmartQRButton 
                   url={qrFormData.link.url}
                   onGenerate={onSmartQRGenerate}

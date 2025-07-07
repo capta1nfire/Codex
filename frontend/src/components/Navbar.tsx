@@ -3,13 +3,14 @@
 // import { useState, useEffect } from 'react'; // Ya no se necesitan
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, BarChart2, QrCode, User, LogOut, Settings, FileText, Shield, Crown, Users, Zap, Star, Key, Sparkles } from 'lucide-react';
+import { Menu, X, BarChart2, QrCode, User, LogOut, Settings, FileText, Shield, Crown, Users, Zap, Star, Key, Sparkles, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext'; // Importar useAuth
 import { useState, useRef, useEffect } from 'react'; // Added useRef, useEffect
 import ProfilePicture from './ui/ProfilePicture'; // <-- Updated import
 import RoleGuard, { WebAdminOnly, PremiumOnly } from './auth/RoleGuard'; // Importar RoleGuards
 import { usePermissions } from '@/hooks/useAuth'; // Importar usePermissions
 import RoleBadge from './ui/RoleBadge'; // Importar RoleBadge
+import { Badge } from '@/components/ui/badge'; // Importar Badge
 import { cn } from '@/lib/utils'; // Para styling condicional
 
 // Default export of the Navbar component
@@ -540,6 +541,66 @@ export default function Navbar() {
                       </div>
                     </WebAdminOnly>
 
+                    {/* SuperAdmin Section */}
+                    {userRole === 'SUPERADMIN' && (
+                      <>
+                        <div className="border-t border-gray-200 my-1"></div>
+                        <div className="py-2">
+                          <div className="px-3 py-1 mb-2">
+                            <div className="flex items-center gap-2 px-2 py-1 rounded bg-blue-50 border border-blue-200">
+                              <span className="text-xs font-semibold text-blue-700 uppercase tracking-wider">SuperAdmin</span>
+                            </div>
+                          </div>
+
+                          {/* QR Studio - Con animación especial */}
+                          <Link
+                            href="/studio"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className={cn(
+                              "relative flex items-center gap-3 w-full p-3 rounded-lg mb-2 mx-2",
+                              "border border-blue-300/60 bg-gradient-to-r from-blue-50 to-indigo-50",
+                              "hover:border-blue-400 hover:from-blue-100 hover:to-indigo-100",
+                              "hover:shadow-lg hover:shadow-blue-500/20",
+                              "transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02]",
+                              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+                              "group overflow-hidden"
+                            )}
+                          >
+                            {/* Efecto de brillo animado */}
+                            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                            
+                            {/* Indicador de nuevo/beta */}
+                            <div className="absolute -top-1 -right-1">
+                              <span className="flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                              </span>
+                            </div>
+                            
+                            <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-sm group-hover:shadow-md transition-shadow">
+                              <Zap className="h-4 w-4 group-hover:animate-pulse" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-sm text-gray-900">
+                                  QR Studio
+                                </span>
+                                <Badge className="text-[10px] px-1.5 py-0 bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0">
+                                  NUEVO
+                                </Badge>
+                              </div>
+                              <div className="text-xs text-gray-600 mt-0.5">
+                                Control total sobre configuraciones QR
+                              </div>
+                            </div>
+                            
+                            {/* Icono de flecha animado */}
+                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                          </Link>
+                        </div>
+                      </>
+                    )}
+
                     {/* User Menu Items */}
                     <div className="border-t border-gray-200 my-1"></div>
                     <div className="py-1">
@@ -749,6 +810,28 @@ export default function Navbar() {
                   >
                     <Settings className="mr-3 h-5 w-5" />
                     Panel WebAdmin
+                  </Link>
+                )}
+                {user.role.toUpperCase() === 'SUPERADMIN' && (
+                  <Link
+                    href="/studio"
+                    className="relative flex items-center px-4 py-3 text-base font-medium rounded-md text-blue-100 hover:bg-white/10 hover:text-white group overflow-hidden"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {/* Efecto de brillo para móvil */}
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                    
+                    <Zap className="mr-3 h-5 w-5 group-hover:animate-pulse relative z-10" />
+                    <span className="relative z-10">QR Studio</span>
+                    <Badge className="ml-2 text-[10px] px-1.5 py-0 bg-gradient-to-r from-blue-400 to-indigo-500 text-white border-0">
+                      NUEVO
+                    </Badge>
+                    
+                    {/* Indicador de actividad */}
+                    <span className="absolute top-2 right-2 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                    </span>
                   </Link>
                 )}
                 <button

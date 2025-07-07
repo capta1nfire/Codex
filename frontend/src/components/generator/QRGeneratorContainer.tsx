@@ -25,7 +25,7 @@ import { OptionsCard } from './workspace/OptionsCard';
 import { PreviewSection } from './PreviewSectionV3';
 
 // UI components
-import { Card, CardContent } from '@/components/ui/card';
+// Card components removed - using div with column-card class for consistency
 
 // Type selector
 import { BarcodeTypeTabs } from './BarcodeTypeTabs';
@@ -201,13 +201,24 @@ export function QRGeneratorContainer() {
   const lastGeneratedOptions = useRef<string>('');
   
   const onSubmit = useCallback(async (formData: GenerateFormData) => {
+    // Check if this is a Smart QR with specific eye shape
+    const hasSmartQREyeShape = formData.options?.eye_shape && 
+                               formData.options.eye_shape !== 'square' && 
+                               formData.options.eye_shape !== undefined;
+    
+    // If Smart QR has specific eye shape, disable separated eye styles
+    if (hasSmartQREyeShape) {
+      formData.options.use_separated_eye_styles = false;
+    }
+    
     // Debug form data
     console.log('[onSubmit] Full form data:', JSON.stringify(formData, null, 2));
     console.log('[onSubmit] Eye styles:', {
       use_separated: formData.options?.use_separated_eye_styles,
       eye_shape: formData.options?.eye_shape,
       eye_border_style: formData.options?.eye_border_style,
-      eye_center_style: formData.options?.eye_center_style
+      eye_center_style: formData.options?.eye_center_style,
+      hasSmartQREyeShape
     });
     
     // Create a hash of both data and relevant options for duplicate detection
@@ -559,10 +570,10 @@ export function QRGeneratorContainer() {
           gradient_borders: false, // Align with defaultFormValues
           // Use separated eye styles by default
           use_separated_eye_styles: true,
-          eye_border_style: 'square',
-          eye_center_style: 'square',
-          data_pattern: 'square',
-          frame_enabled: true,
+          eye_border_style: 'circle',
+          eye_center_style: 'circle',
+          data_pattern: 'dots',
+          frame_enabled: false,
           frame_style: 'simple',
           frame_text: 'ESCANEA AQUÍ',
           frame_text_position: 'bottom'
@@ -691,8 +702,9 @@ export function QRGeneratorContainer() {
           <div className="grid grid-cols-1 gap-6 generator-grid">
             {/* Columna de configuración - Original */}
             <section className="row-start-1" id="form-content">
-              <Card className="hero-card border-2 border-corporate-blue-200/20 shadow-corporate-lg bg-white/40 dark:bg-slate-950/40 h-full">
-                {/* Progress Steps Bar - Moved inside Card */}
+              <div className="column-card h-full">
+                {/* Progress Steps Bar - Moved inside div */}
+                <div className="h-4"></div>
                 <div className="px-6 pt-3 pb-2">
                   <GeneratorHeader 
                     currentStep={hasData ? (isPersonalized ? 3 : 2) : 1}
@@ -701,8 +713,10 @@ export function QRGeneratorContainer() {
                     className="p-0 bg-transparent border-0"
                   />
                 </div>
+
+                <div className="h-4"></div>
                 
-                <CardContent className="space-y-6 px-6 pb-6 pt-0">
+                <div className="space-y-6 px-6 pb-6 pt-0">
                   {/* Tarjeta 1: Datos */}
                   <DataCard
                     selectedType={selectedType}
@@ -723,7 +737,33 @@ export function QRGeneratorContainer() {
                     urlValidationState={urlValidationState}
                     onUrlValidationComplete={handleUrlValidationComplete}
                     onGenerateAnyway={handleGenerateAnyway}
-                    onSmartQRGenerate={() => {}} 
+                    onSmartQRGenerate={(smartConfig) => {
+                      // ⚠️ SMART QR INTEGRATION - CONFIGURACIÓN CRÍTICA
+                      // Este callback conecta el Smart QR con el generador principal
+                      // La configuración del Smart QR debe sobrescribir las opciones actuales
+                      // 
+                      // FLUJO:
+                      // 1. SmartQRModal genera la configuración inteligente
+                      // 2. Esta configuración se pasa aquí via smartConfig
+                      // 3. Se mezcla con los valores actuales del formulario
+                      // 4. Se genera el QR usando el estado centralizado
+                      //
+                      // NO MODIFICAR sin entender el flujo completo de Smart QR
+                      const currentFormValues = getValues();
+                      const enhancedFormData = {
+                        ...currentFormValues,
+                        options: {
+                          ...currentFormValues.options,
+                          ...smartConfig
+                        }
+                      };
+                      
+                      // Usar la configuración de Smart QR para generar
+                      generateWithState(enhancedFormData, {
+                        isSmartQR: true,
+                        smartQRConfig: smartConfig
+                      });
+                    }} 
                     trackInput={trackInput}
                   />
                   
@@ -739,13 +779,29 @@ export function QRGeneratorContainer() {
                     getValues={getValues}
                     onSubmit={debouncedOnSubmit}
                   />
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </section>
 
-            {/* Columna de vista previa */}
-            <section className={`${selectedType === 'qrcode' ? 'lg:sticky lg:top-8 lg:self-start' : ''}`}>
-              <div className="hero-card bg-green-400">
+            {/* Columna de vista previa - ESTRUCTURA PROTEGIDA */}
+            {/* ⚠️ IMPORTANTE: Esta estructura de contenedores está optimizada para sticky.
+                NO MODIFICAR la jerarquía de contenedores sin autorización explícita.
+                
+                Estructura crítica:
+                1. div.column-card - Contenedor exterior con mismo estilo que columna 1
+                2. section con sticky - Contenedor que se pega al scroll
+                
+                CONFIGURACIÓN CRÍTICA (Sesión completa de calibración):
+                - column-card: Usa misma clase que columna 1 para consistencia
+                - p-0 pr-0: Sin padding para que el QR use todo el espacio
+                - w-fit: Ajuste automático al contenido
+                - mx-auto: Centrado horizontal
+                
+                El sticky REQUIERE esta estructura exacta para funcionar.
+                Modificar los contenedores romperá el comportamiento sticky.
+            */}
+            <div className="column-card p-0 pr-0 w-fit mx-auto">
+              <section className={`${selectedType === 'qrcode' ? 'lg:sticky lg:top-8 lg:self-start' : ''} w-fit p-0`}>
                 <PreviewSection
                   svgContent={svgContent || ''}
                   enhancedData={enhancedData}
@@ -763,8 +819,8 @@ export function QRGeneratorContainer() {
                   })()}
                   backgroundColor={watch('options.bgcolor')}
                 />
-              </div>
-            </section>
+              </section>
+            </div>
           </div>
         </form>
       </main>

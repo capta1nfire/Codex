@@ -34,7 +34,7 @@ export function PreviewColumn({
   className
 }: PreviewColumnProps) {
   return (
-    <div className={cn("lg:col-span-1 relative", className)}>
+    <div className={cn("lg:col-span-1 relative border-4 border-purple-500", className)}>
       {/* Background layer with glassmorphism effect */}
       <div 
         id="preview-background" 

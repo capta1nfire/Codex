@@ -17,7 +17,8 @@ import {
   Home,
   LogIn,
   UserPlus,
-  FileText
+  FileText,
+  Palette
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -97,6 +98,14 @@ const menuItems: MenuItem[] = [
     icon: <Database className="h-5 w-5" />,
     category: 'Sistema',
     description: 'Administración de cachés',
+    requiredRoles: ['SUPERADMIN']
+  },
+  {
+    href: '/studio',
+    label: 'QR Studio',
+    icon: <Palette className="h-5 w-5" />,
+    category: 'Sistema',
+    description: 'Configuración avanzada QR',
     requiredRoles: ['SUPERADMIN']
   },
   

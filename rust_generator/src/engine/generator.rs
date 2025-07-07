@@ -1,8 +1,9 @@
 // engine/generator.rs - Generador base de códigos QR
 
-use qrcodegen::{QrCode as QrCodeGen, QrCodeEcc};
+use qrcodegen::{QrCode as QrCodeGen, QrCodeEcc, QrSegment, Version};
 use super::types::*;
 use super::error::{QrError, QrResult};
+use super::segmenter::ContentSegmenter;
 use crate::shapes::eyes::{EyeShapeRenderer, EyePosition, EyeComponent};
 
 /// Constantes de configuración
@@ -26,15 +27,24 @@ impl QrGenerator {
     
     /// Genera un código QR básico
     pub fn generate_basic(&self, data: &str, size: u32) -> QrResult<QrCode> {
+        self.generate_basic_with_options(data, size, true)
+    }
+    
+    /// Genera un código QR básico con opción de segmentación
+    pub fn generate_basic_with_options(&self, data: &str, size: u32, use_segmentation: bool) -> QrResult<QrCode> {
         // Validaciones
         self.validate_input(data, size)?;
         
         // Determinar nivel de corrección de errores por defecto
         let ecl = self.determine_error_correction(data);
         
-        // Generar código QR con qrcodegen
-        let qr = QrCodeGen::encode_text(data, ecl)
-            .map_err(|e| QrError::EncodingError(format!("{:?}", e)))?;
+        // Generar código QR con segmentación si está habilitada
+        let qr = if use_segmentation {
+            self.generate_with_segmentation(data, ecl)?
+        } else {
+            QrCodeGen::encode_text(data, ecl)
+                .map_err(|e| QrError::EncodingError(format!("{:?}", e)))?
+        };
         
         // Convertir a nuestra estructura interna
         let matrix = self.qr_to_matrix(&qr);
@@ -55,11 +65,26 @@ impl QrGenerator {
         size: u32, 
         ecl: ErrorCorrectionLevel
     ) -> QrResult<QrCode> {
+        self.generate_with_ecl_and_options(data, size, ecl, true)
+    }
+    
+    /// Genera con nivel de corrección específico y opción de segmentación
+    pub fn generate_with_ecl_and_options(
+        &self, 
+        data: &str, 
+        size: u32, 
+        ecl: ErrorCorrectionLevel,
+        use_segmentation: bool
+    ) -> QrResult<QrCode> {
         self.validate_input(data, size)?;
         
         let qr_ecl = self.map_error_correction(ecl);
-        let qr = QrCodeGen::encode_text(data, qr_ecl)
-            .map_err(|e| QrError::EncodingError(format!("{:?}", e)))?;
+        let qr = if use_segmentation {
+            self.generate_with_segmentation(data, qr_ecl)?
+        } else {
+            QrCodeGen::encode_text(data, qr_ecl)
+                .map_err(|e| QrError::EncodingError(format!("{:?}", e)))?
+        };
         
         let matrix = self.qr_to_matrix(&qr);
         
@@ -80,18 +105,60 @@ impl QrGenerator {
         logo_size_ratio: f32,
         ecl_override: Option<ErrorCorrectionLevel>,
     ) -> QrResult<(QrCode, super::ecl_optimizer::OcclusionAnalysis)> {
+        self.generate_with_dynamic_ecl_and_boost(data, size, logo_size_ratio, ecl_override, true)
+    }
+    
+    /// Genera con ECL dinámico optimizado para logo con opción de boost
+    pub fn generate_with_dynamic_ecl_and_boost(
+        &self,
+        data: &str,
+        size: u32,
+        logo_size_ratio: f32,
+        ecl_override: Option<ErrorCorrectionLevel>,
+        enable_boost: bool,
+    ) -> QrResult<(QrCode, super::ecl_optimizer::OcclusionAnalysis)> {
         self.validate_input(data, size)?;
         
         // Usar el optimizador para determinar el ECL óptimo
         let optimizer = super::ecl_optimizer::EclOptimizer::new();
-        let (optimal_ecl, analysis) = optimizer.determine_optimal_ecl(
+        let (optimal_ecl, mut analysis) = optimizer.determine_optimal_ecl(
             data,
             logo_size_ratio,
             ecl_override,
         )?;
         
-        // Generar el QR con el ECL óptimo
-        let mut qr_code = self.generate_with_ecl(data, size, optimal_ecl)?;
+        // Generar el QR con el ECL óptimo y boost si está habilitado
+        let qr_ecl = self.map_error_correction(optimal_ecl);
+        let qr = if enable_boost {
+            self.generate_with_segmentation_and_boost(data, qr_ecl, true)?
+        } else {
+            self.generate_with_segmentation_and_boost(data, qr_ecl, false)?
+        };
+        
+        let matrix = self.qr_to_matrix(&qr);
+        
+        // Si se aplicó boost, actualizar el análisis
+        if enable_boost {
+            // Comprobar si se aplicó boost comparando tamaños
+            let qr_no_boost = self.generate_with_segmentation_and_boost(data, qr_ecl, false)?;
+            if qr.size() == qr_no_boost.size() && qr.version() == qr_no_boost.version() {
+                // Se aplicó boost, actualizar el ECL recomendado
+                analysis.recommended_ecl = match optimal_ecl {
+                    ErrorCorrectionLevel::Low => ErrorCorrectionLevel::Medium,
+                    ErrorCorrectionLevel::Medium => ErrorCorrectionLevel::Quartile,
+                    ErrorCorrectionLevel::Quartile => ErrorCorrectionLevel::High,
+                    ErrorCorrectionLevel::High => ErrorCorrectionLevel::High,
+                };
+            }
+        }
+        
+        let mut qr_code = QrCode {
+            matrix,
+            size: qr.size() as usize,
+            quiet_zone: self.quiet_zone,
+            customization: None,
+            logo_zone: None,
+        };
         
         // Crear y almacenar la zona del logo
         let qr_size = qr_code.size as f64;
@@ -172,6 +239,186 @@ impl QrGenerator {
         
         // Asegurar al menos 1 pixel por módulo
         module_size.max(1)
+    }
+    
+    /// Genera un código QR con boost ECL automático
+    pub fn generate_with_boost_ecl(
+        &self,
+        data: &str,
+        size: u32,
+        min_ecl: ErrorCorrectionLevel,
+    ) -> QrResult<(QrCode, BoostInfo)> {
+        self.validate_input(data, size)?;
+        
+        let qr_ecl = self.map_error_correction(min_ecl);
+        
+        // Generar con boost habilitado
+        let qr = self.generate_with_segmentation_and_boost(data, qr_ecl, true)?;
+        
+        // Detectar si se aplicó boost comparando con versión sin boost
+        let qr_no_boost = self.generate_with_segmentation_and_boost(data, qr_ecl, false)?;
+        
+        let boost_applied = qr.size() == qr_no_boost.size() && qr.version() == qr_no_boost.version();
+        
+        // Calcular métricas de boost
+        let boost_info = BoostInfo {
+            original_ecl: min_ecl,
+            // No podemos saber exactamente el ECL final de qrcodegen, 
+            // pero sabemos que fue mejorado si el tamaño es el mismo
+            final_ecl: if boost_applied {
+                // Estimar basado en el ECL inicial
+                match min_ecl {
+                    ErrorCorrectionLevel::Low => ErrorCorrectionLevel::Medium,
+                    ErrorCorrectionLevel::Medium => ErrorCorrectionLevel::Quartile,
+                    ErrorCorrectionLevel::Quartile => ErrorCorrectionLevel::High,
+                    ErrorCorrectionLevel::High => ErrorCorrectionLevel::High,
+                }
+            } else {
+                min_ecl
+            },
+            boost_applied,
+            version: qr.version().value() as i16,
+            modules_count: qr.size() * qr.size(),
+        };
+        
+        let matrix = self.qr_to_matrix(&qr);
+        
+        Ok((QrCode {
+            matrix,
+            size: qr.size() as usize,
+            quiet_zone: self.quiet_zone,
+            customization: None,
+            logo_zone: None,
+        }, boost_info))
+    }
+    
+    /// Genera un código QR usando segmentación optimizada
+    fn generate_with_segmentation(&self, data: &str, ecl: QrCodeEcc) -> QrResult<QrCodeGen> {
+        self.generate_with_segmentation_and_boost(data, ecl, true)
+    }
+    
+    /// Genera un código QR usando segmentación optimizada con opción de boost ECL
+    fn generate_with_segmentation_and_boost(&self, data: &str, ecl: QrCodeEcc, boost_ecl: bool) -> QrResult<QrCodeGen> {
+        // Crear segmentador
+        let segmenter = ContentSegmenter::new();
+        
+        // Analizar y segmentar el contenido
+        let segments = segmenter.analyze_and_segment(data)
+            .map_err(|e| QrError::EncodingError(e))?;
+        
+        // Generar QR con segmentos optimizados y boost ECL si está habilitado
+        QrCodeGen::encode_segments_advanced(
+            &segments,
+            ecl,
+            Version::MIN,  // Versión mínima automática
+            Version::MAX,  // Versión máxima automática
+            None,          // Máscara automática
+            boost_ecl      // Aplicar boost ECL!
+        )
+        .map_err(|e| QrError::EncodingError(format!("Segmentation encoding failed: {:?}", e)))
+    }
+    
+    /// Genera con tamaño fijo (para batch uniforme)
+    pub fn generate_with_fixed_size(
+        &self,
+        data: &str,
+        size: u32,
+        qr_size: QrSize,
+        ecl: Option<ErrorCorrectionLevel>,
+    ) -> QrResult<QrCode> {
+        self.validate_input(data, size)?;
+        
+        // Determinar ECL base
+        let qr_ecl = if let Some(ecl) = ecl {
+            self.map_error_correction(ecl)
+        } else {
+            self.determine_error_correction(data)
+        };
+        
+        // Obtener rango de versiones para el tamaño solicitado
+        let (min_ver, max_ver) = qr_size.version_range();
+        
+        // Crear segmentador
+        let segmenter = ContentSegmenter::new();
+        let segments = segmenter.analyze_and_segment(data)
+            .map_err(|e| QrError::EncodingError(e))?;
+        
+        // Intentar generar con el rango de versiones especificado
+        let qr = match QrCodeGen::encode_segments_advanced(
+            &segments,
+            qr_ecl,
+            Version::new(min_ver as u8),
+            Version::new(max_ver as u8),
+            None,  // Máscara automática
+            true   // Siempre aplicar boost ECL con tamaño fijo
+        ) {
+            Ok(qr) => qr,
+            Err(_) => {
+                // Si no cabe con el ECL solicitado, intentar con ECL más bajo
+                let lower_ecl = match qr_ecl {
+                    QrCodeEcc::High => QrCodeEcc::Quartile,
+                    QrCodeEcc::Quartile => QrCodeEcc::Medium,
+                    QrCodeEcc::Medium => QrCodeEcc::Low,
+                    QrCodeEcc::Low => {
+                        return Err(QrError::ValidationError(format!(
+                            "Los datos son demasiado largos para el tamaño {:?} solicitado",
+                            qr_size
+                        )));
+                    }
+                };
+                
+                QrCodeGen::encode_segments_advanced(
+                    &segments,
+                    lower_ecl,
+                    Version::new(min_ver as u8),
+                    Version::new(max_ver as u8),
+                    None,
+                    true
+                )
+                .map_err(|_| QrError::ValidationError(format!(
+                    "Los datos no caben en el tamaño {:?} incluso con ECL bajo",
+                    qr_size
+                )))?
+            }
+        };
+        
+        let matrix = self.qr_to_matrix(&qr);
+        
+        Ok(QrCode {
+            matrix,
+            size: qr.size() as usize,
+            quiet_zone: self.quiet_zone,
+            customization: None,
+            logo_zone: None,
+        })
+    }
+    
+    /// Genera con segmentación, boost ECL y versión específica
+    fn generate_with_segmentation_boost_and_version(
+        &self, 
+        data: &str, 
+        ecl: QrCodeEcc, 
+        min_version: Version,
+        max_version: Version,
+        boost_ecl: bool
+    ) -> QrResult<QrCodeGen> {
+        // Crear segmentador
+        let segmenter = ContentSegmenter::new();
+        
+        // Analizar y segmentar el contenido
+        let segments = segmenter.analyze_and_segment(data)
+            .map_err(|e| QrError::EncodingError(e))?;
+        
+        // Generar QR con segmentos optimizados, boost ECL y versión específica
+        QrCodeGen::encode_segments_advanced(
+            &segments,
+            ecl,
+            min_version,
+            max_version,
+            None,          // Máscara automática
+            boost_ecl      // Aplicar boost ECL si está habilitado
+        )
+        .map_err(|e| QrError::EncodingError(format!("Fixed size encoding failed: {:?}", e)))
     }
 }
 
@@ -439,14 +686,19 @@ impl QrCode {
             
             // Renderizar ojos personalizados
             if let Some(eye_shape) = customization.and_then(|c| c.eye_shape.as_ref()) {
-                let eye_color = customization
+                let default_eye_color = customization
                     .and_then(|c| c.colors.as_ref())
                     .map(|c| c.foreground.as_str())
                     .unwrap_or(fill_color);
                     
+                let eye_colors = customization
+                    .and_then(|c| c.colors.as_ref())
+                    .and_then(|c| c.eye_colors.as_ref());
+                    
                 svg.push_str(&self.render_custom_eyes(
                     *eye_shape, 
-                    eye_color, 
+                    default_eye_color,
+                    eye_colors,
                     module_size, 
                     quiet_zone_size
                 ));
@@ -763,7 +1015,8 @@ impl QrCode {
     fn render_custom_eyes(
         &self, 
         eye_shape: EyeShape, 
-        color: &str, 
+        default_color: &str,
+        eye_colors: Option<&EyeColors>,
         module_size: usize, 
         quiet_zone_size: usize
     ) -> String {
@@ -781,6 +1034,55 @@ impl QrCode {
         svg.push_str(&format!(r#"<g transform="translate({}, {})">"#, quiet_zone_size, quiet_zone_size));
         
         for (position, x_offset, y_offset) in &eye_positions {
+            // Determinar colores para este ojo específico
+            let (outer_color, inner_color) = if let Some(eye_colors) = eye_colors {
+                // Verificar si hay colores por ojo individual
+                if let Some(per_eye) = &eye_colors.per_eye {
+                    match position {
+                        EyePosition::TopLeft => {
+                            if let Some(colors) = &per_eye.top_left {
+                                (colors.outer.as_str(), colors.inner.as_str())
+                            } else {
+                                // Usar colores generales de ojos
+                                (
+                                    eye_colors.outer.as_deref().unwrap_or(default_color),
+                                    eye_colors.inner.as_deref().unwrap_or(default_color)
+                                )
+                            }
+                        }
+                        EyePosition::TopRight => {
+                            if let Some(colors) = &per_eye.top_right {
+                                (colors.outer.as_str(), colors.inner.as_str())
+                            } else {
+                                (
+                                    eye_colors.outer.as_deref().unwrap_or(default_color),
+                                    eye_colors.inner.as_deref().unwrap_or(default_color)
+                                )
+                            }
+                        }
+                        EyePosition::BottomLeft => {
+                            if let Some(colors) = &per_eye.bottom_left {
+                                (colors.outer.as_str(), colors.inner.as_str())
+                            } else {
+                                (
+                                    eye_colors.outer.as_deref().unwrap_or(default_color),
+                                    eye_colors.inner.as_deref().unwrap_or(default_color)
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // Usar colores generales para todos los ojos
+                    (
+                        eye_colors.outer.as_deref().unwrap_or(default_color),
+                        eye_colors.inner.as_deref().unwrap_or(default_color)
+                    )
+                }
+            } else {
+                // Sin colores personalizados, usar el color por defecto
+                (default_color, default_color)
+            };
+            
             // Aplicar transformación para la posición del ojo
             svg.push_str(&format!(
                 r#"<g transform="translate({}, {})">"#, 
@@ -793,7 +1095,7 @@ impl QrCode {
                 eye_shape, 
                 *position, 
                 EyeComponent::Outer, 
-                color
+                outer_color
             ));
             
             // Renderizar punto interior del ojo usando EyeShapeRenderer
@@ -801,7 +1103,7 @@ impl QrCode {
                 eye_shape, 
                 *position, 
                 EyeComponent::Inner, 
-                color
+                inner_color
             ));
             
             svg.push_str("</g>");
@@ -1080,6 +1382,9 @@ impl QrCode {
         for (eye_type, region) in eye_regions.iter() {
             // Verificar si tenemos estilos separados para usar la nueva estructura
             if let Some(customization) = &self.customization {
+                // Get eye colors for this specific eye
+                let (border_color, center_color) = self.get_eye_colors_for_type(eye_type, customization);
+                
                 if customization.eye_border_style.is_some() || customization.eye_center_style.is_some() {
                     // Usar la nueva estructura separada
                     let (border_path, center_path, border_shape, center_shape) = 
@@ -1093,6 +1398,8 @@ impl QrCode {
                         shape: customization.eye_shape.map(|s| format!("{:?}", s)), // Legacy
                         border_shape: Some(border_shape),
                         center_shape: Some(center_shape),
+                        border_color,
+                        center_color,
                     });
                 } else {
                     // Usar la estructura legacy
@@ -1105,6 +1412,8 @@ impl QrCode {
                         shape: customization.eye_shape.map(|s| format!("{:?}", s)),
                         border_shape: None,
                         center_shape: None,
+                        border_color,
+                        center_color,
                     });
                 }
             } else {
@@ -1118,6 +1427,8 @@ impl QrCode {
                     shape: None,
                     border_shape: None,
                     center_shape: None,
+                    border_color: None,
+                    center_color: None,
                 });
             }
         }
@@ -1153,6 +1464,57 @@ impl QrCode {
             }
         }
         false
+    }
+    
+    /// Get eye colors for a specific eye type
+    fn get_eye_colors_for_type(&self, eye_type: &str, customization: &QrCustomization) -> (Option<String>, Option<String>) {
+        eprintln!("[DEBUG] get_eye_colors_for_type called for eye: {}", eye_type);
+        
+        if let Some(colors) = customization.colors.as_ref() {
+            eprintln!("[DEBUG] customization.colors exists");
+            
+            if let Some(eye_colors) = colors.eye_colors.as_ref() {
+                eprintln!("[DEBUG] eye_colors found: outer={:?}, inner={:?}", eye_colors.outer, eye_colors.inner);
+                
+                // Check for per-eye colors first
+                if let Some(per_eye) = eye_colors.per_eye.as_ref() {
+                    eprintln!("[DEBUG] per_eye colors found");
+                    match eye_type {
+                        "top_left" => {
+                            if let Some(eye_pair) = per_eye.top_left.as_ref() {
+                                eprintln!("[DEBUG] Returning per-eye colors for top_left: outer={}, inner={}", eye_pair.outer, eye_pair.inner);
+                                return (Some(eye_pair.outer.clone()), Some(eye_pair.inner.clone()));
+                            }
+                        }
+                        "top_right" => {
+                            if let Some(eye_pair) = per_eye.top_right.as_ref() {
+                                eprintln!("[DEBUG] Returning per-eye colors for top_right: outer={}, inner={}", eye_pair.outer, eye_pair.inner);
+                                return (Some(eye_pair.outer.clone()), Some(eye_pair.inner.clone()));
+                            }
+                        }
+                        "bottom_left" => {
+                            if let Some(eye_pair) = per_eye.bottom_left.as_ref() {
+                                eprintln!("[DEBUG] Returning per-eye colors for bottom_left: outer={}, inner={}", eye_pair.outer, eye_pair.inner);
+                                return (Some(eye_pair.outer.clone()), Some(eye_pair.inner.clone()));
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                
+                // Fall back to general eye colors
+                eprintln!("[DEBUG] Returning general eye colors: outer={:?}, inner={:?}", eye_colors.outer, eye_colors.inner);
+                return (eye_colors.outer.clone(), eye_colors.inner.clone());
+            } else {
+                eprintln!("[DEBUG] No eye_colors found in customization.colors");
+            }
+        } else {
+            eprintln!("[DEBUG] No colors found in customization");
+        }
+        
+        // No custom eye colors
+        eprintln!("[DEBUG] Returning None, None (no custom eye colors)");
+        (None, None)
     }
     
     /// Genera el path para un ojo específico
@@ -2086,13 +2448,25 @@ impl QrCode {
             if gradient.enabled && gradient.apply_to_eyes {
                 "url(#grad_eyes)".to_string()
             } else {
+                // Check for eye_colors first, then fall back to foreground color
                 custom.and_then(|c| c.colors.as_ref())
-                    .map(|colors| colors.foreground.clone())
+                    .and_then(|colors| colors.eye_colors.as_ref())
+                    .and_then(|eye_colors| eye_colors.outer.clone())
+                    .or_else(|| {
+                        custom.and_then(|c| c.colors.as_ref())
+                            .map(|colors| colors.foreground.clone())
+                    })
                     .unwrap_or_else(|| data_fill.clone())
             }
         } else {
+            // Check for eye_colors first, then fall back to foreground color
             custom.and_then(|c| c.colors.as_ref())
-                .map(|colors| colors.foreground.clone())
+                .and_then(|colors| colors.eye_colors.as_ref())
+                .and_then(|eye_colors| eye_colors.outer.clone())
+                .or_else(|| {
+                    custom.and_then(|c| c.colors.as_ref())
+                        .map(|colors| colors.foreground.clone())
+                })
                 .unwrap_or_else(|| data_fill.clone())
         };
         
