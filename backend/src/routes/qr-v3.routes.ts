@@ -37,6 +37,7 @@ const customizationSchema = z
           .optional(),
       })
       .optional(),
+    // Legacy eye_colors for backward compatibility
     eye_colors: z
       .object({
         outer: z
@@ -49,6 +50,45 @@ const customizationSchema = z
           .optional(),
       })
       .optional(),
+    
+    // New enhanced eye color system - for eye centers
+    eye_color_mode: z.enum(['inherit', 'solid', 'gradient']).optional(),
+    eye_color_solid: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+    eye_color_gradient: z.object({
+      type: z.enum(['linear', 'radial']).optional(),
+      color1: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+      color2: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+      direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
+    }).optional(),
+    
+    // Eye border/frame color system
+    eye_border_color_mode: z.enum(['inherit', 'solid', 'gradient']).optional(),
+    eye_border_color_solid: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+    eye_border_color_gradient: z.object({
+      type: z.enum(['linear', 'radial']).optional(),
+      color1: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+      color2: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+      direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
+    }).optional(),
+    // Separate gradient definitions for eye borders and centers
+    eye_border_gradient: z.object({
+      enabled: z.boolean(),
+      gradient_type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']).optional(),
+      colors: z
+        .array(z.string().regex(/^#[0-9A-Fa-f]{6}$/))
+        .min(2)
+        .max(5)
+        .optional(),
+    }).optional(),
+    eye_center_gradient: z.object({
+      enabled: z.boolean(),
+      gradient_type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']).optional(),
+      colors: z
+        .array(z.string().regex(/^#[0-9A-Fa-f]{6}$/))
+        .min(2)
+        .max(5)
+        .optional(),
+    }).optional(),
     eye_shape: z
       .enum([
         'square',
@@ -90,13 +130,28 @@ const customizationSchema = z
         'crystal',
         'flame',
         'organic',
+        'propuesta01',
       ])
       .optional(),
     eye_center_style: z
       .enum(['square', 'rounded_square', 'circle', 'dot', 'star', 'diamond', 'cross', 'plus'])
       .optional(),
     data_pattern: z
-      .enum(['square', 'dots', 'rounded', 'circular', 'star', 'cross', 'wave', 'mosaic'])
+      .enum([
+        'square',
+        'square_small',
+        'dots',
+        'rounded',
+        'vertical',
+        'horizontal',
+        'diamond',
+        'circular',
+        'star',
+        'cross',
+        'random',
+        'wave',
+        'mosaic',
+      ])
       .optional(),
     gradient: z
       .object({
@@ -485,7 +540,7 @@ router.post(
 
       // Llamar al generador Rust v3
       const response = await axios.post(
-        `${rustGeneratorUrl}/api/v3/qr/generate`,
+        `${rustGeneratorUrl}/api/v3/qr/enhanced`,
         {
           data,
           options: options || {},
@@ -626,12 +681,22 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
                       eye_colors: options.customization.eye_colors,
                     }
                   : options.customization.eye_colors
-                  ? {
-                      foreground: '#000000',
-                      background: '#FFFFFF',
-                      eye_colors: options.customization.eye_colors,
-                    }
-                  : undefined,
+                    ? {
+                        foreground: '#000000',
+                        background: '#FFFFFF',
+                        eye_colors: options.customization.eye_colors,
+                      }
+                    : undefined,
+                // New enhanced eye color fields
+                eye_color_mode: options.customization.eye_color_mode,
+                eye_color_solid: options.customization.eye_color_solid,
+                eye_color_gradient: options.customization.eye_color_gradient,
+                eye_border_color_mode: options.customization.eye_border_color_mode,
+                eye_border_color_solid: options.customization.eye_border_color_solid,
+                eye_border_color_gradient: options.customization.eye_border_color_gradient,
+                // Forward the new gradient fields for eyes
+                eye_border_gradient: options.customization.eye_border_gradient,
+                eye_center_gradient: options.customization.eye_center_gradient,
                 gradient: options.customization.gradient,
                 eye_shape: options.customization.eye_shape || options.customization.eyeShape,
                 eye_border_style:
@@ -740,13 +805,20 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
     );
 
     const rustResponse = response.data;
-    
-    // Debug log to check overlays
+
+    // Debug log to check overlays and definitions
     logger.info('Rust response structure:', {
       hasOverlays: !!rustResponse.data?.overlays,
       overlaysKeys: rustResponse.data?.overlays ? Object.keys(rustResponse.data.overlays) : null,
       hasLogo: !!rustResponse.data?.overlays?.logo,
-      dataKeys: rustResponse.data ? Object.keys(rustResponse.data) : null
+      dataKeys: rustResponse.data ? Object.keys(rustResponse.data) : null,
+      hasDefinitions: !!rustResponse.data?.definitions,
+      definitionsCount: rustResponse.data?.definitions?.length || 0,
+      definitions: rustResponse.data?.definitions?.map((d: any) => ({ 
+        type: d.type, 
+        id: d.id,
+        gradientType: d.gradient_type
+      })) || [],
     });
 
     // Si la generación fue exitosa, incrementar uso
@@ -890,6 +962,8 @@ router.get('/capabilities', async (req, res) => {
           'crystal',
           'flame',
           'organic',
+          // Propuestas temporales
+          'propuesta01',
         ],
         eye_center_styles: [
           'square',
@@ -903,6 +977,7 @@ router.get('/capabilities', async (req, res) => {
         ],
         data_patterns: [
           'square',
+          'square_small',
           'dots',
           'rounded',
           'vertical',

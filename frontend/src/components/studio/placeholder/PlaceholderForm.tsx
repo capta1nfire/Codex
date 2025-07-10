@@ -34,6 +34,7 @@ import {
   CheckCircle2,
   Info
 } from 'lucide-react';
+import { EyeStyleEditor } from '@/components/studio/EyeStyleEditor';
 import { validateQRConfig, validateColorContrast } from '@/schemas/studio.schema';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -156,32 +157,14 @@ export function PlaceholderForm({
 
         {/* Configuración Básica */}
         <TabsContent value="basics" className="space-y-4 mt-4">
-          {/* Forma de ojos */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Eye className="h-4 w-4 text-slate-600" />
-              Forma de Ojos
-            </Label>
-            <Select
-              value={config.eye_shape || 'square'}
-              onValueChange={(value) => updateConfig({ eye_shape: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="square">Cuadrado</SelectItem>
-                <SelectItem value="rounded_square">Cuadrado Redondeado</SelectItem>
-                <SelectItem value="circle">Círculo</SelectItem>
-                <SelectItem value="dot">Punto</SelectItem>
-                <SelectItem value="leaf">Hoja</SelectItem>
-                <SelectItem value="star">Estrella</SelectItem>
-                <SelectItem value="diamond">Diamante</SelectItem>
-                <SelectItem value="heart">Corazón</SelectItem>
-                <SelectItem value="shield">Escudo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Editor de estilos de ojos - Modo unificado o separado */}
+          <EyeStyleEditor
+            config={config}
+            onChange={(updates) => {
+              updateConfig(updates);
+              markTouched('eye_styles');
+            }}
+          />
 
           {/* Patrón de datos */}
           <div className="space-y-2">

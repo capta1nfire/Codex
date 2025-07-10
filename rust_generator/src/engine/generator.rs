@@ -699,6 +699,8 @@ impl QrCode {
                     *eye_shape, 
                     default_eye_color,
                     eye_colors,
+                    customization.and_then(|c| c.eye_border_gradient.as_ref()),
+                    customization.and_then(|c| c.eye_center_gradient.as_ref()),
                     module_size, 
                     quiet_zone_size
                 ));
@@ -974,7 +976,7 @@ impl QrCode {
             let pattern_svg = pattern_renderer.render_matrix_with_pattern(
                 &self.matrix,
                 data_pattern,
-                "", // El color se aplicará en el grupo padre
+                "inherit", // Heredar color del grupo padre
                 true // Excluir ojos
             );
             
@@ -1017,6 +1019,8 @@ impl QrCode {
         eye_shape: EyeShape, 
         default_color: &str,
         eye_colors: Option<&EyeColors>,
+        eye_border_gradient: Option<&GradientOptions>,
+        eye_center_gradient: Option<&GradientOptions>,
         module_size: usize, 
         quiet_zone_size: usize
     ) -> String {
@@ -1034,53 +1038,104 @@ impl QrCode {
         svg.push_str(&format!(r#"<g transform="translate({}, {})">"#, quiet_zone_size, quiet_zone_size));
         
         for (position, x_offset, y_offset) in &eye_positions {
-            // Determinar colores para este ojo específico
-            let (outer_color, inner_color) = if let Some(eye_colors) = eye_colors {
-                // Verificar si hay colores por ojo individual
-                if let Some(per_eye) = &eye_colors.per_eye {
-                    match position {
-                        EyePosition::TopLeft => {
-                            if let Some(colors) = &per_eye.top_left {
-                                (colors.outer.as_str(), colors.inner.as_str())
-                            } else {
-                                // Usar colores generales de ojos
-                                (
-                                    eye_colors.outer.as_deref().unwrap_or(default_color),
-                                    eye_colors.inner.as_deref().unwrap_or(default_color)
-                                )
-                            }
-                        }
-                        EyePosition::TopRight => {
-                            if let Some(colors) = &per_eye.top_right {
-                                (colors.outer.as_str(), colors.inner.as_str())
-                            } else {
-                                (
-                                    eye_colors.outer.as_deref().unwrap_or(default_color),
-                                    eye_colors.inner.as_deref().unwrap_or(default_color)
-                                )
-                            }
-                        }
-                        EyePosition::BottomLeft => {
-                            if let Some(colors) = &per_eye.bottom_left {
-                                (colors.outer.as_str(), colors.inner.as_str())
-                            } else {
-                                (
-                                    eye_colors.outer.as_deref().unwrap_or(default_color),
-                                    eye_colors.inner.as_deref().unwrap_or(default_color)
-                                )
-                            }
-                        }
+            // Determinar colores/gradientes para este ojo específico
+            let (outer_fill, inner_fill) = {
+                // Primero verificar si hay gradientes específicos para bordes/centros
+                let outer_gradient_fill = if eye_border_gradient.is_some() {
+                    Some("url(#grad_eye_border)".to_string())
+                } else if let Some(eye_colors) = eye_colors {
+                    if eye_colors.outer_gradient.is_some() {
+                        Some("url(#grad_eye_outer)".to_string())
+                    } else {
+                        None
                     }
                 } else {
-                    // Usar colores generales para todos los ojos
-                    (
-                        eye_colors.outer.as_deref().unwrap_or(default_color),
-                        eye_colors.inner.as_deref().unwrap_or(default_color)
-                    )
+                    None
+                };
+                
+                let inner_gradient_fill = if eye_center_gradient.is_some() {
+                    Some("url(#grad_eye_center)".to_string())
+                } else if let Some(eye_colors) = eye_colors {
+                    if eye_colors.inner_gradient.is_some() {
+                        Some("url(#grad_eye_inner)".to_string())
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+                
+                // Si no hay gradientes, usar colores sólidos
+                if outer_gradient_fill.is_none() && inner_gradient_fill.is_none() {
+                    let (outer_color, inner_color) = if let Some(eye_colors) = eye_colors {
+                        // Verificar si hay colores por ojo individual
+                        if let Some(per_eye) = &eye_colors.per_eye {
+                            match position {
+                                EyePosition::TopLeft => {
+                                    if let Some(colors) = &per_eye.top_left {
+                                        (colors.outer.as_str(), colors.inner.as_str())
+                                    } else {
+                                        // Usar colores generales de ojos
+                                        (
+                                            eye_colors.outer.as_deref().unwrap_or(default_color),
+                                            eye_colors.inner.as_deref().unwrap_or(default_color)
+                                        )
+                                    }
+                                }
+                                EyePosition::TopRight => {
+                                    if let Some(colors) = &per_eye.top_right {
+                                        (colors.outer.as_str(), colors.inner.as_str())
+                                    } else {
+                                        (
+                                            eye_colors.outer.as_deref().unwrap_or(default_color),
+                                            eye_colors.inner.as_deref().unwrap_or(default_color)
+                                        )
+                                    }
+                                }
+                                EyePosition::BottomLeft => {
+                                    if let Some(colors) = &per_eye.bottom_left {
+                                        (colors.outer.as_str(), colors.inner.as_str())
+                                    } else {
+                                        (
+                                            eye_colors.outer.as_deref().unwrap_or(default_color),
+                                            eye_colors.inner.as_deref().unwrap_or(default_color)
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            // Usar colores generales para todos los ojos
+                            (
+                                eye_colors.outer.as_deref().unwrap_or(default_color),
+                                eye_colors.inner.as_deref().unwrap_or(default_color)
+                            )
+                        }
+                    } else {
+                        // Sin colores personalizados, usar el color por defecto
+                        (default_color, default_color)
+                    };
+                    
+                    (outer_color.to_string(), inner_color.to_string())
+                } else {
+                    // Usar gradientes donde estén definidos, colores sólidos donde no
+                    let outer = outer_gradient_fill.unwrap_or_else(|| {
+                        if let Some(eye_colors) = eye_colors {
+                            eye_colors.outer.as_deref().unwrap_or(default_color).to_string()
+                        } else {
+                            default_color.to_string()
+                        }
+                    });
+                    
+                    let inner = inner_gradient_fill.unwrap_or_else(|| {
+                        if let Some(eye_colors) = eye_colors {
+                            eye_colors.inner.as_deref().unwrap_or(default_color).to_string()
+                        } else {
+                            default_color.to_string()
+                        }
+                    });
+                    
+                    (outer, inner)
                 }
-            } else {
-                // Sin colores personalizados, usar el color por defecto
-                (default_color, default_color)
             };
             
             // Aplicar transformación para la posición del ojo
@@ -1095,7 +1150,7 @@ impl QrCode {
                 eye_shape, 
                 *position, 
                 EyeComponent::Outer, 
-                outer_color
+                &outer_fill
             ));
             
             // Renderizar punto interior del ojo usando EyeShapeRenderer
@@ -1103,7 +1158,7 @@ impl QrCode {
                 eye_shape, 
                 *position, 
                 EyeComponent::Inner, 
-                inner_color
+                &inner_fill
             ));
             
             svg.push_str("</g>");
@@ -1333,7 +1388,7 @@ impl QrCode {
                     let x_pos = x + self.quiet_zone;
                     let y_pos = y + self.quiet_zone;
                     
-                    // Para el patrón de dots, generar círculos individuales
+                    // Generar patrón específico para cada módulo
                     match data_pattern {
                         DataPattern::Dots => {
                             // Círculo con radio 0.4 (40% del módulo)
@@ -1352,8 +1407,159 @@ impl QrCode {
                                 x_pos, y_pos
                             ));
                         },
-                        _ => {
-                            // Patrón cuadrado estándar (optimizado)
+                        DataPattern::Vertical => {
+                            // Línea vertical (60% del ancho)
+                            let width = 0.6;
+                            let offset = (1.0 - width) / 2.0;
+                            data_path.push_str(&format!(
+                                "M{} {}h{}v1h-{}z",
+                                x_pos as f32 + offset, y_pos, width, width
+                            ));
+                        },
+                        DataPattern::Horizontal => {
+                            // Línea horizontal (60% de la altura)
+                            let height = 0.6;
+                            let offset = (1.0 - height) / 2.0;
+                            data_path.push_str(&format!(
+                                "M{} {}h1v{}h-1z",
+                                x_pos, y_pos as f32 + offset, height
+                            ));
+                        },
+                        DataPattern::Diamond => {
+                            // Diamante (más denso)
+                            let cx = x_pos as f32 + 0.5;
+                            let cy = y_pos as f32 + 0.5;
+                            let half = 0.52; // Aumentado de 0.45 a 0.52 para mayor densidad
+                            data_path.push_str(&format!(
+                                "M{} {}L{} {}L{} {}L{} {}z",
+                                cx, cy - half,
+                                cx + half, cy,
+                                cx, cy + half,
+                                cx - half, cy
+                            ));
+                        },
+                        DataPattern::Circular => {
+                            // Círculo con borde hueco interno
+                            let cx = x_pos as f32 + 0.5;
+                            let cy = y_pos as f32 + 0.5;
+                            let outer_r = 0.45;
+                            let inner_r = 0.2;
+                            data_path.push_str(&format!(
+                                "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0M{} {}m-{} 0a{} {} 0 1 1 {} 0a{} {} 0 1 1 -{} 0z",
+                                cx, cy, outer_r, outer_r, outer_r, outer_r * 2.0, outer_r, outer_r, outer_r * 2.0,
+                                cx, cy, inner_r, inner_r, inner_r, inner_r * 2.0, inner_r, inner_r, inner_r * 2.0
+                            ));
+                        },
+                        DataPattern::Star => {
+                            // Estrella de 5 puntas
+                            let cx = x_pos as f32 + 0.5;
+                            let cy = y_pos as f32 + 0.5;
+                            let outer_r = 0.45;
+                            let inner_r = 0.2;
+                            let mut star_path = format!("M{} {}", cx, cy - outer_r);
+                            
+                            for i in 1..10 {
+                                let angle = (i as f32 * 36.0 - 90.0).to_radians();
+                                let r = if i % 2 == 0 { outer_r } else { inner_r };
+                                let px = cx + r * angle.cos();
+                                let py = cy + r * angle.sin();
+                                star_path.push_str(&format!("L{} {}", px, py));
+                            }
+                            star_path.push('z');
+                            data_path.push_str(&star_path);
+                        },
+                        DataPattern::Cross => {
+                            // Cruz
+                            let thickness = 0.3;
+                            let length = 0.8;
+                            let offset = (1.0 - length) / 2.0;
+                            let cross_offset = (1.0 - thickness) / 2.0;
+                            data_path.push_str(&format!(
+                                "M{} {}h{}v{}h-{}zM{} {}v{}h{}v-{}z",
+                                x_pos as f32 + offset, y_pos as f32 + cross_offset,
+                                length, thickness, length,
+                                x_pos as f32 + cross_offset, y_pos as f32 + offset,
+                                length, thickness, length
+                            ));
+                        },
+                        DataPattern::Random => {
+                            // Patrón pseudo-aleatorio basado en posición
+                            let variant = (x * 7 + y * 13) % 4;
+                            match variant {
+                                0 => {
+                                    // Círculo
+                                    let cx = x_pos as f32 + 0.5;
+                                    let cy = y_pos as f32 + 0.5;
+                                    let r = 0.4;
+                                    data_path.push_str(&format!(
+                                        "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0",
+                                        cx, cy, r, r, r, r * 2.0, r, r, r * 2.0
+                                    ));
+                                },
+                                1 => {
+                                    // Cuadrado redondeado
+                                    data_path.push_str(&format!(
+                                        "M{}.25 {}h0.5a0.25 0.25 0 0 1 0.25 0.25v0.5a0.25 0.25 0 0 1 -0.25 0.25h-0.5a0.25 0.25 0 0 1 -0.25 -0.25v-0.5a0.25 0.25 0 0 1 0.25 -0.25z",
+                                        x_pos, y_pos
+                                    ));
+                                },
+                                2 => {
+                                    // Diamante
+                                    let cx = x_pos as f32 + 0.5;
+                                    let cy = y_pos as f32 + 0.5;
+                                    let half = 0.45;
+                                    data_path.push_str(&format!(
+                                        "M{} {}L{} {}L{} {}L{} {}z",
+                                        cx, cy - half, cx + half, cy, cx, cy + half, cx - half, cy
+                                    ));
+                                },
+                                _ => {
+                                    // Cuadrado estándar
+                                    data_path.push_str(&format!("M{} {}h1v1h-1z", x_pos, y_pos));
+                                }
+                            }
+                        },
+                        DataPattern::Wave => {
+                            // Patrón de onda
+                            let wave_height = 0.3;
+                            let cy = y_pos as f32 + 0.5;
+                            data_path.push_str(&format!(
+                                "M{} {}Q{} {} {} {}T{} {}L{} {}L{} {}z",
+                                x_pos, cy - wave_height / 2.0,
+                                x_pos as f32 + 0.25, cy - wave_height,
+                                x_pos as f32 + 0.5, cy - wave_height / 2.0,
+                                x_pos + 1, cy - wave_height / 2.0,
+                                x_pos + 1, cy + wave_height / 2.0,
+                                x_pos, cy + wave_height / 2.0
+                            ));
+                        },
+                        DataPattern::Mosaic => {
+                            // Patrón de mosaico
+                            let is_checker = (x + y) % 2 == 0;
+                            if is_checker {
+                                // 4 cuadrados pequeños
+                                let half = 0.5;
+                                data_path.push_str(&format!(
+                                    "M{} {}h{}v{}h-{}zM{} {}h{}v{}h-{}z",
+                                    x_pos, y_pos, half, half, half,
+                                    x_pos as f32 + half, y_pos as f32 + half, half, half, half
+                                ));
+                            } else {
+                                // Círculo con borde
+                                let cx = x_pos as f32 + 0.5;
+                                let cy = y_pos as f32 + 0.5;
+                                let r = 0.35;
+                                let stroke_width = 0.15;
+                                data_path.push_str(&format!(
+                                    "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0M{} {}m-{} 0a{} {} 0 1 1 {} 0a{} {} 0 1 1 -{} 0z",
+                                    cx, cy, r, r, r, r * 2.0, r, r, r * 2.0,
+                                    cx, cy, r - stroke_width, r - stroke_width, r - stroke_width, 
+                                    (r - stroke_width) * 2.0, r - stroke_width, r - stroke_width, (r - stroke_width) * 2.0
+                                ));
+                            }
+                        },
+                        DataPattern::Square => {
+                            // Patrón cuadrado estándar (optimizado para renderizado rápido)
                             let mut width = 1;
                             while x + width < self.size && 
                                   self.matrix[y][x + width] && 
@@ -1372,6 +1578,19 @@ impl QrCode {
                             } else {
                                 data_path.push_str(&format!("M{} {}h1v1H{}z", x_pos, y_pos, x_pos));
                             }
+                        },
+                        DataPattern::SquareSmall => {
+                            // Cuadrado pequeño (80% del tamaño del módulo, centrado)
+                            let size = 0.8;
+                            let offset = (1.0 - size) / 2.0;
+                            data_path.push_str(&format!(
+                                "M{} {}h{}v{}h-{}z",
+                                x_pos as f32 + offset, 
+                                y_pos as f32 + offset, 
+                                size, 
+                                size, 
+                                size
+                            ));
                         }
                     }
                 }
@@ -1385,7 +1604,13 @@ impl QrCode {
                 // Get eye colors for this specific eye
                 let (border_color, center_color) = self.get_eye_colors_for_type(eye_type, customization);
                 
-                if customization.eye_border_style.is_some() || customization.eye_center_style.is_some() {
+                // Check if we should use separated structure (for styles or gradients)
+                let should_use_separated = customization.eye_border_style.is_some() 
+                    || customization.eye_center_style.is_some()
+                    || customization.eye_border_gradient.is_some()
+                    || customization.eye_center_gradient.is_some();
+                    
+                if should_use_separated {
                     // Usar la nueva estructura separada
                     let (border_path, center_path, border_shape, center_shape) = 
                         self.generate_eye_paths_separated(region, eye_type);
@@ -1470,6 +1695,24 @@ impl QrCode {
     fn get_eye_colors_for_type(&self, eye_type: &str, customization: &QrCustomization) -> (Option<String>, Option<String>) {
         eprintln!("[DEBUG] get_eye_colors_for_type called for eye: {}", eye_type);
         
+        // Check for gradient references first
+        let border_gradient_ref = if customization.eye_border_gradient.is_some() {
+            Some("url(#grad_eye_border)".to_string())
+        } else {
+            None
+        };
+        
+        let center_gradient_ref = if customization.eye_center_gradient.is_some() {
+            Some("url(#grad_eye_center)".to_string())
+        } else {
+            None
+        };
+        
+        // If gradients are defined, they take precedence
+        if border_gradient_ref.is_some() || center_gradient_ref.is_some() {
+            eprintln!("[DEBUG] Using gradient references: border={:?}, center={:?}", border_gradient_ref, center_gradient_ref);
+        }
+        
         if let Some(colors) = customization.colors.as_ref() {
             eprintln!("[DEBUG] customization.colors exists");
             
@@ -1483,28 +1726,40 @@ impl QrCode {
                         "top_left" => {
                             if let Some(eye_pair) = per_eye.top_left.as_ref() {
                                 eprintln!("[DEBUG] Returning per-eye colors for top_left: outer={}, inner={}", eye_pair.outer, eye_pair.inner);
-                                return (Some(eye_pair.outer.clone()), Some(eye_pair.inner.clone()));
+                                return (
+                                    border_gradient_ref.clone().or(Some(eye_pair.outer.clone())), 
+                                    center_gradient_ref.clone().or(Some(eye_pair.inner.clone()))
+                                );
                             }
                         }
                         "top_right" => {
                             if let Some(eye_pair) = per_eye.top_right.as_ref() {
                                 eprintln!("[DEBUG] Returning per-eye colors for top_right: outer={}, inner={}", eye_pair.outer, eye_pair.inner);
-                                return (Some(eye_pair.outer.clone()), Some(eye_pair.inner.clone()));
+                                return (
+                                    border_gradient_ref.clone().or(Some(eye_pair.outer.clone())), 
+                                    center_gradient_ref.clone().or(Some(eye_pair.inner.clone()))
+                                );
                             }
                         }
                         "bottom_left" => {
                             if let Some(eye_pair) = per_eye.bottom_left.as_ref() {
                                 eprintln!("[DEBUG] Returning per-eye colors for bottom_left: outer={}, inner={}", eye_pair.outer, eye_pair.inner);
-                                return (Some(eye_pair.outer.clone()), Some(eye_pair.inner.clone()));
+                                return (
+                                    border_gradient_ref.clone().or(Some(eye_pair.outer.clone())), 
+                                    center_gradient_ref.clone().or(Some(eye_pair.inner.clone()))
+                                );
                             }
                         }
                         _ => {}
                     }
                 }
                 
-                // Fall back to general eye colors
-                eprintln!("[DEBUG] Returning general eye colors: outer={:?}, inner={:?}", eye_colors.outer, eye_colors.inner);
-                return (eye_colors.outer.clone(), eye_colors.inner.clone());
+                // Fall back to general eye colors or gradients
+                eprintln!("[DEBUG] Returning general eye colors or gradients");
+                return (
+                    border_gradient_ref.or(eye_colors.outer.clone()), 
+                    center_gradient_ref.or(eye_colors.inner.clone())
+                );
             } else {
                 eprintln!("[DEBUG] No eye_colors found in customization.colors");
             }
@@ -1512,9 +1767,9 @@ impl QrCode {
             eprintln!("[DEBUG] No colors found in customization");
         }
         
-        // No custom eye colors
-        eprintln!("[DEBUG] Returning None, None (no custom eye colors)");
-        (None, None)
+        // Return gradients if available, otherwise None
+        eprintln!("[DEBUG] Returning gradient refs or None");
+        (border_gradient_ref, center_gradient_ref)
     }
     
     /// Genera el path para un ojo específico
@@ -1830,12 +2085,71 @@ impl QrCode {
                     x, y, x + 1, y + 1)
             }
             EyeBorderStyle::RoundedSquare => {
-                // Marco redondeado hueco: exterior redondeado menos interior redondeado
-                format!(
-                    "M {:.1} {} h 5.6 a 0.7 0.7 0 0 1 0.7 0.7 v 5.6 a 0.7 0.7 0 0 1 -0.7 0.7 h -5.6 a 0.7 0.7 0 0 1 -0.7 -0.7 v -5.6 a 0.7 0.7 0 0 1 0.7 -0.7 Z M {:.1} {} h 3.6 a 0.7 0.7 0 0 1 0.7 0.7 v 3.6 a 0.7 0.7 0 0 1 -0.7 0.7 h -3.6 a 0.7 0.7 0 0 1 -0.7 -0.7 v -3.6 a 0.7 0.7 0 0 1 0.7 -0.7 Z",
-                    x as f32 + 0.7, y,
-                    x as f32 + 1.7, y + 1
-                )
+                // Path exacto proporcionado, escalado de 100x100 a 7x7 unidades
+                // Factor de escala: 7/100 = 0.07
+                match eye_type {
+                    "top_left" => {
+                        format!(
+                            "M {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} Z M {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} Z",
+                            // Marco exterior - path exacto escalado
+                            x as f32 + 6.482, y as f32,                                         // M 92.598,0
+                            x as f32 + 6.768, y as f32, x as f32 + 7.0, y as f32 + 0.232, x as f32 + 7.0, y as f32 + 0.518,  // C 96.686,0 100,3.314 100,7.402
+                            x as f32 + 7.0, y as f32 + 6.482,                                   // L 100,92.598
+                            x as f32 + 7.0, y as f32 + 6.768, x as f32 + 6.768, y as f32 + 7.0, x as f32 + 6.482, y as f32 + 7.0,  // C 100,96.686 96.686,100 92.598,100
+                            x as f32 + 0.518, y as f32 + 7.0,                                   // L 7.402,100
+                            x as f32 + 0.232, y as f32 + 7.0, x as f32, y as f32 + 6.768, x as f32, y as f32 + 6.482,  // C 3.314,100 0,96.686 0,92.598
+                            x as f32, y as f32 + 0.518,                                          // L 0,7.402
+                            x as f32, y as f32 + 0.232, x as f32 + 0.232, y as f32, x as f32 + 0.518, y as f32,  // C 0,3.314 3.314,0 7.402,0
+                            x as f32 + 6.482, y as f32,                                          // L 92.598,0
+                            
+                            // Marco interior - hueco
+                            x as f32 + 5.498, y as f32 + 0.990,                                  // M 78.536,14.138
+                            x as f32 + 1.502, y as f32 + 0.990,                                  // L 21.464,14.138
+                            x as f32 + 1.366, y as f32 + 0.990, x as f32 + 1.236, y as f32 + 1.064, x as f32 + 1.160, y as f32 + 1.160,  // C 19.521,14.138 17.658,14.91 16.284,16.284
+                            x as f32 + 1.064, y as f32 + 1.236, x as f32 + 0.990, y as f32 + 1.366, x as f32 + 0.990, y as f32 + 1.502,  // C 14.91,17.658 14.138,19.521 14.138,21.464
+                            x as f32 + 0.990, y as f32 + 5.498,                                  // L 14.138,78.536
+                            x as f32 + 0.990, y as f32 + 5.634, x as f32 + 1.064, y as f32 + 5.764, x as f32 + 1.160, y as f32 + 5.840,  // C 14.138,80.479 14.91,82.342 16.284,83.716
+                            x as f32 + 1.236, y as f32 + 5.936, x as f32 + 1.366, y as f32 + 6.010, x as f32 + 1.502, y as f32 + 6.010,  // C 17.658,85.09 19.521,85.862 21.464,85.862
+                            x as f32 + 5.498, y as f32 + 6.010,                                  // L 78.536,85.862
+                            x as f32 + 5.634, y as f32 + 6.010, x as f32 + 5.764, y as f32 + 5.936, x as f32 + 5.840, y as f32 + 5.840,  // C 80.479,85.862 82.342,85.09 83.716,83.716
+                            x as f32 + 5.936, y as f32 + 5.764, x as f32 + 6.010, y as f32 + 5.634, x as f32 + 6.010, y as f32 + 5.498,  // C 85.09,82.342 85.862,80.479 85.862,78.536
+                            x as f32 + 6.010, y as f32 + 1.502,                                  // L 85.862,21.464
+                            x as f32 + 6.010, y as f32 + 1.366, x as f32 + 5.936, y as f32 + 1.236, x as f32 + 5.840, y as f32 + 1.160,  // C 85.862,19.521 85.09,17.658 83.716,16.284
+                            x as f32 + 5.764, y as f32 + 1.064, x as f32 + 5.634, y as f32 + 0.990, x as f32 + 5.498, y as f32 + 0.990   // C 82.342,14.91 80.479,14.138 78.536,14.138
+                        )
+                    },
+                    _ => {
+                        // For now, use the same for all positions (TODO: add rotations)
+                        format!(
+                            "M {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} Z M {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} Z",
+                            // Marco exterior - path exacto escalado
+                            x as f32 + 6.482, y as f32,                                         // M 92.598,0
+                            x as f32 + 6.768, y as f32, x as f32 + 7.0, y as f32 + 0.232, x as f32 + 7.0, y as f32 + 0.518,  // C 96.686,0 100,3.314 100,7.402
+                            x as f32 + 7.0, y as f32 + 6.482,                                   // L 100,92.598
+                            x as f32 + 7.0, y as f32 + 6.768, x as f32 + 6.768, y as f32 + 7.0, x as f32 + 6.482, y as f32 + 7.0,  // C 100,96.686 96.686,100 92.598,100
+                            x as f32 + 0.518, y as f32 + 7.0,                                   // L 7.402,100
+                            x as f32 + 0.232, y as f32 + 7.0, x as f32, y as f32 + 6.768, x as f32, y as f32 + 6.482,  // C 3.314,100 0,96.686 0,92.598
+                            x as f32, y as f32 + 0.518,                                          // L 0,7.402
+                            x as f32, y as f32 + 0.232, x as f32 + 0.232, y as f32, x as f32 + 0.518, y as f32,  // C 0,3.314 3.314,0 7.402,0
+                            x as f32 + 6.482, y as f32,                                          // L 92.598,0
+                            
+                            // Marco interior - hueco
+                            x as f32 + 5.498, y as f32 + 0.990,                                  // M 78.536,14.138
+                            x as f32 + 1.502, y as f32 + 0.990,                                  // L 21.464,14.138
+                            x as f32 + 1.366, y as f32 + 0.990, x as f32 + 1.236, y as f32 + 1.064, x as f32 + 1.160, y as f32 + 1.160,  // C 19.521,14.138 17.658,14.91 16.284,16.284
+                            x as f32 + 1.064, y as f32 + 1.236, x as f32 + 0.990, y as f32 + 1.366, x as f32 + 0.990, y as f32 + 1.502,  // C 14.91,17.658 14.138,19.521 14.138,21.464
+                            x as f32 + 0.990, y as f32 + 5.498,                                  // L 14.138,78.536
+                            x as f32 + 0.990, y as f32 + 5.634, x as f32 + 1.064, y as f32 + 5.764, x as f32 + 1.160, y as f32 + 5.840,  // C 14.138,80.479 14.91,82.342 16.284,83.716
+                            x as f32 + 1.236, y as f32 + 5.936, x as f32 + 1.366, y as f32 + 6.010, x as f32 + 1.502, y as f32 + 6.010,  // C 17.658,85.09 19.521,85.862 21.464,85.862
+                            x as f32 + 5.498, y as f32 + 6.010,                                  // L 78.536,85.862
+                            x as f32 + 5.634, y as f32 + 6.010, x as f32 + 5.764, y as f32 + 5.936, x as f32 + 5.840, y as f32 + 5.840,  // C 80.479,85.862 82.342,85.09 83.716,83.716
+                            x as f32 + 5.936, y as f32 + 5.764, x as f32 + 6.010, y as f32 + 5.634, x as f32 + 6.010, y as f32 + 5.498,  // C 85.09,82.342 85.862,80.479 85.862,78.536
+                            x as f32 + 6.010, y as f32 + 1.502,                                  // L 85.862,21.464
+                            x as f32 + 6.010, y as f32 + 1.366, x as f32 + 5.936, y as f32 + 1.236, x as f32 + 5.840, y as f32 + 1.160,  // C 85.862,19.521 85.09,17.658 83.716,16.284
+                            x as f32 + 5.764, y as f32 + 1.064, x as f32 + 5.634, y as f32 + 0.990, x as f32 + 5.498, y as f32 + 0.990   // C 82.342,14.91 80.479,14.138 78.536,14.138
+                        )
+                    }
+                }
             }
             EyeBorderStyle::Circle => {
                 let cx = x as f32 + 3.5;
@@ -2017,30 +2331,25 @@ impl QrCode {
                 )
             }
             EyeBorderStyle::QuarterRound => {
-                // Marco con esquinas redondeadas tipo quarter circle
-                let r = 1.5; // Radio de esquina
+                // Path exacto proporcionado, escalado de 100x100 a 7x7 unidades
+                // Original: M90,10C103.333,23.3334 103.333,76.6667 90,90C76.667,103.333 23.333,103.333 10,90C-3.333,76.667 -3.333,23.333 10,10C23.333,-3.333 76.666,-3.333 90,10Z
+                // Factor de escala: 7/100 = 0.07
+                
                 format!(
-                    "M {} {} L {} {} A {} {} 0 0 1 {} {} L {} {} A {} {} 0 0 1 {} {} L {} {} A {} {} 0 0 1 {} {} L {} {} A {} {} 0 0 1 {} {} Z M {} {} L {} {} A {} {} 0 0 0 {} {} L {} {} A {} {} 0 0 0 {} {} L {} {} A {} {} 0 0 0 {} {} L {} {} A {} {} 0 0 0 {} {} Z",
-                    // Marco exterior con quarter rounds
-                    x as f32 + r, y,                           // Start
-                    x as f32 + 7.0 - r, y,                     // Top line
-                    r, r, x as f32 + 7.0, y as f32 + r,       // Top-right quarter round
-                    x as f32 + 7.0, y as f32 + 7.0 - r,       // Right line
-                    r, r, x as f32 + 7.0 - r, y as f32 + 7.0, // Bottom-right quarter round
-                    x as f32 + r, y as f32 + 7.0,             // Bottom line
-                    r, r, x as f32, y as f32 + 7.0 - r,       // Bottom-left quarter round
-                    x as f32, y as f32 + r,                   // Left line
-                    r, r, x as f32 + r, y,                    // Top-left quarter round back to start
-                    // Marco interior (más pequeño)
-                    x as f32 + 1.0 + r*0.7, y + 1,                        // Start interior
-                    x as f32 + 6.0 - r*0.7, y + 1,                        // Top line interior
-                    r*0.7, r*0.7, x as f32 + 6.0, y as f32 + 1.0 + r*0.7, // Top-right interior
-                    x as f32 + 6.0, y as f32 + 6.0 - r*0.7,               // Right line interior
-                    r*0.7, r*0.7, x as f32 + 6.0 - r*0.7, y as f32 + 6.0, // Bottom-right interior
-                    x as f32 + 1.0 + r*0.7, y as f32 + 6.0,               // Bottom line interior
-                    r*0.7, r*0.7, x as f32 + 1.0, y as f32 + 6.0 - r*0.7, // Bottom-left interior
-                    x as f32 + 1.0, y as f32 + 1.0 + r*0.7,               // Left line interior
-                    r*0.7, r*0.7, x as f32 + 1.0 + r*0.7, y + 1          // Top-left interior back to start
+                    "M {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} Z M {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} Z",
+                    // Marco exterior - path exacto escalado
+                    x as f32 + 6.3, y as f32 + 0.7,                                        // M 90,10 -> 6.3,0.7
+                    x as f32 + 7.233, y as f32 + 1.633, x as f32 + 7.233, y as f32 + 5.367, x as f32 + 6.3, y as f32 + 6.3,  // C 103.333,23.3334 103.333,76.6667 90,90
+                    x as f32 + 5.367, y as f32 + 7.233, x as f32 + 1.633, y as f32 + 7.233, x as f32 + 0.7, y as f32 + 6.3,  // C 76.667,103.333 23.333,103.333 10,90
+                    x as f32 - 0.233, y as f32 + 5.367, x as f32 - 0.233, y as f32 + 1.633, x as f32 + 0.7, y as f32 + 0.7,  // C -3.333,76.667 -3.333,23.333 10,10
+                    x as f32 + 1.633, y as f32 - 0.233, x as f32 + 5.367, y as f32 - 0.233, x as f32 + 6.3, y as f32 + 0.7,  // C 23.333,-3.333 76.666,-3.333 90,10
+                    // Marco interior - path interior escalado
+                    // Original interior: M78.8192,21.1808C69.2128,11.5745 30.7872,11.5744 21.1808,21.1808...
+                    x as f32 + 5.517, y as f32 + 1.483,                                    // M 78.8192,21.1808 -> 5.517,1.483
+                    x as f32 + 4.845, y as f32 + 0.810, x as f32 + 2.155, y as f32 + 0.810, x as f32 + 1.483, y as f32 + 1.483,  // C 69.2128,11.5745 30.7872,11.5744 21.1808,21.1808
+                    x as f32 + 0.810, y as f32 + 2.155, x as f32 + 0.810, y as f32 + 4.845, x as f32 + 1.483, y as f32 + 5.517,  // C 11.5744,30.7872 11.5744,69.2128 21.1808,78.8192
+                    x as f32 + 2.155, y as f32 + 6.190, x as f32 + 4.845, y as f32 + 6.190, x as f32 + 5.517, y as f32 + 5.517,  // C 30.7872,88.4256 69.2128,88.4256 78.8192,78.8192
+                    x as f32 + 6.190, y as f32 + 4.845, x as f32 + 6.190, y as f32 + 2.155, x as f32 + 5.517, y as f32 + 1.483   // C 88.4256,69.2128 88.4255,30.7872 78.8192,21.1808
                 )
             }
             EyeBorderStyle::CutCorner => {
@@ -2069,21 +2378,169 @@ impl QrCode {
                 )
             }
             EyeBorderStyle::ThickBorder => {
-                // Marco más grueso (borde de 2 módulos en lugar de 1)
-                format!("M {} {} h 7 v 7 h -7 Z M {} {} h 3 v 3 h -3 Z", 
-                    x, y,           // Marco exterior (7x7)
-                    x + 2, y + 2    // Hueco interior más pequeño (3x3)
-                )
+                // Path exacto proporcionado, escalado de 100x100 a 7x7 unidades
+                // Factor de escala: 7/100 = 0.07
+                match eye_type {
+                    "top_left" => {
+                        format!(
+                            "M {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} Z M {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} Z",
+                            // Marco exterior - path exacto escalado
+                            x as f32 + 4.528, y as f32,                                         // M 64.683,0
+                            x as f32 + 5.893, y as f32, x as f32 + 7.0, y as f32 + 1.107, x as f32 + 7.0, y as f32 + 2.472,  // C 84.188,0 100,15.812 100,35.317
+                            x as f32 + 7.0, y as f32 + 4.528,                                   // L 100,64.683
+                            x as f32 + 7.0, y as f32 + 5.893, x as f32 + 5.893, y as f32 + 7.0, x as f32 + 4.528, y as f32 + 7.0,  // C 100,84.188 84.188,100 64.683,100
+                            x as f32 + 2.472, y as f32 + 7.0,                                   // L 35.317,100
+                            x as f32 + 1.107, y as f32 + 7.0, x as f32, y as f32 + 5.893, x as f32, y as f32 + 4.528,  // C 15.812,100 0,84.188 0,64.683
+                            x as f32, y as f32 + 2.472,                                          // L 0,35.317
+                            x as f32, y as f32 + 1.107, x as f32 + 1.107, y as f32, x as f32 + 2.472, y as f32,  // C 0,15.812 15.812,0 35.317,0
+                            x as f32 + 4.528, y as f32,                                          // L 64.683,0
+                            
+                            // Marco interior - hueco
+                            x as f32 + 4.470, y as f32 + 0.992,                                  // M 63.852,14.168
+                            x as f32 + 2.530, y as f32 + 0.992,                                  // L 36.148,14.168
+                            x as f32 + 2.122, y as f32 + 0.992, x as f32 + 1.731, y as f32 + 1.154, x as f32 + 1.442, y as f32 + 1.442,  // C 30.319,14.168 24.728,16.484 20.606,20.606
+                            x as f32 + 1.154, y as f32 + 1.731, x as f32 + 0.992, y as f32 + 2.122, x as f32 + 0.992, y as f32 + 2.530,  // C 16.484,24.728 14.168,30.319 14.168,36.148
+                            x as f32 + 0.992, y as f32 + 4.470,                                  // L 14.168,63.852
+                            x as f32 + 0.992, y as f32 + 4.878, x as f32 + 1.154, y as f32 + 5.269, x as f32 + 1.442, y as f32 + 5.558,  // C 14.168,69.681 16.484,75.272 20.606,79.394
+                            x as f32 + 1.731, y as f32 + 5.846, x as f32 + 2.122, y as f32 + 6.008, x as f32 + 2.530, y as f32 + 6.008,  // C 24.728,83.516 30.319,85.832 36.148,85.832
+                            x as f32 + 4.470, y as f32 + 6.008,                                  // L 63.852,85.832
+                            x as f32 + 4.878, y as f32 + 6.008, x as f32 + 5.269, y as f32 + 5.846, x as f32 + 5.558, y as f32 + 5.558,  // C 69.681,85.832 75.272,83.516 79.394,79.394
+                            x as f32 + 5.846, y as f32 + 5.269, x as f32 + 6.008, y as f32 + 4.878, x as f32 + 6.008, y as f32 + 4.470,  // C 83.516,75.272 85.832,69.681 85.832,63.852
+                            x as f32 + 6.008, y as f32 + 2.530,                                  // L 85.832,36.148
+                            x as f32 + 6.008, y as f32 + 2.122, x as f32 + 5.846, y as f32 + 1.731, x as f32 + 5.558, y as f32 + 1.442,  // C 85.832,30.319 83.516,24.728 79.394,20.606
+                            x as f32 + 5.269, y as f32 + 1.154, x as f32 + 4.878, y as f32 + 0.992, x as f32 + 4.470, y as f32 + 0.992   // C 75.272,16.484 69.681,14.168 63.852,14.168
+                        )
+                    },
+                    _ => {
+                        // For now, use the same for all positions (TODO: add rotations)
+                        format!(
+                            "M {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} Z M {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} Z",
+                            // Marco exterior - path exacto escalado
+                            x as f32 + 4.528, y as f32,                                         // M 64.683,0
+                            x as f32 + 5.893, y as f32, x as f32 + 7.0, y as f32 + 1.107, x as f32 + 7.0, y as f32 + 2.472,  // C 84.188,0 100,15.812 100,35.317
+                            x as f32 + 7.0, y as f32 + 4.528,                                   // L 100,64.683
+                            x as f32 + 7.0, y as f32 + 5.893, x as f32 + 5.893, y as f32 + 7.0, x as f32 + 4.528, y as f32 + 7.0,  // C 100,84.188 84.188,100 64.683,100
+                            x as f32 + 2.472, y as f32 + 7.0,                                   // L 35.317,100
+                            x as f32 + 1.107, y as f32 + 7.0, x as f32, y as f32 + 5.893, x as f32, y as f32 + 4.528,  // C 15.812,100 0,84.188 0,64.683
+                            x as f32, y as f32 + 2.472,                                          // L 0,35.317
+                            x as f32, y as f32 + 1.107, x as f32 + 1.107, y as f32, x as f32 + 2.472, y as f32,  // C 0,15.812 15.812,0 35.317,0
+                            x as f32 + 4.528, y as f32,                                          // L 64.683,0
+                            
+                            // Marco interior - hueco
+                            x as f32 + 4.470, y as f32 + 0.992,                                  // M 63.852,14.168
+                            x as f32 + 2.530, y as f32 + 0.992,                                  // L 36.148,14.168
+                            x as f32 + 2.122, y as f32 + 0.992, x as f32 + 1.731, y as f32 + 1.154, x as f32 + 1.442, y as f32 + 1.442,  // C 30.319,14.168 24.728,16.484 20.606,20.606
+                            x as f32 + 1.154, y as f32 + 1.731, x as f32 + 0.992, y as f32 + 2.122, x as f32 + 0.992, y as f32 + 2.530,  // C 16.484,24.728 14.168,30.319 14.168,36.148
+                            x as f32 + 0.992, y as f32 + 4.470,                                  // L 14.168,63.852
+                            x as f32 + 0.992, y as f32 + 4.878, x as f32 + 1.154, y as f32 + 5.269, x as f32 + 1.442, y as f32 + 5.558,  // C 14.168,69.681 16.484,75.272 20.606,79.394
+                            x as f32 + 1.731, y as f32 + 5.846, x as f32 + 2.122, y as f32 + 6.008, x as f32 + 2.530, y as f32 + 6.008,  // C 24.728,83.516 30.319,85.832 36.148,85.832
+                            x as f32 + 4.470, y as f32 + 6.008,                                  // L 63.852,85.832
+                            x as f32 + 4.878, y as f32 + 6.008, x as f32 + 5.269, y as f32 + 5.846, x as f32 + 5.558, y as f32 + 5.558,  // C 69.681,85.832 75.272,83.516 79.394,79.394
+                            x as f32 + 5.846, y as f32 + 5.269, x as f32 + 6.008, y as f32 + 4.878, x as f32 + 6.008, y as f32 + 4.470,  // C 83.516,75.272 85.832,69.681 85.832,63.852
+                            x as f32 + 6.008, y as f32 + 2.530,                                  // L 85.832,36.148
+                            x as f32 + 6.008, y as f32 + 2.122, x as f32 + 5.846, y as f32 + 1.731, x as f32 + 5.558, y as f32 + 1.442,  // C 85.832,30.319 83.516,24.728 79.394,20.606
+                            x as f32 + 5.269, y as f32 + 1.154, x as f32 + 4.878, y as f32 + 0.992, x as f32 + 4.470, y as f32 + 0.992   // C 75.272,16.484 69.681,14.168 63.852,14.168
+                        )
+                    }
+                }
             }
             EyeBorderStyle::DoubleBorder => {
-                // Marco doble: borde exterior + borde interior
-                format!(
-                    "M {} {} h 7 v 7 h -7 Z M {} {} h 5 v 5 h -5 Z M {} {} h 3 v 3 h -3 Z M {} {} h 1 v 1 h -1 Z",
-                    x, y,                    // Marco exterior (7x7)
-                    x + 1, y + 1,            // Primer hueco (5x5)
-                    x + 2, y + 2,            // Marco interior (3x3)
-                    x + 3, y + 3             // Hueco final (1x1)
-                )
+                // Path exacto proporcionado, escalado de 100x100 a 7x7 unidades
+                // Factor de escala: 7/100 = 0.07
+                match eye_type {
+                    "top_left" => {
+                        // Rotated 90 degrees clockwise from original
+                        format!(
+                            "M {} {} L {} {} C {} {} {} {} {} {} L {} {} L {} {} C {} {} {} {} {} {} L {} {} Z M {} {} L {} {} C {} {} {} {} {} {} L {} {} L {} {} C {} {} {} {} {} {} L {} {} Z",
+                            // Marco exterior - rotado 90 grados en sentido horario
+                            x as f32 + 7.0, y as f32 + 7.0,                                          // M 100,100 -> 7,7
+                            x as f32 + 2.328, y as f32 + 7.0,                                        // L 33.251,100
+                            x as f32 + 1.042, y as f32 + 7.0, x as f32, y as f32 + 5.958, x as f32, y as f32 + 4.672,  // C
+                            x as f32, y as f32,                                                       // L 0,0
+                            x as f32 + 4.672, y as f32,                                               // L 66.749,0
+                            x as f32 + 5.958, y as f32, x as f32 + 7.0, y as f32 + 1.042, x as f32 + 7.0, y as f32 + 2.328,  // C
+                            x as f32 + 7.0, y as f32 + 7.0,                                          // L 100,100
+                            
+                            // Marco interior - hueco rotado
+                            x as f32 + 5.968, y as f32 + 5.968,                                      // M
+                            x as f32 + 5.968, y as f32 + 2.270,                                      // L
+                            x as f32 + 5.968, y as f32 + 1.586, x as f32 + 5.414, y as f32 + 1.032, x as f32 + 4.730, y as f32 + 1.032,  // C
+                            x as f32 + 1.032, y as f32 + 1.032,                                      // L
+                            x as f32 + 1.032, y as f32 + 4.730,                                      // L
+                            x as f32 + 1.032, y as f32 + 5.414, x as f32 + 1.586, y as f32 + 5.968, x as f32 + 2.270, y as f32 + 5.968,  // C
+                            x as f32 + 5.968, y as f32 + 5.968                                       // L
+                        )
+                    },
+                    "top_right" => {
+                        // Rotated 180 degrees from original
+                        format!(
+                            "M {} {} L {} {} C {} {} {} {} {} {} L {} {} L {} {} C {} {} {} {} {} {} L {} {} Z M {} {} L {} {} C {} {} {} {} {} {} L {} {} L {} {} C {} {} {} {} {} {} L {} {} Z",
+                            // Marco exterior - rotado 180 grados
+                            x as f32, y as f32 + 7.0,                                                // M 0,100
+                            x as f32, y as f32 + 2.328,                                              // L 0,33.251
+                            x as f32, y as f32 + 1.042, x as f32 + 1.042, y as f32, x as f32 + 2.328, y as f32,  // C
+                            x as f32 + 7.0, y as f32,                                                // L 100,0
+                            x as f32 + 7.0, y as f32 + 4.672,                                       // L 100,66.749
+                            x as f32 + 7.0, y as f32 + 5.958, x as f32 + 5.958, y as f32 + 7.0, x as f32 + 4.672, y as f32 + 7.0,  // C
+                            x as f32, y as f32 + 7.0,                                                // L 0,100
+                            
+                            // Marco interior - hueco rotado 180 grados
+                            x as f32 + 1.032, y as f32 + 5.968,                                      // M
+                            x as f32 + 4.730, y as f32 + 5.968,                                      // L
+                            x as f32 + 5.414, y as f32 + 5.968, x as f32 + 5.968, y as f32 + 5.414, x as f32 + 5.968, y as f32 + 4.730,  // C
+                            x as f32 + 5.968, y as f32 + 1.032,                                      // L
+                            x as f32 + 2.270, y as f32 + 1.032,                                      // L
+                            x as f32 + 1.586, y as f32 + 1.032, x as f32 + 1.032, y as f32 + 1.586, x as f32 + 1.032, y as f32 + 2.270,  // C
+                            x as f32 + 1.032, y as f32 + 5.968                                       // L
+                        )
+                    },
+                    "bottom_left" => {
+                        // Original orientation (no rotation)
+                        format!(
+                            "M {} {} L {} {} C {} {} {} {} {} {} L {} {} L {} {} C {} {} {} {} {} {} L {} {} Z M {} {} L {} {} C {} {} {} {} {} {} L {} {} L {} {} C {} {} {} {} {} {} L {} {} Z",
+                            // Marco exterior - path original sin rotación
+                            x as f32 + 7.0, y as f32,                                               // M 100,0
+                            x as f32 + 7.0, y as f32 + 4.672,                                       // L 100,66.749
+                            x as f32 + 7.0, y as f32 + 5.958, x as f32 + 5.958, y as f32 + 7.0, x as f32 + 4.672, y as f32 + 7.0,  // C 100,85.113 85.113,100 66.749,100
+                            x as f32, y as f32 + 7.0,                                                // L 0,100
+                            x as f32, y as f32 + 2.328,                                              // L 0,33.251
+                            x as f32, y as f32 + 1.042, x as f32 + 1.042, y as f32, x as f32 + 2.328, y as f32,  // C 0,14.887 14.887,0 33.251,0
+                            x as f32 + 7.0, y as f32,                                                // L 100,0
+                            
+                            // Marco interior - hueco sin rotación
+                            x as f32 + 5.968, y as f32 + 1.032,                                      // M 85.259,14.741
+                            x as f32 + 2.270, y as f32 + 1.032,                                      // L 32.428,14.741
+                            x as f32 + 1.586, y as f32 + 1.032, x as f32 + 1.032, y as f32 + 1.586, x as f32 + 1.032, y as f32 + 2.270,  // C 22.66,14.741 14.741,22.66 14.741,32.428
+                            x as f32 + 1.032, y as f32 + 5.968,                                      // L 14.741,85.259
+                            x as f32 + 4.730, y as f32 + 5.968,                                      // L 67.572,85.259
+                            x as f32 + 5.414, y as f32 + 5.968, x as f32 + 5.968, y as f32 + 5.414, x as f32 + 5.968, y as f32 + 4.730,  // C 77.34,85.259 85.259,77.34 85.259,67.572
+                            x as f32 + 5.968, y as f32 + 1.032                                       // L 85.259,14.741
+                        )
+                    },
+                    _ => {
+                        // Default: same as top_left (rotated 90 degrees)
+                        format!(
+                            "M {} {} L {} {} C {} {} {} {} {} {} L {} {} L {} {} C {} {} {} {} {} {} L {} {} Z M {} {} L {} {} C {} {} {} {} {} {} L {} {} L {} {} C {} {} {} {} {} {} L {} {} Z",
+                            // Marco exterior - rotado 90 grados en sentido horario
+                            x as f32 + 7.0, y as f32 + 7.0,                                          // M 100,100 -> 7,7
+                            x as f32 + 2.328, y as f32 + 7.0,                                        // L 33.251,100
+                            x as f32 + 1.042, y as f32 + 7.0, x as f32, y as f32 + 5.958, x as f32, y as f32 + 4.672,  // C
+                            x as f32, y as f32,                                                       // L 0,0
+                            x as f32 + 4.672, y as f32,                                               // L 66.749,0
+                            x as f32 + 5.958, y as f32, x as f32 + 7.0, y as f32 + 1.042, x as f32 + 7.0, y as f32 + 2.328,  // C
+                            x as f32 + 7.0, y as f32 + 7.0,                                          // L 100,100
+                            
+                            // Marco interior - hueco rotado
+                            x as f32 + 5.968, y as f32 + 5.968,                                      // M
+                            x as f32 + 5.968, y as f32 + 2.270,                                      // L
+                            x as f32 + 5.968, y as f32 + 1.586, x as f32 + 5.414, y as f32 + 1.032, x as f32 + 4.730, y as f32 + 1.032,  // C
+                            x as f32 + 1.032, y as f32 + 1.032,                                      // L
+                            x as f32 + 1.032, y as f32 + 4.730,                                      // L
+                            x as f32 + 1.032, y as f32 + 5.414, x as f32 + 1.586, y as f32 + 5.968, x as f32 + 2.270, y as f32 + 5.968,  // C
+                            x as f32 + 5.968, y as f32 + 5.968                                       // L
+                        )
+                    }
+                }
             }
             
             // ===== FORMAS ORGÁNICAS (FASE 2.1) =====
@@ -2212,6 +2669,112 @@ impl QrCode {
                     x as f32 + 5.3, y as f32 + 5.1, cx - 0.4, y as f32 + 6.1, // Interior inferior
                     x as f32 + 1.5, y as f32 + 4.1, x as f32 + 1.2, cy        // Vuelta interior
                 )
+            }
+            EyeBorderStyle::Propuesta01 => {
+                // Path exacto proporcionado, escalado de 100x100 a 7x7 unidades
+                // Original: M100,99.979L34.507,99.979C15.449,99.979 0,84.53 0,65.472L0,34.486C0,15.429 15.449,-0.021 34.507,-0.021L65.493,-0.021C84.551,-0.021 100,15.429 100,34.486L100,99.979Z
+                // Factor de escala: 7/100 = 0.07
+                
+                match eye_type {
+                    "top_left" => {
+                        format!(
+                            "M {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} Z M {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} C {} {} {} {} {} {} L {} {} Z",
+                            // Marco exterior - path exacto escalado
+                            x as f32 + 7.0, y as f32 + 6.999,       // M 100,99.979 -> 7.0,6.999
+                            x as f32 + 2.415, y as f32 + 6.999,     // L 34.507,99.979 -> 2.415,6.999
+                            x as f32 + 1.081, y as f32 + 6.999, x as f32, y as f32 + 5.917, x as f32, y as f32 + 4.583,  // C 15.449,99.979 0,84.53 0,65.472
+                            x as f32, y as f32 + 2.414,             // L 0,34.486 -> 0,2.414
+                            x as f32, y as f32 + 1.080, x as f32 + 1.081, y as f32 - 0.001, x as f32 + 2.415, y as f32 - 0.001,  // C 0,15.429 15.449,-0.021 34.507,-0.021
+                            x as f32 + 4.585, y as f32 - 0.001,     // L 65.493,-0.021 -> 4.585,-0.001
+                            x as f32 + 5.919, y as f32 - 0.001, x as f32 + 7.0, y as f32 + 1.080, x as f32 + 7.0, y as f32 + 2.414,  // C 84.551,-0.021 100,15.429 100,34.486
+                            x as f32 + 7.0, y as f32 + 6.999,       // L 100,99.979 -> 7.0,6.999
+                            // Marco interior - path interior escalado
+                            x as f32 + 5.954, y as f32 + 5.953,     // M 85.06,85.039 -> 5.954,5.953
+                            x as f32 + 5.954, y as f32 + 2.408,     // L 85.06,34.397 -> 5.954,2.408
+                            x as f32 + 5.954, y as f32 + 2.046, x as f32 + 5.811, y as f32 + 1.699, x as f32 + 5.555, y as f32 + 1.444,  // C 85.06,29.232 83.008,24.277 79.355,20.625
+                            x as f32 + 5.299, y as f32 + 1.188, x as f32 + 4.952, y as f32 + 1.044, x as f32 + 4.591, y as f32 + 1.044,  // C 75.702,16.972 70.748,14.92 65.582,14.92
+                            x as f32 + 2.409, y as f32 + 1.044,     // L 34.418,14.92 -> 2.409,1.044
+                            x as f32 + 2.048, y as f32 + 1.044, x as f32 + 1.701, y as f32 + 1.188, x as f32 + 1.445, y as f32 + 1.444,  // C 29.252,14.92 24.298,16.972 20.645,20.625
+                            x as f32 + 1.189, y as f32 + 1.699, x as f32 + 1.046, y as f32 + 2.046, x as f32 + 1.046, y as f32 + 2.408,  // C 16.992,24.277 14.94,29.232 14.94,34.397
+                            x as f32 + 1.046, y as f32 + 4.589,     // L 14.94,65.561 -> 1.046,4.589
+                            x as f32 + 1.046, y as f32 + 4.951, x as f32 + 1.189, y as f32 + 5.298, x as f32 + 1.445, y as f32 + 5.553,  // C 14.94,70.727 16.992,75.681 20.645,79.334
+                            x as f32 + 1.701, y as f32 + 5.809, x as f32 + 2.048, y as f32 + 5.953, x as f32 + 2.409, y as f32 + 5.953,  // C 24.298,82.987 29.252,85.039 34.418,85.039
+                            x as f32 + 5.954, y as f32 + 5.953      // L 85.06,85.039 -> 5.954,5.953
+                        )
+                    },
+                    "top_right" => {
+                        // Rotación 90° clockwise: x' = 7-y, y' = x
+                        format!(
+                            "M {} {} L {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} Z M {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} L {} {} Z",
+                            // Marco exterior - rotado 90° clockwise
+                            x as f32 + 5.25, y as f32 + 7.0,        // Rotated M 100,25
+                            x as f32, y as f32 + 7.0,               // Rotated L 100,100
+                            x as f32, y as f32 + 1.75,              // Rotated L 25,100
+                            x as f32, y as f32 + 0.784, x as f32 + 0.784, y as f32, x as f32 + 1.75, y as f32,  // Rotated C
+                            x as f32 + 5.25, y as f32,              // Rotated L 0,25
+                            x as f32 + 6.216, y as f32, x as f32 + 7.0, y as f32 + 0.784, x as f32 + 7.0, y as f32 + 1.75,  // Rotated C
+                            x as f32 + 7.0, y as f32 + 5.25,        // Rotated L 75,0
+                            x as f32 + 7.0, y as f32 + 6.216, x as f32 + 6.216, y as f32 + 7.0, x as f32 + 5.25, y as f32 + 7.0,  // Rotated C
+                            // Marco interior - rotado 90° clockwise
+                            x as f32 + 4.749, y as f32 + 5.999,     // Rotated M 85.7,32.15
+                            x as f32 + 5.439, y as f32 + 5.999, x as f32 + 5.999, y as f32 + 5.439, x as f32 + 5.999, y as f32 + 4.750,  // Rotated C
+                            x as f32 + 5.999, y as f32 + 2.251,     // Rotated L 32.15,14.3
+                            x as f32 + 5.999, y as f32 + 1.561, x as f32 + 5.439, y as f32 + 1.001, x as f32 + 4.749, y as f32 + 1.001,  // Rotated C
+                            x as f32 + 2.250, y as f32 + 1.001,     // Rotated L 14.3,67.85
+                            x as f32 + 1.561, y as f32 + 1.001, x as f32 + 1.001, y as f32 + 1.561, x as f32 + 1.001, y as f32 + 2.251,  // Rotated C
+                            x as f32 + 1.001, y as f32 + 6.010,     // Rotated L 85.85,85.7
+                            x as f32 + 4.749, y as f32 + 5.999      // Rotated L 85.7,32.15
+                        )
+                    },
+                    "bottom_left" => {
+                        // Rotación 270° clockwise (o 90° counter-clockwise): x' = y, y' = 7-x
+                        format!(
+                            "M {} {} L {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} Z M {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} L {} {} Z",
+                            // Marco exterior - rotado 270° clockwise
+                            x as f32 + 1.75, y as f32,              // Rotated M 100,25
+                            x as f32 + 7.0, y as f32,               // Rotated L 100,100
+                            x as f32 + 7.0, y as f32 + 5.25,        // Rotated L 25,100
+                            x as f32 + 7.0, y as f32 + 6.216, x as f32 + 6.216, y as f32 + 7.0, x as f32 + 5.25, y as f32 + 7.0,  // Rotated C
+                            x as f32 + 1.75, y as f32 + 7.0,        // Rotated L 0,25
+                            x as f32 + 0.784, y as f32 + 7.0, x as f32, y as f32 + 6.216, x as f32, y as f32 + 5.25,  // Rotated C
+                            x as f32, y as f32 + 1.75,              // Rotated L 75,0
+                            x as f32, y as f32 + 0.784, x as f32 + 0.784, y as f32, x as f32 + 1.75, y as f32,  // Rotated C
+                            // Marco interior - rotado 270° clockwise
+                            x as f32 + 2.251, y as f32 + 1.001,     // Rotated M 85.7,32.15
+                            x as f32 + 1.561, y as f32 + 1.001, x as f32 + 1.001, y as f32 + 1.561, x as f32 + 1.001, y as f32 + 2.250,  // Rotated C
+                            x as f32 + 1.001, y as f32 + 4.749,     // Rotated L 32.15,14.3
+                            x as f32 + 1.001, y as f32 + 5.439, x as f32 + 1.561, y as f32 + 5.999, x as f32 + 2.251, y as f32 + 5.999,  // Rotated C
+                            x as f32 + 4.750, y as f32 + 5.999,     // Rotated L 14.3,67.85
+                            x as f32 + 5.439, y as f32 + 5.999, x as f32 + 5.999, y as f32 + 5.439, x as f32 + 5.999, y as f32 + 4.749,  // Rotated C
+                            x as f32 + 5.999, y as f32 + 0.99,      // Rotated L 85.85,85.7
+                            x as f32 + 2.251, y as f32 + 1.001      // Rotated L 85.7,32.15
+                        )
+                    },
+                    _ => {
+                        // Default: use top_left style
+                        format!(
+                            "M {} {} L {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} Z M {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} C {} {} {} {} {} {} L {} {} L {} {} Z",
+                            // Marco exterior - path exacto escalado
+                            x as f32 + 7.0, y as f32 + 1.75,        // M 100,25 -> 7.0,1.75
+                            x as f32 + 7.0, y as f32 + 7.0,         // L 100,100 -> 7.0,7.0
+                            x as f32 + 1.75, y as f32 + 7.0,        // L 25,100 -> 1.75,7.0
+                            x as f32 + 0.784, y as f32 + 7.0, x as f32, y as f32 + 6.216, x as f32, y as f32 + 5.25,  // C 11.202,100 0,88.798 0,75 -> 0.784,7.0 0,6.216 0,5.25
+                            x as f32, y as f32 + 1.75,              // L 0,25 -> 0,1.75
+                            x as f32, y as f32 + 0.784, x as f32 + 0.784, y as f32, x as f32 + 1.75, y as f32,  // C 0,11.202 11.202,0 25,0 -> 0,0.784 0.784,0 1.75,0
+                            x as f32 + 5.25, y as f32,              // L 75,0 -> 5.25,0
+                            x as f32 + 6.216, y as f32, x as f32 + 7.0, y as f32 + 0.784, x as f32 + 7.0, y as f32 + 1.75,  // C 88.798,0 100,11.202 100,25 -> 6.216,0 7.0,0.784 7.0,1.75
+                            // Marco interior - path interior escalado
+                            x as f32 + 5.999, y as f32 + 2.251,     // M 85.7,32.15 -> 5.999,2.251
+                            x as f32 + 5.999, y as f32 + 1.561, x as f32 + 5.439, y as f32 + 1.001, x as f32 + 4.750, y as f32 + 1.001,  // C 85.7,22.298 77.702,14.3 67.85,14.3
+                            x as f32 + 2.251, y as f32 + 1.001,     // L 32.15,14.3 -> 2.251,1.001
+                            x as f32 + 1.561, y as f32 + 1.001, x as f32 + 1.001, y as f32 + 1.561, x as f32 + 1.001, y as f32 + 2.251,  // C 22.298,14.3 14.3,22.298 14.3,32.15
+                            x as f32 + 1.001, y as f32 + 4.750,     // L 14.3,67.85 -> 1.001,4.750
+                            x as f32 + 1.001, y as f32 + 5.439, x as f32 + 1.561, y as f32 + 5.999, x as f32 + 2.251, y as f32 + 5.999,  // C 14.3,77.702 22.298,85.7 32.15,85.7
+                            x as f32 + 6.010, y as f32 + 5.999,     // L 85.85,85.7 -> 6.010,5.999
+                            x as f32 + 5.999, y as f32 + 2.251      // L 85.7,32.15 -> 5.999,2.251
+                        )
+                    }
+                }
             }
         }
     }
@@ -2552,6 +3115,117 @@ impl QrCode {
                             colors,
                             angle: gradient.angle,
                             coords: None,
+                        }
+                    ));
+                }
+            }
+        }
+        
+        // Agregar gradientes específicos para bordes de ojos
+        if let Some(eye_border_gradient) = custom.and_then(|c| c.eye_border_gradient.as_ref()) {
+            if eye_border_gradient.enabled {
+                let colors: Vec<String> = eye_border_gradient.colors.iter()
+                    .take(5)
+                    .cloned()
+                    .collect();
+                    
+                definitions.push(crate::engine::types::QrDefinition::Gradient(
+                    crate::engine::types::QrGradientDef {
+                        id: "grad_eye_border".to_string(),
+                        gradient_type: format!("{:?}", eye_border_gradient.gradient_type).to_lowercase(),
+                        colors,
+                        angle: eye_border_gradient.angle,
+                        coords: match eye_border_gradient.gradient_type {
+                            crate::engine::types::GradientType::Radial => {
+                                Some(crate::engine::types::GradientCoords {
+                                    x1: 0.5, y1: 0.5, x2: 1.0, y2: 1.0,
+                                })
+                            },
+                            _ => None,
+                        },
+                    }
+                ));
+            }
+        }
+        
+        // Agregar gradientes específicos para centros de ojos
+        if let Some(eye_center_gradient) = custom.and_then(|c| c.eye_center_gradient.as_ref()) {
+            if eye_center_gradient.enabled {
+                let colors: Vec<String> = eye_center_gradient.colors.iter()
+                    .take(5)
+                    .cloned()
+                    .collect();
+                    
+                definitions.push(crate::engine::types::QrDefinition::Gradient(
+                    crate::engine::types::QrGradientDef {
+                        id: "grad_eye_center".to_string(),
+                        gradient_type: format!("{:?}", eye_center_gradient.gradient_type).to_lowercase(),
+                        colors,
+                        angle: eye_center_gradient.angle,
+                        coords: match eye_center_gradient.gradient_type {
+                            crate::engine::types::GradientType::Radial => {
+                                Some(crate::engine::types::GradientCoords {
+                                    x1: 0.5, y1: 0.5, x2: 0.5, y2: 0.5,  // Más centrado para el centro del ojo
+                                })
+                            },
+                            _ => None,
+                        },
+                    }
+                ));
+            }
+        }
+        
+        // Agregar gradientes desde eye_colors si existen
+        if let Some(eye_colors) = custom.and_then(|c| c.colors.as_ref()).and_then(|c| c.eye_colors.as_ref()) {
+            // Gradiente para borde exterior desde eye_colors
+            if let Some(outer_gradient) = &eye_colors.outer_gradient {
+                if outer_gradient.enabled {
+                    let colors: Vec<String> = outer_gradient.colors.iter()
+                        .take(5)
+                        .cloned()
+                        .collect();
+                        
+                    definitions.push(crate::engine::types::QrDefinition::Gradient(
+                        crate::engine::types::QrGradientDef {
+                            id: "grad_eye_outer".to_string(),
+                            gradient_type: format!("{:?}", outer_gradient.gradient_type).to_lowercase(),
+                            colors,
+                            angle: outer_gradient.angle,
+                            coords: match outer_gradient.gradient_type {
+                                crate::engine::types::GradientType::Radial => {
+                                    Some(crate::engine::types::GradientCoords {
+                                        x1: 0.5, y1: 0.5, x2: 1.0, y2: 1.0,
+                                    })
+                                },
+                                _ => None,
+                            },
+                        }
+                    ));
+                }
+            }
+            
+            // Gradiente para centro interior desde eye_colors
+            if let Some(inner_gradient) = &eye_colors.inner_gradient {
+                if inner_gradient.enabled {
+                    let colors: Vec<String> = inner_gradient.colors.iter()
+                        .take(5)
+                        .cloned()
+                        .collect();
+                        
+                    definitions.push(crate::engine::types::QrDefinition::Gradient(
+                        crate::engine::types::QrGradientDef {
+                            id: "grad_eye_inner".to_string(),
+                            gradient_type: format!("{:?}", inner_gradient.gradient_type).to_lowercase(),
+                            colors,
+                            angle: inner_gradient.angle,
+                            coords: match inner_gradient.gradient_type {
+                                crate::engine::types::GradientType::Radial => {
+                                    Some(crate::engine::types::GradientCoords {
+                                        x1: 0.5, y1: 0.5, x2: 0.5, y2: 0.5,
+                                    })
+                                },
+                                _ => None,
+                            },
                         }
                     ));
                 }

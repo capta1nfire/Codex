@@ -150,6 +150,7 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
                 // Convert string to DataPattern enum
                 match s.as_str() {
                     "square" => Some(crate::engine::types::DataPattern::Square),
+                    "square_small" => Some(crate::engine::types::DataPattern::SquareSmall),
                     "dots" => Some(crate::engine::types::DataPattern::Dots),
                     "rounded" => Some(crate::engine::types::DataPattern::Rounded),
                     "vertical" => Some(crate::engine::types::DataPattern::Vertical),
@@ -290,6 +291,8 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
                     _ => None
                 }
             }),
+            eye_border_gradient: None,
+            eye_center_gradient: None,
             selective_effects: None,
             logo_size_ratio: None,
             fixed_size: None,

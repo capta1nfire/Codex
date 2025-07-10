@@ -17,16 +17,13 @@ import {
 import { useUrlValidation } from '@/hooks/useUrlValidation';
 import { useQRGenerationState } from '@/hooks/useQRGenerationState';
 import { SmartValidators } from '@/lib/smartValidation';
+import { useStudio } from '@/components/studio/StudioProvider';
+import { StudioConfigType } from '@/types/studio.types';
 
-// Initial context
-const createInitialContext = (): GeneratorContext => ({
-  // Form data
-  barcodeType: 'qrcode',
-  qrType: 'link',
-  formData: {
-    url: 'https://tu-sitio-web.com'
-  },
-  options: {
+// Initial context with Studio integration
+const createInitialContext = (studioConfig?: any): GeneratorContext => {
+  // Default values
+  const defaultOptions = {
     size: 300,
     scale: 2,
     margin: 4,
@@ -38,27 +35,87 @@ const createInitialContext = (): GeneratorContext => ({
     gradient_colors: ['#000000', '#666666'],
     eyeShape: 'rounded',
     dataShape: 'square'
-  },
-  
-  // Validation state
-  lastValidatedUrl: '',
-  validationMetadata: null,
-  isUrlValid: false,
-  
-  // Generation state
-  svgContent: null,
-  enhancedData: null,
-  scannabilityAnalysis: null,
-  lastGeneratedData: '',
-  hasGeneratedInitial: false,
-  
-  // UI state
-  isTyping: false,
-  hasUserStartedTyping: false,
-  shouldAutoGenerate: true,
-  isUserEditing: false,
-  dynamicDebounceTime: TYPING_DEBOUNCE_MS
-});
+  };
+
+  // If Studio config is available, merge it with defaults
+  if (studioConfig) {
+    // Map Studio config to generator options
+    const mappedOptions = {
+      ...defaultOptions,
+      fgColor: studioConfig.colors?.foreground || defaultOptions.fgColor,
+      bgColor: studioConfig.colors?.background || defaultOptions.bgColor,
+      gradient_enabled: studioConfig.gradient?.enabled || defaultOptions.gradient_enabled,
+      gradient_type: studioConfig.gradient?.gradient_type || defaultOptions.gradient_type,
+      gradient_colors: studioConfig.gradient?.colors || defaultOptions.gradient_colors,
+      eyeShape: studioConfig.eye_shape || 
+                (studioConfig.use_separated_eye_styles ? undefined : studioConfig.eye_border_style),
+      eye_border_style: studioConfig.eye_border_style,
+      eye_center_style: studioConfig.eye_center_style,
+      use_separated_eye_styles: studioConfig.use_separated_eye_styles,
+      dataShape: studioConfig.data_pattern || defaultOptions.dataShape,
+      errorCorrectionLevel: studioConfig.error_correction || defaultOptions.errorCorrectionLevel
+    };
+
+    return {
+      // Form data
+      barcodeType: 'qrcode',
+      qrType: 'link',
+      formData: {
+        url: studioConfig.template_data?.url || 'https://tu-sitio-web.com'
+      },
+      options: mappedOptions,
+      
+      // Validation state
+      lastValidatedUrl: '',
+      validationMetadata: null,
+      isUrlValid: false,
+      
+      // Generation state
+      svgContent: null,
+      enhancedData: null,
+      scannabilityAnalysis: null,
+      lastGeneratedData: '',
+      hasGeneratedInitial: false,
+      
+      // UI state
+      isTyping: false,
+      hasUserStartedTyping: false,
+      shouldAutoGenerate: true,
+      isUserEditing: false,
+      dynamicDebounceTime: TYPING_DEBOUNCE_MS
+    };
+  }
+
+  // Return default context if no Studio config
+  return {
+    // Form data
+    barcodeType: 'qrcode',
+    qrType: 'link',
+    formData: {
+      url: 'https://tu-sitio-web.com'
+    },
+    options: defaultOptions,
+    
+    // Validation state
+    lastValidatedUrl: '',
+    validationMetadata: null,
+    isUrlValid: false,
+    
+    // Generation state
+    svgContent: null,
+    enhancedData: null,
+    scannabilityAnalysis: null,
+    lastGeneratedData: '',
+    hasGeneratedInitial: false,
+    
+    // UI state
+    isTyping: false,
+    hasUserStartedTyping: false,
+    shouldAutoGenerate: true,
+    isUserEditing: false,
+    dynamicDebounceTime: TYPING_DEBOUNCE_MS
+  };
+};
 
 // State machine reducer
 function generatorReducer(
@@ -393,9 +450,15 @@ function hasFormDataChanged(context: GeneratorContext): boolean {
 
 // Main hook
 export function useQRGeneratorOrchestrator() {
+  // Get Studio context
+  const { getConfigByType } = useStudio();
+  
+  // Get placeholder config from Studio on initial load
+  const placeholderConfig = getConfigByType(StudioConfigType.PLACEHOLDER)?.config;
+  
   const [state, dispatch] = useReducer(generatorReducer, {
     value: 'idle',
-    context: createInitialContext()
+    context: createInitialContext(placeholderConfig)
   } as GeneratorState);
 
   // Refs for managing timers

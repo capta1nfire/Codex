@@ -2,6 +2,35 @@
 
 All notable changes to the CODEX project are documented in the [docs/](./docs/) directory.
 
+## 2025-07-10
+
+### ✅ Added
+- **Eye Gradient Support**: Independent gradients for QR eye borders and centers
+  - Rust: Modified path generation to support gradients (`eye_border_gradient`, `eye_center_gradient`)
+  - Backend: Added field forwarding in `qr-v3.routes.ts`
+  - Result: Eye borders and centers can now have different gradients
+
+## 2025-07-10
+
+### ✅ Added
+- **Propuesta01 Eye Border Style**: Implemented asymmetric rounded corners eye border style
+  - One sharp corner pointing outward from QR center, three rounded corners
+  - Applied to both outer and inner frames using SVG arc commands
+  - Available for all three QR eyes with directional awareness
+
+### 🎨 Enhanced
+- **Advanced Eye Color System**: New three-mode color system for QR eyes
+  - Eye Centers: inherit from data pattern, solid color, or independent gradient
+  - Eye Borders/Frames: separate color controls with same three modes
+  - Added to frontend GenerationOptions.tsx with dynamic UI controls
+  - Backend schema updated in qr-v3.routes.ts to support new fields
+  - Colors apply uniformly to all 3 eyes (not individually configurable)
+
+### 🔧 UI Improvements
+- **Shapes Tab Reorganization**: Shapes tab now appears as primary tab
+  - Data pattern options displayed first, followed by eye shape options
+  - Better user workflow prioritizing most commonly changed settings
+
 ## 2025-07-07
 
 ### 🚀 QR Studio Implementation Fixes

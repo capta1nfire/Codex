@@ -34,6 +34,8 @@ import { BarcodeTypeTabs } from './BarcodeTypeTabs';
 import { useQRGenerationState } from '@/hooks/useQRGenerationState';
 import { useUrlValidation } from '@/hooks/useUrlValidation';
 import { useTypingTracker } from '@/hooks/useTypingTracker';
+import { useStudio } from '@/components/studio/StudioProvider';
+import { StudioConfigType } from '@/types/studio.types';
 
 // Constantes del original
 import { getDefaultDataForType } from '@/constants/barcodeTypes';
@@ -45,6 +47,9 @@ import { SmartValidators } from '@/lib/smartValidation';
 const GeneratorMarketingZone = lazy(() => import('./marketing/GeneratorMarketingZone'));
 
 export function QRGeneratorContainer() {
+  // Get Studio context for placeholder config
+  const { getConfigByType } = useStudio();
+  
   // Estados principales - EXACTOS del original
   const [isInitialMount, setIsInitialMount] = useState(true);
   const [realTimeValidationError, setRealTimeValidationError] = useState<string | null>(null);
@@ -553,7 +558,11 @@ export function QRGeneratorContainer() {
     console.log('[Initial QR] Generating initial QR code...');
     
     const generateInitialBarcode = async () => {
-      const initialFormData: GenerateFormData = {
+      // Get placeholder config from Studio
+      const placeholderConfig = getConfigByType(StudioConfigType.PLACEHOLDER)?.config;
+      
+      // Default form data
+      let initialFormData: GenerateFormData = {
         barcode_type: 'qrcode',
         data: 'https://tu-sitio-web.com',
         options: {
@@ -580,6 +589,46 @@ export function QRGeneratorContainer() {
         }
       };
       
+      // If Studio placeholder config exists, merge it with defaults
+      if (placeholderConfig) {
+        console.log('[Initial QR] Using Studio placeholder config:', placeholderConfig);
+        
+        initialFormData = {
+          ...initialFormData,
+          data: placeholderConfig.template_data?.url || initialFormData.data,
+          options: {
+            ...initialFormData.options,
+            // Colors
+            fgcolor: placeholderConfig.colors?.foreground || initialFormData.options.fgcolor,
+            bgcolor: placeholderConfig.colors?.background || '#FFFFFF',
+            
+            // Gradient
+            gradient_enabled: placeholderConfig.gradient?.enabled ?? initialFormData.options.gradient_enabled,
+            gradient_type: placeholderConfig.gradient?.gradient_type || initialFormData.options.gradient_type,
+            gradient_color1: placeholderConfig.gradient?.colors?.[0] || initialFormData.options.gradient_color1,
+            gradient_color2: placeholderConfig.gradient?.colors?.[1] || initialFormData.options.gradient_color2,
+            
+            // Eye styles
+            use_separated_eye_styles: placeholderConfig.use_separated_eye_styles ?? initialFormData.options.use_separated_eye_styles,
+            eye_shape: placeholderConfig.eye_shape,
+            eye_border_style: placeholderConfig.eye_border_style || initialFormData.options.eye_border_style,
+            eye_center_style: placeholderConfig.eye_center_style || initialFormData.options.eye_center_style,
+            
+            // Data pattern
+            data_pattern: placeholderConfig.data_pattern || initialFormData.options.data_pattern,
+            
+            // Error correction
+            ecl: placeholderConfig.error_correction || initialFormData.options.ecl,
+            
+            // Frame
+            frame_enabled: placeholderConfig.frame?.frame_type ? true : false,
+            frame_style: placeholderConfig.frame?.frame_type || initialFormData.options.frame_style,
+            frame_text: placeholderConfig.frame?.text || initialFormData.options.frame_text,
+            frame_text_position: placeholderConfig.frame?.text_position || initialFormData.options.frame_text_position
+          }
+        };
+      }
+      
       try {
         await generateWithState(initialFormData);
         console.log('[Initial QR] Initial generation completed');
@@ -591,7 +640,7 @@ export function QRGeneratorContainer() {
     };
     
     generateInitialBarcode();
-  }, []);
+  }, [getConfigByType]);
 
   // Auto-generación para códigos que no son QR - USES CENTRALIZED GENERATION
   useEffect(() => {

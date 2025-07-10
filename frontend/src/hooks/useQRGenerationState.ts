@@ -423,17 +423,90 @@ export const useQRGenerationState = () => {
             foreground: formData.options?.fgcolor || '#000000',
             background: formData.options?.bgcolor || '#FFFFFF'
           },
-          // Add eye colors if specified (at the same level as colors, not inside)
-          ...(formData.options?.eye_colors ? {
-            eye_colors: {
-              outer: formData.options.eye_colors.outer,
-              inner: formData.options.eye_colors.inner
+          // Add eye colors - convert new system to legacy format for backend compatibility
+          ...(() => {
+            // If using legacy eye_colors, use it directly
+            if (formData.options?.eye_colors) {
+              return {
+                eye_colors: {
+                  outer: formData.options.eye_colors.outer,
+                  inner: formData.options.eye_colors.inner
+                }
+              };
+            }
+            
+            // Convert new eye color system to legacy format
+            let eyeColors: any = {};
+            
+            // Handle eye center colors
+            if (formData.options?.eye_color_mode === 'solid' && formData.options?.eye_color_solid) {
+              eyeColors.inner = formData.options.eye_color_solid;
+            } else if (formData.options?.eye_color_mode === 'gradient' && formData.options?.eye_color_gradient?.color1) {
+              // Use first color of gradient for now
+              eyeColors.inner = formData.options.eye_color_gradient.color1;
+            }
+            
+            // Handle eye border colors
+            if (formData.options?.eye_border_color_mode === 'solid' && formData.options?.eye_border_color_solid) {
+              eyeColors.outer = formData.options.eye_border_color_solid;
+            } else if (formData.options?.eye_border_color_mode === 'gradient' && formData.options?.eye_border_color_gradient?.color1) {
+              // Use first color of gradient for now
+              eyeColors.outer = formData.options.eye_border_color_gradient.color1;
+            }
+            
+            // Only include eye_colors if we have at least one color defined
+            if (eyeColors.inner || eyeColors.outer) {
+              return { eye_colors: eyeColors };
+            }
+            
+            return {};
+          })(),
+          // Still pass the new fields for future backend support
+          ...(formData.options?.eye_color_mode ? {
+            eye_color_mode: formData.options.eye_color_mode
+          } : {}),
+          ...(formData.options?.eye_color_solid ? {
+            eye_color_solid: formData.options.eye_color_solid
+          } : {}),
+          ...(formData.options?.eye_color_gradient ? {
+            eye_color_gradient: formData.options.eye_color_gradient
+          } : {}),
+          ...(formData.options?.eye_border_color_mode ? {
+            eye_border_color_mode: formData.options.eye_border_color_mode
+          } : {}),
+          ...(formData.options?.eye_border_color_solid ? {
+            eye_border_color_solid: formData.options.eye_border_color_solid
+          } : {}),
+          ...(formData.options?.eye_border_color_gradient ? {
+            eye_border_color_gradient: formData.options.eye_border_color_gradient
+          } : {}),
+          // Add eye gradient configuration if gradient mode is selected for borders
+          ...(formData.options?.eye_border_color_mode === 'gradient' && formData.options?.eye_border_color_gradient ? {
+            eye_border_gradient: {
+              enabled: true,
+              gradient_type: formData.options.eye_border_color_gradient.type || 'radial',
+              colors: [
+                formData.options.eye_border_color_gradient.color1,
+                formData.options.eye_border_color_gradient.color2
+              ]
+            }
+          } : {}),
+          // Add eye center gradient configuration if gradient mode is selected for centers
+          ...(formData.options?.eye_color_mode === 'gradient' && formData.options?.eye_color_gradient ? {
+            eye_center_gradient: {
+              enabled: true,
+              gradient_type: formData.options.eye_color_gradient.type || 'radial',
+              colors: [
+                formData.options.eye_color_gradient.color1,
+                formData.options.eye_color_gradient.color2
+              ]
             }
           } : {}),
           // Add fixed size if specified
           ...(formData.options?.fixed_size && formData.options.fixed_size !== 'auto' ? {
             fixed_size: formData.options.fixed_size
           } : {}),
+          // Gradient configuration - only for data pattern
           gradient: formData.options?.gradient_enabled ? {
             enabled: true,
             gradient_type: formData.options.gradient_type || 'linear',

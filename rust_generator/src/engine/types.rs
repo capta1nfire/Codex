@@ -80,6 +80,12 @@ pub struct QrCustomization {
     /// Gradiente
     pub gradient: Option<GradientOptions>,
     
+    /// Gradiente específico para bordes de ojos
+    pub eye_border_gradient: Option<GradientOptions>,
+    
+    /// Gradiente específico para centros de ojos
+    pub eye_center_gradient: Option<GradientOptions>,
+    
     /// Logo
     pub logo: Option<LogoOptions>,
     
@@ -157,6 +163,9 @@ pub enum EyeBorderStyle {
     Crystal,          // Cristal facetado suave
     Flame,            // Llama estilizada
     Organic,          // Forma orgánica aleatoria
+    
+    // Propuestas temporales
+    Propuesta01,      // Marco con esquinas asimétricamente redondeadas
 }
 
 /// Estilos de centro para los ojos (punto interior)
@@ -179,6 +188,7 @@ pub enum EyeCenterStyle {
 pub enum DataPattern {
     // Estándar
     Square,
+    SquareSmall,
     Dots,
     
     // Creativos
@@ -212,6 +222,10 @@ pub struct EyeColors {
     pub outer: Option<String>,  // Hex color
     /// Color del centro interior de los ojos
     pub inner: Option<String>,  // Hex color
+    /// Gradiente para borde exterior (si se usa en lugar de color sólido)
+    pub outer_gradient: Option<GradientOptions>,
+    /// Gradiente para centro interior (si se usa en lugar de color sólido)
+    pub inner_gradient: Option<GradientOptions>,
     /// Aplicar colores diferentes a cada ojo
     pub per_eye: Option<PerEyeColors>,
 }
@@ -243,7 +257,9 @@ pub struct GradientOptions {
     pub gradient_type: GradientType,
     pub colors: Vec<String>,  // Hex colors
     pub angle: Option<f32>,   // Para linear
+    #[serde(default)]
     pub apply_to_eyes: bool,
+    #[serde(default)]
     pub apply_to_data: bool,
     pub stroke_style: Option<StrokeStyle>,
 }

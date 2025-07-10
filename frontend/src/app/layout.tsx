@@ -7,6 +7,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import SystemAlerts from '@/components/SystemAlerts';
 import AppLayout from '@/components/admin/AppLayout';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { StudioProvider } from '@/components/studio/StudioProvider';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -30,13 +31,15 @@ export default function RootLayout({
       <body className={`${inter.className} bg-gray-100`}>
         <TooltipProvider>
           <AuthProvider>
-            <ErrorBoundary>
-              <AppLayout>
-                {children}
-              </AppLayout>
-              
-              <SystemAlerts />
-            </ErrorBoundary>
+            <StudioProvider>
+              <ErrorBoundary>
+                <AppLayout>
+                  {children}
+                </AppLayout>
+                
+                <SystemAlerts />
+              </ErrorBoundary>
+            </StudioProvider>
             <Toaster
               position="top-right"
               toastOptions={{

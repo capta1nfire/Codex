@@ -1783,6 +1783,8 @@ async fn qr_v2_preview_handler(
             data_pattern,
             colors,
             gradient: None,
+            eye_border_gradient: None,
+            eye_center_gradient: None,
             logo: None,
             frame: None,
             effects: None,

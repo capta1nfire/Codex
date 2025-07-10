@@ -125,6 +125,7 @@ fn parse_eye_shape(shape: &str) -> Option<EyeShape> {
 fn parse_data_pattern(pattern: &str) -> Option<DataPattern> {
     match pattern {
         "square" => Some(DataPattern::Square),
+        "square_small" => Some(DataPattern::SquareSmall),
         "dots" => Some(DataPattern::Dots),
         "rounded" => Some(DataPattern::Rounded),
         "vertical" => Some(DataPattern::Vertical),

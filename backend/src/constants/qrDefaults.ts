@@ -1,6 +1,6 @@
 /**
  * QR Default Configuration Constants
- * 
+ *
  * Valores por defecto para configuraciones de QR Studio
  */
 

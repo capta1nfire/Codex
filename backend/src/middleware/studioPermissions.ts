@@ -1,12 +1,12 @@
 /**
  * Sistema de permisos escalable para QR Studio
- * 
+ *
  * Este middleware permite control granular de permisos
  * y es fácilmente extensible para futuros roles
  */
 
-import { Request, Response, NextFunction } from 'express';
 import { UserRole } from '@prisma/client';
+import { Request, Response, NextFunction } from 'express';
 
 // Definición de acciones posibles en Studio
 export enum StudioAction {
@@ -56,16 +56,16 @@ export const studioPermissions: PermissionMatrix = {
     [StudioAction.IMPORT]: false,
   },
   [UserRole.PREMIUM]: {
-    [StudioAction.READ]: true,    // Phase 2: Enable read
-    [StudioAction.WRITE]: false,   // Phase 3: Enable write
-    [StudioAction.DELETE]: false,  // Phase 3: Enable delete
+    [StudioAction.READ]: true, // Phase 2: Enable read
+    [StudioAction.WRITE]: false, // Phase 3: Enable write
+    [StudioAction.DELETE]: false, // Phase 3: Enable delete
     [StudioAction.RESET]: false,
     [StudioAction.APPLY_ALL]: false,
     [StudioAction.EXPORT]: true,
     [StudioAction.IMPORT]: false,
   },
   [UserRole.USER]: {
-    [StudioAction.READ]: false,    // Future: Basic templates only
+    [StudioAction.READ]: false, // Future: Basic templates only
     [StudioAction.WRITE]: false,
     [StudioAction.DELETE]: false,
     [StudioAction.RESET]: false,
@@ -110,10 +110,7 @@ export const studioLimits = {
 };
 
 // Función helper para verificar permisos
-export function hasStudioPermission(
-  role: UserRole,
-  action: StudioAction
-): boolean {
+export function hasStudioPermission(role: UserRole, action: StudioAction): boolean {
   return studioPermissions[role]?.[action] ?? false;
 }
 
@@ -171,11 +168,7 @@ function getMinimumRoleForAction(action: StudioAction): UserRole {
 }
 
 // Middleware para verificar límites
-export async function checkStudioLimits(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+export async function checkStudioLimits(req: Request, res: Response, next: NextFunction) {
   const userRole = req.user?.role as UserRole;
   const userId = req.user?.id;
 
@@ -207,10 +200,10 @@ declare global {
       studioPermissions?: {
         action: StudioAction;
         role: UserRole;
-        limits: typeof studioLimits[UserRole];
+        limits: (typeof studioLimits)[UserRole];
         permissions: Partial<Record<StudioAction, boolean>>;
       };
-      studioLimits?: typeof studioLimits[UserRole];
+      studioLimits?: (typeof studioLimits)[UserRole];
     }
   }
 }

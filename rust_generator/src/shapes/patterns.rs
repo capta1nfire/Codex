@@ -27,6 +27,7 @@ impl PatternRenderer {
         
         match pattern {
             DataPattern::Square => self.render_square(x_pos, y_pos, size, color),
+            DataPattern::SquareSmall => self.render_square_small(x_pos, y_pos, size, color),
             DataPattern::Dots => self.render_dot(x_pos, y_pos, size, color),
             DataPattern::Rounded => self.render_rounded(x_pos, y_pos, size, color),
             DataPattern::Vertical => self.render_vertical(x_pos, y_pos, size, color),
@@ -100,6 +101,16 @@ impl PatternRenderer {
         )
     }
 
+    /// Cuadrado pequeño (80% del tamaño, centrado)
+    fn render_square_small(&self, x: f32, y: f32, size: f32, color: &str) -> String {
+        let small_size = size * 0.8;
+        let offset = (size - small_size) / 2.0;
+        format!(
+            r#"<rect x="{}" y="{}" width="{}" height="{}" fill="{}" />"#,
+            x + offset, y + offset, small_size, small_size, color
+        )
+    }
+
     /// Puntos circulares
     fn render_dot(&self, x: f32, y: f32, size: f32, color: &str) -> String {
         let radius = size * 0.4; // 80% del tamaño del módulo
@@ -144,7 +155,7 @@ impl PatternRenderer {
     fn render_diamond(&self, x: f32, y: f32, size: f32, color: &str) -> String {
         let cx = x + size / 2.0;
         let cy = y + size / 2.0;
-        let half = size * 0.45;
+        let half = size * 0.52; // Aumentado de 0.45 a 0.52 para mayor densidad
         format!(
             r#"<path d="M {} {} L {} {} L {} {} L {} {} Z" fill="{}" />"#,
             cx, cy - half,
@@ -290,6 +301,7 @@ mod tests {
         
         let patterns = vec![
             DataPattern::Square,
+            DataPattern::SquareSmall,
             DataPattern::Dots,
             DataPattern::Rounded,
             DataPattern::Diamond,

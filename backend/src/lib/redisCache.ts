@@ -1,6 +1,6 @@
 /**
  * Redis Cache Wrapper
- * 
+ *
  * Wrapper para funcionalidades de caché con Redis
  */
 

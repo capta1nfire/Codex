@@ -56,7 +56,7 @@ export default function TemplateListPage() {
 
   // Navegar al editor
   const handleEdit = (template: StudioConfig) => {
-    router.push(`/studio/templates?type=${template.template_type}`);
+    router.push(`/studio/templates?type=${template.templateType}`);
   };
 
   // Duplicar plantilla
@@ -70,7 +70,7 @@ export default function TemplateListPage() {
     const data = {
       name: template.name,
       description: template.description,
-      templateType: template.template_type,
+      templateType: template.templateType,
       config: template.config,
       version: template.version,
       exportedAt: new Date().toISOString()
@@ -83,7 +83,7 @@ export default function TemplateListPage() {
     
     const a = document.createElement('a');
     a.href = url;
-    a.download = `template-${template.template_type}-v${template.version}.json`;
+    a.download = `template-${template.templateType}-v${template.version}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -106,7 +106,7 @@ export default function TemplateListPage() {
       templates: templates.map(t => ({
         name: t.name,
         description: t.description,
-        templateType: t.template_type,
+        templateType: t.templateType,
         config: t.config,
         version: t.version
       })),
@@ -212,7 +212,7 @@ export default function TemplateListPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {new Set(templates.map(t => t.template_type)).size}
+                {new Set(templates.map(t => t.templateType)).size}
               </div>
               <p className="text-xs text-slate-500 mt-1">
                 Tipos de códigos configurados

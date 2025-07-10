@@ -10,12 +10,24 @@ import { z } from 'zod';
 // ==================== ENUMS ====================
 
 export enum StudioConfigType {
-  PLACEHOLDER = 'placeholder',
-  TEMPLATE = 'template',
-  GLOBAL = 'global',
+  PLACEHOLDER = 'PLACEHOLDER',
+  TEMPLATE = 'TEMPLATE',
+  GLOBAL = 'GLOBAL',
 }
 
 export enum TemplateType {
+  // Tipos básicos
+  URL = 'url',
+  WIFI = 'wifi',
+  VCARD = 'vcard',
+  EMAIL = 'email',
+  PHONE = 'phone',
+  SMS = 'sms',
+  LOCATION = 'location',
+  EVENT = 'event',
+  CRYPTO = 'crypto',
+  
+  // Redes sociales
   INSTAGRAM = 'instagram',
   YOUTUBE = 'youtube',
   FACEBOOK = 'facebook',
@@ -62,12 +74,20 @@ export const GradientConfigSchema = z.object({
 
 // Schema para configuración de QR
 export const QRConfigSchema = z.object({
-  // Apariencia básica
-  eye_shape: z.enum([
-    'square', 'rounded_square', 'circle', 'dot', 'leaf',
-    'star', 'diamond', 'cross', 'hexagon', 'heart',
-    'shield', 'crystal', 'flower', 'arrow'
+  // Estilos de ojos - siempre se usan eye_border_style y eye_center_style
+  // En modo unificado ambos tienen el mismo valor
+  use_separated_eye_styles: z.boolean().optional(),
+  eye_border_style: z.enum([
+    'square', 'rounded_square', 'circle', 'quarter_round', 'cut_corner',
+    'thick_border', 'double_border', 'diamond', 'hexagon', 'cross',
+    'star', 'leaf', 'arrow', 'teardrop', 'wave', 'petal',
+    'crystal', 'flame', 'organic'
   ]).optional(),
+  eye_center_style: z.enum([
+    'square', 'rounded_square', 'circle', 'dot', 'star', 
+    'diamond', 'cross', 'plus'
+  ]).optional(),
+  
   data_pattern: z.enum([
     'square', 'dots', 'rounded', 'circular', 
     'star', 'cross', 'wave', 'mosaic'
@@ -110,12 +130,12 @@ export const StudioConfigSchema = z.object({
   type: z.nativeEnum(StudioConfigType),
   name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
-  template_type: z.nativeEnum(TemplateType).optional(),
+  templateType: z.nativeEnum(TemplateType).nullable().optional(),
   config: QRConfigSchema,
-  is_active: z.boolean(),
-  created_by: z.string().uuid(),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
+  isActive: z.boolean(),
+  createdById: z.string().uuid(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
   version: z.number().int().positive(),
 });
 
@@ -125,10 +145,10 @@ export const PresetSchema = z.object({
   name: z.string().min(1).max(50),
   description: z.string().max(200).optional(),
   config: QRConfigSchema,
-  is_public: z.boolean(),
-  owner_id: z.string().uuid(),
-  created_at: z.string().datetime(),
-  usage_count: z.number().int().nonnegative(),
+  isPublic: z.boolean(), // camelCase
+  ownerId: z.string().uuid(), // camelCase
+  createdAt: z.string().datetime(), // camelCase
+  usageCount: z.number().int().nonnegative(), // camelCase
 });
 
 // ==================== TYPES ====================
@@ -195,7 +215,9 @@ export const DEFAULT_GRADIENT: GradientConfig = {
 };
 
 export const DEFAULT_QR_CONFIG: QRConfig = {
-  eye_shape: 'square',
+  use_separated_eye_styles: false,
+  eye_border_style: 'square',
+  eye_center_style: 'square',
   data_pattern: 'square',
   colors: DEFAULT_COLORS,
   gradient: DEFAULT_GRADIENT,

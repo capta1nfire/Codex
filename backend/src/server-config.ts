@@ -6,8 +6,8 @@ import { Express } from 'express';
 
 import prisma from './lib/prisma.js';
 import { redis } from './lib/redis.js';
-import logger from './utils/logger.js';
 import { studioWebSocketService } from './services/studioWebSocketService.js';
+import logger from './utils/logger.js';
 
 // Función para iniciar el servidor
 export const startServer = async (
@@ -81,7 +81,7 @@ export const startServer = async (
         logger.info(
           `Modo: ${NODE_ENV}, Rate limit: ${RATE_LIMIT_MAX} solicitudes por ${RATE_LIMIT_WINDOW_MS / 60000} minutos`
         );
-        
+
         // Inicializar WebSocket para Studio
         studioWebSocketService.initialize(httpsServer);
         logger.info('Studio WebSocket inicializado');
@@ -106,7 +106,7 @@ export const startServer = async (
       logger.info(
         `Modo: ${NODE_ENV}, Rate limit: ${RATE_LIMIT_MAX} solicitudes por ${RATE_LIMIT_WINDOW_MS / 60000} minutos`
       );
-      
+
       // Inicializar WebSocket para Studio
       studioWebSocketService.initialize(httpServer);
       logger.info('Studio WebSocket inicializado');

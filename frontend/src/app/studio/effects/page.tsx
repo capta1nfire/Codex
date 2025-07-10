@@ -30,7 +30,7 @@ import { useStudio } from '@/components/studio/StudioProvider';
 import { StudioGuard } from '@/components/studio/StudioGuard';
 import { StudioAction } from '@/hooks/useStudioPermissions';
 import { QRConfig, GradientConfig } from '@/types/studio.types';
-import { QRPreview } from '@/components/studio/QRPreview';
+import { StudioQRPreview } from '@/components/studio/StudioQRPreview';
 import toast from 'react-hot-toast';
 import { ColorPickerPopover } from '@/components/ui/color-picker-popover';
 import { Label } from '@/components/ui/label';
@@ -365,7 +365,7 @@ export default function EffectsConfigPage() {
               </CardHeader>
               <CardContent>
                 <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-lg p-8 flex items-center justify-center">
-                  <QRPreview
+                  <StudioQRPreview
                     config={{
                       error_correction: 'H',
                       ...getCurrentConfig()

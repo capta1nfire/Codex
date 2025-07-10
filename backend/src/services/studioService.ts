@@ -1,9 +1,9 @@
 /**
  * Studio Service
- * 
+ *
  * Servicio para gestionar las configuraciones de QR Studio.
  * Maneja CRUD de configuraciones globales, plantillas y placeholders.
- * 
+ *
  * Características:
  * - CRUD completo de configuraciones
  * - Validación de permisos SUPERADMIN
@@ -13,12 +13,13 @@
  */
 
 import { StudioConfig, StudioConfigType, Prisma } from '@prisma/client';
+
+import { studioWebSocketService } from './studioWebSocketService.js';
+import { DEFAULT_QR_CONFIG } from '../constants/qrDefaults.js';
 import prisma from '../lib/prisma.js';
 import { redisCache } from '../lib/redisCache.js';
 import { AppError, ErrorCode, HttpStatus } from '../utils/errors.js';
 import logger from '../utils/logger.js';
-import { DEFAULT_QR_CONFIG } from '../constants/qrDefaults.js';
-import { studioWebSocketService } from './studioWebSocketService.js';
 
 // Tipo para configuración QR
 interface QRConfig {
@@ -77,11 +78,7 @@ export class StudioService {
         where: {
           isActive: true,
         },
-        orderBy: [
-          { type: 'asc' },
-          { templateType: 'asc' },
-          { updatedAt: 'desc' },
-        ],
+        orderBy: [{ type: 'asc' }, { templateType: 'asc' }, { updatedAt: 'desc' }],
       });
 
       return configs;
@@ -127,11 +124,7 @@ export class StudioService {
       // Guardar en cache si existe
       if (config) {
         try {
-          await redisCache.setWithTTL(
-            cacheKey,
-            JSON.stringify(config),
-            this.CACHE_TTL
-          );
+          await redisCache.setWithTTL(cacheKey, JSON.stringify(config), this.CACHE_TTL);
         } catch (error) {
           logger.warn('Error guardando en cache:', error);
         }
@@ -207,14 +200,14 @@ export class StudioService {
       }
 
       logger.info(`Configuración ${existing ? 'actualizada' : 'creada'}: ${config.id}`);
-      
+
       // Notificar por WebSocket
       await studioWebSocketService.publishConfigUpdate(
         existing ? 'update' : 'create',
         config,
         userId
       );
-      
+
       return config;
     } catch (error) {
       logger.error('Error en upsert de configuración:', error);
@@ -261,7 +254,7 @@ export class StudioService {
       }
 
       logger.info(`Configuración eliminada: ${configId}`);
-      
+
       // Notificar por WebSocket
       await studioWebSocketService.publishConfigUpdate(
         'delete',
@@ -270,7 +263,7 @@ export class StudioService {
       );
     } catch (error) {
       if (error instanceof AppError) throw error;
-      
+
       logger.error('Error eliminando configuración:', error);
       throw new AppError(
         'Error al eliminar configuración',
@@ -335,7 +328,7 @@ export class StudioService {
 
       // Actualizar cada plantilla
       await Promise.all(
-        templates.map(template =>
+        templates.map((template) =>
           prisma.studioConfig.update({
             where: { id: template.id },
             data: {
@@ -388,10 +381,7 @@ export class StudioService {
 
       // Aplicar configuración de plantilla si existe
       if (templateType) {
-        const templateConfig = await this.getConfigByType(
-          StudioConfigType.TEMPLATE,
-          templateType
-        );
+        const templateConfig = await this.getConfigByType(StudioConfigType.TEMPLATE, templateType);
         if (templateConfig) {
           effectiveConfig = {
             ...effectiveConfig,

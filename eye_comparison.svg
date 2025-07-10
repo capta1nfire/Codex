@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="100" xmlns="http://www.w3.org/2000/svg">
+  <text x="10" y="20" font-family="Arial" font-size="14">Modo Unificado (Actual - Con Bug)</text>
+  <g transform="translate(10, 30) scale(5, 5)">
+    <path d="M 4 7.5 A 3.5 3.5 0 1 0 11 7.5 A 3.5 3.5 0 1 0 4 7.5 Z M 6 7.5 A 1.5 1.5 0 1 0 9 7.5 A 1.5 1.5 0 1 0 6 7.5 Z" fill="#FF0000" fill-rule="evenodd"/>
+  </g>
+  
+  <text x="150" y="20" font-family="Arial" font-size="14">Modo Unificado (Fixed)</text>
+  <g transform="translate(150, 30) scale(5, 5)">
+    <path d="M 4 7.5 A 3.5 3.5 0 1 0 11 7.5 A 3.5 3.5 0 1 0 4 7.5 Z" fill="#FF0000"/>
+  </g>
+</svg>

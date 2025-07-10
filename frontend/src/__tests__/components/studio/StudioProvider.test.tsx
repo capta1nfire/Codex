@@ -59,7 +59,7 @@ describe('StudioProvider', () => {
     type: StudioConfigType.PLACEHOLDER,
     name: 'Test Config',
     description: 'Test description',
-    template_type: null,
+    templateType: null,
     config: {
       eye_shape: 'square',
       data_pattern: 'dots',

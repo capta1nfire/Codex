@@ -15,7 +15,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { QRConfig } from '@/types/studio.types';
-import { PlaceholderPreview } from '@/components/studio/placeholder/PlaceholderPreview';
+import { StudioQRPreview } from '@/components/studio/StudioQRPreview';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -204,11 +204,15 @@ export function TemplatePreview({ templateType, config }: TemplatePreviewProps) 
             <p className="text-sm text-slate-600">{exampleData.description}</p>
           </CardHeader>
           <CardContent className="p-0">
-            {/* Aquí podríamos usar PlaceholderPreview con los datos de ejemplo */}
             <div className={`p-6 ${deviceView === 'mobile' ? 'max-w-sm mx-auto' : ''}`}>
               <div className="bg-white p-4 rounded-lg shadow-md">
-                <div className="aspect-square bg-slate-100 rounded flex items-center justify-center">
-                  <span className="text-slate-400">QR Code Preview</span>
+                {/* QR Code real con la configuración de la plantilla */}
+                <div className="aspect-square rounded overflow-hidden bg-white flex items-center justify-center">
+                  <StudioQRPreview 
+                    config={config}
+                    size={deviceView === 'mobile' ? 200 : 300}
+                    text={exampleData.data}
+                  />
                 </div>
                 <div className="mt-4 text-center">
                   <Badge variant="secondary">{templateType}</Badge>

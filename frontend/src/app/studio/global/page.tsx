@@ -29,13 +29,14 @@ import { useStudio } from '@/components/studio/StudioProvider';
 import { StudioGuard } from '@/components/studio/StudioGuard';
 import { StudioAction, useStudioPermissions } from '@/hooks/useStudioPermissions';
 import { QRConfig, StudioConfigType } from '@/types/studio.types';
-import { QRPreview } from '@/components/studio/QRPreview';
+import { StudioQRPreview } from '@/components/studio/StudioQRPreview';
 import toast from 'react-hot-toast';
 import { ColorPickerPopover } from '@/components/ui/color-picker-popover';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
+import { EyeStyleEditor } from '@/components/studio/EyeStyleEditor';
 
 export default function GlobalConfigPage() {
   const { 
@@ -52,7 +53,9 @@ export default function GlobalConfigPage() {
   const currentGlobalConfig = getConfigByType(StudioConfigType.GLOBAL);
   const [config, setConfig] = useState<QRConfig>(currentGlobalConfig?.config || {
     error_correction: 'H',
-    eye_shape: 'square',
+    use_separated_eye_styles: false,
+    eye_border_style: 'square',
+    eye_center_style: 'square',
     data_pattern: 'square',
     gradient: {
       enabled: false,
@@ -92,11 +95,17 @@ export default function GlobalConfigPage() {
     setIsSaving(true);
     try {
       await saveConfig({
+        ...(currentGlobalConfig?.id && { id: currentGlobalConfig.id }),
         type: StudioConfigType.GLOBAL,
         name: 'Configuración Global',
         description: 'Configuración base para todos los códigos QR',
         config,
-        version: (currentGlobalConfig?.version || 0) + 1
+        version: (currentGlobalConfig?.version || 0) + 1,
+        // Incluir campos existentes si es una actualización
+        ...(currentGlobalConfig && {
+          createdById: currentGlobalConfig.createdById,
+          createdAt: currentGlobalConfig.createdAt,
+        })
       });
       
       setHasChanges(false);
@@ -111,7 +120,9 @@ export default function GlobalConfigPage() {
   const handleReset = () => {
     const defaultConfig: QRConfig = {
       error_correction: 'H',
-      eye_shape: 'square',
+      use_separated_eye_styles: false,
+      eye_border_style: 'square',
+      eye_center_style: 'square',
       data_pattern: 'square',
       gradient: {
         enabled: false,
@@ -262,28 +273,15 @@ export default function GlobalConfigPage() {
                 </div>
                 
                 {/* Pattern Shapes */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label>Forma de Ojos</Label>
-                    <Select
-                      value={config.eye_shape || 'square'}
-                      onValueChange={(value) => updateCustomization({ eye_shape: value as any })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="square">Cuadrado</SelectItem>
-                        <SelectItem value="circle">Círculo</SelectItem>
-                        <SelectItem value="rounded_square">Cuadrado Redondeado</SelectItem>
-                        <SelectItem value="leaf">Hoja</SelectItem>
-                        <SelectItem value="rounded_inner">Interior Redondeado</SelectItem>
-                        <SelectItem value="rounded_outer">Exterior Redondeado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-4">
+                  {/* Eye Style Editor - Unified/Separated modes */}
+                  <EyeStyleEditor
+                    config={config}
+                    onChange={(updates) => updateCustomization(updates)}
+                    disabled={!canEdit}
+                  />
                   
-                  <div>
+                  <div className="mt-4">
                     <Label>Patrón de Datos</Label>
                     <Select
                       value={config.data_pattern || 'square'}
@@ -333,7 +331,7 @@ export default function GlobalConfigPage() {
               </CardHeader>
               <CardContent>
                 <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-8 flex items-center justify-center">
-                  <QRPreview
+                  <StudioQRPreview
                     config={config}
                     size={280}
                   />
@@ -369,7 +367,7 @@ export default function GlobalConfigPage() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Última Actualización:</span>
                     <span className="font-mono">
-                      {new Date(currentGlobalConfig.updated_at || '').toLocaleDateString()}
+                      {new Date(currentGlobalConfig.updatedAt || '').toLocaleDateString()}
                     </span>
                   </div>
                 </CardContent>

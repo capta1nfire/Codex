@@ -83,9 +83,9 @@ export function TemplateManager({
       const matchesSearch = searchTerm === '' || 
         template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-        (template.template_type?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+        (template.templateType?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
       
-      const matchesFilter = !filterType || template.template_type === filterType;
+      const matchesFilter = !filterType || template.templateType === filterType;
       
       return matchesSearch && matchesFilter;
     });
@@ -93,7 +93,7 @@ export function TemplateManager({
 
   // Obtener tipos únicos
   const uniqueTypes = useMemo(() => {
-    return Array.from(new Set(templates.map(t => t.template_type).filter(Boolean)));
+    return Array.from(new Set(templates.map(t => t.templateType).filter(Boolean)));
   }, [templates]);
 
   const handleDelete = (template: StudioConfig) => {
@@ -178,7 +178,7 @@ export function TemplateManager({
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
                   <div className="text-2xl">
-                    {TEMPLATE_ICONS[template.template_type || ''] || '📄'}
+                    {TEMPLATE_ICONS[template.templateType || ''] || '📄'}
                   </div>
                   <div>
                     <CardTitle className="text-base">{template.name}</CardTitle>
@@ -225,7 +225,7 @@ export function TemplateManager({
             <CardContent>
               <div className="flex items-center gap-4 text-sm">
                 <Badge variant="secondary">
-                  {template.template_type || 'general'}
+                  {template.templateType || 'general'}
                 </Badge>
                 
                 <div className="flex items-center gap-1 text-slate-500">

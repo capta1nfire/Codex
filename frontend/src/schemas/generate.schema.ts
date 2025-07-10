@@ -107,9 +107,9 @@ export const generateFormSchema = z.object({
       // Opciones v3 Enhanced para QR
       eye_shape: z.enum(['square', 'rounded_square', 'circle', 'dot', 'leaf', 'bars-horizontal', 'bars-vertical', 'star', 'diamond', 'cross', 'hexagon', 'heart', 'shield', 'crystal', 'flower', 'arrow', 'custom']).optional(),
       use_separated_eye_styles: z.boolean().optional(),
-      eye_border_style: z.enum(['square', 'rounded_square', 'circle', 'leaf', 'bars_horizontal', 'bars_vertical', 'star', 'diamond', 'cross', 'hexagon', 'heart', 'shield', 'crystal', 'flower', 'arrow']).optional(),
+      eye_border_style: z.enum(['square', 'rounded_square', 'circle', 'leaf', 'bars_horizontal', 'bars_vertical', 'star', 'diamond', 'cross', 'hexagon', 'heart', 'shield', 'crystal', 'flower', 'arrow', 'propuesta01']).optional(),
       eye_center_style: z.enum(['square', 'rounded_square', 'circle', 'dot', 'star', 'diamond', 'cross', 'plus']).optional(),
-      data_pattern: z.enum(['square', 'dots', 'rounded', 'vertical', 'horizontal', 'diamond', 'circular', 'star', 'cross', 'random', 'wave', 'mosaic']).optional(),
+      data_pattern: z.enum(['square', 'square_small', 'dots', 'rounded', 'vertical', 'horizontal', 'diamond', 'circular', 'star', 'cross', 'random', 'wave', 'mosaic']).optional(),
       
       // Logo options
       logo_enabled: z.boolean().optional(),
@@ -134,6 +134,26 @@ export const generateFormSchema = z.object({
       eye_colors: z.object({
         outer: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
         inner: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
+      }).optional(),
+      
+      // New enhanced eye color system
+      eye_color_mode: z.enum(['inherit', 'solid', 'gradient']).optional(),
+      eye_color_solid: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
+      eye_color_gradient: z.object({
+        type: z.enum(['linear', 'radial']).optional(),
+        color1: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
+        color2: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
+        direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
+      }).optional(),
+      
+      // Border/frame color system
+      eye_border_color_mode: z.enum(['inherit', 'solid', 'gradient']).optional(),
+      eye_border_color_solid: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
+      eye_border_color_gradient: z.object({
+        type: z.enum(['linear', 'radial']).optional(),
+        color1: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
+        color2: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
+        direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
       }).optional(),
     })
     .optional(),

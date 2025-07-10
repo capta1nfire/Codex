@@ -159,7 +159,16 @@ export function StudioProvider({ children }: StudioProviderProps) {
     updateState({ isLoading: true, error: null });
     
     try {
-      const response = await api.post<{ config: any }>('/api/studio/configs', config);
+      // Pilar 2: Robustez - Construir objeto completo con valores por defecto
+      const configToSave = {
+        ...config,
+        isActive: config.isActive ?? true,
+        createdById: config.createdById || user?.id || '',
+        createdAt: config.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      const response = await api.post<{ config: any }>('/api/studio/configs', configToSave);
       const savedConfig = validateStudioConfig(response.config);
       
       // Actualizar estado con la configuración guardada
@@ -167,7 +176,7 @@ export function StudioProvider({ children }: StudioProviderProps) {
         const updatedConfigs = prev.configs.filter(c => {
           // Comparar por tipo y templateType para actualizar el correcto
           if (savedConfig.type === StudioConfigType.TEMPLATE) {
-            return !(c.type === savedConfig.type && c.template_type === savedConfig.template_type);
+            return !(c.type === savedConfig.type && c.templateType === savedConfig.templateType);
           }
           return c.type !== savedConfig.type;
         });
@@ -276,10 +285,12 @@ export function StudioProvider({ children }: StudioProviderProps) {
 
   // Helpers
   const getConfigByType = useCallback((type: StudioConfigType, templateType?: TemplateType) => {
-    return state.configs.find(c => 
+    const config = state.configs.find(c => 
       c.type === type && 
-      (!templateType || c.template_type === templateType)
+      (!templateType || c.templateType === templateType)
     );
+    console.log('[Studio] getConfigByType called:', { type, templateType, found: !!config, config });
+    return config;
   }, [state.configs]);
 
   const getPlaceholderConfig = useCallback((): QRConfig => {

@@ -1,9 +1,9 @@
 /**
  * Studio WebSocket Service
- * 
+ *
  * Servicio de WebSocket para sincronización en tiempo real de QR Studio.
  * Notifica cambios de configuración a todos los clientes conectados.
- * 
+ *
  * @principle Pilar 1: Seguridad - Solo usuarios autorizados
  * @principle Pilar 2: Robustez - Manejo de reconexiones
  * @principle Pilar 3: Simplicidad - API de eventos clara
@@ -11,12 +11,14 @@
  * @principle Pilar 5: Valor - Actualizaciones instantáneas
  */
 
-import { Server as SocketIOServer } from 'socket.io';
 import { Server as HTTPServer } from 'http';
-import jwt from 'jsonwebtoken';
-import logger from '../utils/logger.js';
-import { redisCache } from '../lib/redisCache.js';
+
 import { StudioConfig, StudioConfigType } from '@prisma/client';
+import jwt from 'jsonwebtoken';
+import { Server as SocketIOServer } from 'socket.io';
+
+import { redisCache } from '../lib/redisCache.js';
+import logger from '../utils/logger.js';
 
 interface StudioSocketClient {
   userId: string;
@@ -43,7 +45,7 @@ export class StudioWebSocketService {
 
     this.setupEventHandlers();
     this.subscribeToRedis();
-    
+
     logger.info('Studio WebSocket service initialized');
   }
 
@@ -61,7 +63,7 @@ export class StudioWebSocketService {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-        
+
         // Solo permitir SUPERADMIN
         if (decoded.role !== 'SUPERADMIN') {
           return next(new Error('Insufficient permissions'));
@@ -138,12 +140,10 @@ export class StudioWebSocketService {
    */
   private handleSubscribeConfig(socket: any, data: any) {
     const { type, templateType } = data;
-    
+
     if (type) {
-      const room = templateType 
-        ? `studio:${type}:${templateType}`
-        : `studio:${type}`;
-      
+      const room = templateType ? `studio:${type}:${templateType}` : `studio:${type}`;
+
       socket.join(room);
       socket.emit('subscribed', { room, type, templateType });
     }
@@ -184,7 +184,7 @@ export class StudioWebSocketService {
     if (!this.io) return;
 
     const { action, config, userId } = update;
-    
+
     // Notificar a todos los SuperAdmin
     this.io.to('studio:superadmin').emit('config:update', {
       action,
@@ -195,10 +195,10 @@ export class StudioWebSocketService {
 
     // Notificar a salas específicas si aplica
     if (config) {
-      const room = config.templateType 
+      const room = config.templateType
         ? `studio:${config.type}:${config.templateType}`
         : `studio:${config.type}`;
-      
+
       this.io.to(room).emit('config:update', {
         action,
         config,
@@ -226,10 +226,10 @@ export class StudioWebSocketService {
 
       // Publicar en Redis para distribución
       await redisCache.publish(this.REDIS_CHANNEL, JSON.stringify(update));
-      
+
       // Difundir localmente también
       this.broadcastUpdate(update);
-      
+
       logger.info(`Studio update published: ${action} ${config.id}`);
     } catch (error) {
       logger.error('Error publishing config update:', error);
@@ -242,7 +242,7 @@ export class StudioWebSocketService {
   getConnectionStats() {
     return {
       totalClients: this.clients.size,
-      clients: Array.from(this.clients.values()).map(c => ({
+      clients: Array.from(this.clients.values()).map((c) => ({
         userId: c.userId,
         role: c.role,
         socketId: c.socketId,

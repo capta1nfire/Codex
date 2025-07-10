@@ -60,6 +60,9 @@ export const QR_V3_EYE_BORDER_STYLES = [
   { value: 'crystal', label: 'Cristal', icon: '💎' },
   { value: 'flame', label: 'Llama', icon: '🔥' },
   { value: 'organic', label: 'Orgánico', icon: '🌿' },
+  
+  // Propuestas temporales
+  { value: 'propuesta01', label: 'Propuesta 01', icon: '📐' },
 ] as const;
 
 export const QR_V3_EYE_CENTER_STYLES = [
@@ -75,6 +78,7 @@ export const QR_V3_EYE_CENTER_STYLES = [
 
 export const QR_V3_DATA_PATTERNS = [
   { value: 'square', label: 'Cuadrado', preview: '■' },
+  { value: 'square_small', label: 'Cuadrado Pequeño', preview: '▪' },
   { value: 'dots', label: 'Puntos', preview: '●' },
   { value: 'rounded', label: 'Redondeado', preview: '▢' },
   { value: 'vertical', label: 'Vertical', preview: '|||' },

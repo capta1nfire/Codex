@@ -67,7 +67,7 @@ function GenerationOptions({
 }: GenerationOptionsProps) {
   
   // Estado para el tab activo - aislado para evitar re-renders del padre
-  const [activeTab, setActiveTab] = useState<string>('color');
+  const [activeTab, setActiveTab] = useState<string>('shapes');
   
   // Memoizar el cambio de tab para evitar re-renders
   const handleTabChange = useCallback((tabId: string) => {
@@ -210,14 +210,14 @@ function GenerationOptions({
   // Definir los tabs - memoizado para evitar recreación
   const tabs = useMemo(() => [
     {
-      id: 'color',
-      name: 'COLOR',
-      icon: Palette,
-    },
-    {
       id: 'shapes',
       name: 'SHAPES',
       icon: Settings2,
+    },
+    {
+      id: 'color',
+      name: 'COLOR',
+      icon: Palette,
     },
     {
       id: 'logo',
@@ -600,149 +600,6 @@ function GenerationOptions({
               </div>
             )}
 
-            {/* Eye Colors Control - Moved here to be grouped with main colors */}
-            {isQrCode && (
-              <div className="space-y-3 mt-4">
-                <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Colores de Ojos Personalizados
-                </Label>
-                <Controller
-                  name="options.eye_colors"
-                  control={control}
-                  render={({ field }) => {
-                    const eyeColors = field.value || {};
-                    const hasCustomColors = !!(eyeColors.outer || eyeColors.inner);
-                    
-                    return (
-                      <div className="space-y-3">
-                        {/* Enable Custom Eye Colors */}
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-                          <div className="flex-1">
-                            <Label htmlFor="eye-colors-enabled" className="text-sm font-medium cursor-pointer">
-                              Colores Personalizados
-                            </Label>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                              Define colores específicos para los ojos del QR
-                            </p>
-                          </div>
-                          <Switch
-                            id="eye-colors-enabled"
-                            checked={hasCustomColors}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                field.onChange({
-                                  outer: watch('options.fgcolor') || '#000000',
-                                  inner: watch('options.fgcolor') || '#000000',
-                                });
-                              } else {
-                                field.onChange(undefined);
-                              }
-                              setTimeout(() => {
-                                const currentFormValues = getValues();
-                                onSubmit(currentFormValues);
-                              }, 100);
-                            }}
-                          />
-                        </div>
-
-                        {/* Color Controls */}
-                        {hasCustomColors && (
-                          <div className="grid grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-200">
-                            {/* Outer Color */}
-                            <div className="space-y-1">
-                              <Label className="text-sm text-slate-600 dark:text-slate-400">Color Exterior</Label>
-                              <div className="flex gap-2 items-center">
-                                <input
-                                  type="color"
-                                  value={eyeColors.outer || '#000000'}
-                                  onChange={(e) => {
-                                    field.onChange({
-                                      ...eyeColors,
-                                      outer: e.target.value,
-                                    });
-                                    setTimeout(() => {
-                                      const currentFormValues = getValues();
-                                      onSubmit(currentFormValues);
-                                    }, 100);
-                                  }}
-                                  className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded-md cursor-pointer"
-                                  disabled={isLoading}
-                                />
-                                <Input
-                                  type="text"
-                                  value={eyeColors.outer || '#000000'}
-                                  disabled={isLoading}
-                                  placeholder="#000000"
-                                  onChange={(e) => {
-                                    field.onChange({
-                                      ...eyeColors,
-                                      outer: e.target.value,
-                                    });
-                                    setTimeout(() => {
-                                      const currentFormValues = getValues();
-                                      onSubmit(currentFormValues);
-                                    }, 100);
-                                  }}
-                                  className="h-8 text-sm flex-1"
-                                />
-                              </div>
-                            </div>
-
-                            {/* Inner Color */}
-                            <div className="space-y-1">
-                              <Label className="text-sm text-slate-600 dark:text-slate-400">Color Interior</Label>
-                              <div className="flex gap-2 items-center">
-                                <input
-                                  type="color"
-                                  value={eyeColors.inner || '#000000'}
-                                  onChange={(e) => {
-                                    field.onChange({
-                                      ...eyeColors,
-                                      inner: e.target.value,
-                                    });
-                                    setTimeout(() => {
-                                      const currentFormValues = getValues();
-                                      onSubmit(currentFormValues);
-                                    }, 100);
-                                  }}
-                                  className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded-md cursor-pointer"
-                                  disabled={isLoading}
-                                />
-                                <Input
-                                  type="text"
-                                  value={eyeColors.inner || '#000000'}
-                                  disabled={isLoading}
-                                  placeholder="#000000"
-                                  onChange={(e) => {
-                                    field.onChange({
-                                      ...eyeColors,
-                                      inner: e.target.value,
-                                    });
-                                    setTimeout(() => {
-                                      const currentFormValues = getValues();
-                                      onSubmit(currentFormValues);
-                                    }, 100);
-                                  }}
-                                  className="h-8 text-sm flex-1"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {hasCustomColors && (
-                          <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                            <p className="text-xs text-blue-800 dark:text-blue-200">
-                              <strong>Tip:</strong> Usa colores con alto contraste respecto al fondo para mejor escaneabilidad. Se validará automáticamente el contraste WCAG AA.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }}
-                />
-              </div>
-            )}
 
             {/* Solid Colors for Non-QR Codes */}
             {!isQrCode && (
@@ -806,7 +663,39 @@ function GenerationOptions({
       case 'shapes':
         return (
           <div className="animate-in fade-in-50 duration-200 space-y-4">
-            {/* Eye Shapes Section */}
+            {/* Data Pattern Section - MOVED TO TOP */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Patrón de Datos
+              </Label>
+              <Controller
+                name="options.data_pattern"
+                control={control}
+                defaultValue="square"
+                render={({ field }) => (
+                  <div className="grid grid-cols-3 gap-2">
+                    {QR_V3_DATA_PATTERNS.map((pattern) => (
+                      <button
+                        key={pattern.value}
+                        type="button"
+                        onClick={() => field.onChange(pattern.value)}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
+                          field.value === pattern.value
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                        )}
+                      >
+                        <span className="text-2xl mb-1 font-mono">{pattern.preview}</span>
+                        <span className="text-xs font-medium">{pattern.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
+
+            {/* Eye Shapes Section - MOVED TO BOTTOM */}
             <div className="space-y-3">
               <div className="flex items-center justify-between mb-2">
                 <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -929,6 +818,174 @@ function GenerationOptions({
                     />
                   </div>
 
+                  {/* Eye Borders/Frames Color Control */}
+                  <div>
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
+                      Color del Borde
+                    </Label>
+                    <Controller
+                      name="options.eye_border_color_mode"
+                      control={control}
+                      defaultValue="inherit"
+                      render={({ field: modeField }) => {
+                        const mode = modeField.value || 'inherit';
+                        
+                        return (
+                          <div className="space-y-2">
+                            {/* Compact Mode Selection */}
+                            <Select 
+                              value={mode} 
+                              onValueChange={(value) => {
+                                modeField.onChange(value);
+                                // Clear other fields when mode changes
+                                if (value === 'inherit') {
+                                  setValue('options.eye_border_color_solid', undefined);
+                                  setValue('options.eye_border_color_gradient', undefined);
+                                }
+                                setTimeout(() => {
+                                  const currentFormValues = getValues();
+                                  onSubmit(currentFormValues);
+                                }, 100);
+                              }}
+                              disabled={isLoading}
+                            >
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="inherit">Heredar del patrón</SelectItem>
+                                <SelectItem value="solid">Color sólido</SelectItem>
+                                <SelectItem value="gradient">Gradiente</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            {/* Solid Color Option */}
+                            {mode === 'solid' && (
+                              <div className="animate-in slide-in-from-top-1 duration-200">
+                                <Controller
+                                  name="options.eye_border_color_solid"
+                                  control={control}
+                                  defaultValue="#000000"
+                                  render={({ field }) => (
+                                    <div className="flex gap-2 items-center">
+                                      <input
+                                        type="color"
+                                        value={field.value || '#000000'}
+                                        onChange={(e) => {
+                                          field.onChange(e.target.value);
+                                          setTimeout(() => {
+                                            const currentFormValues = getValues();
+                                            onSubmit(currentFormValues);
+                                          }, 100);
+                                        }}
+                                        className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+                                        disabled={isLoading}
+                                      />
+                                      <Input
+                                        type="text"
+                                        value={field.value || '#000000'}
+                                        onChange={(e) => {
+                                          field.onChange(e.target.value);
+                                          setTimeout(() => {
+                                            const currentFormValues = getValues();
+                                            onSubmit(currentFormValues);
+                                          }, 100);
+                                        }}
+                                        disabled={isLoading}
+                                        placeholder="#000000"
+                                        className="h-8 text-xs flex-1"
+                                      />
+                                    </div>
+                                  )}
+                                />
+                              </div>
+                            )}
+
+                            {/* Gradient Option - Compact */}
+                            {mode === 'gradient' && (
+                              <div className="space-y-2 animate-in slide-in-from-top-1 duration-200">
+                                <div className="grid grid-cols-2 gap-2">
+                                  <Controller
+                                    name="options.eye_border_color_gradient.color1"
+                                    control={control}
+                                    defaultValue="#0066FF"
+                                    render={({ field }) => (
+                                      <div className="flex gap-1 items-center">
+                                        <input
+                                          type="color"
+                                          value={field.value || '#0066FF'}
+                                          onChange={(e) => {
+                                            field.onChange(e.target.value);
+                                            setTimeout(() => {
+                                              const currentFormValues = getValues();
+                                              onSubmit(currentFormValues);
+                                            }, 100);
+                                          }}
+                                          className="w-6 h-6 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+                                          disabled={isLoading}
+                                        />
+                                        <Input
+                                          type="text"
+                                          value={field.value || '#0066FF'}
+                                          onChange={(e) => {
+                                            field.onChange(e.target.value);
+                                            setTimeout(() => {
+                                              const currentFormValues = getValues();
+                                              onSubmit(currentFormValues);
+                                            }, 100);
+                                          }}
+                                          disabled={isLoading}
+                                          placeholder="#0066FF"
+                                          className="h-6 text-xs flex-1"
+                                        />
+                                      </div>
+                                    )}
+                                  />
+                                  <Controller
+                                    name="options.eye_border_color_gradient.color2"
+                                    control={control}
+                                    defaultValue="#00FF66"
+                                    render={({ field }) => (
+                                      <div className="flex gap-1 items-center">
+                                        <input
+                                          type="color"
+                                          value={field.value || '#00FF66'}
+                                          onChange={(e) => {
+                                            field.onChange(e.target.value);
+                                            setTimeout(() => {
+                                              const currentFormValues = getValues();
+                                              onSubmit(currentFormValues);
+                                            }, 100);
+                                          }}
+                                          className="w-6 h-6 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+                                          disabled={isLoading}
+                                        />
+                                        <Input
+                                          type="text"
+                                          value={field.value || '#00FF66'}
+                                          onChange={(e) => {
+                                            field.onChange(e.target.value);
+                                            setTimeout(() => {
+                                              const currentFormValues = getValues();
+                                              onSubmit(currentFormValues);
+                                            }, 100);
+                                          }}
+                                          disabled={isLoading}
+                                          placeholder="#00FF66"
+                                          className="h-6 text-xs flex-1"
+                                        />
+                                      </div>
+                                    )}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                  </div>
+
                   {/* Eye Center Style */}
                   <div>
                     <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
@@ -968,6 +1025,174 @@ function GenerationOptions({
                     />
                   </div>
 
+                  {/* Eye Centers Color Control */}
+                  <div>
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
+                      Color del Centro
+                    </Label>
+                    <Controller
+                      name="options.eye_color_mode"
+                      control={control}
+                      defaultValue="inherit"
+                      render={({ field: modeField }) => {
+                        const mode = modeField.value || 'inherit';
+                        
+                        return (
+                          <div className="space-y-2">
+                            {/* Compact Mode Selection */}
+                            <Select 
+                              value={mode} 
+                              onValueChange={(value) => {
+                                modeField.onChange(value);
+                                // Clear other fields when mode changes
+                                if (value === 'inherit') {
+                                  setValue('options.eye_color_solid', undefined);
+                                  setValue('options.eye_color_gradient', undefined);
+                                }
+                                setTimeout(() => {
+                                  const currentFormValues = getValues();
+                                  onSubmit(currentFormValues);
+                                }, 100);
+                              }}
+                              disabled={isLoading}
+                            >
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="inherit">Heredar del patrón</SelectItem>
+                                <SelectItem value="solid">Color sólido</SelectItem>
+                                <SelectItem value="gradient">Gradiente</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            {/* Solid Color Option */}
+                            {mode === 'solid' && (
+                              <div className="animate-in slide-in-from-top-1 duration-200">
+                                <Controller
+                                  name="options.eye_color_solid"
+                                  control={control}
+                                  defaultValue="#000000"
+                                  render={({ field }) => (
+                                    <div className="flex gap-2 items-center">
+                                      <input
+                                        type="color"
+                                        value={field.value || '#000000'}
+                                        onChange={(e) => {
+                                          field.onChange(e.target.value);
+                                          setTimeout(() => {
+                                            const currentFormValues = getValues();
+                                            onSubmit(currentFormValues);
+                                          }, 100);
+                                        }}
+                                        className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+                                        disabled={isLoading}
+                                      />
+                                      <Input
+                                        type="text"
+                                        value={field.value || '#000000'}
+                                        onChange={(e) => {
+                                          field.onChange(e.target.value);
+                                          setTimeout(() => {
+                                            const currentFormValues = getValues();
+                                            onSubmit(currentFormValues);
+                                          }, 100);
+                                        }}
+                                        disabled={isLoading}
+                                        placeholder="#000000"
+                                        className="h-8 text-xs flex-1"
+                                      />
+                                    </div>
+                                  )}
+                                />
+                              </div>
+                            )}
+
+                            {/* Gradient Option - Compact */}
+                            {mode === 'gradient' && (
+                              <div className="space-y-2 animate-in slide-in-from-top-1 duration-200">
+                                <div className="grid grid-cols-2 gap-2">
+                                  <Controller
+                                    name="options.eye_color_gradient.color1"
+                                    control={control}
+                                    defaultValue="#FF0066"
+                                    render={({ field }) => (
+                                      <div className="flex gap-1 items-center">
+                                        <input
+                                          type="color"
+                                          value={field.value || '#FF0066'}
+                                          onChange={(e) => {
+                                            field.onChange(e.target.value);
+                                            setTimeout(() => {
+                                              const currentFormValues = getValues();
+                                              onSubmit(currentFormValues);
+                                            }, 100);
+                                          }}
+                                          className="w-6 h-6 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+                                          disabled={isLoading}
+                                        />
+                                        <Input
+                                          type="text"
+                                          value={field.value || '#FF0066'}
+                                          onChange={(e) => {
+                                            field.onChange(e.target.value);
+                                            setTimeout(() => {
+                                              const currentFormValues = getValues();
+                                              onSubmit(currentFormValues);
+                                            }, 100);
+                                          }}
+                                          disabled={isLoading}
+                                          placeholder="#FF0066"
+                                          className="h-6 text-xs flex-1"
+                                        />
+                                      </div>
+                                    )}
+                                  />
+                                  <Controller
+                                    name="options.eye_color_gradient.color2"
+                                    control={control}
+                                    defaultValue="#6600FF"
+                                    render={({ field }) => (
+                                      <div className="flex gap-1 items-center">
+                                        <input
+                                          type="color"
+                                          value={field.value || '#6600FF'}
+                                          onChange={(e) => {
+                                            field.onChange(e.target.value);
+                                            setTimeout(() => {
+                                              const currentFormValues = getValues();
+                                              onSubmit(currentFormValues);
+                                            }, 100);
+                                          }}
+                                          className="w-6 h-6 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+                                          disabled={isLoading}
+                                        />
+                                        <Input
+                                          type="text"
+                                          value={field.value || '#6600FF'}
+                                          onChange={(e) => {
+                                            field.onChange(e.target.value);
+                                            setTimeout(() => {
+                                              const currentFormValues = getValues();
+                                              onSubmit(currentFormValues);
+                                            }, 100);
+                                          }}
+                                          disabled={isLoading}
+                                          placeholder="#6600FF"
+                                          className="h-6 text-xs flex-1"
+                                        />
+                                      </div>
+                                    )}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                  </div>
+
                   <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
                     <p className="text-xs text-blue-800 dark:text-blue-200">
                       <strong>Nota:</strong> Ahora puedes personalizar el borde y el centro de los ojos de forma independiente.
@@ -975,40 +1200,6 @@ function GenerationOptions({
                   </div>
                 </div>
               )}
-            </div>
-
-
-
-            {/* Data Pattern Section */}
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Patrón de Datos
-              </Label>
-              <Controller
-                name="options.data_pattern"
-                control={control}
-                defaultValue="square"
-                render={({ field }) => (
-                  <div className="grid grid-cols-3 gap-2">
-                    {QR_V3_DATA_PATTERNS.map((pattern) => (
-                      <button
-                        key={pattern.value}
-                        type="button"
-                        onClick={() => field.onChange(pattern.value)}
-                        className={cn(
-                          "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
-                          field.value === pattern.value
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                        )}
-                      >
-                        <span className="text-2xl mb-1 font-mono">{pattern.preview}</span>
-                        <span className="text-xs font-medium">{pattern.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              />
             </div>
           </div>
         );

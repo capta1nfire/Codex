@@ -141,8 +141,8 @@ export default function TemplateEditorPage() {
     
     const templateMap: Record<string, QRConfig> = {};
     templateConfigs.forEach(config => {
-      if (config.template_type) {
-        templateMap[config.template_type] = config.config as QRConfig;
+      if (config.templateType) {
+        templateMap[config.templateType] = config.config as QRConfig;
       }
     });
     
