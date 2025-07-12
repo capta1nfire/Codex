@@ -486,6 +486,17 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
               />
             )}
             
+            {/* Glass frame effect for transparent background */}
+            {(displayState.showRealBarcode || displayState.showEmptyState) && transparentBackground && (
+              <div 
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] rounded-lg pointer-events-none"
+                style={{
+                  boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.8), inset 0 -1px 2px rgba(255,255,255,0.2)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                }}
+              />
+            )}
+            
             {/* ⚠️ CONTENEDOR QR CRÍTICO - MANTENER ESTRUCTURA
                 - Dimensiones: 320x320px exactos
                 - overflow-hidden: REQUERIDO
@@ -493,7 +504,7 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
                 - Eventos mouse: CONTROLAN overlay de descarga
             */}
             <div 
-              className="relative w-[320px] h-[320px] flex items-center justify-center overflow-hidden z-10"
+              className="relative w-[320px] h-[320px] flex items-center justify-center overflow-hidden z-10 rounded-lg"
               onMouseEnter={() => {
                 setIsHovering(true);
                 if (qrData && !isPlaceholderData(qrData) && displayState.showRealBarcode) {

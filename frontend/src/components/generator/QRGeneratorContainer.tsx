@@ -748,24 +748,36 @@ export function QRGeneratorContainer() {
         />
 
         <form onSubmit={handleSubmit(onSubmit)} className="scroll-smooth overflow-visible">
-          <div className="grid grid-cols-1 gap-6 generator-grid">
-            {/* Columna de configuración - Original */}
-            <section className="row-start-1" id="form-content">
-              <div className="column-card h-full">
-                {/* Progress Steps Bar - Moved inside div */}
-                <div className="h-4"></div>
-                <div className="px-6 pt-3 pb-2">
-                  <GeneratorHeader 
-                    currentStep={hasData ? (isPersonalized ? 3 : 2) : 1}
-                    hasData={hasData}
-                    isPersonalized={isPersonalized}
-                    className="p-0 bg-transparent border-0"
-                  />
-                </div>
-
-                <div className="h-4"></div>
+          {/* ⚠️ ESTRUCTURA DE FUSIÓN VISUAL - VALORES CRÍTICOS CALIBRADOS
+              Este contenedor único crea el efecto de columnas fusionadas.
+              
+              COMPONENTES CLAVE:
+              1. column-card: Contenedor único con transparencia 50% + blur
+              2. GeneratorHeader: 100% ancho, empuja contenido hacia abajo
+              3. Grid responsive: 1 columna móvil, 2 columnas desktop
+              4. Preview sticky con superposición calibrada
+              
+              NO MODIFICAR sin sesión completa de recalibración.
+          */}
+          <div className="column-card p-0">
+            {/* Progress Steps Bar - 100% width */}
+            <div className="w-full px-6 pt-6 pb-2">
+              <GeneratorHeader 
+                currentStep={hasData ? (isPersonalized ? 3 : 2) : 1}
+                hasData={hasData}
+                isPersonalized={isPersonalized}
+                className="p-0 bg-transparent border-0"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr,auto] gap-6 lg:gap-[14px] generator-grid px-6 pr-6 lg:pr-[10px] pb-6">
+              {/* Columna de configuración - Original */}
+              <section className="row-start-1 lg:col-start-1" id="form-content">
+                <div className="h-full">
+                {/* Espaciador para alinear con el QR */}
+                <div className="hidden lg:block h-[14px]"></div>
                 
-                <div className="space-y-6 px-6 pb-6 pt-0">
+                <div className="space-y-6">
                   {/* Tarjeta 1: Datos */}
                   <DataCard
                     selectedType={selectedType}
@@ -833,25 +845,30 @@ export function QRGeneratorContainer() {
             </section>
 
             {/* Columna de vista previa - ESTRUCTURA PROTEGIDA */}
-            {/* ⚠️ IMPORTANTE: Esta estructura de contenedores está optimizada para sticky.
-                NO MODIFICAR la jerarquía de contenedores sin autorización explícita.
+            {/* ⚠️ IMPORTANTE: Esta estructura fue calibrada durante una sesión completa.
+                NO MODIFICAR sin autorización explícita del usuario.
                 
-                Estructura crítica:
-                1. div.column-card - Contenedor exterior con mismo estilo que columna 1
-                2. section con sticky - Contenedor que se pega al scroll
+                VALORES CRÍTICOS CALIBRADOS:
+                - mb-[-14px]: Margen negativo inferior del contenedor
+                - mb-[-60px]: Superposición del PreviewSection
+                - lg:sticky lg:top-0: Sticky solo en desktop, pegado al top
+                - z-10/z-20: Capas para correcta superposición
+                - lg:gap-[14px]: Espaciado entre columnas
+                - lg:pr-[10px]: Padding derecho del grid
+                - h-[14px]: Espaciador de alineación columna 1
                 
-                CONFIGURACIÓN CRÍTICA (Sesión completa de calibración):
-                - column-card: Usa misma clase que columna 1 para consistencia
-                - p-0 pr-0: Sin padding para que el QR use todo el espacio
-                - w-fit: Ajuste automático al contenido
-                - mx-auto: Centrado horizontal
+                CONFIGURACIÓN DE FUSIÓN VISUAL:
+                - Un único .column-card engloba ambas columnas
+                - GeneratorHeader ocupa 100% del ancho superior
+                - Grid de 2 columnas solo en lg (desktop)
+                - Transparencia 50% con blur en globals.css
                 
-                El sticky REQUIERE esta estructura exacta para funcionar.
-                Modificar los contenedores romperá el comportamiento sticky.
+                Cualquier cambio romperá la alineación y fusión visual.
             */}
-            <div className="column-card p-0 pr-0 w-fit mx-auto">
-              <section className={`${selectedType === 'qrcode' ? 'lg:sticky lg:top-8 lg:self-start' : ''} w-fit p-0`}>
-                <PreviewSection
+            <div className="row-start-2 lg:row-start-1 lg:col-start-2 w-fit mx-auto lg:mx-0 mb-[-14px] relative z-10">
+              <section className={`${selectedType === 'qrcode' ? 'lg:sticky lg:top-0' : ''} w-fit p-0`}>
+                <div className="mb-[-60px] relative z-20">
+                  <PreviewSection
                   svgContent={svgContent || ''}
                   enhancedData={enhancedData}
                   isLoading={isLoading}
@@ -868,8 +885,10 @@ export function QRGeneratorContainer() {
                   })()}
                   backgroundColor={watch('options.bgcolor')}
                 />
+                </div>
               </section>
             </div>
+          </div>
           </div>
         </form>
       </main>

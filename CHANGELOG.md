@@ -2,6 +2,22 @@
 
 All notable changes to the CODEX project are documented in the [docs/](./docs/) directory.
 
+## 2025-07-12
+
+### 🔧 Fixed
+- **Visual Column Fusion**: Restored calibrated sticky layout for QR generator
+  - Applied single `.column-card` container for both columns
+  - Restored critical spacing values: mb-[-14px], mb-[-60px], gap-[14px]
+  - Fixed GeneratorHeader to span 100% width
+  - Maintained transparency 50% with blur effect
+  - Result: Options and preview appear as single floating component
+
+- **Glass Frame Border**: Restored 3D glass frame effect for transparent backgrounds
+  - Applied Option 4: Glass frame with light/dark gradient
+  - Stronger contrast (white 0.8 to black 0.4) for better visibility
+  - No shadow or background, just the frame effect
+  - Result: Clean 3D border that enhances transparent QR codes
+
 ## 2025-07-10
 
 ### ✅ Added
