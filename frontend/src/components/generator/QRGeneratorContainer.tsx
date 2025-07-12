@@ -770,7 +770,7 @@ export function QRGeneratorContainer() {
               />
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr,auto] gap-6 lg:gap-[14px] generator-grid px-6 pr-6 lg:pr-[10px] pb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr,auto] gap-6 lg:gap-[10px] generator-grid px-6 pr-6 lg:pr-[10px] pb-6">
               {/* Columna de configuración - Original */}
               <section className="row-start-1 lg:col-start-1" id="form-content">
                 <div className="h-full">
@@ -853,7 +853,7 @@ export function QRGeneratorContainer() {
                 - mb-[-60px]: Superposición del PreviewSection
                 - lg:sticky lg:top-0: Sticky solo en desktop, pegado al top
                 - z-10/z-20: Capas para correcta superposición
-                - lg:gap-[14px]: Espaciado entre columnas
+                - lg:gap-[10px]: Espaciado entre columnas
                 - lg:pr-[10px]: Padding derecho del grid
                 - h-[14px]: Espaciador de alineación columna 1
                 

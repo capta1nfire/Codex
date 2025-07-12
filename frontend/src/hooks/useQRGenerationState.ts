@@ -480,26 +480,42 @@ export const useQRGenerationState = () => {
           ...(formData.options?.eye_border_color_gradient ? {
             eye_border_color_gradient: formData.options.eye_border_color_gradient
           } : {}),
-          // Add eye gradient configuration if gradient mode is selected for borders
-          ...(formData.options?.eye_border_color_mode === 'gradient' && formData.options?.eye_border_color_gradient ? {
+          // Add eye gradient configuration if gradient mode is selected for borders OR if inherit mode with gradient enabled
+          ...((formData.options?.eye_border_color_mode === 'gradient' && formData.options?.eye_border_color_gradient) || 
+              (formData.options?.eye_border_color_mode === 'inherit' && formData.options?.gradient_enabled) ? {
             eye_border_gradient: {
               enabled: true,
-              gradient_type: formData.options.eye_border_color_gradient.type || 'radial',
-              colors: [
-                formData.options.eye_border_color_gradient.color1,
-                formData.options.eye_border_color_gradient.color2
-              ]
+              gradient_type: formData.options?.eye_border_color_mode === 'gradient' 
+                ? (formData.options.eye_border_color_gradient?.type || 'radial')
+                : (formData.options.gradient_type || 'linear'),
+              colors: formData.options?.eye_border_color_mode === 'gradient'
+                ? [
+                    formData.options.eye_border_color_gradient?.color1,
+                    formData.options.eye_border_color_gradient?.color2
+                  ]
+                : [
+                    formData.options.gradient_color1 || '#000000',
+                    formData.options.gradient_color2 || '#666666'
+                  ]
             }
           } : {}),
-          // Add eye center gradient configuration if gradient mode is selected for centers
-          ...(formData.options?.eye_color_mode === 'gradient' && formData.options?.eye_color_gradient ? {
+          // Add eye center gradient configuration if gradient mode is selected for centers OR if inherit mode with gradient enabled
+          ...((formData.options?.eye_color_mode === 'gradient' && formData.options?.eye_color_gradient) ||
+              (formData.options?.eye_color_mode === 'inherit' && formData.options?.gradient_enabled) ? {
             eye_center_gradient: {
               enabled: true,
-              gradient_type: formData.options.eye_color_gradient.type || 'radial',
-              colors: [
-                formData.options.eye_color_gradient.color1,
-                formData.options.eye_color_gradient.color2
-              ]
+              gradient_type: formData.options?.eye_color_mode === 'gradient'
+                ? (formData.options.eye_color_gradient?.type || 'radial')
+                : (formData.options.gradient_type || 'linear'),
+              colors: formData.options?.eye_color_mode === 'gradient'
+                ? [
+                    formData.options.eye_color_gradient?.color1,
+                    formData.options.eye_color_gradient?.color2
+                  ]
+                : [
+                    formData.options.gradient_color1 || '#000000',
+                    formData.options.gradient_color2 || '#666666'
+                  ]
             }
           } : {}),
           // Add fixed size if specified
@@ -544,7 +560,7 @@ export const useQRGenerationState = () => {
           } : undefined
         };
         
-        console.log('[useQRGenerationState] Final customizationConfig:', customizationConfig);
+        console.log('[useQRGenerationState] Final customizationConfig:', JSON.stringify(customizationConfig, null, 2));
         
         await v3Enhanced.generateEnhancedQR(
           formData.data,

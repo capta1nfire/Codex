@@ -18,6 +18,11 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - No shadow or background, just the frame effect
   - Result: Clean 3D border that enhances transparent QR codes
 
+- **"Heredar Patrón" for Eyes**: Restored inherit pattern functionality
+  - Eye borders and centers now inherit main gradient when set to "inherit"
+  - Fixed gradient configuration to pass pattern gradient to eyes
+  - Result: Eyes can use the same gradient as the data pattern
+
 ## 2025-07-10
 
 ### ✅ Added
