@@ -27,7 +27,7 @@
 
 ### frontend/README.md ✅
 - Creado nuevo README siguiendo plantilla FLODEX
-- Migrada información de: docs/CODEX_DESIGN_SYSTEM.md, frontend/docs/SMART_AUTO_GENERATION.md, docs/SVG_GRADIENT_SYSTEM.md
+- Migrada información de: docs/QReable_DESIGN_SYSTEM.md, frontend/docs/SMART_AUTO_GENERATION.md, docs/SVG_GRADIENT_SYSTEM.md
 - Documentado sistema de diseño corporativo y auto-generación inteligente
 - Incluye troubleshooting específico de Next.js y React
 
@@ -49,7 +49,7 @@
 - docs/BATCH_PROCESSING_GUIDE.md → Archivado
 
 **Frontend (9 archivos)**:
-- docs/CODEX_DESIGN_SYSTEM.md → Archivado (contenido en frontend/README.md)
+- docs/QReable_DESIGN_SYSTEM.md → Archivado (contenido en frontend/README.md)
 - docs/CLIPBOARD_FIX.md → Archivado
 - docs/E2E_TESTING_GUIDE.md → Archivado
 - docs/IMAGE_OPTIMIZATION_GUIDE.md → Archivado

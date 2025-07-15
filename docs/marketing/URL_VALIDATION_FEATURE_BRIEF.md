@@ -10,7 +10,7 @@
 ## 🏆 **Feature Highlight: URL Validation Inteligente**
 
 ### **✨ Lo que hace**
-CODEX incluye un **sistema enterprise de validación de URLs con múltiples capas** que no solo verifica si los sitios están activos, sino que también extrae información valiosa (título, descripción, favicon) antes de generar códigos QR. **Además, detecta inteligentemente cuándo estás editando URLs** para evitar interrupciones molestas.
+QReable incluye un **sistema enterprise de validación de URLs con múltiples capas** que no solo verifica si los sitios están activos, sino que también extrae información valiosa (título, descripción, favicon) antes de generar códigos QR. **Además, detecta inteligentemente cuándo estás editando URLs** para evitar interrupciones molestas.
 
 ### **🎭 Analogía simple**
 Es como tener un **"detective digital de sitios web"** que no solo verifica si un sitio está funcionando, sino que también recopila información importante sobre él, usando hasta 5 métodos diferentes para superar cualquier obstáculo. **Y es lo suficientemente inteligente para no molestarte mientras editas URLs.**
@@ -22,14 +22,14 @@ Es como tener un **"detective digital de sitios web"** que no solo verifica si u
 ### **🎯 Para el Cliente**
 - **✅ Verificación ultra-rápida**: Validación optimizada en ~1 segundo típicamente
 - **🎨 Extracción garantizada de favicon**: 75% de éxito en sitios activos
-- **🌍 Compatibilidad enterprise**: Funciona con sitios protegidos (CloudFlare, SSL issues)
+- **🌍 Compatibilidad enterprise**: Funciona con sitios protegidos (Amazon, Cloudflare, GitHub)
 - **📊 Metadata completa**: Título, descripción y favicon extraídos automáticamente
 - **🔄 Sistema de 5 niveles**: Stealth → Enhanced → Behavioral → DNS → Browser
 - **💾 Cache inteligente**: Respuestas instantáneas para URLs ya validadas
 - **🧠 Edición fluida**: Detecta cuándo estás editando para no interrumpir
 - **✂️ Selección natural**: Ctrl+A y selección con mouse funcionan perfectamente
 
-### **🚀 Para CODEX**
+### **🚀 Para QReable**
 - **📈 Diferenciador competitivo**: Sistema más avanzado del mercado
 - **💪 Confiabilidad 95%+**: Múltiples fallbacks garantizan resultados
 - **⭐ Enterprise-ready**: Maneja sitios con protección anti-bot
@@ -164,15 +164,7 @@ Resultado: "¡Por fin puedo editar URLs sin que se vuelva loco!"
 
 ---
 
-## 🎬 **Social Proof Opportunities**
-
-### **📱 Before/After Screenshots**
-- Captura de "sitio no disponible" vs "sitio validado"
-- Comparación de metadata obtenida (título, descripción, favicon)
-- **Video de edición fluida**: Usuario editando URL sin interrupciones vs otros QR generators
-- **Demo de Ctrl+A**: Funcionando perfectamente vs competidores que interfieren
-
-### **📊 Case Studies potenciales**
+## 📊 **Case Studies potenciales**
 - **E-commerce**: "Tienda Shopify validada exitosamente"
 - **Corporate**: "Sitio con CloudFlare bypass exitoso"  
 - **Marketing**: "Campaña Amazon sin falsos negativos"
@@ -181,7 +173,7 @@ Resultado: "¡Por fin puedo editar URLs sin que se vuelva loco!"
 
 ### **💬 Customer Testimonials** (futuro)
 - "Antes perdíamos clientes por validaciones erróneas"
-- "Ahora confiamos 100% en las validaciones de CODEX"
+- "Ahora confiamos 100% en las validaciones de QReable"
 - "La única plataforma que funciona con nuestro sitio protegido"
 - "¡Por fin puedo usar Ctrl+A sin que se vuelva loco el QR!"
 - "Es el único generador que no me interrumpe mientras edito"
@@ -226,7 +218,7 @@ Resultado: "¡Por fin puedo editar URLs sin que se vuelva loco!"
 **📝**: No, es una feature incluida que mejora la experiencia general de la plataforma.
 
 ### **❓ "¿Qué es eso de 'detección de intención'?"**
-**📝**: El sistema detecta automáticamente cuándo estás editando URLs (selección de texto, borrado múltiple) y pausa la regeneración automática para no interrumpirte. Es invisible pero hace que la edición sea mucho más fluida.
+**📝**: El sistema detecta automáticamente cuándo estás editando URLs (selección de texto, borrado múltiple, Ctrl+A) y pausa la regeneración automática para no interrumpirte. Es invisible pero hace que la edición sea mucho más fluida.
 
 ---
 

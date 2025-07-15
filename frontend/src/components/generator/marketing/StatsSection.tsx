@@ -86,12 +86,12 @@ export default function StatsSection() {
               key={stat.label}
               className={cn(
                 "group",
-                "animate-fade-in-up"
+                "animate-in fade-in slide-in-from-bottom-4 duration-500",
+                index === 0 && "delay-0",
+                index === 1 && "delay-100",
+                index === 2 && "delay-200",
+                index === 3 && "delay-300"
               )}
-              style={{
-                animationDelay: `${index * 100}ms`,
-                animationFillMode: 'both'
-              }}
             >
               <div className={cn(
                 "text-4xl font-bold mb-2",
@@ -110,23 +110,6 @@ export default function StatsSection() {
         </div>
       </div>
 
-      {/* Add animation styles */}
-      <style jsx>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out;
-        }
-      `}</style>
     </section>
   );
 }

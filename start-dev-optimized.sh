@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Iniciando CODEX con optimizaciones de rendimiento..."
+echo "🚀 Iniciando QReable con optimizaciones de rendimiento..."
 
 # Configurar Node.js para alto rendimiento
 export NODE_OPTIONS="--max-old-space-size=4096 --max-semi-space-size=128"
@@ -26,7 +26,7 @@ sleep 10
 # Verificar estado
 pm2 status
 
-echo "✅ CODEX iniciado con optimizaciones"
+echo "✅ QReable iniciado con optimizaciones"
 echo "📊 Monitorear con: pm2 monit"
 echo "📈 Ver logs con: pm2 logs"
 echo ""

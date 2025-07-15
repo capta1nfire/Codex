@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Iniciando CODEX en modo optimizado..."
+echo "🚀 Iniciando QReable en modo optimizado..."
 
 # Cargar variables de entorno de producción
 export $(cat .env.production | xargs)
@@ -18,6 +18,6 @@ sleep 10
 # Verificar estado
 pm2 status
 
-echo "✅ CODEX iniciado en modo optimizado"
+echo "✅ QReable iniciado en modo optimizado"
 echo "📊 Monitorear con: pm2 monit"
 echo "📈 Ver logs con: pm2 logs"

@@ -10,7 +10,7 @@ export const registry = new client.Registry();
 client.collectDefaultMetrics({ register: registry });
 
 // Prefijo común para métricas personalizadas
-const METRIC_PREFIX = 'codex_backend_';
+const METRIC_PREFIX = 'qreable_backend_';
 
 // Métrica Personalizada: Duración de Solicitudes HTTP (Histograma)
 export const httpRequestDurationMicroseconds = new client.Histogram({

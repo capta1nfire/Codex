@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'codex-backend',
+      name: 'qreable-backend',
       cwd: './backend',
       script: './start-dev.sh',
       instances: 1,
@@ -21,7 +21,7 @@ module.exports = {
       min_uptime: '10s'
     },
     {
-      name: 'codex-frontend',
+      name: 'qreable-frontend',
       cwd: './frontend',
       script: 'npm',
       args: 'run dev',
@@ -44,7 +44,7 @@ module.exports = {
       min_uptime: '10s'
     },
     {
-      name: 'codex-rust',
+      name: 'qreable-rust',
       cwd: './rust_generator',
       script: 'cargo',
       args: 'run',

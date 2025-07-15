@@ -1,5 +1,5 @@
 groups:
-  - name: codex_alerts
+  - name: qreable_alerts
     rules:
       # Alerta por alta latencia en API
       - alert: HighAPILatency
@@ -8,7 +8,7 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Alta latencia en API de Codex"
+          summary: "Alta latencia en API de QReable"
           description: "La latencia P95 de las requests HTTP es {{ $value }}ms, superior al límite de 1000ms"
 
       # Alerta por tasa de errores alta
@@ -18,7 +18,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Tasa de errores alta en Codex"
+          summary: "Tasa de errores alta en QReable"
           description: "Tasa de errores 5xx es {{ $value | humanizePercentage }} en los últimos 5 minutos"
 
       # Alerta por servicio caído
@@ -28,7 +28,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Servicio Codex caído"
+          summary: "Servicio QReable caído"
           description: "El servicio {{ $labels.job }} está inaccesible por más de 30 segundos"
 
       # Alerta por uso alto de memoria

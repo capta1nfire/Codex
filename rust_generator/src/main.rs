@@ -35,8 +35,8 @@ mod validators;
 mod routes; // Re-enabled for v2 endpoint support
 
 // Re-export types needed by main
-use rust_generator::engine;
-use rust_generator::metrics::{MetricsCollector, AnalyticsResponse, BarcodeTypeMetrics, OverallMetrics, BarcodeRequestOptions as MetricsBarcodeOptions};
+use qreable_generator::engine;
+use qreable_generator::metrics::{MetricsCollector, AnalyticsResponse, BarcodeTypeMetrics, OverallMetrics, BarcodeRequestOptions as MetricsBarcodeOptions};
 use validators::{
     validate_barcode_request, validate_batch_request, 
     BarcodeRequest, BarcodeRequestOptions, BatchBarcodeRequest
@@ -651,7 +651,7 @@ async fn main() {
         // QR Engine v3 - Structured data
         .nest("/", routes::qr_v3::routes(routes::qr_v3::QrV3State {
             engine: Arc::new(engine::QrEngine::new()),
-            cache: Arc::new(rust_generator::cache::redis::RedisCache::new("redis://localhost:6379", "qr_engine_v3", 3600).unwrap_or_else(|_| rust_generator::cache::redis::RedisCache::disabled())),
+            cache: Arc::new(qreable_generator::cache::redis::RedisCache::new("redis://localhost:6379", "qr_engine_v3", 3600).unwrap_or_else(|_| qreable_generator::cache::redis::RedisCache::disabled())),
         }))
         .layer(cors); // Añadir la capa CORS
 
@@ -667,7 +667,7 @@ async fn main() {
 // Configura el sistema de logging
 fn setup_logging() {
     // Crear un appender para archivos de logs que rota diariamente
-    let file_appender = RollingFileAppender::new(Rotation::DAILY, "logs", "rust_generator.log");
+    let file_appender = RollingFileAppender::new(Rotation::DAILY, "logs", "qreable_generator.log");
 
     // Configurar un formato personalizado para la consola con colores
     let console_layer = fmt::layer()
@@ -686,7 +686,7 @@ fn setup_logging() {
     // Configurar filtro de nivel de log basado en una variable de entorno
     // Si RUST_LOG no está definido, usar DEBUG para métricas
     let env_filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new("info,rust_generator::metrics=debug"));
+        .unwrap_or_else(|_| EnvFilter::new("info,qreable_generator::metrics=debug"));
 
     // Inicializar el subscriber de tracing con las capas configuradas
     tracing_subscriber::registry()
@@ -763,7 +763,7 @@ async fn generate_handler(Json(payload): Json<BarcodeRequest>) -> impl IntoRespo
 
     // --- Llamada a la función de generación desde lib.rs --- 
     // Pasar todas las opciones extraídas de 'actual_options'
-    let generation_result = rust_generator::generate_code( 
+    let generation_result = qreable_generator::generate_code( 
         &mapped_barcode_type, 
         &payload.data, 
         actual_options.scale,                  // Usar scale directamente de actual_options
@@ -1062,7 +1062,7 @@ async fn process_single_barcode(
     cache_misses.fetch_add(1, Ordering::Relaxed);
 
     // Generar código
-    let generation_result = rust_generator::generate_code(
+    let generation_result = qreable_generator::generate_code(
         &mapped_barcode_type,
         &request.data,
         actual_options.scale,
@@ -1599,7 +1599,7 @@ async fn debug_metrics_handler() -> impl IntoResponse {
                                             let mut metrics_data = None;
                                             if keys.contains(&"qr_v2:metrics:current".to_string()) {
                                                 if let Ok(data) = conn.get::<_, Vec<u8>>("qr_v2:metrics:current") {
-                                                    if let Ok(metrics) = bincode::deserialize::<rust_generator::metrics::QRMetrics>(&data) {
+                                                    if let Ok(metrics) = bincode::deserialize::<qreable_generator::metrics::QRMetrics>(&data) {
                                                         metrics_data = Some(metrics);
                                                     }
                                                 }
@@ -1687,7 +1687,7 @@ async fn debug_metrics_handler() -> impl IntoResponse {
 
 /// Handler para generación con el nuevo motor QR
 async fn qr_v2_generate_handler(
-    Json(payload): Json<rust_generator::engine::types::QrRequest>
+    Json(payload): Json<qreable_generator::engine::types::QrRequest>
 ) -> impl IntoResponse {
     let start_time = Instant::now();
     
@@ -1698,7 +1698,7 @@ async fn qr_v2_generate_handler(
     );
     
     // Usar el motor global
-    match rust_generator::engine::QR_ENGINE.generate(payload).await {
+    match qreable_generator::engine::QR_ENGINE.generate(payload).await {
         Ok(output) => {
             let duration = start_time.elapsed().as_millis() as u64;
             
@@ -1752,10 +1752,10 @@ async fn qr_v2_validate_handler(
 async fn qr_v2_preview_handler(
     Query(params): Query<HashMap<String, String>>
 ) -> impl IntoResponse {
-    use rust_generator::engine::{QrRequest, types::{OutputFormat, QrCustomization, EyeShape, DataPattern, ColorOptions}};
+    use qreable_generator::engine::{QrRequest, types::{OutputFormat, QrCustomization, EyeShape, DataPattern, ColorOptions}};
     
     // Extraer parámetros del query string
-    let data = params.get("data").cloned().unwrap_or_else(|| "https://codex.com".to_string());
+    let data = params.get("data").cloned().unwrap_or_else(|| "https://qreable.com".to_string());
     let size = params.get("size").and_then(|s| s.parse::<u32>().ok()).unwrap_or(200);
     
     // Parsear customización si existe
@@ -1805,7 +1805,7 @@ async fn qr_v2_preview_handler(
     };
     
     // Generar QR
-    let engine = &rust_generator::engine::QR_ENGINE;
+    let engine = &qreable_generator::engine::QR_ENGINE;
     match engine.generate(request).await {
         Ok(output) => {
             // Devolver SVG directamente con content-type apropiado

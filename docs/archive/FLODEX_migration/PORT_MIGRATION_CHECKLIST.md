@@ -15,7 +15,7 @@ Múltiples agentes IA han tenido conflictos con puertos porque la configuración
 
 ## ✅ **SOLUCIÓN IMPLEMENTADA**
 
-1. **Fuente única de verdad**: `CODEX.md` sección "PORT CONFIGURATION"
+1. **Fuente única de verdad**: `QReable.md` sección "PORT CONFIGURATION"
 2. **Scripts arreglados**: `dev.sh`, `dev-start.sh`, `package.json`
 3. **Documentación actualizada**: `CONTEXT_SUMMARY.md`
 
@@ -42,7 +42,7 @@ Múltiples agentes IA han tenido conflictos con puertos porque la configuración
 
 | Archivo | Status | Puertos Correctos |
 |---------|--------|-------------------|
-| `CODEX.md` | ✅ Maestro | 3000, 3004, 3002 |
+| `QReable.md` | ✅ Maestro | 3000, 3004, 3002 |
 | `CONTEXT_SUMMARY.md` | ✅ Actualizado | 3000, 3004, 3002 |
 | `dev.sh` | ✅ Arreglado | 3000, 3004, 3002 |
 | `dev-start.sh` | ✅ Arreglado | 3000, 3004, 3002 |
@@ -53,7 +53,7 @@ Múltiples agentes IA han tenido conflictos con puertos porque la configuración
 ## 🎯 **CONFIGURACIÓN DEFINITIVA**
 
 ```bash
-# ESTOS SON LOS PUERTOS OFICIALES (desde CODEX.md)
+# ESTOS SON LOS PUERTOS OFICIALES (desde QReable.md)
 Frontend (Next.js):       3000
 Backend (Express):        3004  
 Rust Generator (Axum):    3002
@@ -66,7 +66,7 @@ Redis:                    6379
 ## 🔧 **PARA FUTUROS AGENTES**
 
 ### **✅ PROCESO CORRECTO**
-1. **SIEMPRE consultar** `CODEX.md` sección "PORT CONFIGURATION"
+1. **SIEMPRE consultar** `QReable.md` sección "PORT CONFIGURATION"
 2. **NUNCA cambiar puertos** sin actualizar la fuente única primero
 3. **SI necesitas cambiar puertos**: Actualizar este checklist
 
@@ -82,7 +82,7 @@ Redis:                    6379
 
 | Fecha | Agente | Acción | Status |
 |-------|--------|--------|--------|
-| 2025-05-24 | Apex | Creada fuente única en CODEX.md | ✅ Completo |
+| 2025-05-24 | Apex | Creada fuente única en QReable.md | ✅ Completo |
 | 2025-05-24 | Apex | Arreglados scripts de desarrollo | ✅ Completo |
 | 2025-05-24 | Apex | Identificados archivos pendientes | 🔄 En progreso |
 

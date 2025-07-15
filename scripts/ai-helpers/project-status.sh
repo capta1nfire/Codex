@@ -3,7 +3,7 @@
 # 📊 Project Status Helper
 # Purpose: Get comprehensive project status for AI agents
 
-echo "📊 CODEX Project Status Report"
+echo "📊 QReable Project Status Report"
 echo "================================"
 echo ""
 
@@ -20,14 +20,14 @@ echo ""
 # Docker Status
 echo "🐳 Docker Services:"
 echo "──────────────────"
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null | grep -E "(codex|postgres|redis)" || echo "No Docker services running"
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null | grep -E "(qreable|postgres|redis)" || echo "No Docker services running"
 echo ""
 
 # Recent Activity
 echo "📈 Recent Activity (Last 7 days):"
 echo "────────────────────────────────"
 echo "Modified files:"
-find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) \
+find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.md" \) \
     -not -path "./node_modules/*" \
     -not -path "./.next/*" \
     -not -path "./target/*" \

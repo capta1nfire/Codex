@@ -2,7 +2,7 @@
 
 ## Contexto del Proyecto
 
-Estamos desarrollando CODEX, un generador avanzado de códigos QR con capacidades de personalización únicas. Acabamos de completar la Fase 1 que incluye:
+Estamos desarrollando QReable, un generador avanzado de códigos QR con capacidades de personalización únicas. Acabamos de completar la Fase 1 que incluye:
 
 ### Estado Actual de Formas de Ojos
 

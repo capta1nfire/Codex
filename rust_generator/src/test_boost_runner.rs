@@ -77,7 +77,7 @@ mod boost_tests {
         
         // Sin boost
         let result_no_boost = generator.generate_with_dynamic_ecl_and_boost(
-            "https://codex.com",
+            "https://qreable.com",
             400,
             logo_size_ratio,
             None,
@@ -89,7 +89,7 @@ mod boost_tests {
         
         // Con boost
         let result_boost = generator.generate_with_dynamic_ecl_and_boost(
-            "https://codex.com",
+            "https://qreable.com",
             400,
             logo_size_ratio,
             None,

@@ -25,7 +25,7 @@ export default function UseCasesGrid() {
   return (
     <section className="relative py-24 bg-white/40 dark:bg-slate-950/40 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-center mb-12 animate-fade-in">
+        <h2 className="text-3xl font-bold text-center mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
           Casos de Uso Populares
         </h2>
         
@@ -41,12 +41,16 @@ export default function UseCasesGrid() {
                 "transition-all duration-300",
                 "hover:scale-105 hover:shadow-lg",
                 "hover:border-blue-300/50 dark:hover:border-blue-700/50",
-                "animate-fade-in-scale"
+                "animate-in fade-in zoom-in-95 duration-300",
+                idx === 0 && "delay-0",
+                idx === 1 && "delay-75",
+                idx === 2 && "delay-150",
+                idx === 3 && "delay-200",
+                idx === 4 && "delay-[250ms]",
+                idx === 5 && "delay-300",
+                idx === 6 && "delay-[350ms]",
+                idx === 7 && "delay-[400ms]"
               )}
-              style={{
-                animationDelay: `${idx * 50}ms`,
-                animationFillMode: 'both'
-              }}
             >
               {/* Background animation on hover */}
               <div className="absolute inset-0 bg-gradient-to-br from-blue-400/0 to-purple-400/0 group-hover:from-blue-400/5 group-hover:to-purple-400/5 transition-all duration-500" />
@@ -68,38 +72,6 @@ export default function UseCasesGrid() {
         </div>
       </div>
 
-      {/* Add animation styles */}
-      <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes fade-in-scale {
-          from {
-            opacity: 0;
-            transform: scale(0.9);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 0.6s ease-out;
-        }
-        
-        .animate-fade-in-scale {
-          animation: fade-in-scale 0.4s ease-out;
-        }
-      `}</style>
     </section>
   );
 }

@@ -184,7 +184,7 @@ async function runTestStage(stage, stageIndex) {
 async function runGradualLoadTest() {
   try {
     console.clear();
-    console.log(`${colors.bright}${colors.magenta}🚀 CODEX Automated Gradual Load Testing${colors.reset}`);
+    console.log(`${colors.bright}${colors.magenta}🚀 QReable Automated Gradual Load Testing${colors.reset}`);
     console.log('══════════════════════════════════════════\n');
     console.log(`${colors.cyan}Ejecutando pruebas sin autenticación${colors.reset}`);
     console.log(`${colors.yellow}Nota: Usando endpoint público /api/generate${colors.reset}\n`);

@@ -77,47 +77,30 @@ export default function GeneratorMarketingZone() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <MarketingSection className="animate-fade-in">
+      <MarketingSection className="animate-in fade-in slide-in-from-bottom-8 duration-700">
         <HeroSection />
       </MarketingSection>
 
       {/* Features Grid */}
-      <MarketingSection className="animate-fade-in">
+      <MarketingSection className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
         <FeaturesGrid />
       </MarketingSection>
 
       {/* Use Cases Grid */}
-      <MarketingSection className="animate-fade-in">
+      <MarketingSection className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
         <UseCasesGrid />
       </MarketingSection>
 
       {/* Stats Section */}
-      <MarketingSection className="animate-fade-in">
+      <MarketingSection className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
         <StatsSection />
       </MarketingSection>
 
       {/* Footer */}
-      <MarketingSection className="animate-fade-in" threshold={0.5}>
+      <MarketingSection className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-400" threshold={0.5}>
         <Footer />
       </MarketingSection>
 
-      {/* Add animation styles */}
-      <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 0.6s ease-out;
-        }
-      `}</style>
     </div>
   );
 }

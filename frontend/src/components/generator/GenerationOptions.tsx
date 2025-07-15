@@ -538,7 +538,7 @@ function GenerationOptions({
                     {/* Options in compact horizontal layout */}
                     <div className="space-y-2">
                       <Label className="text-sm text-slate-600 dark:text-slate-400">Opciones</Label>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         {/* Gradient Borders */}
                         <div className="flex items-center justify-between py-2 px-3 rounded-md bg-slate-50 dark:bg-slate-900/30">
                           <Label htmlFor="gradient-borders" className="text-sm cursor-pointer text-slate-600 dark:text-slate-400">
@@ -551,6 +551,33 @@ function GenerationOptions({
                             render={({ field }) => (
                               <Switch
                                 id="gradient-borders"
+                                checked={field.value ?? false}
+                                onCheckedChange={(checked) => {
+                                  field.onChange(checked);
+                                  setTimeout(() => {
+                                    const currentFormValues = getValues();
+                                    onSubmit(currentFormValues);
+                                  }, 100);
+                                }}
+                                disabled={isLoading}
+                                className="data-[state=checked]:bg-blue-600 scale-90"
+                              />
+                            )}
+                          />
+                        </div>
+                        
+                        {/* Per Module Gradient */}
+                        <div className="flex items-center justify-between py-2 px-3 rounded-md bg-slate-50 dark:bg-slate-900/30">
+                          <Label htmlFor="gradient-per-module" className="text-sm cursor-pointer text-slate-600 dark:text-slate-400">
+                            Por Módulo
+                          </Label>
+                          <Controller
+                            name="options.gradient_per_module"
+                            control={control}
+                            defaultValue={false}
+                            render={({ field }) => (
+                              <Switch
+                                id="gradient-per-module"
                                 checked={field.value ?? false}
                                 onCheckedChange={(checked) => {
                                   field.onChange(checked);

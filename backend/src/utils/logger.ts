@@ -71,7 +71,7 @@ const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   // No necesitamos un formato global aquí, cada transporte tiene el suyo
   // format: winston.format.json(),
-  defaultMeta: { service: 'codex-backend' },
+  defaultMeta: { service: 'qreable-backend' },
   transports: transports, // Usar el array construido
 });
 

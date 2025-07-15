@@ -164,6 +164,7 @@ const customizationSchema = z
           .optional(),
         apply_to_eyes: z.boolean().optional(),
         apply_to_data: z.boolean().optional(),
+        per_module: z.boolean().optional(),
         stroke_style: z
           .object({
             enabled: z.boolean(),

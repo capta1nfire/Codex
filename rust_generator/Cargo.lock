@@ -2218,6 +2218,47 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4339fc7a1021c9c1621d87f5e3505f2805c8c105420ba2f2a4df86814590c142"
 
 [[package]]
+name = "qreable_generator"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "base64 0.22.1",
+ "bincode",
+ "chrono",
+ "console-subscriber",
+ "criterion",
+ "dashmap",
+ "geo-types",
+ "gif 0.13.1",
+ "image 0.24.9",
+ "imageproc 0.24.0",
+ "lazy_static",
+ "memmap2",
+ "once_cell",
+ "parking_lot",
+ "proptest",
+ "qrcodegen",
+ "rayon",
+ "redis",
+ "regex",
+ "resvg",
+ "rusttype",
+ "rxing",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 1.0.69",
+ "tiny-skia",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "quick-error"
 version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2514,47 +2555,6 @@ name = "roxmltree"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c20b6793b5c2fa6553b250154b78d6d0db37e72700ae35fad9387a46f487c97"
-
-[[package]]
-name = "rust_generator"
-version = "0.1.0"
-dependencies = [
- "axum",
- "base64 0.22.1",
- "bincode",
- "chrono",
- "console-subscriber",
- "criterion",
- "dashmap",
- "geo-types",
- "gif 0.13.1",
- "image 0.24.9",
- "imageproc 0.24.0",
- "lazy_static",
- "memmap2",
- "once_cell",
- "parking_lot",
- "proptest",
- "qrcodegen",
- "rayon",
- "redis",
- "regex",
- "resvg",
- "rusttype",
- "rxing",
- "serde",
- "serde_json",
- "sha2",
- "thiserror 1.0.69",
- "tiny-skia",
- "tokio",
- "tower",
- "tower-http",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "uuid",
-]
 
 [[package]]
 name = "rustc-demangle"

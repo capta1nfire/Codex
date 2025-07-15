@@ -203,7 +203,7 @@ function showProgress(current, total) {
 // Función principal de pruebas
 async function runLoadTest() {
   try {
-    console.log(`${colors.bright}${colors.magenta}🚀 CODEX Load Testing Tool v1.0${colors.reset}`);
+    console.log(`${colors.bright}${colors.magenta}🚀 QReable Load Testing Tool v1.0${colors.reset}`);
     console.log('════════════════════════════════════════\n');
 
     // Obtener credenciales
@@ -286,91 +286,4 @@ async function runLoadTest() {
     
     console.log(`\n${colors.cyan}Resumen General:${colors.reset}`);
     console.log(`  • Total de solicitudes: ${testConfig.total}`);
-    console.log(`  • Exitosas: ${colors.green}${stats.successful}${colors.reset}`);
-    console.log(`  • Fallidas: ${colors.red}${stats.failed}${colors.reset}`);
-    console.log(`  • Tasa de éxito: ${successRate}%`);
-    console.log(`  • Tiempo total: ${(totalTime/1000).toFixed(2)}s`);
-    console.log(`  • Throughput: ${colors.bright}${throughput} req/s${colors.reset}`);
-    
-    console.log(`\n${colors.cyan}Tiempos de Respuesta:${colors.reset}`);
-    console.log(`  • Promedio: ${avgResponseTime.toFixed(2)}ms`);
-    console.log(`  • P50 (mediana): ${p50?.toFixed(2)}ms`);
-    console.log(`  • P95: ${p95?.toFixed(2)}ms`);
-    console.log(`  • P99: ${p99?.toFixed(2)}ms`);
-    console.log(`  • Mínimo: ${Math.min(...stats.responseTimes).toFixed(2)}ms`);
-    console.log(`  • Máximo: ${Math.max(...stats.responseTimes).toFixed(2)}ms`);
-    
-    if (Object.keys(stats.errorCodes).length > 0) {
-      console.log(`\n${colors.cyan}Errores por código:${colors.reset}`);
-      Object.entries(stats.errorCodes).forEach(([code, count]) => {
-        console.log(`  • ${code}: ${count} errores`);
-      });
-    }
-    
-    if (finalAnalytics) {
-      const requestsGenerated = finalAnalytics.overall?.total_requests - (initialAnalytics?.overall?.total_requests || 0);
-      
-      console.log(`\n${colors.cyan}Métricas del Motor QR v2:${colors.reset}`);
-      console.log(`  • Requests procesados en esta prueba: ${requestsGenerated}`);
-      console.log(`  • Total requests (sistema): ${finalAnalytics.overall?.total_requests || 0}`);
-      console.log(`  • Cache hit rate final: ${finalAnalytics.overall?.cache_hit_rate_percent?.toFixed(2) || 0}%`);
-      console.log(`  • Avg response (sistema): ${finalAnalytics.overall?.avg_response_ms?.toFixed(2) || 0}ms`);
-      
-      if (finalAnalytics.by_barcode_type?.qrcode) {
-        const qrStats = finalAnalytics.by_barcode_type.qrcode;
-        console.log(`\n${colors.cyan}Estadísticas QR Code:${colors.reset}`);
-        console.log(`  • Avg cache hit: ${qrStats.avg_cache_hit_ms?.toFixed(2)}ms`);
-        console.log(`  • Avg generation: ${qrStats.avg_generation_ms?.toFixed(2)}ms`);
-        console.log(`  • Total hits: ${qrStats.hit_count}`);
-        console.log(`  • Total misses: ${qrStats.miss_count}`);
-      }
-    }
-    
-    // Recomendaciones basadas en resultados
-    console.log(`\n${colors.cyan}📝 Análisis y Recomendaciones:${colors.reset}`);
-    
-    if (successRate < 100) {
-      console.log(`  ${colors.yellow}⚠️  Tasa de éxito < 100% - Revisar logs de errores${colors.reset}`);
-    }
-    
-    if (p95 > 100) {
-      console.log(`  ${colors.yellow}⚠️  P95 > 100ms - Considerar optimización de rendimiento${colors.reset}`);
-    } else if (p95 < 20) {
-      console.log(`  ${colors.green}✅ Excelente rendimiento - P95 < 20ms${colors.reset}`);
-    }
-    
-    if (throughput < 50) {
-      console.log(`  ${colors.yellow}⚠️  Throughput bajo - Verificar recursos del sistema${colors.reset}`);
-    } else if (throughput > 200) {
-      console.log(`  ${colors.green}✅ Alto throughput - Sistema funcionando óptimamente${colors.reset}`);
-    }
-    
-    const cacheHitRate = finalAnalytics?.overall?.cache_hit_rate_percent || 0;
-    if (cacheHitRate < 50) {
-      console.log(`  ${colors.yellow}💡 Cache hit rate bajo - Los datos únicos reducen efectividad del cache${colors.reset}`);
-    }
-    
-    console.log(`\n${colors.green}✅ Prueba completada exitosamente${colors.reset}`);
-    
-  } catch (error) {
-    console.error(`\n${colors.red}❌ Error durante la prueba:${colors.reset}`, error.message);
-  } finally {
-    rl.close();
-  }
-}
-
-// Manejar Ctrl+C gracefully
-process.on('SIGINT', () => {
-  console.log(`\n\n${colors.yellow}⚠️  Prueba interrumpida por el usuario${colors.reset}`);
-  if (stats.successful > 0) {
-    const avgResponseTime = stats.totalTime / stats.successful;
-    console.log(`\n${colors.cyan}Resultados parciales:${colors.reset}`);
-    console.log(`  • Requests completados: ${stats.successful}`);
-    console.log(`  • Tiempo promedio: ${avgResponseTime.toFixed(2)}ms`);
-  }
-  process.exit(0);
-});
-
-// Ejecutar pruebas
-console.clear();
-runLoadTest().catch(console.error);
+    console.log(`

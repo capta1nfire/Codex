@@ -1,8 +1,8 @@
-# 📚 **CODEX API - Documentación Completa**
+# 📚 **QReable API - Documentación Completa**
 
 ## 🚀 **Introducción**
 
-La API de Codex es una plataforma completa para la generación de códigos QR y códigos de barras, diseñada para ser rápida, escalable y fácil de usar.
+La API de QReable es una plataforma completa para la generación de códigos QR y códigos de barras, diseñada para ser rápida, escalable y fácil de usar.
 
 ### 🏗️ **Arquitectura**
 - **Backend**: Node.js + Express + TypeScript
@@ -98,7 +98,7 @@ POST /api/generate
 ### **1. Generar QR Code Simple**
 
 ```bash
-curl -X POST https://api.codex.com/api/generate \
+curl -X POST https://api.qreable.com/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "barcode_type": "qrcode",
@@ -119,7 +119,7 @@ curl -X POST https://api.codex.com/api/generate \
 ### **2. QR Code con Opciones Avanzadas**
 
 ```bash
-curl -X POST https://api.codex.com/api/generate \
+curl -X POST https://api.qreable.com/api/generate \
   -H "Content-Type: application/json" \
   -H "x-api-key: YOUR_API_KEY" \
   -d '{
@@ -138,7 +138,7 @@ curl -X POST https://api.codex.com/api/generate \
 ### **3. Código de Barras EAN-13**
 
 ```bash
-curl -X POST https://api.codex.com/api/generate \
+curl -X POST https://api.qreable.com/api/generate \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
@@ -154,7 +154,7 @@ curl -X POST https://api.codex.com/api/generate \
 ### **4. DataMatrix para Trazabilidad**
 
 ```bash
-curl -X POST https://api.codex.com/api/generate \
+curl -X POST https://api.qreable.com/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "barcode_type": "datamatrix",
@@ -246,7 +246,12 @@ X-RateLimit-Reset: 1640995200
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "El tipo de código no es válido",
-    "suggestion": "Usa uno de: qrcode, code128, ean13, ean8, code39, datamatrix"
+    "details": [
+      {
+        "field": "barcode_type",
+        "message": "Must be one of: qrcode, code128, ean13"
+      }
+    ]
   }
 }
 ```
@@ -274,7 +279,7 @@ console.log(result.svgString);
 ```python
 import requests
 
-response = requests.post('https://api.codex.com/api/generate', 
+response = requests.post('https://api.qreable.com/api/generate', 
   headers={'Content-Type': 'application/json'},
   json={
     'barcode_type': 'qrcode',
@@ -304,7 +309,7 @@ $options = [
 ];
 
 $context = stream_context_create($options);
-$result = file_get_contents('https://api.codex.com/api/generate', false, $context);
+$result = file_get_contents('https://api.qreable.com/api/generate', false, $context);
 $response = json_decode($result, true);
 
 echo $response['svgString'];
@@ -373,13 +378,13 @@ GET /metrics
 
 ```bash
 # Backend
-DATABASE_URL=postgresql://user:pass@localhost:5432/codex
+DATABASE_URL=postgresql://user:pass@localhost:5432/qreable
 REDIS_URL=redis://localhost:6379
 JWT_SECRET=your-secret-key
 SENTRY_DSN=https://your-sentry-dsn
 
 # Frontend
-NEXT_PUBLIC_BACKEND_URL=https://api.codex.com
+NEXT_PUBLIC_BACKEND_URL=https://api.qreable.com
 ```
 
 ### **Opciones de QR Code**
@@ -399,9 +404,9 @@ NEXT_PUBLIC_BACKEND_URL=https://api.codex.com
 ## 📞 **Soporte**
 
 - **Documentación Interactiva**: `/api-docs`
-- **GitHub**: https://github.com/codex-project
-- **Email**: soporte@codexproject.com
-- **Discord**: https://discord.gg/codex
+- **GitHub**: https://github.com/qreable-project
+- **Email**: soporte@qreableproject.com
+- **Discord**: https://discord.gg/qreable
 
 ---
 

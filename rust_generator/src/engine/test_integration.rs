@@ -11,7 +11,7 @@ mod tests {
         
         // Test con URL simple
         let request = QrRequest {
-            data: "https://codex.com".to_string(),
+            data: "https://qreable.com".to_string(),
             size: 400,
             format: OutputFormat::Svg,
             customization: None,
@@ -40,7 +40,7 @@ mod tests {
         
         // Test con personalización media
         let request = QrRequest {
-            data: "https://codex.com/product/123".to_string(),
+            data: "https://qreable.com/product/123".to_string(),
             size: 600,
             format: OutputFormat::Svg,
             customization: Some(QrCustomization {
@@ -204,7 +204,7 @@ mod tests {
         let generator = QrGenerator::new();
         
         // Datos mixtos que se benefician de segmentación
-        let mixed_data = "CODEX2025PROJECT123456";
+        let mixed_data = "QReable2025PROJECT123456";
         
         // Generar con segmentación
         let result = generator.generate_basic(mixed_data, 400);
@@ -223,7 +223,7 @@ mod tests {
         // URLs con números que se benefician de segmentación
         let test_cases = vec![
             "https://instagram.com/user12345",
-            "https://codex.com/product/9876543210",
+            "https://qreable.com/product/9876543210",
             "tel:+1234567890",
             "WIFI:T:WPA;S:MyNetwork;P:12345678;;",
         ];
@@ -381,7 +381,7 @@ mod tests {
         
         // Sin boost
         let result_no_boost = generator.generate_with_dynamic_ecl_and_boost(
-            "https://codex.com",
+            "https://qreable.com",
             400,
             logo_size_ratio,
             None,
@@ -393,7 +393,7 @@ mod tests {
         
         // Con boost
         let result_boost = generator.generate_with_dynamic_ecl_and_boost(
-            "https://codex.com",
+            "https://qreable.com",
             400,
             logo_size_ratio,
             None,

@@ -16,10 +16,10 @@ async function main() {
   // Usaremos upsert para evitar errores si el script se corre múltiples veces
   
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@codex.com' },
+    where: { email: 'admin@qreable.com' },
     update: {}, // No actualizar si ya existe
     create: {
-      email: 'admin@codex.com',
+      email: 'admin@qreable.com',
       firstName: 'Administrator',
       password: adminPassword,
       role: Role.SUPERADMIN,
@@ -29,10 +29,10 @@ async function main() {
   console.log(`Created/found admin user: ${admin.email}`);
 
   const user = await prisma.user.upsert({
-    where: { email: 'user@codex.com' },
+    where: { email: 'user@qreable.com' },
     update: {},
     create: {
-      email: 'user@codex.com',
+      email: 'user@qreable.com',
       firstName: 'Test',
       lastName: 'User',
       password: userPassword,
@@ -43,10 +43,10 @@ async function main() {
   console.log(`Created/found standard user: ${user.email}`);
 
   const premium = await prisma.user.upsert({
-    where: { email: 'premium@codex.com' },
+    where: { email: 'premium@qreable.com' },
     update: {},
     create: {
-      email: 'premium@codex.com',
+      email: 'premium@qreable.com',
       firstName: 'Premium',
       lastName: 'User',
       password: premiumPassword,

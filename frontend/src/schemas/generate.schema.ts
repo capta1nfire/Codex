@@ -41,6 +41,7 @@ export const generateFormSchema = z.object({
         .or(z.literal('')),
       gradient_direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
       gradient_borders: z.boolean().optional(), // Control para mostrar/ocultar bordes en gradientes
+      gradient_per_module: z.boolean().optional(), // Control para aplicar gradiente por módulo
       
       // Background options for QR codes
       transparent_background: z.boolean().optional(),

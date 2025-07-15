@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { QRContentSelector } from '@/components/generator/QRContentSelector';
 import { QRForm } from '@/components/generator/QRForms';
-import { SmartQRButton } from '@/features/smart-qr/components';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -40,7 +39,6 @@ interface DataCardProps {
   onQRFormChange: (type: string, field: string, value: any) => void;
   onUrlValidationComplete: (exists: boolean | null, error: any, url: string) => void;
   onGenerateAnyway: () => void;
-  onSmartQRGenerate: (config: any) => void;
   trackInput: (value: string) => void;
   className?: string;
 }
@@ -64,7 +62,6 @@ export function DataCard({
   onQRFormChange,
   onUrlValidationComplete,
   onGenerateAnyway,
-  onSmartQRGenerate,
   trackInput,
   className
 }: DataCardProps) {
@@ -119,16 +116,6 @@ export function DataCard({
                 }
               />
             </div>
-            
-            {/* Smart QR Button - Premium feature indicator */}
-            {selectedQRType === 'link' && qrFormData.link?.url && (
-              <div className="animate-fade-in-delayed">
-                <SmartQRButton 
-                  url={qrFormData.link.url}
-                  onGenerate={onSmartQRGenerate}
-                />
-              </div>
-            )}
             
             {/* Manual Generate Button - Hidden when auto-generation is on */}
             {!autoGenerationEnabled && (

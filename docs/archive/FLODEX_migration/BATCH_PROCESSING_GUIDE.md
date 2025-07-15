@@ -1,4 +1,4 @@
-# 🚀 **Guía de Batch Processing - CODEX v2.0**
+# 🚀 **Guía de Batch Processing - QReable v2.0**
 
 **Fecha**: 24 de Mayo, 2025  
 **Estado**: ✅ **IMPLEMENTADO Y FUNCIONAL**  
@@ -308,7 +308,7 @@ GET http://localhost:3002/health
 #### **Error: "Batch too large"**
 ```bash
 # Solución: Dividir en batches más pequeños
-curl -X POST /batch -d '{"barcodes": [...max 100...]}'
+curl -X POST /batch -d '{"barcodes": [...max 100...] }'
 ```
 
 #### **Error: "Connection timeout"**

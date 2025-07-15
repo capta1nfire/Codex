@@ -4,11 +4,11 @@ services:
   # Servicio para la base de datos PostgreSQL
   postgres_db:
     image: postgres:15-alpine # Usamos una imagen oficial de PostgreSQL (versión 15, ligera)
-    container_name: codex_postgres # Nombre para el contenedor
+    container_name: qreable_postgres # Nombre para el contenedor
     environment:
-      POSTGRES_USER: codex_user # Nombre de usuario para la base de datos
-      POSTGRES_PASSWORD: codex_password # Contraseña (¡CAMBIAR por una más segura si quieres!)
-      POSTGRES_DB: codex_db # Nombre de la base de datos a crear
+      POSTGRES_USER: qreable_user # Nombre de usuario para la base de datos
+      POSTGRES_PASSWORD: qreable_password # Contraseña (¡CAMBIAR por una más segura si quieres!)
+      POSTGRES_DB: qreable_db # Nombre de la base de datos a crear
     ports:
       - "5432:5432" # Mapea el puerto 5432 del contenedor al puerto 5432 de tu máquina
     volumes:
@@ -17,7 +17,7 @@ services:
   # Servicio para caché Redis
   redis_cache:
     image: redis:7-alpine # Imagen oficial ligera de Redis
-    container_name: codex_redis
+    container_name: qreable_redis
     ports:
       - "6379:6379" # Mapea el puerto por defecto de Redis
     volumes:
@@ -26,7 +26,7 @@ services:
   # Servicio para Prometheus (recolección de métricas)
   prometheus:
     image: prom/prometheus:latest
-    container_name: codex_prometheus
+    container_name: qreable_prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml # Monta el archivo de config
       - prometheus_data:/prometheus # Persistir datos de Prometheus
@@ -46,7 +46,7 @@ services:
   # Servicio para Grafana (visualización de métricas)
   grafana:
     image: grafana/grafana:latest
-    container_name: codex_grafana
+    container_name: qreable_grafana
     ports:
       - "3030:3000" # Puerto de la UI de Grafana (cambiado a 3030)
     volumes:
@@ -59,7 +59,7 @@ services:
   # Servicio para Alertmanager (gestión de alertas)
   alertmanager:
     image: prom/alertmanager:latest
-    container_name: codex_alertmanager
+    container_name: qreable_alertmanager
     ports:
       - "9093:9093" # Puerto de la UI de Alertmanager
     volumes:

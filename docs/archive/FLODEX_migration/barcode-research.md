@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Comprehensive research on the most used and relevant barcode and QR code types globally in 2025, with focus on massive code generation for a world-leading platform. CODEX implements complete support for all market-relevant types with special optimizations for critical ones.
+Comprehensive research on the most used and relevant barcode and QR code types globally in 2025, with focus on massive code generation for a world-leading platform. QReable implements complete support for all market-relevant types with special optimizations for critical ones.
 
 ## Classification and Global Relevance
 
@@ -90,7 +90,7 @@ Codes are classified into linear (1D) and matrix (2D). Their importance order is
 - **Main Usage:** Shipping cartons, logistics
 - **Priority:** 3 (Important for distribution)
 
-## Implementation Strategy for CODEX
+## Implementation Strategy for QReable
 
 ### Priority Implementation
 1. **QR Code** - Full feature set with customization

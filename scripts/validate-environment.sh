@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# 🔍 CODEX - Validador de Entorno de Desarrollo
+# 🔍 QReable - Validador de Entorno de Desarrollo
 # Detecta conflictos de configuración antes de que causen problemas
 
-echo "🔍 CODEX Environment Validator"
+echo "🔍 QReable Environment Validator"
 echo "================================"
 
 ISSUES_FOUND=0
@@ -37,7 +37,7 @@ fi
 echo ""
 echo "🗄️  Checking database connectivity..."
 
-if docker exec codex_postgres psql -U codex_user -d codex_db -c "SELECT 1;" > /dev/null 2>&1; then
+if docker exec qreable_postgres psql -U qreable_user -d qreable_db -c "SELECT 1;" > /dev/null 2>&1; then
     echo "   ✅ Docker database accessible"
 else
     echo "   ❌ ERROR: Cannot connect to Docker database"
@@ -63,7 +63,7 @@ done
 echo ""
 echo "🐳 Checking Docker services..."
 
-REQUIRED_SERVICES=("codex_postgres" "codex_redis")
+REQUIRED_SERVICES=("qreable_postgres" "qreable_redis")
 for service in "${REQUIRED_SERVICES[@]}"; do
     if docker ps | grep "$service" > /dev/null 2>&1; then
         echo "   ✅ $service running"
@@ -80,7 +80,7 @@ echo "⚙️  Checking configuration files..."
 
 if [ -f "backend/.env" ]; then
     echo "   ✅ backend/.env exists"
-    if grep -q "DATABASE_URL.*codex_user.*codex_db" backend/.env; then
+    if grep -q "DATABASE_URL.*qreable_user.*qreable_db" backend/.env; then
         echo "   ✅ DATABASE_URL configured correctly"
     else
         echo "   ⚠️  WARNING: DATABASE_URL might be misconfigured"

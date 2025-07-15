@@ -4,7 +4,19 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
 
 ## 2025-07-12
 
+### ✅ Added
+- **Per-Module Gradient Toggle**: Implemented gradient per module functionality
+  - Added "Por Módulo" toggle in gradient options UI
+  - Backend support for `per_module` field in GradientOptions
+  - When enabled, gradient applies individually to each QR module
+  - When disabled, gradient spans continuously across entire QR code
+
 ### 🔧 Fixed
+- **Gradient Rendering**: Restored original gradient rendering behavior
+  - Reverted to using default SVG gradient behavior (no explicit gradientUnits)
+  - Only apply objectBoundingBox when per_module is true
+  - Removed complex coordinate calculations that broke standard gradients
+  - Result: Both per-module and continuous gradients work correctly
 - **Visual Column Fusion**: Restored calibrated sticky layout for QR generator
   - Applied single `.column-card` container for both columns
   - Restored critical spacing values: mb-[-14px], mb-[-60px], gap-[14px]
@@ -19,9 +31,14 @@ All notable changes to the CODEX project are documented in the [docs/](./docs/) 
   - Result: Clean 3D border that enhances transparent QR codes
 
 - **"Heredar Patrón" for Eyes**: Restored inherit pattern functionality
-  - Eye borders and centers now inherit main gradient when set to "inherit"
+  - Eye borders and centers now inherit main gradient when set to "inherit"  
   - Fixed gradient configuration to pass pattern gradient to eyes
   - Result: Eyes can use the same gradient as the data pattern
+
+- **Gradient Borders Toggle**: Already implemented and working
+  - Toggle "Bordes" applies white semi-transparent borders to gradient modules
+  - Located in Gradient options section
+  - Sends stroke_style configuration to backend when enabled
 
 ## 2025-07-10
 

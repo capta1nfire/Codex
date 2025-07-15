@@ -3,7 +3,7 @@
 # 🚀 AI Session Start Helper
 # Purpose: Initialize a new work session with all relevant context
 
-echo "🤖 CODEX AI Session Helper v1.0"
+echo "🤖 QReable AI Session Helper v1.0"
 echo "================================"
 echo ""
 

@@ -3,7 +3,7 @@
 # 🧹 Session Cleanup Helper
 # Purpose: Clean up temporary files and finalize work sessions
 
-echo "🧹 CODEX Session Cleanup Tool"
+echo "🧹 QReable Session Cleanup Tool"
 echo "============================="
 echo ""
 

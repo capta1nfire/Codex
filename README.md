@@ -1,8 +1,8 @@
-# 🚀 **CODEX - Plataforma Enterprise de Generación de Códigos**
+# 🚀 **QReable - Make it QReable**
 
 <div align="center">
-  <img src="assets/logo.png" alt="Codex Logo" width="200">
-  <p><strong>✅ Plataforma optimizada, segura y enterprise-ready</strong></p>
+  <img src="assets/logo.png" alt="QReable Logo" width="200">
+  <p><strong>✅ Plataforma Enterprise de Generación de Códigos QR</strong></p>
   <p><em>Versión 2.0.0 - Arquitectura FLODEX</em></p>
 </div>
 
@@ -10,9 +10,9 @@
 
 ## 🏗️ **Arquitectura FLODEX - Sistema de Edificios Independientes**
 
-**CODEX** implementa la metodología **FLODEX** (Flow + Index), donde cada servicio es un "edificio" independiente con su propio contrato público, similar a como los edificios en una ciudad tienen sus propias direcciones y servicios.
+**QReable** implementa la metodología **FLODEX** (Flow + Index), donde cada servicio es un "edificio" independiente con su propio contrato público, similar a como los edificios en una ciudad tienen sus propias direcciones y servicios.
 
-### **🏢 Los 3 Edificios de CODEX**
+### **🏢 Los 3 Edificios de QReable**
 
 ```
 ┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
@@ -47,7 +47,7 @@ Cada servicio mantiene su documentación completa e independiente:
 ```bash
 # Clonar proyecto
 git clone <repo-url>
-cd codex-project
+cd qreable
 
 # Instalar dependencias
 npm install # Instala todo automáticamente
@@ -86,7 +86,7 @@ docker-compose up -d # PostgreSQL + Redis
 ## ✨ **Características Destacadas**
 
 ### **🎯 URL Validation System - Enterprise Grade**
-CODEX incluye un sistema avanzado de validación de URLs que garantiza máxima compatibilidad:
+QReable incluye un sistema avanzado de validación de URLs que garantiza máxima compatibilidad:
 
 - **🔄 User-Agent Rotation**: 5 navegadores diferentes (Chrome, Edge, Firefox, Safari)
 - **🛡️ Anti-Bot Bypass**: Headers modernos (Sec-Fetch-*, Client Hints)
@@ -110,7 +110,7 @@ CODEX incluye un sistema avanzado de validación de URLs que garantiza máxima c
 ### **Para Nuevos Desarrolladores**
 1. **[START_HERE.md](./START_HERE.md)** - Portal de entrada al proyecto
 2. **🤖 [IA_MANIFESTO.md](./frontend/IA_MANIFESTO.md)** - ⚠️ **CRÍTICO**: Pilares fundamentales para desarrollo con IA
-3. **[CODEX.md](./CODEX.md)** - Visión estratégica y roadmap
+3. **[QReable.md](./QReable.md)** - Visión estratégica y roadmap
 4. **[CLAUDE.md](./CLAUDE.md)** - Guía para desarrollo con IA
 5. **🛡️ [MAIN_PAGE_PROTECTION_POLICY.md](./docs/policies/MAIN_PAGE_PROTECTION_POLICY.md)** - ⚠️ Política crítica para page.tsx
 
@@ -172,7 +172,7 @@ Cada servicio es independiente. Lee el README del servicio que vas a modificar.
 ```bash
 # Fork y clone
 git clone <tu-fork>
-cd codex-project
+cd qreable-project
 
 # Branch para tu feature
 git checkout -b feature/amazing-feature
@@ -203,7 +203,7 @@ git push origin feature/amazing-feature
 
 ### **¿Preguntas sobre arquitectura?**
 - Lee sobre FLODEX en cada servicio README
-- Consulta [CODEX.md](./CODEX.md) para visión general
+- Consulta [QReable.md](./QReable.md) para visión general
 
 ## 📚 **Documentación y Recursos**
 
@@ -215,13 +215,13 @@ git push origin feature/amazing-feature
 
 ### **Recursos de Investigación**
 - **[GEMINI_ORGANIC_EYE_SHAPES_ANALYSIS_20250628.md](./docs/prompts/GEMINI_ORGANIC_EYE_SHAPES_ANALYSIS_20250628.md)** - Análisis de formas orgánicas para QR v3
-- **[CODEX_QR_ENHANCEMENT_PLAN_20250628.md](./docs/implementation/CODEX_QR_ENHANCEMENT_PLAN_20250628.md)** - Plan maestro de mejoras QR v3
+- **[QReable_QR_ENHANCEMENT_PLAN_20250628.md](./docs/implementation/QReable_QR_ENHANCEMENT_PLAN_20250628.md)** - Plan maestro de mejoras QR v3
 
 ---
 
 ## 📜 **Licencia y Créditos**
 
-**CODEX** es un proyecto enterprise desarrollado con arquitectura FLODEX para máxima mantenibilidad y escalabilidad.
+**QReable** es un proyecto enterprise desarrollado con arquitectura FLODEX para máxima mantenibilidad y escalabilidad.
 
 ---
 

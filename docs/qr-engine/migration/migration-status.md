@@ -5,7 +5,7 @@
 
 ## Summary
 
-The QR Engine v2 has been successfully integrated into the CODEX platform and is now **100% active for all QR code generation**. The v1 engine remains functional but is disabled for QR codes. This completes the migration from the legacy system to the high-performance Rust-based v2 engine.
+The QR Engine v2 has been successfully integrated into the QReable platform and is now **100% active for all QR code generation**. The v1 engine remains functional but is disabled for QR codes. This completes the migration from the legacy system to the high-performance Rust-based v2 engine.
 
 ### Latest Update (June 13, 2025)
 - **V2 is now mandatory** for all QR code generation
@@ -166,8 +166,8 @@ The system automatically detects and converts between formats using the migratio
 
 ## Monitoring
 
-- Backend logs: `pm2 logs codex-backend`
-- Rust logs: `pm2 logs codex-rust`
+- Backend logs: `pm2 logs qreable-backend`
+- Rust logs: `pm2 logs qreable-rust`
 - Frontend console: Browser DevTools
 - Metrics endpoint: `http://localhost:3004/metrics`
 

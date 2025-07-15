@@ -1,4 +1,4 @@
-# 🛡️ **CODEX - Auditoría y Mejoras de Estabilidad del Sistema**
+# 🛡️ **QReable - Auditoría y Mejoras de Estabilidad del Sistema**
 
 **Fecha**: 7 de Junio, 2025  
 **Versión**: 1.0  
@@ -83,7 +83,7 @@ experimental: {
 module.exports = {
   apps: [
     {
-      name: 'codex-backend',
+      name: 'qreable-backend',
       script: './start-dev.sh',  // Sin watch mode
       max_memory_restart: '1G',  // Límite de memoria
       autorestart: true,         // Auto-restart si falla
@@ -150,7 +150,6 @@ npx tsx src/index.ts  # Sin "watch" = sin reinicios automáticos
 ### **Archivos Modificados:**
 1. `/README.md` - Actualizado con instrucciones PM2
 2. `/CONTEXT_SUMMARY.md` - Actualizado con nuevo sistema
-3. `/frontend/next.config.js` - Deshabilitado instrumentationHook
 
 ---
 
@@ -169,7 +168,7 @@ npx tsx src/index.ts  # Sin "watch" = sin reinicios automáticos
 ```bash
 pm2 status      # Ver estado de todos los servicios
 pm2 logs        # Ver logs en tiempo real
-pm2 logs codex-backend  # Logs de servicio específico
+pm2 logs qreable-backend  # Logs de servicio específico
 pm2 restart all # Reiniciar todos
 pm2 stop all    # Detener todos
 pm2 monit       # Monitor interactivo con CPU/RAM
@@ -219,4 +218,4 @@ La implementación de PM2 ha transformado un sistema **inestable e inusable** en
 
 ---
 
-*Para más información sobre el proyecto CODEX, ver [README.md](./README.md)*
+*Para más información sobre el proyecto QReable, ver [README.md](./README.md)*

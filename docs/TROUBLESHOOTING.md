@@ -1,4 +1,4 @@
-# CODEX Troubleshooting Guide
+# QReable Troubleshooting Guide
 
 > Common issues and their solutions
 
@@ -54,7 +54,7 @@ Update `useQRGenerationV3` hook to include full customization options when calli
 **If QR generation is slow**:
 1. Check if Redis cache is running: `docker ps | grep redis`
 2. Monitor cache hit rate in backend logs
-3. Verify Rust service is running: `pm2 status codex-rust`
+3. Verify Rust service is running: `pm2 status qreable-rust`
 
 ---
 

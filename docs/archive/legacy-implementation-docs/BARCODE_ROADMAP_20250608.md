@@ -1,6 +1,6 @@
 ## Investigación Exhaustiva de Códigos de Barras y QR para Desarrollo Masivo en 2025 (con Enfoque en Rust)
 
-A continuación, se presenta una investigación detallada sobre los principales códigos de barras y códigos QR más utilizados y vigentes a nivel global en 2025, con un enfoque en su relevancia para el desarrollo masivo de códigos en un sitio web líder mundial en generación de códigos. CODEX implementa soporte completo para todos los tipos relevantes del mercado, con optimizaciones especiales en los más críticos.
+A continuación, se presenta una investigación detallada sobre los principales códigos de barras y códigos QR más utilizados y vigentes a nivel global en 2025, con un enfoque en su relevancia para el desarrollo masivo de códigos en un sitio web líder mundial en generación de códigos. QReable implementa soporte completo para todos los tipos relevantes del mercado, con optimizaciones especiales en los más críticos.
 
 ### **Clasificación y Relevancia Global**
 
@@ -63,7 +63,7 @@ Los códigos se clasifican en lineales (1D) y matriciales (2D). Su orden de impo
           * **`qrcodegen` (crate):** Biblioteca robusta que permite generar códigos QR a partir de texto o bytes. Soporta todas las versiones (tamaños) y niveles de corrección de errores. Ofrece control sobre la máscara y la versión. (Fuente: docs.rs/qrcodegen)
           * **`qrcode_generator` (crate):** Permite generar matrices QR (Vec\<Vec\<bool\>\>) e imágenes en formatos PNG y SVG. (Fuente: crates.io/crates/qrcode-generator)
           * **`qrcode` (crate):** Otro encoder para datos binarios, permite renderizar como imagen o string. (Fuente: docs.rs/qrcode)
-      * **Otros Lenguajes:** Amplia disponibilidad de bibliotecas en Python (e.g., `qrcode`, `  segno `), Java (e.g., `ZXing`, `QRGen`), JavaScript (e.g., `qrcode.js`, `node-qrcode`), C\# (e.g., `QRCoder`, `IronBarcode`).
+      * **Otros Lenguajes:** Amplia disponibilidad de bibliotecas en Python (e.g., `qrcode`, `  segno `), Java (e.g., `ZXing`, `QRGen`), JavaScript (e.g., `qrcode.js`, `node-qrcode`), C# (e.g., `QRCoder`, `IronBarcode`).
 
   * **6. Tendencias 2025:**
 
@@ -121,7 +121,7 @@ Los códigos se clasifican en lineales (1D) y matriciales (2D). Su orden de impo
 
       * **Rust:**
           * **`datamatrix` (crate):** Biblioteca para la codificación (y decodificación) de Data Matrix ECC 200. Ofrece un codificador optimizador. (Fuente: docs.rs/datamatrix, crates.io/crates/datamatrix)
-      * **Otros Lenguajes:** Python (e.g., `pylibdmtx`), Java (e.g., `ZXing`, `Aspose.BarCode`), C\# (e.g., `IronBarcode`, `Aspose.BarCode`).
+      * **Otros Lenguajes:** Python (e.g., `pylibdmtx`), Java (e.g., `ZXing`, `Aspose.BarCode`), C# (e.g., `IronBarcode`, `Aspose.BarCode`).
 
   * **6. Tendencias 2025:**
 
@@ -176,7 +176,7 @@ Los códigos se clasifican en lineales (1D) y matriciales (2D). Su orden de impo
       * **Rust:**
           * **`barcoders` (crate):** Soporta EAN-13, EAN-8, UPC-A. (Fuente: docs.rs/barcoders)
           * **`ean-rs` (crate):** Específicamente para la generación y validación de EAN-8 y EAN-13, con salida a SVG y PNG. (Fuente: crates.io/crates/ean-rs)
-      * **Otros Lenguajes:** Prácticamente todos los lenguajes con bibliotecas de códigos de barras soportan EAN/UPC (Python: `python-barcode`; Java: `ZXing`; C\#: `IronBarcode`).
+      * **Otros Lenguajes:** Prácticamente todos los lenguajes con bibliotecas de códigos de barras soportan EAN/UPC (Python: `python-barcode`; Java: `ZXing`; C#: `IronBarcode`).
 
   * **6. Tendencias 2025:**
 
@@ -227,7 +227,7 @@ Los códigos se clasifican en lineales (1D) y matriciales (2D). Su orden de impo
 
       * **Rust:**
           * **`barcoders` (crate):** Soporta Code 128. La documentación indica cómo especificar los juegos de caracteres y FNC1 (usando secuencias Unicode especiales) para crear códigos GS1-128. (Fuente: docs.rs/barcoders/latest/barcoders/sym/code128/index.html)
-      * **Otros Lenguajes:** Ampliamente soportado. Python (`python-barcode`), Java (`ZXing`), C\# (`IronBarcode`).
+      * **Otros Lenguajes:** Ampliamente soportado. Python (`python-barcode`), Java (`ZXing`), C# (`IronBarcode`).
 
   * **6. Tendencias 2025:**
 
@@ -278,7 +278,7 @@ Los códigos se clasifican en lineales (1D) y matriciales (2D). Su orden de impo
       * **Rust:**
           * **`barcoders` (crate):** Soporta "Two-Of-Five Interleaved (ITF)". (Fuente: docs.rs/barcoders)
           * **`rxing` (crate):** Aunque es principalmente una librería de decodificación, su base en ZXing podría ofrecer funcionalidades relacionadas o ser un punto de partida. La generación directa no está tan claramente expuesta como en `barcoders`.
-      * **Otros Lenguajes:** Python (`python-barcode`), Java (`ZXing`), C\# (`IronBarcode`).
+      * **Otros Lenguajes:** Python (`python-barcode`), Java (`ZXing`), C# (`IronBarcode`).
 
   * **6. Tendencias 2025:**
 

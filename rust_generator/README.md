@@ -2,7 +2,7 @@
 
 ## 1. Propósito del Servicio
 
-El Rust Generator es el motor de generación de alto rendimiento de CODEX, construido con Rust y Axum. Es responsable de la generación real de todos los códigos QR y códigos de barras, proporcionando salida SVG optimizada con caché en memoria para máximo rendimiento.
+El Rust Generator es el motor de generación de alto rendimiento de QReable, construido con Rust y Axum. Es responsable de la generación real de todos los códigos QR y códigos de barras, proporcionando salida SVG optimizada con caché en memoria para máximo rendimiento.
 
 ### Responsabilidades Principales
 - Generación de códigos QR con el motor v2 de alto rendimiento
@@ -70,7 +70,7 @@ cargo build --release
 ./target/release/rust_generator
 
 # Con PM2 (RECOMENDADO)
-pm2 start ecosystem.config.js --only codex-rust
+pm2 start ecosystem.config.js --only qreable-rust
 ```
 
 ### Testing
@@ -247,9 +247,9 @@ Para modificar configuración, editar `src/main.rs`.
 ### Problema: "Connection refused" desde backend
 **Síntoma**: Backend no puede conectar al puerto 3002
 **Solución**: 
-1. Verificar que el servicio está corriendo: `pm2 status codex-rust`
+1. Verificar que el servicio está corriendo: `pm2 status qreable-rust`
 2. Confirmar puerto: `lsof -i :3002`
-3. Revisar logs: `pm2 logs codex-rust`
+3. Revisar logs: `pm2 logs qreable-rust`
 
 ### Problema: Timeout en códigos QR complejos
 **Síntoma**: Timeout para QR con mucho contenido
@@ -283,13 +283,13 @@ Para modificar configuración, editar `src/main.rs`.
 ### Comandos Útiles
 ```bash
 # Ver logs en tiempo real
-pm2 logs codex-rust
+pm2 logs qreable-rust
 
 # Monitorear recursos
-pm2 monit codex-rust
+pm2 monit qreable-rust
 
 # Reiniciar servicio
-pm2 restart codex-rust
+pm2 restart qreable-rust
 
 # Ver métricas de performance
 curl http://localhost:3002/analytics/performance

@@ -1,4 +1,4 @@
-name: Codex CI/CD Pipeline
+name: QReable CI/CD Pipeline
 
 on:
   push:

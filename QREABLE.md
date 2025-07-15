@@ -10,7 +10,7 @@
 - **Clientes premium:** PYMEs, grandes empresas, desarrolladores, agencias de marketing, retail, salud, eventos.  
 - **Competencia global:** Herramientas como TEC‑IT, Uniqode, QR Tiger, Scanova y ME‑QR dominan la oferta; destacan en APIs, analíticas, GS1, UX y personalización.  
 - **🎯 NUEVA ESTRATEGIA 2025:** Especialización profunda en los **5 códigos más críticos del mercado global** en lugar de cobertura superficial de todos los tipos existentes.
-- **Oportunidades para Codex:** UX moderna, backend en Rust, GS1 Digital Link nativo, seguridad avanzada, exportación vectorial, white‑label, precios claros, **especialización técnica profunda**.
+- **Oportunidades para QReable:** UX moderna, backend en Rust, GS1 Digital Link nativo, seguridad avanzada, exportación vectorial, white‑label, precios claros, **especialización técnica profunda**.
 
 ---
 
@@ -26,7 +26,7 @@ La plataforma web para generación de códigos de barras y QR está concebida pa
 
 ### **📊 COBERTURA COMPLETA - CÓDIGOS IMPLEMENTADOS**
 
-CODEX ofrece soporte integral para una amplia gama de códigos de barras, adaptándose a las necesidades diversas del mercado global. La plataforma incluye tanto códigos de alta prioridad como especializados:
+QReable ofrece soporte integral para una amplia gama de códigos de barras, adaptándose a las necesidades diversas del mercado global. La plataforma incluye tanto códigos de alta prioridad como especializados:
 
 #### **🥇 NIVEL 1: CÓDIGOS MATRICIALES (2D) - ALTA PRIORIDAD**
 
@@ -36,7 +36,7 @@ CODEX ofrece soporte integral para una amplia gama de códigos de barras, adapt�
 - **🎯 Sectores Clave:** Marketing (23.75%), Educación (13.23%), Eventos (7.88%), Pagos Móviles, Salud
 - **🔧 Rust Implementation:** `qrcodegen`, `qrcode_generator` crates
 - **⭐ Tendencias:** GS1 Digital Link, Empaques Inteligentes, Personalización avanzada
-- **💡 CODEX Focus:** Personalización visual avanzada, gradientes, logos, optimización móvil
+- **💡 QReable Focus:** Personalización visual avanzada, gradientes, logos, optimización móvil
 - **📱 15 Tipos de Contenido QR:** Link, Text, Email, Call, SMS, V-card, WhatsApp, Wi-Fi, PDF, App, Images, Video, Social Media, Event, 2D Barcode
 
 **2. Data Matrix**
@@ -45,7 +45,7 @@ CODEX ofrece soporte integral para una amplia gama de códigos de barras, adapt�
 - **🎯 Sectores Clave:** Industria, Aeroespacial, Defensa, Farmacéutica, Electrónica
 - **🔧 Rust Implementation:** `datamatrix` crate
 - **⭐ Tendencias:** DPM (Direct Part Marking), Trazabilidad industrial, IoT integration
-- **💡 CODEX Focus:** Optimización para espacios pequeños, marcado directo, alta densidad
+- **💡 QReable Focus:** Optimización para espacios pequeños, marcado directo, alta densidad
 
 #### **🥈 NIVEL 2: CÓDIGOS LINEALES (1D) - SOPORTE ESENCIAL**
 
@@ -55,7 +55,7 @@ CODEX ofrece soporte integral para una amplia gama de códigos de barras, adapt�
 - **🎯 Sectores Clave:** Comercio Minorista (POS), Gestión de inventarios
 - **🔧 Rust Implementation:** `barcoders`, `ean-rs` crates
 - **⭐ Tendencias:** Convivencia 1D/2D, preparación para transición gradual
-- **💡 CODEX Focus:** Validación GTIN perfecta, cumplimiento GS1 estricto
+- **💡 QReable Focus:** Validación GTIN perfecta, cumplimiento GS1 estricto
 - **📦 Variantes:** EAN-13, EAN-8, UPC-A, UPC-E
 
 **4. Code 128 (GS1-128)**
@@ -64,7 +64,7 @@ CODEX ofrece soporte integral para una amplia gama de códigos de barras, adapt�
 - **🎯 Sectores Clave:** Logística, Transporte, Salud (datos adicionales), Manufactura
 - **🔧 Rust Implementation:** `barcoders` crate con GS1-128 support
 - **⭐ Tendencias:** Complemento a códigos 2D, sistemas automatizados
-- **💡 CODEX Focus:** Implementación perfecta de Identificadores de Aplicación GS1
+- **💡 QReable Focus:** Implementación perfecta de Identificadores de Aplicación GS1
 - **📦 Características:** Alfanumérico completo, longitud variable, optimización de densidad
 
 **5. ITF-14 (Interleaved 2 of 5)**
@@ -73,7 +73,7 @@ CODEX ofrece soporte integral para una amplia gama de códigos de barras, adapt�
 - **🎯 Sectores Clave:** Logística de empaques, Almacenamiento, Cartón corrugado
 - **🔧 Rust Implementation:** `barcoders` crate
 - **⭐ Tendencias:** Competencia con 2D pero mantiene ventajas en impresión directa
-- **💡 CODEX Focus:** Bearer bars opcionales, optimización para cartón
+- **💡 QReable Focus:** Bearer bars opcionales, optimización para cartón
 - **📦 Características:** 14 dígitos, GTIN para agrupaciones, alta tolerancia impresión
 
 ### **✅ CÓDIGOS ADICIONALES SOPORTADOS**
@@ -138,7 +138,7 @@ CODEX ofrece soporte integral para una amplia gama de códigos de barras, adapt�
    - **Premium:** APIs especializadas, generación en lote, QR dinámicos, branding avanzado, cumplimiento GS1 perfecto, altas SLA, analíticas profundas.  
 2. **Competidores clave (10–15):**  
    - **TEC‑IT, Uniqode, QR Tiger, qr‑code‑generator.com, Scanova, QRCodeChimp, ME‑QR, Flowcode, Orca Scan, Canva, Adobe Express, Avery, QRCode Monkey**.  
-   - **🎯 DIFERENCIACIÓN CODEX:** CODEX ofrece cobertura completa de códigos de barras con implementación técnica superior, especialmente en los tipos más críticos del mercado.
+   - **🎯 DIFERENCIACIÓN QReable:** QReable ofrece cobertura completa de códigos de barras con implementación técnica superior, especialmente en los tipos más críticos del mercado.
 3. **Modelos de monetización:** Freemium escalado, APIs de pago, publicidad en free, valor añadido en suites de diseño, software on‑premise.  
 4. **Fortalezas comunes:** Variedad de simbologías, UX minimalista, APIs e integraciones, analíticas, exportación vectorial, GS1.  
 5. **Debilidades detectadas:** UX densa en soluciones técnicas, precios complejos, publicidad intrusiva, falta de seguridad avanzada, **implementación superficial de estándares técnicos**.
@@ -213,9 +213,9 @@ Cada segmento tendrá funcionalidades adaptadas a sus necesidades específicas, 
 - Multilingüe: interfaz disponible inicialmente en inglés y español, con plan de expansión a francés, alemán, etc. mediante DeepL
 
 ### 5.1 Design System v2.0 "Corporate Sophistication" (Integral)
-**Documento maestro:** [`docs/CODEX_DESIGN_SYSTEM.md`](docs/CODEX_DESIGN_SYSTEM.md)
+**Documento maestro:** [`docs/QReable_DESIGN_SYSTEM.md`](docs/QReable_DESIGN_SYSTEM.md)
 
-La interfaz sigue el **CODEX Design System v2.0** evolucionado hacia sofisticación corporativa con **optimización por tipo de código**:
+La interfaz sigue el **QReable Design System v2.0** evolucionado hacia sofisticación corporativa con **optimización por tipo de código**:
 
 #### **🎯 Filosofía Evolucionada con Cobertura Integral**
 - **"Corporate Sophistication"**: Interfaces que combinan profesionalismo empresarial con elegancia sutil
@@ -246,8 +246,8 @@ La interfaz sigue el **CODEX Design System v2.0** evolucionado hacia sofisticaci
 - **🎯 Type-Specific UX**: +95% relevancia de opciones mostradas por categoría
 
 #### **🔗 Referencias de Documentación Cruzada Especializadas**
-- **📋 Complete Design System**: [`docs/CODEX_DESIGN_SYSTEM.md`](docs/CODEX_DESIGN_SYSTEM.md) (993 líneas, sistema completo + especialización)
-- **🚀 Implementation Overview**: [`README.md` - Design System v2.0 Section](README.md#codex-design-system-v20-corporate-sophistication-new) (Business impact + specialization)
+- **📋 Complete Design System**: [`docs/QReable_DESIGN_SYSTEM.md`](docs/QReable_DESIGN_SYSTEM.md) (993 líneas, sistema completo + especialización)
+- **🚀 Implementation Overview**: [`README.md` - Design System v2.0 Section](README.md#qreable-design-system-v20-corporate-sophistication-new) (Business impact + specialization)
 - **👤 Profile Specific**: [`PROFILE_IMPLEMENTATION_LOG.md`](PROFILE_IMPLEMENTATION_LOG.md) (Plan & Limits modernization + specialization)
 - **🔄 Context Transfer**: [`START_HERE.md`](START_HERE.md) (AI agent hierarchy + specialization strategy)
 
@@ -287,7 +287,7 @@ El sistema garantiza **coherencia visual corporativa especializada** en toda la 
 - Compatibilidad con impresoras como Zebra, Datamax, Honeywell
 
 ## 8. Planes y Monetización (actualizado v1.3.0 - COBERTURA INTEGRAL)
-- **Plan Gratis:** Códigos estáticos de todos los tipos soportados, personalización básica (color), PNG; sin exportación vectorial, sin analíticas, con marca Codex.  
+- **Plan Gratis:** Códigos estáticos de todos los tipos soportados, personalización básica (color), PNG; sin exportación vectorial, sin analíticas, con marca QReable.  
 - **Plan Profesional/PYME:** QR dinámicos limitados, personalización avanzada por tipo, SVG/EPS, generación en lote especializada, analíticas básicas, API estándar, soporte comunitario.  
 - **Plan Enterprise/API:** QR dinámicos ilimitados, personalización completa por categoría, analíticas avanzadas especializadas, validación GS1 perfecta, multiusuario, SSO/SAML, SLA 99.99%, dominios custom, soporte técnico especializado.  
 - **🎯 Add-ons Especializados:** 
@@ -370,9 +370,9 @@ El sistema garantiza **coherencia visual corporativa especializada** en toda la 
 
 ## 15. Conclusión Estratégica v1.3.0
 
-Este documento presenta la **evolución estratégica fundamental** de CODEX hacia una plataforma líder mundial en generación integral de códigos de barras y QR. 
+Este documento presenta la **evolución estratégica fundamental** de QReable hacia una plataforma líder mundial en generación integral de códigos de barras y QR. 
 
-**La estrategia de cobertura completa con optimización técnica en los códigos más críticos del mercado global** posiciona a CODEX como una solución técnicamente superior y comercialmente flexible, diferenciándose claramente de competidores con implementaciones superficiales.
+**La estrategia de cobertura completa con optimización técnica en los códigos más críticos del mercado global** posiciona a QReable como una solución técnicamente superior y comercialmente flexible, diferenciándose claramente de competidores con implementaciones superficiales.
 
 **Su arquitectura modular, implementación técnica perfecta con Rust, y soporte para todos los sectores** la establecen como la referencia para usuarios técnicos y empresas que requieren máxima calidad y cumplimiento de estándares.
 
@@ -420,7 +420,7 @@ Para asegurar la excelencia técnica en la implementación integral, se adoptar�
 
 ---
 
-# 🏆 **CODEX - Master Project Document**
+# 🏆 **QReable - Master Project Document**
 
 ## 📋 **Table of Contents**
 - [Executive Summary](#executive-summary)
@@ -510,7 +510,7 @@ Previous agents have used conflicting ports (3001 vs 3004 for backend). This sec
 ### **📋 CHECKLIST DE VALIDACIÓN ESTRATÉGICA**
 
 - [x] ✅ **Investigación de mercado analizada** (todos los códigos relevantes identificados)
-- [x] ✅ **CODEX.md actualizado** con estrategia de cobertura completa
+- [x] ✅ **QReable.md actualizado** con estrategia de cobertura completa
 - [x] ✅ **Selector de categorías implementado** en frontend
 - [ ] 🔄 **Bibliotecas Rust completas** por tipo de código
 - [ ] 🔄 **Validación GS1 perfecta** para EAN/UPC  
@@ -542,7 +542,7 @@ Previous agents have used conflicting ports (3001 vs 3004 for backend). This sec
 
 ## 📚 **CONCLUSIÓN ESTRATÉGICA FINAL**
 
-La estrategia de CODEX ha evolucionado hacia una **COBERTURA COMPLETA del mercado de códigos de barras con implementación técnica superior**. Esta decisión estratégica es la clave para:
+La estrategia de QReable ha evolucionado hacia una **COBERTURA COMPLETA del mercado de códigos de barras con implementación técnica superior**. Esta decisión estratégica es la clave para:
 
 1. **🎯 Flexibilidad total** para todas las necesidades del mercado
 2. **💰 Posicionamiento premium** basado en calidad superior integral
@@ -550,8 +550,8 @@ La estrategia de CODEX ha evolucionado hacia una **COBERTURA COMPLETA del mercad
 4. **🚀 Implementación eficiente** con bibliotecas Rust optimizadas
 5. **🔮 Preparación futura** para transiciones como "Sunrise 2027"
 
-**CODEX se posiciona como "LA plataforma integral técnicamente superior para TODOS los códigos de barras del mercado mundial".**
+**QReable se posiciona como "LA plataforma integral técnicamente superior para TODOS los códigos de barras del mercado mundial".**
 
 Esta estrategia nos posiciona para liderar técnicamente un mercado de $8+ billones en transformación hacia la digitalización y códigos 2D.
 
-**🎖️ El futuro de CODEX es ser EL ESTÁNDAR DE ORO en calidad técnica para todos los códigos de barras empresariales.**
+**🎖️ El futuro de QReable es ser EL ESTÁNDAR DE ORO en calidad técnica para todos los códigos de barras empresariales.**

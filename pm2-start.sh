@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 🚀 Codex Project - PM2 Production-Grade Development Manager
+# 🚀 QReable Project - PM2 Production-Grade Development Manager
 # Maneja servicios con reinicio automático y monitoreo robusto
 
 # Colores para output
@@ -15,12 +15,12 @@ NC='\033[0m' # No Color
 
 # Banner
 echo -e "${PURPLE}"
-echo "  ██████╗ ██████╗ ██████╗ ███████╗██╗  ██╗"
-echo " ██╔════╝██╔═══██╗██╔══██╗██╔════╝╚██╗██╔╝"
-echo " ██║     ██║   ██║██║  ██║█████╗   ╚███╔╝ "
-echo " ██║     ██║   ██║██║  ██║██╔══╝   ██╔██╗ "
-echo " ╚██████╗╚██████╔╝██████╔╝███████╗██╔╝ ██╗"
-echo "  ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝"
+echo "  ██████╗ ██████╗ ███████╗ █████╗ ██████╗ ██╗     ███████╗"
+echo " ██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔══██╗██║     ██╔════╝"
+echo " ██║  ██║██████╔╝█████╗  ███████║██████╔╝██║     █████╗  "
+echo " ██║ ██╔╝██╔══██╗██╔══╝  ██╔══██║██╔══██╗██║     ██╔══╝  "
+echo " ╚████╔╝ ██║  ██║███████╗██║  ██║██████╔╝███████╗███████╗"
+echo "  ╚███╔╝  ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝"
 echo -e "${NC}"
 echo -e "${WHITE}🚀 PM2 Development Manager - Robust & Auto-Restart${NC}"
 echo -e "${CYAN}=================================================${NC}"
@@ -48,7 +48,7 @@ sleep 2
 
 # Verificar Docker
 echo -e "${BLUE}🔍 Verificando servicios Docker...${NC}"
-if ! docker ps | grep codex_postgres > /dev/null 2>&1; then
+if ! docker ps | grep qreable_postgres > /dev/null 2>&1; then
     echo -e "${YELLOW}   ⚠️  Iniciando infraestructura Docker...${NC}"
     docker-compose up -d
     sleep 5
@@ -75,7 +75,7 @@ echo ""
 echo -e "${WHITE}📋 Comandos útiles:${NC}"
 echo -e "${CYAN}   pm2 status      ${NC}# Ver estado de servicios"
 echo -e "${CYAN}   pm2 logs        ${NC}# Ver todos los logs"
-echo -e "${CYAN}   pm2 logs codex-backend${NC}# Ver logs específicos"
+echo -e "${CYAN}   pm2 logs qreable-backend${NC}# Ver logs específicos"
 echo -e "${CYAN}   pm2 restart all ${NC}# Reiniciar todos"
 echo -e "${CYAN}   pm2 stop all    ${NC}# Detener todos"
 echo -e "${CYAN}   pm2 monit       ${NC}# Monitor en tiempo real"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 CODEX Performance Optimization Script"
+echo "🚀 QReable Performance Optimization Script"
 echo "========================================"
 
 # Colores
@@ -62,7 +62,7 @@ RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX=10000  # Aumentado para producción
 
 # Database
-DATABASE_URL=postgresql://user:password@localhost:5432/codex?connection_limit=20&pool_timeout=10
+DATABASE_URL=postgresql://user:password@localhost:5432/qreable?connection_limit=20&pool_timeout=10
 
 # Redis
 REDIS_URL=redis://localhost:6379
@@ -98,7 +98,7 @@ echo -e "\n📋 Paso 6: Crear script de inicio optimizado..."
 cat > ../start-optimized.sh << 'EOF'
 #!/bin/bash
 
-echo "🚀 Iniciando CODEX en modo optimizado..."
+echo "🚀 Iniciando QReable en modo optimizado..."
 
 # Cargar variables de entorno de producción
 export $(cat .env.production | xargs)
@@ -116,7 +116,7 @@ sleep 10
 # Verificar estado
 pm2 status
 
-echo "✅ CODEX iniciado en modo optimizado"
+echo "✅ QReable iniciado en modo optimizado"
 echo "📊 Monitorear con: pm2 monit"
 echo "📈 Ver logs con: pm2 logs"
 EOF
@@ -192,3 +192,4 @@ echo "Rendimiento esperado:"
 echo "- Throughput: 200-500 req/s (vs 72 req/s actual)"
 echo "- Latencia P95: <100ms bajo carga"
 echo "- Concurrencia: 100+ requests simultáneos"
+echo ""

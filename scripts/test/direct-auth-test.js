@@ -12,7 +12,7 @@ const TEST_CREDENTIALS = {
 };
 
 async function testDirectAuth() {
-  console.log('🔐 Probando autenticación directa con CODEX...\n');
+  console.log('🔐 Probando autenticación directa con QReable...\n');
   
   console.log('Credenciales:');
   console.log('Email:', TEST_CREDENTIALS.email);
@@ -105,7 +105,7 @@ async function testDirectAuth() {
 }
 
 // Ejecutar test
-console.log('🚀 CODEX Direct Authentication Test\n');
+console.log('🚀 QReable Direct Authentication Test\n');
 console.log('Endpoint:', `${API_BASE_URL}${LOGIN_ENDPOINT}`);
 console.log('Timestamp:', new Date().toISOString());
 console.log('═══════════════════════════════════════\n');

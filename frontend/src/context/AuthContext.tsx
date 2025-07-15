@@ -162,7 +162,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
           console.error('[AuthContext] Error during initial auth check:', error);
         }
       } else {
-        console.log('[AuthContext] No token found');
+        // This is expected behavior when user is not logged in
         setIsLoading(false);
       }
       

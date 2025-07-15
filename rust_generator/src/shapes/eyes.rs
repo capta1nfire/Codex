@@ -256,15 +256,24 @@ impl EyeShapeRenderer {
     /// Corazón
     fn render_heart(&self, x: f32, y: f32, size: f32) -> String {
         let cx = x + size / 2.0;
-        let cy = y + size * 0.45;
-        let r = size * 0.25;
+        let cy = y + size * 0.35;
+        let r = size * 0.18;
+        
+        // Corazón simplificado usando arcos y una curva cuadrática
         format!(
-            "M {} {} A {} {} 0 0 1 {} {} A {} {} 0 0 1 {} {} Q {} {} {} {} Q {} {} {} {} Z",
-            cx, cy,
-            r, r, cx - r, cy - r,
-            r, r, cx, cy,
-            cx, y + size * 0.8, cx, y + size,
-            cx, y + size * 0.8, cx, cy
+            "M {} {} \
+             A {} {} 0 0 1 {} {} \
+             A {} {} 0 0 1 {} {} \
+             Q {} {} {} {} \
+             Z",
+            // Punto inicial (parte inferior del corazón)
+            cx, y + size * 0.85,
+            // Primer arco (lóbulo izquierdo)
+            r, r, cx - r * 0.7, cy,
+            // Segundo arco (lóbulo derecho)
+            r, r, cx, cy - r * 0.5,
+            // Curva cuadrática de vuelta al punto inicial
+            cx + r * 0.7, cy, cx, y + size * 0.85
         )
     }
 

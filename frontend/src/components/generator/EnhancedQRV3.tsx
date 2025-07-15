@@ -22,6 +22,11 @@ import { QRLogoMask, UntouchableZonesDebug } from './QRLogoMask';
 export interface QREnhancedData {
   paths: {
     data: string;
+    data_modules?: Array<{
+      x: number;
+      y: number;
+      path: string;
+    }>;
     eyes: Array<{
       type: string;
       path?: string; // Legacy single path (optional for backward compatibility)
@@ -103,6 +108,7 @@ interface QRGradientDef {
     x2: number;
     y2: number;
   };
+  per_module?: boolean;
 }
 
 interface QREffectDef {
@@ -238,13 +244,13 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
     
     return data.definitions.map((def) => {
       if (def.type === 'gradient') {
-        return renderGradient(def as QRGradientDef);
+        return renderGradient(def as QRGradientDef, dataModules);
       } else if (def.type === 'effect') {
         return renderEffect(def as QREffectDef);
       }
       return null;
     });
-  }, [data.definitions]);
+  }, [data.definitions, dataModules]);
   
   // IDs únicos para accesibilidad
   const titleId = useMemo(() => 
@@ -346,23 +352,40 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
           filter={getFilterString(data?.styles?.data?.effects)}
           mask={hasLogoWithExclusion ? `url(#${maskId})` : undefined}
         >
-          {/* Path de datos */}
-          {/* 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
-              This conditional stroke rendering is controlled by the "Aplicar bordes al gradiente" toggle
-              - Only applies stroke when data.styles.data.stroke.enabled is TRUE
-              - The backend sends enabled:false when toggle is OFF, enabled:true when ON
-              - This ensures borders only appear when user explicitly enables them
-              ⚠️ DO NOT change to check only stroke existence - must check enabled flag ⚠️ */}
-          <path
-            d={data?.paths?.data || ''}
-            fill={getStyle('data.fill', '#000000')}
-            shapeRendering="crispEdges"
-            {...(getStyle('data.stroke.enabled') ? {
-              stroke: getStyle('data.stroke.color', '#FFFFFF'),
-              strokeWidth: getStyle('data.stroke.width', 0.1),
-              strokeOpacity: getStyle('data.stroke.opacity', 0.3),
-            } : {})}
-          />
+          {/* Renderizar módulos individuales si existen (para gradiente por módulo) */}
+          {data?.paths?.data_modules && data.paths.data_modules.length > 0 ? (
+            data.paths.data_modules.map((module, index) => (
+              <path
+                key={`module-${module.x}-${module.y}-${index}`}
+                d={module.path}
+                fill={getStyle('data.fill', '#000000')}
+                shapeRendering="crispEdges"
+                {...(getStyle('data.stroke.enabled') ? {
+                  stroke: getStyle('data.stroke.color', '#FFFFFF'),
+                  strokeWidth: getStyle('data.stroke.width', 0.1),
+                  strokeOpacity: getStyle('data.stroke.opacity', 0.3),
+                } : {})}
+              />
+            ))
+          ) : (
+            /* Path de datos único (comportamiento normal) */
+            /* 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨
+                This conditional stroke rendering is controlled by the "Aplicar bordes al gradiente" toggle
+                - Only applies stroke when data.styles.data.stroke.enabled is TRUE
+                - The backend sends enabled:false when toggle is OFF, enabled:true when ON
+                - This ensures borders only appear when user explicitly enables them
+                ⚠️ DO NOT change to check only stroke existence - must check enabled flag ⚠️ */
+            <path
+              d={data?.paths?.data || ''}
+              fill={getStyle('data.fill', '#000000')}
+              shapeRendering="crispEdges"
+              {...(getStyle('data.stroke.enabled') ? {
+                stroke: getStyle('data.stroke.color', '#FFFFFF'),
+                strokeWidth: getStyle('data.stroke.width', 0.1),
+                strokeOpacity: getStyle('data.stroke.opacity', 0.3),
+              } : {})}
+            />
+          )}
         </g>
         
         {/* Grupo de ojos con efectos y máscara si existe */}
@@ -500,11 +523,12 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
 
 // Funciones auxiliares para renderizar elementos
 
-function renderGradient(gradient: QRGradientDef): React.ReactElement {
+function renderGradient(gradient: QRGradientDef, viewBoxSize: number): React.ReactElement {
   const key = `gradient-${gradient.id}`;
   
   switch (gradient.gradient_type.toLowerCase()) {
     case 'linear':
+      // Si es per_module, usar objectBoundingBox, sino no especificar (usar default que funciona)
       return (
         <linearGradient
           key={key}
@@ -513,6 +537,7 @@ function renderGradient(gradient: QRGradientDef): React.ReactElement {
           y1="0%"
           x2={gradient.angle === 45 ? "100%" : gradient.angle === 90 ? "0%" : "100%"}
           y2={gradient.angle === 45 ? "100%" : gradient.angle === 90 ? "100%" : "0%"}
+          {...(gradient.per_module ? { gradientUnits: "objectBoundingBox" } : {})}
         >
           {gradient.colors.map((color, i) => (
             <stop
@@ -532,6 +557,7 @@ function renderGradient(gradient: QRGradientDef): React.ReactElement {
           cx={gradient.coords?.x1 || 0.5}
           cy={gradient.coords?.y1 || 0.5}
           r={gradient.coords?.x2 || 0.5}
+          {...(gradient.per_module ? { gradientUnits: "objectBoundingBox" } : {})}
         >
           {gradient.colors.map((color, i) => (
             <stop
@@ -552,6 +578,7 @@ function renderGradient(gradient: QRGradientDef): React.ReactElement {
           cx="0.5"
           cy="0.5"
           r="0.5"
+          {...(gradient.per_module ? { gradientUnits: "objectBoundingBox" } : {})}
         >
           {gradient.colors.map((color, i) => (
             <stop

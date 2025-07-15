@@ -1,8 +1,8 @@
-# Backend Service - CODEX API Gateway
+# Backend Service - QReable API Gateway
 
 ## 1. Propósito del Servicio
 
-El backend de CODEX es un API Gateway construido con Node.js y Express que actúa como el orquestador principal del sistema. Gestiona todas las solicitudes HTTP, implementa la seguridad y autenticación, y coordina la comunicación entre el frontend y el microservicio Rust de generación de códigos.
+El backend de QReable es un API Gateway construido con Node.js y Express que actúa como el orquestador principal del sistema. Gestiona todas las solicitudes HTTP, implementa la seguridad y autenticación, y coordina la comunicación entre el frontend y el microservicio Rust de generación de códigos.
 
 ### Responsabilidades Principales
 - Exponer y gestionar todos los endpoints de la API REST
@@ -78,7 +78,7 @@ npm run build
 npm start
 
 # Con PM2 (RECOMENDADO)
-pm2 start ecosystem.config.js --only codex-backend
+pm2 start ecosystem.config.js --only qreable-backend
 ```
 
 ### Testing
@@ -251,7 +251,7 @@ interface GenerateOptions {
 | Variable | Descripción | Ejemplo |
 |----------|-------------|---------|
 | `PORT` | Puerto del servicio | `3004` |
-| `DATABASE_URL` | URL de conexión PostgreSQL | `postgresql://codex:pass@localhost:5432/codexdb` |
+| `DATABASE_URL` | URL de conexión PostgreSQL | `postgresql://qreable:pass@localhost:5432/qreabledb` |
 | `REDIS_URL` | URL de conexión Redis | `redis://localhost:6379` |
 | `JWT_SECRET` | Secreto para firmar JWT | `your-secret-key` |
 | `RUST_SERVICE_URL` | URL del servicio Rust | `http://localhost:3002/generate` |
@@ -298,8 +298,8 @@ interface GenerateOptions {
 ### Problema: Timeout en generación de códigos
 **Síntoma**: 504 Gateway Timeout
 **Solución**:
-1. Verificar que Rust service está corriendo: `pm2 status codex-rust`
-2. Revisar logs: `pm2 logs codex-rust --err`
+1. Verificar que Rust service está corriendo: `pm2 status qreable-rust`
+2. Revisar logs: `pm2 logs qreable-rust --err`
 3. Aumentar `RUST_SERVICE_TIMEOUT_MS` si necesario
 
 ---
@@ -320,13 +320,13 @@ interface GenerateOptions {
 ### Comandos Útiles
 ```bash
 # Ver logs en tiempo real
-pm2 logs codex-backend
+pm2 logs qreable-backend
 
 # Ver estado y recursos
-pm2 monit codex-backend
+pm2 monit qreable-backend
 
 # Reiniciar con zero-downtime
-pm2 reload codex-backend
+pm2 reload qreable-backend
 
 # Ver métricas Prometheus
 curl http://localhost:3004/metrics

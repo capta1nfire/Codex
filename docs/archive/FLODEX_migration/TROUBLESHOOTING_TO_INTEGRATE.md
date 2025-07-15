@@ -1,4 +1,4 @@
-# 🔧 **CODEX - Guía de Resolución de Problemas**
+# 🔧 **QReable - Guía de Resolución de Problemas**
 
 **Última Actualización**: 14 de Junio, 2025
 
@@ -365,7 +365,7 @@ env:
 ### **🚀 Uso del Production Readiness Dashboard**
 
 #### **Propósito**
-Valida automáticamente si el sistema CODEX está listo para lanzamiento a producción mediante una serie de checks críticos.
+Valida automáticamente si el sistema QReable está listo para lanzamiento a producción mediante una serie de checks críticos.
 
 #### **Checks Implementados**
 1. **API Gateway Health** - Backend responde en < 200ms
@@ -459,7 +459,7 @@ curl -X POST http://localhost:3002/generate \
 npm run dev
 
 # Logs estructurados en producción
-docker logs codex-backend -f
+docker logs qreable-backend -f
 ```
 
 ### **Debugging Frontend**
@@ -489,13 +489,13 @@ npx playwright show-trace test-results/trace.zip
 
 ## 🗄️ **Problema: Múltiples PostgreSQL (Docker + Local)**
 
-### **❌ Error: "User 'codex_user' was denied access"**
+### **❌ Error: "User 'qreable_user' was denied access"**
 
 **CAUSA**: Múltiples instancias de PostgreSQL corriendo (local + Docker)
 
 **SÍNTOMAS**:
 ```
-Error: P1010: User `codex_user` was denied access on the database `codex_db.public`
+Error: P1010: User `qreable_user` was denied access on the database `qreable_db.public`
 ```
 
 **SOLUCIÓN**:
@@ -508,30 +508,9 @@ docker ps | grep postgres
 
 # 3. Si no está corriendo, iniciar infraestructura
 docker-compose up -d
-```
-
-## QR Code Gradients Not Working
-
-**Issue**: QR codes generated with gradient options only show solid color (color1), gradients are not applied.
-
-**Root Cause**: 
-- Frontend and backend correctly pass gradient options
-- Rust service receives gradient data in the request
-- However, the legacy `/generate` endpoint doesn't process gradient options
-- The v2 endpoint that supports gradients is commented out in Rust service (line 643 in main.rs)
-
-**Current Status** (June 14, 2025):
-- Frontend ✅ sends gradient options correctly
-- Backend ✅ transforms and forwards gradient options  
-- Rust ❌ receives but ignores gradient options in legacy endpoint
-
-**Solution**: 
-1. Enable the v2 endpoint in Rust service by uncommenting line 643
-2. Update backend to use `/api/qr/generate` instead of `/generate`
-3. Or update the legacy handler to process gradient options
 
 # 4. Verificar conectividad
-docker exec codex_postgres psql -U codex_user -d codex_db -c "SELECT 1;"
+docker exec qreable_postgres psql -U qreable_user -d qreable_db -c "SELECT 1;"
 
 # 5. Ejecutar migraciones si es necesario
 cd backend && npx prisma migrate deploy

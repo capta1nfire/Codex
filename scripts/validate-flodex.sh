@@ -4,7 +4,7 @@
 # FLODEX Validation Script v1.0
 # =============================================================================
 # Purpose: Validates that the project follows FLODEX architecture principles
-# Author: CODEX Development Team
+# Author: QReable Development Team
 # Date: June 19, 2025
 # =============================================================================
 
@@ -25,7 +25,7 @@ show_help() {
     echo "  --help, -h    Show this help message and exit"
     echo ""
     echo "Description:"
-    echo "  Validates that the CODEX project follows FLODEX architecture principles."
+    echo "  Validates that the QReable project follows FLODEX architecture principles."
     echo ""
     echo "Checks performed:"
     echo "  - Service structure and independence"
@@ -140,7 +140,7 @@ echo ""
 allowed_paths=(
     "./README.md"
     "./START_HERE.md"
-    "./CODEX.md"
+    "./QReable.md"
     "./CLAUDE.md"
     "./CHANGELOG.md"
     "./.nav.md"
@@ -221,7 +221,7 @@ echo ""
 required_root_files=(
     "README.md"
     "START_HERE.md"
-    "CODEX.md"
+    "QReable.md"
     "CLAUDE.md"
     "docker-compose.yml"
 )

@@ -532,6 +532,7 @@ export const useQRGenerationState = () => {
             ],
             apply_to_data: true,
             apply_to_eyes: false,
+            per_module: formData.options?.gradient_per_module || false,
             stroke_style: formData.options?.gradient_borders ? {
               enabled: true,
               color: '#FFFFFF',

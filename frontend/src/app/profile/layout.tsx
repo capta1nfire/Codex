@@ -3,7 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import SystemAlerts from '@/components/SystemAlerts';
 
 export const metadata: Metadata = {
-  title: 'Mi Perfil - Codex',
+  title: 'Mi Perfil - QReable',
   description: 'Gestiona tu información personal y configuración de cuenta',
 };
 

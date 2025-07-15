@@ -59,7 +59,7 @@ validate_environment() {
     fi
     
     # Verificar conectividad a la BD Docker
-    if docker exec codex_postgres psql -U codex_user -d codex_db -c "SELECT 1;" > /dev/null 2>&1; then
+    if docker exec qreable_postgres psql -U qreable_user -d qreable_db -c "SELECT 1;" > /dev/null 2>&1; then
         echo -e "${GREEN}   ✅ Docker database accessible${NC}"
     else
         echo -e "${RED}   ❌ Cannot connect to Docker database${NC}"
@@ -67,7 +67,7 @@ validate_environment() {
         docker-compose up -d > /dev/null 2>&1
         sleep 10
         
-        if docker exec codex_postgres psql -U codex_user -d codex_db -c "SELECT 1;" > /dev/null 2>&1; then
+        if docker exec qreable_postgres psql -U qreable_user -d qreable_db -c "SELECT 1;" > /dev/null 2>&1; then
             echo -e "${GREEN}   ✅ Docker database now accessible${NC}"
         else
             echo -e "${RED}   ❌ CRITICAL: Still cannot connect to database${NC}"

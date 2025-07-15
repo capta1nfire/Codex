@@ -96,7 +96,7 @@ export default function Navbar() {
                 className="text-white font-bold text-lg lg:text-xl xl:text-2xl flex items-center"
               >
                 <QrCode className="mr-2 h-6 w-6 lg:h-7 lg:w-7 xl:h-8 xl:w-8" />
-                Codex
+                QReable
               </Link>
             </div>
 

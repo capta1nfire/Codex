@@ -234,7 +234,7 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    /* ✅ CODEX Design System v2.0 - Corporate Blue Tokens */
+    /* ✅ QReable Design System v2.0 - Corporate Blue Tokens */
     --corporate-blue-50: 210 53% 95%;
     --corporate-blue-100: 210 53% 90%;
     --corporate-blue-200: 210 53% 80%;
@@ -280,7 +280,7 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    /* ✅ CODEX Design System v2.0 - Corporate Blue Tokens Dark Mode */
+    /* ✅ QReable Design System v2.0 - Corporate Blue Tokens Dark Mode */
     --corporate-blue-50: 210 53% 10%;
     --corporate-blue-100: 210 53% 15%;
     --corporate-blue-200: 210 53% 25%;
@@ -337,7 +337,7 @@
   line-clamp: 2;
 }
 
-/* ✅ CODEX Design System v2.0 - Plan & Limits Section Custom Styles */
+/* ✅ QReable Design System v2.0 - Plan & Limits Section Custom Styles */
 @layer components {
   /* Hero Moments - Microinteracciones suaves */
   .hero-button {
@@ -404,7 +404,7 @@
       0 4px 6px -2px hsl(var(--corporate-blue-500) / 0.05);
   }
 
-  /* ✅ CODEX Design System v2.0 - Advanced Avatar Editor Styles */
+  /* ✅ QReable Design System v2.0 - Advanced Avatar Editor Styles */
   .avatar-glow {
     box-shadow: 
       0 0 20px 0 hsl(var(--corporate-blue-500) / 0.25),
@@ -468,7 +468,7 @@
 
   /* Enhanced range slider for crop controls */
   
-  /* ✅ CODEX Design System v2.0 - Column Card Styles */
+  /* ✅ QReable Design System v2.0 - Column Card Styles */
   .column-card {
     background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(10px);
@@ -676,7 +676,7 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   }
 
-  /* ✅ CODEX Design System v2.0 - Enhanced UserProfile Styles */
+  /* ✅ QReable Design System v2.0 - Enhanced UserProfile Styles */
   .shadow-corporate-hero {
     box-shadow: 
       0 25px 50px -12px hsl(var(--corporate-blue-500) / 0.15),
@@ -771,7 +771,7 @@
     object-fit: contain;
   }
 
-  /* 🎯 CODEX Linear Barcode Optimization - Design System v2.0 */
+  /* 🎯 QReable Linear Barcode Optimization - Design System v2.0 */
   .svg-linear-barcode {
     /* Optimización específica para códigos lineales */
     container-type: inline-size;

@@ -1,4 +1,4 @@
-# 📚 CODEX Documentation Hub - FLODEX Architecture
+# 📚 QReable Documentation Hub - FLODEX Architecture
 
 ## 🏗️ FLODEX Service Documentation
 
@@ -10,7 +10,7 @@ Under the FLODEX architecture, each service maintains its own comprehensive docu
 - **[/rust_generator/README.md](/rust_generator/README.md)** - Rust Generator Engine contract
 
 ### **Global Documentation**
-- **[/CODEX.md](/CODEX.md)** - Strategic vision and roadmap
+- **[/QReable.md](/QReable.md)** - Strategic vision and roadmap
 - **[/CHANGELOG.md](/CHANGELOG.md)** - Project change history
 - **[/CLAUDE.md](/CLAUDE.md)** - AI agent development guide
 

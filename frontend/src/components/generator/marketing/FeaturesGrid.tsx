@@ -48,11 +48,10 @@ export default function FeaturesGrid() {
                 "transition-all duration-300",
                 "hover:scale-105 hover:shadow-2xl",
                 "hover:border-blue-300/60 dark:hover:border-blue-700/60",
-                "animate-fade-in-up"
+                "animate-in fade-in slide-in-from-bottom-5 duration-500"
               )}
               style={{
-                animationDelay: `${index * 100}ms`,
-                animationFillMode: 'both'
+                animationDelay: `${index * 100}ms`
               }}
             >
               {/* Hover glow effect */}
@@ -86,24 +85,6 @@ export default function FeaturesGrid() {
           ))}
         </div>
       </div>
-
-      {/* Add animation styles */}
-      <style jsx>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out;
-        }
-      `}</style>
     </section>
   );
 }

@@ -269,7 +269,7 @@ async function runTestStage(stage, token, stageIndex) {
 async function runGradualLoadTest() {
   try {
     console.clear();
-    console.log(`${colors.bright}${colors.magenta}🚀 CODEX Gradual Load Testing Tool v1.0${colors.reset}`);
+    console.log(`${colors.bright}${colors.magenta}🚀 QReable Gradual Load Testing Tool v1.0${colors.reset}`);
     console.log('══════════════════════════════════════════\n');
     console.log(`${colors.cyan}Este test ejecutará ${GRADUAL_TEST_STAGES.length} etapas graduales:${colors.reset}`);
     

@@ -1,6 +1,6 @@
-# 🚀 GEMINI.md - Guía Rápida del Proyecto CODEX
+# 🚀 GEMINI.md - Guía Rápida del Proyecto QReable
 
-Este documento sirve como una referencia concisa para el agente IA Gemini, resumiendo los aspectos clave del proyecto CODEX para una operación eficiente y contextualizada.
+Este documento sirve como una referencia concisa para el agente IA Gemini, resumiendo los aspectos clave del proyecto QReable para una operación eficiente y contextualizada.
 
 ---
 
@@ -64,7 +64,7 @@ find . -name "*.ts"  # Encontrar archivos TypeScript
 
 ## 3. Arquitectura FLODEX - Los 3 Edificios
 
-CODEX se compone de tres servicios principales, cada uno con su propio `README.md` como fuente de verdad:
+QReable se compone de tres servicios principales, cada uno con su propio `README.md` como fuente de verdad:
 
 1.  **🌐 FRONTEND:**
     *   **Tecnología:** Next.js 14

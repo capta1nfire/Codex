@@ -450,17 +450,17 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'API de Codex - Generador de Códigos QR / Barras',
+      title: 'QReable API - Enterprise QR Code Generation',
       version: '1.0.0',
-      description: 'API for QR and barcode generation with Rust service integration',
+      description: 'Enterprise-grade API for QR code generation. Make it QReable!',
       license: {
         name: 'MIT',
         url: 'https://spdx.org/licenses/MIT.html',
       },
       contact: {
-        name: 'Codex Support',
-        url: 'https://codexproject.com',
-        email: 'support@codexproject.com',
+        name: 'QReable Support',
+        url: 'https://qreable.com',
+        email: 'support@qreable.com',
       },
     },
     servers: [
@@ -553,7 +553,7 @@ app.use(
     .swagger-ui select { border: 1px solid hsl(var(--border)); border-radius: var(--radius-md); background: hsl(var(--background)); color: hsl(var(--foreground)); }
     .swagger-ui input[type=text], .swagger-ui input[type=password], .swagger-ui textarea { border: 1px solid hsl(var(--input)); border-radius: var(--radius-md); background: hsl(var(--input)); color: hsl(var(--foreground)); }
   `,
-    customSiteTitle: 'Codex API - Documentación',
+    customSiteTitle: 'QReable API - Documentation',
     customfavIcon: '/static/favicon.ico',
   })
 );

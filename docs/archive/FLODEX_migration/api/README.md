@@ -2,7 +2,7 @@
 
 ## Overview
 
-The CODEX API is a comprehensive platform for generating QR codes and barcodes, designed to be fast, scalable, and easy to use.
+The QReable API is a comprehensive platform for generating QR codes and barcodes, designed to be fast, scalable, and easy to use.
 
 ### Architecture
 - **Backend**: Node.js + Express + TypeScript
@@ -28,7 +28,7 @@ The CODEX API is a comprehensive platform for generating QR codes and barcodes, 
 ## Base URL
 
 ```
-Production: https://api.codexqr.com
+Production: https://api.qreable.com
 Development: http://localhost:3004
 ```
 

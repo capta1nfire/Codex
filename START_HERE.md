@@ -1,4 +1,4 @@
-# 🚀 **Bienvenido al Proyecto CODEX**
+# 🚀 **Bienvenido al Proyecto QReable**
 
 **Misión:** Construir la mejor plataforma enterprise de generación de códigos del mundo.  
 **Arquitectura:** FLODEX - Servicios autónomos como "edificios" independientes.

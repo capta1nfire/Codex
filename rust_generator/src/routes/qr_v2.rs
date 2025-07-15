@@ -196,6 +196,7 @@ pub async fn generate_handler(Json(request): Json<QrGenerateRequest>) -> impl In
                     angle: g.angle,
                     apply_to_eyes: false, // Could be derived from options
                     apply_to_data: true,  // Could be derived from options
+                    per_module: false,    // Default to continuous gradient
                     stroke_style: g.stroke_style.as_ref().map(|s| {
                         crate::engine::types::StrokeStyle {
                             enabled: s.enabled,

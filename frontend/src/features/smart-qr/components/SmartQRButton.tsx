@@ -54,25 +54,26 @@ const SmartQRButtonComponent: React.FC<SmartQRButtonProps> = ({
 
   return (
     <>
-      {/* Minimalist container */}
+      {/* Minimalist container - Elegant and subtle */}
       <div className={cn(
-        "p-6 rounded-xl transition-all duration-300",
-        "bg-gradient-to-r from-slate-50 to-slate-50/50 dark:from-slate-900/50 dark:to-slate-900/30",
-        "border border-slate-200 dark:border-slate-800",
-        "hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-700",
+        "p-4 rounded-lg transition-all duration-300",
+        "bg-white/80 dark:bg-slate-900/30",
+        "border border-slate-200/50 dark:border-slate-800/50",
+        "hover:shadow-md hover:border-slate-300/70 dark:hover:border-slate-700/70",
+        "backdrop-blur-sm",
         className
       )}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <div className="flex items-center gap-3">
+            <Sparkles className="h-4 w-4 text-blue-500 dark:text-blue-400" />
             <div>
-              <h3 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
                 QR Inteligentes
-                <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded font-medium">
+                <span className="text-[9px] px-1 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded font-medium">
                   BETA
                 </span>
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Estilos profesionales automáticos
               </p>
             </div>
@@ -86,16 +87,16 @@ const SmartQRButtonComponent: React.FC<SmartQRButtonProps> = ({
               size="sm"
               className={cn(
                 "relative transition-all duration-300",
-                "text-sm font-medium",
+                "text-xs font-medium px-3 py-1.5 h-auto",
                 isLocked 
-                  ? "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" 
+                  ? "text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300" 
                   : "text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300",
-                !isDisabled && !isLocked && "hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                !isDisabled && !isLocked && "hover:bg-blue-50/50 dark:hover:bg-blue-950/20"
               )}
             >
               {isLocked ? (
                 <>
-                  <Lock className="h-3.5 w-3.5 mr-1.5" />
+                  <Lock className="h-3 w-3 mr-1" />
                   Iniciar sesión
                 </>
               ) : (

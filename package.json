@@ -1,7 +1,7 @@
 {
-  "name": "codex-project",
+  "name": "qreable",
   "version": "1.1.1",
-  "description": "Codex - Sistema de Generación de Códigos QR y Barras",
+  "description": "QReable - Make it QReable | Enterprise QR Code Generation Platform",
   "private": true,
   "type": "module",
   "workspaces": [

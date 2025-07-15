@@ -17,8 +17,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Codex - Generador Códigos',
-  description: 'Genera códigos de barras y QR fácilmente',
+  title: 'Make it QReable',
+  description: 'Genera códigos QR profesionales y personalizables en segundos',
 };
 
 export default function RootLayout({

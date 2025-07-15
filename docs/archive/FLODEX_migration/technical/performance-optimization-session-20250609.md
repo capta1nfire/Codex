@@ -2,7 +2,7 @@
 
 ## 📋 Executive Summary
 
-This document details the performance optimization work conducted on the CODEX system to address load handling limitations. The system was initially limited to ~72 requests/second and failing under concurrent load.
+This document details the performance optimization work conducted on the QReable system to address load handling limitations. The system was initially limited to ~72 requests/second and failing under concurrent load.
 
 ### Key Findings
 - **Root Cause**: No HTTP connection pooling, single instance deployment, low concurrency limits
@@ -121,7 +121,7 @@ HTTP connection pooling is working correctly, but the improvement is marginal be
 
 ### 1. Implement PM2 Clustering
 ```bash
-pm2 start backend/start-dev.sh -i max --name codex-backend
+pm2 start backend/start-dev.sh -i max --name qreable-backend
 ```
 
 ### 2. Deploy Multiple Rust Instances

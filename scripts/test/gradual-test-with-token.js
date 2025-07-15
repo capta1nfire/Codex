@@ -210,7 +210,7 @@ async function runTestStage(stage, token, stageIndex) {
 async function runGradualLoadTest() {
   try {
     console.clear();
-    console.log(`${colors.bright}${colors.magenta}🚀 CODEX Gradual Load Testing (SUPERADMIN Mode)${colors.reset}`);
+    console.log(`${colors.bright}${colors.magenta}🚀 QReable Gradual Load Testing (SUPERADMIN Mode)${colors.reset}`);
     console.log('═══════════════════════════════════════════════════\n');
     
     // Cargar token

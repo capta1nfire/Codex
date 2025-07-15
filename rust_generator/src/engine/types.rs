@@ -261,6 +261,8 @@ pub struct GradientOptions {
     pub apply_to_eyes: bool,
     #[serde(default)]
     pub apply_to_data: bool,
+    #[serde(default)]
+    pub per_module: bool,
     pub stroke_style: Option<StrokeStyle>,
 }
 
@@ -754,10 +756,25 @@ pub struct QrEnhancedOutput {
 /// Paths separados del QR
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QrPaths {
-    /// Path principal de datos
+    /// Path principal de datos (para patrones continuos)
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub data: String,
+    /// Módulos individuales de datos (para gradiente por módulo)
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub data_modules: Vec<QrDataModule>,
     /// Paths de los ojos (esquinas)
     pub eyes: Vec<QrEyePath>,
+}
+
+/// Módulo individual de datos para gradiente por módulo
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrDataModule {
+    /// Posición X del módulo
+    pub x: u32,
+    /// Posición Y del módulo
+    pub y: u32,
+    /// Path SVG del módulo
+    pub path: String,
 }
 
 /// Path individual de un ojo
@@ -843,6 +860,9 @@ pub struct QrGradientDef {
     /// Coordenadas (para radial)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub coords: Option<GradientCoords>,
+    /// Si es verdadero, el gradiente se aplica por módulo
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub per_module: Option<bool>,
 }
 
 /// Coordenadas para gradientes

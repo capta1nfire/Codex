@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 CODEX Gradual Load Testing"
+echo "🚀 QReable Gradual Load Testing"
 echo "============================"
 echo ""
 echo "Este script ejecutará pruebas de carga graduales."

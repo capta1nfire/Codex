@@ -60,18 +60,18 @@ export const useSystemAlerts = (): SystemAlerts => {
     // ✅ Show browser notification for critical errors
     if (alertData.type === 'error' && 'Notification' in window) {
       if (Notification.permission === 'granted') {
-        new Notification(`CODEX: ${alertData.title}`, {
+        new Notification(`QReable: ${alertData.title}`, {
           body: alertData.message,
           icon: '/favicon.ico',
-          tag: 'codex-system-alert'
+          tag: 'qreable-system-alert'
         });
       } else if (Notification.permission !== 'denied') {
         Notification.requestPermission().then(permission => {
           if (permission === 'granted') {
-            new Notification(`CODEX: ${alertData.title}`, {
+            new Notification(`QReable: ${alertData.title}`, {
               body: alertData.message,
               icon: '/favicon.ico',
-              tag: 'codex-system-alert'
+              tag: 'qreable-system-alert'
             });
           }
         });

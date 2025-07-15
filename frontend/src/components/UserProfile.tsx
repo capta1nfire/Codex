@@ -366,7 +366,7 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
           </CardContent>
         </Card>
 
-        {/* Enhanced Security Section - CODEX Design System Compliant */}
+        {/* Enhanced Security Section - QReable Design System Compliant */}
         <Card className={`
           shadow-corporate-lg border-corporate-blue-200/50 dark:border-corporate-blue-700/50 bg-card/95 backdrop-blur-sm
           transition-all duration-500 ease-smooth transform
@@ -550,7 +550,7 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
           </CardContent>
         </Card>
 
-        {/* Enhanced Preferences & Configuration Section - CODEX Design System Compliant */}
+        {/* Enhanced Preferences & Configuration Section - QReable Design System Compliant */}
         <Card className={`
           shadow-corporate-lg border-corporate-blue-200/50 dark:border-corporate-blue-700/50 bg-card/95 backdrop-blur-sm
           transition-all duration-500 ease-smooth transform

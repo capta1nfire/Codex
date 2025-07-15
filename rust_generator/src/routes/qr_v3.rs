@@ -13,8 +13,8 @@ use std::sync::Arc;
 use std::time::Instant;
 use tracing::{error, info, instrument};
 
-use rust_generator::engine::{QrEngine, QrCustomization, ErrorCorrectionLevel, error::QrError};
-use rust_generator::cache::redis;
+use qreable_generator::engine::{QrEngine, QrCustomization, ErrorCorrectionLevel, error::QrError};
+use qreable_generator::cache::redis;
 
 /// Request para generación v3
 #[derive(Debug, Clone, Deserialize)]
@@ -46,7 +46,7 @@ pub struct QrV3Response {
     
     /// Datos estructurados del QR
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub data: Option<rust_generator::engine::types::QrStructuredOutput>,
+    pub data: Option<qreable_generator::engine::types::QrStructuredOutput>,
     
     /// Información de error si falla
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -130,7 +130,7 @@ async fn generate_qr_v3(
     
     // Verificar cache
     if let Some(cached_data) = state.cache.get(&cache_key) {
-        if let Ok(structured_output) = serde_json::from_str::<rust_generator::engine::types::QrStructuredOutput>(&cached_data.svg) {
+        if let Ok(structured_output) = serde_json::from_str::<qreable_generator::engine::types::QrStructuredOutput>(&cached_data.svg) {
             info!("Cache hit for v3 generation");
             return Ok(Json(QrV3Response {
                 success: true,
@@ -150,8 +150,8 @@ async fn generate_qr_v3(
         let data = payload.data.clone();
         let options = payload.options.clone();
         
-        move || -> Result<rust_generator::engine::types::QrStructuredOutput, QrError> {
-            use rust_generator::engine::generator::QrGenerator;
+        move || -> Result<qreable_generator::engine::types::QrStructuredOutput, QrError> {
+            use qreable_generator::engine::generator::QrGenerator;
             
             // Convertir nivel de corrección de string a enum
             let ecl = options.error_correction
@@ -188,7 +188,7 @@ async fn generate_qr_v3(
                     Some(ecl),
                 )?;
                 
-                let exclusion = Some(rust_generator::engine::types::ExclusionInfo {
+                let exclusion = Some(qreable_generator::engine::types::ExclusionInfo {
                     excluded_modules: analysis.occluded_modules,
                     affected_codewords: analysis.affected_codewords,
                     occlusion_percentage: analysis.occlusion_percentage,
@@ -314,7 +314,7 @@ async fn generate_qr_v3_enhanced(
     
     // Verificar cache
     if let Some(cached_data) = state.cache.get(&cache_key) {
-        if let Ok(enhanced_output) = serde_json::from_str::<rust_generator::engine::types::QrEnhancedOutput>(&cached_data.svg) {
+        if let Ok(enhanced_output) = serde_json::from_str::<qreable_generator::engine::types::QrEnhancedOutput>(&cached_data.svg) {
             info!("Cache hit for v3 Enhanced generation");
             return Ok(Json(serde_json::json!({
                 "success": true,
@@ -333,8 +333,8 @@ async fn generate_qr_v3_enhanced(
         let data = payload.data.clone();
         let options = payload.options.clone();
         
-        move || -> Result<rust_generator::engine::types::QrEnhancedOutput, QrError> {
-            use rust_generator::engine::generator::QrGenerator;
+        move || -> Result<qreable_generator::engine::types::QrEnhancedOutput, QrError> {
+            use qreable_generator::engine::generator::QrGenerator;
             
             // Convertir nivel de corrección
             let ecl = options.error_correction
@@ -375,7 +375,7 @@ async fn generate_qr_v3_enhanced(
                 )?;
                 
                 // Convertir análisis a ExclusionInfo
-                let exclusion = Some(rust_generator::engine::types::ExclusionInfo {
+                let exclusion = Some(qreable_generator::engine::types::ExclusionInfo {
                     excluded_modules: analysis.occluded_modules,
                     affected_codewords: analysis.affected_codewords,
                     occlusion_percentage: analysis.occlusion_percentage,

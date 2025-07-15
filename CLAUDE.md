@@ -1,4 +1,4 @@
-# CLAUDE.md - AI Agent Guide for CODEX Project
+# CLAUDE.md - AI Agent Guide for QReable Project
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -99,9 +99,9 @@ Cmd+P                # Quick file search
 
 # View logs
 pm2 logs              # All services
-pm2 logs codex-backend    # Backend only
-pm2 logs codex-frontend   # Frontend only
-pm2 logs codex-rust       # Rust generator only
+pm2 logs qreable-backend    # Backend only
+pm2 logs qreable-frontend   # Frontend only
+pm2 logs qreable-rust       # Rust generator only
 
 # Monitor services
 pm2 status            # Quick status
@@ -109,7 +109,7 @@ pm2 monit             # Interactive monitor
 
 # Restart services
 pm2 restart all       # All services
-pm2 restart codex-backend # Specific service
+pm2 restart qreable-backend # Specific service
 ```
 
 ---
@@ -160,10 +160,10 @@ grep -r "app\.use.*'/api/v[12]/" backend/src
 ## 📁 Project Structure & Key Files
 
 ```
-CODEX Project/
+QReable Project/
 ├── 📄 START_HERE.md         # START HERE - Project overview & rules
 ├── 🧭 .nav.md               # QUICK NAVIGATION - Find files & workflows fast
-├── 📄 CODEX.md              # Strategic roadmap & phases
+├── 📄 QREABLE.md            # Strategic roadmap & phases
 ├── 📄 README.md             # Technical setup & documentation
 ├── 📄 CLAUDE.md             # THIS FILE - AI agent guide
 ├── 🤖 MULTI_AGENT_COLLABORATION_PROTOCOL.md  # Multi-agent rules
@@ -270,14 +270,14 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 pm2 status
 
 # 2. View specific service logs
-pm2 logs codex-backend --lines 100
+pm2 logs qreable-backend --lines 100
 
 # 3. Check for TypeScript errors
 cd backend && npx tsc --noEmit
 cd frontend && npx tsc --noEmit
 
 # 4. Check database
-docker exec -it codex_postgres psql -U codex_user -d codex_db
+docker exec -it qreable_postgres psql -U qreable_user -d qreable_db
 
 # 5. Test specific endpoint
 curl -X POST http://localhost:3004/api/v3/qr/generate \
@@ -295,7 +295,7 @@ curl -X POST http://localhost:3004/api/v3/qr/generate \
 open http://localhost:3000
 
 # 3. Make UI changes following design system
-# - Check docs/CODEX_DESIGN_SYSTEM.md
+# - Check docs/QREABLE_DESIGN_SYSTEM.md
 # - Use existing Tailwind classes
 # - Follow component patterns
 
@@ -480,7 +480,7 @@ className="w-full md:w-1/2 lg:w-1/3"
 
 ### NEVER DO:
 - ❌ Use `npm run dev` directly (use PM2 instead)
-- ❌ Modify `CODEX.md` without explicit permission
+- ❌ Modify `QREABLE.md` without explicit permission
 - ❌ Create documentation without checking existing files
 - ❌ Use experimental Next.js features
 - ❌ Commit directly to main branch
@@ -500,7 +500,7 @@ className="w-full md:w-1/2 lg:w-1/3"
 - ✅ Use PM2 for service management
 - ✅ Check existing patterns before implementing
 - ✅ Run tests before committing
-- ✅ Follow the design system (docs/CODEX_DESIGN_SYSTEM.md)
+- ✅ Follow the design system (docs/QREABLE_DESIGN_SYSTEM.md)
 - ✅ Document significant changes in CHANGELOG.md
 - ✅ Use TypeScript strict mode
 - ✅ Reference Gemini analysis when fixing reported issues
@@ -599,7 +599,7 @@ cd backend && npx tsx src/scripts/testUrlValidation.ts
 pm2 status
 
 # Restart specific service
-pm2 restart codex-backend
+pm2 restart qreable-backend
 
 # Clear logs if too large
 pm2 flush
@@ -662,8 +662,8 @@ lsof -i :3004  # Backend
 lsof -i :3002  # Rust
 
 # Check logs
-pm2 logs codex-backend --err
-pm2 logs codex-frontend --err
+pm2 logs qreable-backend --err
+pm2 logs qreable-frontend --err
 
 # Reset PM2
 pm2 delete all
@@ -732,7 +732,7 @@ curl -X POST http://localhost:3004/api/auth/login \
 ### View Real-time Logs
 ```bash
 pm2 logs --lines 50         # Last 50 lines all services
-pm2 logs codex-backend      # Specific service
+pm2 logs qreable-backend      # Specific service
 pm2 logs --err              # Only errors
 ```
 
@@ -839,8 +839,8 @@ cargo build --release
 - [ ] ✅ **Validate FLODEX**: `./scripts/validate-flodex.sh` - Ensure architecture compliance
 
 #### 📝 2. CRITICAL CHANGE DOCUMENTATION
-- [ ] ✅ **Architecture changes**: Update `CODEX.md` if applicable
-- [ ] ✅ **Port/URL changes**: Update `CODEX.md` PORT CONFIGURATION first
+- [ ] ✅ **Architecture changes**: Update `QREABLE.md` if applicable
+- [ ] ✅ **Port/URL changes**: Update `QREABLE.md` PORT CONFIGURATION first
 - [ ] ✅ **New dependencies**: Document in corresponding README.md
 - [ ] ✅ **API changes**: Update `API_DOCUMENTATION.md`
 - [ ] ✅ **Resolved issues**: Add to `docs/TROUBLESHOOTING.md`
@@ -1155,4 +1155,4 @@ c) Refactor into components?"
 
 ---
 
-*This document represents the collective wisdom of the CODEX project. Keep it updated, keep it relevant, and keep it effective.*
+*This document represents the collective wisdom of the QReable project. Keep it updated, keep it relevant, and keep it effective.*

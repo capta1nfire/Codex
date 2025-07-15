@@ -17,7 +17,7 @@
 
 ## 📋 Resumen Ejecutivo
 
-Este plan detalla la implementación de mejoras críticas para posicionar a CODEX como líder en generación de códigos QR personalizables. Las mejoras se organizan en tres fases con un enfoque en victorias rápidas, diferenciación técnica y preparación para IA generativa.
+Este plan detalla la implementación de mejoras críticas para posicionar a QReable como líder en generación de códigos QR personalizables. Las mejoras se organizan en tres fases con un enfoque en victorias rápidas, diferenciación técnica y preparación para IA generativa.
 
 ### Principios Guía
 1. **Performance First**: Ninguna mejora debe degradar el tiempo de generación actual (~1ms)

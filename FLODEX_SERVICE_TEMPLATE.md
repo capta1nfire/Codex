@@ -2,7 +2,7 @@
 
 ## 1. Propósito del Servicio
 
-[Descripción concisa del rol de este servicio en la arquitectura CODEX. 2-3 párrafos máximo.]
+[Descripción concisa del rol de este servicio en la arquitectura QReable. 2-3 párrafos máximo.]
 
 ### Responsabilidades Principales
 - [Responsabilidad 1]

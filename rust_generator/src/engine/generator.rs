@@ -1347,6 +1347,7 @@ impl QrCode {
     /// Genera paths separados para datos y ojos con soporte para exclusión
     fn generate_enhanced_paths_with_exclusion(&self, logo_zone: Option<&super::geometry::LogoExclusionZone>) -> crate::engine::types::QrPaths {
         let mut data_path = String::new();
+        let mut data_modules = Vec::new();
         let mut eye_paths = Vec::new();
         
         // Identificar regiones de ojos
@@ -1364,6 +1365,14 @@ impl QrCode {
         let data_pattern = self.customization.as_ref()
             .and_then(|c| c.data_pattern)
             .unwrap_or(DataPattern::Square);
+            
+        // Verificar si tenemos gradiente por módulo habilitado
+        let per_module_gradient = self.customization.as_ref()
+            .and_then(|c| c.gradient.as_ref())
+            .map(|g| g.per_module)
+            .unwrap_or(false);
+            
+        eprintln!("[DEBUG] per_module_gradient = {}", per_module_gradient);
         
         // Generar path optimizado para datos (excluyendo ojos y zona de logo si aplica)
         for y in 0..self.size {
@@ -1388,8 +1397,18 @@ impl QrCode {
                     let x_pos = x + self.quiet_zone;
                     let y_pos = y + self.quiet_zone;
                     
-                    // Generar patrón específico para cada módulo
-                    match data_pattern {
+                    // Si per_module_gradient está habilitado, generar módulos individuales
+                    if per_module_gradient {
+                        let module_path = self.generate_module_path(x_pos, y_pos, data_pattern);
+                        eprintln!("[DEBUG] Adding module at ({}, {})", x_pos, y_pos);
+                        data_modules.push(crate::engine::types::QrDataModule {
+                            x: x_pos as u32,
+                            y: y_pos as u32,
+                            path: module_path,
+                        });
+                    } else {
+                        // Generar patrón concatenado para path único
+                        match data_pattern {
                         DataPattern::Dots => {
                             // Círculo con radio 0.4 (40% del módulo)
                             let cx = x_pos as f32 + 0.5;
@@ -1593,6 +1612,7 @@ impl QrCode {
                             ));
                         }
                     }
+                    } // Cierre del else
                 }
             }
         }
@@ -1658,9 +1678,208 @@ impl QrCode {
             }
         }
         
+        eprintln!("[DEBUG] Total data_modules: {}", data_modules.len());
+        eprintln!("[DEBUG] data_path length: {}", data_path.len());
+        
         crate::engine::types::QrPaths {
             data: data_path,
+            data_modules,
             eyes: eye_paths,
+        }
+    }
+    
+    /// Genera el path SVG para un módulo individual
+    fn generate_module_path(&self, x_pos: usize, y_pos: usize, pattern: DataPattern) -> String {
+        match pattern {
+            DataPattern::Dots => {
+                // Círculo con radio 0.4 (40% del módulo)
+                let cx = x_pos as f32 + 0.5;
+                let cy = y_pos as f32 + 0.5;
+                let r = 0.4;
+                format!(
+                    "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0",
+                    cx, cy, r, r, r, r * 2.0, r, r, r * 2.0
+                )
+            },
+            DataPattern::Rounded => {
+                // Cuadrado redondeado
+                format!(
+                    "M{}.25 {}h0.5a0.25 0.25 0 0 1 0.25 0.25v0.5a0.25 0.25 0 0 1 -0.25 0.25h-0.5a0.25 0.25 0 0 1 -0.25 -0.25v-0.5a0.25 0.25 0 0 1 0.25 -0.25z",
+                    x_pos, y_pos
+                )
+            },
+            DataPattern::Vertical => {
+                // Línea vertical (60% del ancho)
+                let width = 0.6;
+                let offset = (1.0 - width) / 2.0;
+                format!(
+                    "M{} {}h{}v1h-{}z",
+                    x_pos as f32 + offset, y_pos, width, width
+                )
+            },
+            DataPattern::Horizontal => {
+                // Línea horizontal (60% de la altura)
+                let height = 0.6;
+                let offset = (1.0 - height) / 2.0;
+                format!(
+                    "M{} {}h1v{}h-1z",
+                    x_pos, y_pos as f32 + offset, height
+                )
+            },
+            DataPattern::Diamond => {
+                // Diamante (más denso)
+                let cx = x_pos as f32 + 0.5;
+                let cy = y_pos as f32 + 0.5;
+                let half = 0.52;
+                format!(
+                    "M{} {}L{} {}L{} {}L{} {}z",
+                    cx, cy - half,
+                    cx + half, cy,
+                    cx, cy + half,
+                    cx - half, cy
+                )
+            },
+            DataPattern::Circular => {
+                // Círculo con borde hueco interno
+                let cx = x_pos as f32 + 0.5;
+                let cy = y_pos as f32 + 0.5;
+                let outer_r = 0.45;
+                let inner_r = 0.2;
+                format!(
+                    "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0M{} {}m-{} 0a{} {} 0 1 1 {} 0a{} {} 0 1 1 -{} 0z",
+                    cx, cy, outer_r, outer_r, outer_r, outer_r * 2.0, outer_r, outer_r, outer_r * 2.0,
+                    cx, cy, inner_r, inner_r, inner_r, inner_r * 2.0, inner_r, inner_r, inner_r * 2.0
+                )
+            },
+            DataPattern::Star => {
+                // Estrella de 5 puntas
+                let cx = x_pos as f32 + 0.5;
+                let cy = y_pos as f32 + 0.5;
+                let outer_r = 0.45;
+                let inner_r = 0.2;
+                let mut star_path = format!("M{} {}", cx, cy - outer_r);
+                
+                for i in 1..10 {
+                    let angle = (i as f32 * 36.0 - 90.0).to_radians();
+                    let r = if i % 2 == 0 { outer_r } else { inner_r };
+                    let px = cx + r * angle.cos();
+                    let py = cy + r * angle.sin();
+                    star_path.push_str(&format!("L{} {}", px, py));
+                }
+                star_path.push('z');
+                star_path
+            },
+            DataPattern::Cross => {
+                // Cruz
+                let thickness = 0.3;
+                let length = 0.8;
+                let offset = (1.0 - length) / 2.0;
+                let cross_offset = (1.0 - thickness) / 2.0;
+                format!(
+                    "M{} {}h{}v{}h-{}zM{} {}v{}h{}v-{}z",
+                    x_pos as f32 + offset, y_pos as f32 + cross_offset,
+                    length, thickness, length,
+                    x_pos as f32 + cross_offset, y_pos as f32 + offset,
+                    length, thickness, length
+                )
+            },
+            DataPattern::Random => {
+                // Patrón pseudo-aleatorio basado en posición
+                let x = x_pos - self.quiet_zone;
+                let y = y_pos - self.quiet_zone;
+                let variant = (x * 7 + y * 13) % 4;
+                match variant {
+                    0 => {
+                        // Círculo
+                        let cx = x_pos as f32 + 0.5;
+                        let cy = y_pos as f32 + 0.5;
+                        let r = 0.4;
+                        format!(
+                            "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0",
+                            cx, cy, r, r, r, r * 2.0, r, r, r * 2.0
+                        )
+                    },
+                    1 => {
+                        // Cuadrado redondeado
+                        format!(
+                            "M{}.25 {}h0.5a0.25 0.25 0 0 1 0.25 0.25v0.5a0.25 0.25 0 0 1 -0.25 0.25h-0.5a0.25 0.25 0 0 1 -0.25 -0.25v-0.5a0.25 0.25 0 0 1 0.25 -0.25z",
+                            x_pos, y_pos
+                        )
+                    },
+                    2 => {
+                        // Diamante
+                        let cx = x_pos as f32 + 0.5;
+                        let cy = y_pos as f32 + 0.5;
+                        let half = 0.45;
+                        format!(
+                            "M{} {}L{} {}L{} {}L{} {}z",
+                            cx, cy - half, cx + half, cy, cx, cy + half, cx - half, cy
+                        )
+                    },
+                    _ => {
+                        // Cuadrado estándar
+                        format!("M{} {}h1v1h-1z", x_pos, y_pos)
+                    }
+                }
+            },
+            DataPattern::Wave => {
+                // Patrón de onda
+                let wave_height = 0.3;
+                let cy = y_pos as f32 + 0.5;
+                format!(
+                    "M{} {}Q{} {} {} {}T{} {}L{} {}L{} {}z",
+                    x_pos, cy - wave_height / 2.0,
+                    x_pos as f32 + 0.25, cy - wave_height,
+                    x_pos as f32 + 0.5, cy - wave_height / 2.0,
+                    x_pos + 1, cy - wave_height / 2.0,
+                    x_pos + 1, cy + wave_height / 2.0,
+                    x_pos, cy + wave_height / 2.0
+                )
+            },
+            DataPattern::Mosaic => {
+                // Patrón de mosaico
+                let x = x_pos - self.quiet_zone;
+                let y = y_pos - self.quiet_zone;
+                let is_checker = (x + y) % 2 == 0;
+                if is_checker {
+                    // 4 cuadrados pequeños
+                    let half = 0.5;
+                    format!(
+                        "M{} {}h{}v{}h-{}zM{} {}h{}v{}h-{}z",
+                        x_pos, y_pos, half, half, half,
+                        x_pos as f32 + half, y_pos as f32 + half, half, half, half
+                    )
+                } else {
+                    // Círculo con borde
+                    let cx = x_pos as f32 + 0.5;
+                    let cy = y_pos as f32 + 0.5;
+                    let r = 0.35;
+                    let stroke_width = 0.15;
+                    format!(
+                        "M{} {}m-{} 0a{} {} 0 1 0 {} 0a{} {} 0 1 0 -{} 0M{} {}m-{} 0a{} {} 0 1 1 {} 0a{} {} 0 1 1 -{} 0z",
+                        cx, cy, r, r, r, r * 2.0, r, r, r * 2.0,
+                        cx, cy, r - stroke_width, r - stroke_width, r - stroke_width, 
+                        (r - stroke_width) * 2.0, r - stroke_width, r - stroke_width, (r - stroke_width) * 2.0
+                    )
+                }
+            },
+            DataPattern::Square | DataPattern::SquareSmall => {
+                // Cuadrado estándar
+                if pattern == DataPattern::SquareSmall {
+                    let size = 0.8;
+                    let offset = (1.0 - size) / 2.0;
+                    format!(
+                        "M{} {}h{}v{}h-{}z",
+                        x_pos as f32 + offset, 
+                        y_pos as f32 + offset, 
+                        size, 
+                        size, 
+                        size
+                    )
+                } else {
+                    format!("M{} {}h1v1h-1z", x_pos, y_pos)
+                }
+            }
         }
     }
     
@@ -2856,18 +3075,37 @@ impl QrCode {
                 )
             }
             EyeCenterStyle::Plus => {
-                // Simple plus sign
-                let thickness = 0.6;
-                let center = 1.5;
+                // Corazón para el centro del ojo
+                let cx = x as f32 + 1.5;
+                let cy = y as f32 + 1.5;
+                let scale = 1.2; // Escala más grande para llenar mejor el área 3x3
+                
+                // Corazón usando curvas Bézier
                 format!(
-                    "M {} {} h {} v {} h {} v {} h -{} v {} h -{} v -{} h -{} v -{} h {} Z",
-                    x as f32 + center - thickness/2.0, y as f32,
-                    thickness, center - thickness/2.0,
-                    center - thickness/2.0, thickness,
-                    center - thickness/2.0, center - thickness/2.0,
-                    thickness, center - thickness/2.0,
-                    thickness, thickness,
-                    center - thickness/2.0
+                    "M {:.2} {:.2} \
+                     C {:.2} {:.2} {:.2} {:.2} {:.2} {:.2} \
+                     C {:.2} {:.2} {:.2} {:.2} {:.2} {:.2} \
+                     C {:.2} {:.2} {:.2} {:.2} {:.2} {:.2} \
+                     C {:.2} {:.2} {:.2} {:.2} {:.2} {:.2} \
+                     Z",
+                    // Punto inicial (parte inferior del corazón)
+                    cx, cy + 1.2 * scale,
+                    // Lóbulo izquierdo
+                    cx - 1.5 * scale, cy + 1.0 * scale,
+                    cx - 1.8 * scale, cy - 0.5 * scale,
+                    cx - 1.0 * scale, cy - 0.8 * scale,
+                    // Parte superior izquierda
+                    cx - 0.5 * scale, cy - 1.0 * scale,
+                    cx, cy - 0.5 * scale,
+                    cx, cy - 0.8 * scale,
+                    // Parte superior derecha
+                    cx, cy - 0.5 * scale,
+                    cx + 0.5 * scale, cy - 1.0 * scale,
+                    cx + 1.0 * scale, cy - 0.8 * scale,
+                    // Lóbulo derecho
+                    cx + 1.8 * scale, cy - 0.5 * scale,
+                    cx + 1.5 * scale, cy + 1.0 * scale,
+                    cx, cy + 1.2 * scale
                 )
             }
         }
@@ -3088,22 +3326,45 @@ impl QrCode {
                 
                 // Gradiente para datos
                 if gradient.apply_to_data {
-                    definitions.push(crate::engine::types::QrDefinition::Gradient(
-                        crate::engine::types::QrGradientDef {
-                            id: "grad_data".to_string(),
-                            gradient_type: format!("{:?}", gradient.gradient_type).to_lowercase(),
-                            colors: colors.clone(),
-                            angle: gradient.angle,
-                            coords: match gradient.gradient_type {
-                                crate::engine::types::GradientType::Radial => {
-                                    Some(crate::engine::types::GradientCoords {
-                                        x1: 0.5, y1: 0.5, x2: 1.0, y2: 1.0,
-                                    })
+                    if gradient.per_module {
+                        // Para gradiente por módulo, crear un gradiente que se repetirá en cada módulo
+                        definitions.push(crate::engine::types::QrDefinition::Gradient(
+                            crate::engine::types::QrGradientDef {
+                                id: "grad_data".to_string(),
+                                gradient_type: format!("{:?}", gradient.gradient_type).to_lowercase(),
+                                colors: colors.clone(),
+                                angle: gradient.angle,
+                                coords: match gradient.gradient_type {
+                                    crate::engine::types::GradientType::Radial => {
+                                        Some(crate::engine::types::GradientCoords {
+                                            x1: 0.5, y1: 0.5, x2: 0.5, y2: 0.5,
+                                        })
+                                    },
+                                    _ => None,
                                 },
-                                _ => None,
-                            },
-                        }
-                    ));
+                                per_module: Some(true),
+                            }
+                        ));
+                    } else {
+                        // Gradiente continuo a través de todos los módulos
+                        definitions.push(crate::engine::types::QrDefinition::Gradient(
+                            crate::engine::types::QrGradientDef {
+                                id: "grad_data".to_string(),
+                                gradient_type: format!("{:?}", gradient.gradient_type).to_lowercase(),
+                                colors: colors.clone(),
+                                angle: gradient.angle,
+                                coords: match gradient.gradient_type {
+                                    crate::engine::types::GradientType::Radial => {
+                                        Some(crate::engine::types::GradientCoords {
+                                            x1: 0.5, y1: 0.5, x2: 1.0, y2: 1.0,
+                                        })
+                                    },
+                                    _ => None,
+                                },
+                                per_module: Some(false),
+                            }
+                        ));
+                    }
                 }
                 
                 // Gradiente para ojos
@@ -3115,6 +3376,7 @@ impl QrCode {
                             colors,
                             angle: gradient.angle,
                             coords: None,
+                            per_module: None,
                         }
                     ));
                 }
@@ -3143,6 +3405,7 @@ impl QrCode {
                             },
                             _ => None,
                         },
+                        per_module: None,
                     }
                 ));
             }
@@ -3170,6 +3433,7 @@ impl QrCode {
                             },
                             _ => None,
                         },
+                        per_module: None,
                     }
                 ));
             }
@@ -3199,6 +3463,7 @@ impl QrCode {
                                 },
                                 _ => None,
                             },
+                            per_module: None,
                         }
                     ));
                 }
@@ -3226,6 +3491,7 @@ impl QrCode {
                                 },
                                 _ => None,
                             },
+                            per_module: None,
                         }
                     ));
                 }

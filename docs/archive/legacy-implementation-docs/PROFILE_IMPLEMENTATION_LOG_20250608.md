@@ -77,7 +77,7 @@ phone: z
 ## **Fase 2C - Plan & Límites** ✅ **COMPLETADA**
 
 ### **🎯 Objetivo:**
-Implementar sección de Plan & Límites con "Sofisticación Corporativa" siguiendo CODEX Design System v2.0.
+Implementar sección de Plan & Límites con "Sofisticación Corporativa" siguiendo QReable Design System v2.0.
 
 ### **🔧 Cambios Implementados:**
 
@@ -101,7 +101,6 @@ Implementar sección de Plan & Límites con "Sofisticación Corporativa" siguien
 - ✅ **CSS personalizado** en `globals.css`
 - ✅ **Microinteracciones** con `ease-subtle` y `ease-smooth`
 - ✅ **Hero buttons** con efectos hover sofisticados
-- ✅ **Sombras corporativas** con tokens de color
 
 ### **🎨 Características Implementadas:**
 

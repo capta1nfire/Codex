@@ -1,4 +1,4 @@
-# 🚀 CODEX QR Engine - Arquitectura de Nueva Generación
+# 🚀 QReable QR Engine - Arquitectura de Nueva Generación
 
 ## Documento de Implementación Técnica v1.0
 **Fecha:** 2025-01-08  
@@ -839,5 +839,5 @@ pub fn sanitize_logo(logo_data: &[u8]) -> Result<DynamicImage> {
 ---
 
 **Firma:**  
-Equipo de Arquitectura CODEX  
+Equipo de Arquitectura QReable  
 Fecha: 2025-01-08

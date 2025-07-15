@@ -8,7 +8,7 @@
 
 ## 🎯 **Resumen Ejecutivo**
 
-Durante una auditoría independiente del proyecto CODEX, se identificaron **mejoras significativas implementadas** que no están reflejadas en la documentación oficial. El proyecto está **más avanzado técnicamente** de lo que sugieren los documentos.
+Durante una auditoría independiente del proyecto QReable, se identificaron **mejoras significativas implementadas** que no están reflejadas en la documentación oficial. El proyecto está **más avanzado técnicamente** de lo que sugieren los documentos.
 
 ---
 
@@ -163,7 +163,7 @@ Total:       32,000+ líneas de código
 
 ## 📝 **Estado Post-Auditoría**
 
-**Resultado**: El proyecto CODEX está en **calidad ENTERPRISE** con:
+**Resultado**: El proyecto QReable está en **calidad ENTERPRISE** con:
 
 - ✅ **95/100 Implementación** (vs 85/100 documentado)
 - ✅ **90/100 Testing** (vs 80/100 documentado)  

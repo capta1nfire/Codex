@@ -23,6 +23,7 @@ import { GeneratorHeader } from './layout/GeneratorHeader';
 import { DataCard } from './workspace/DataCard';
 import { OptionsCard } from './workspace/OptionsCard';
 import { PreviewSection } from './PreviewSectionV3';
+import { SmartQRButton } from '@/features/smart-qr/components';
 
 // UI components
 // Card components removed - using div with column-card class for consistency
@@ -493,6 +494,25 @@ export function QRGeneratorContainer() {
     onSubmit(currentFormValues);
   }, [getValues, onSubmit, qrFormData, setValue]);
 
+  const handleSmartQR = useCallback((smartConfig: any) => {
+    // ⚠️ SMART QR INTEGRATION - CONFIGURACIÓN CRÍTICA
+    // Este callback conecta el Smart QR con el generador principal
+    const currentFormValues = getValues();
+    const enhancedFormData = {
+      ...currentFormValues,
+      options: {
+        ...currentFormValues.options,
+        ...smartConfig
+      }
+    };
+    
+    // Usar la configuración de Smart QR para generar
+    generateWithState(enhancedFormData, {
+      isSmartQR: true,
+      smartQRConfig: smartConfig
+    });
+  }, [getValues, generateWithState]);
+
   // Progress indicators - EXACTOS del original
   
   // Check if user has changed data in section 1 (barcode/QR data)
@@ -798,33 +818,6 @@ export function QRGeneratorContainer() {
                     urlValidationState={urlValidationState}
                     onUrlValidationComplete={handleUrlValidationComplete}
                     onGenerateAnyway={handleGenerateAnyway}
-                    onSmartQRGenerate={(smartConfig) => {
-                      // ⚠️ SMART QR INTEGRATION - CONFIGURACIÓN CRÍTICA
-                      // Este callback conecta el Smart QR con el generador principal
-                      // La configuración del Smart QR debe sobrescribir las opciones actuales
-                      // 
-                      // FLUJO:
-                      // 1. SmartQRModal genera la configuración inteligente
-                      // 2. Esta configuración se pasa aquí via smartConfig
-                      // 3. Se mezcla con los valores actuales del formulario
-                      // 4. Se genera el QR usando el estado centralizado
-                      //
-                      // NO MODIFICAR sin entender el flujo completo de Smart QR
-                      const currentFormValues = getValues();
-                      const enhancedFormData = {
-                        ...currentFormValues,
-                        options: {
-                          ...currentFormValues.options,
-                          ...smartConfig
-                        }
-                      };
-                      
-                      // Usar la configuración de Smart QR para generar
-                      generateWithState(enhancedFormData, {
-                        isSmartQR: true,
-                        smartQRConfig: smartConfig
-                      });
-                    }} 
                     trackInput={trackInput}
                   />
                   
@@ -843,6 +836,7 @@ export function QRGeneratorContainer() {
                 </div>
               </div>
             </section>
+
 
             {/* Columna de vista previa - ESTRUCTURA PROTEGIDA */}
             {/* ⚠️ IMPORTANTE: Esta estructura fue calibrada durante una sesión completa.
@@ -886,6 +880,17 @@ export function QRGeneratorContainer() {
                   backgroundColor={watch('options.bgcolor')}
                 />
                 </div>
+                
+                {/* Smart QR Button - Movido debajo del QR */}
+                {selectedType === 'qrcode' && qrFormData.link?.url && (
+                  <div className="mt-4 px-4">
+                    <SmartQRButton 
+                      url={qrFormData.link.url}
+                      onGenerate={handleSmartQR}
+                      className="w-full max-w-[320px] mx-auto"
+                    />
+                  </div>
+                )}
               </section>
             </div>
           </div>
