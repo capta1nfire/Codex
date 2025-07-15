@@ -881,9 +881,9 @@ export function QRGeneratorContainer() {
                 />
                 </div>
                 
-                {/* Smart QR Button - Movido debajo del QR */}
+                {/* Smart QR Button - Movido más abajo del QR */}
                 {selectedType === 'qrcode' && qrFormData.link?.url && (
-                  <div className="mt-4 px-4">
+                  <div className="mt-16 px-4">
                     <SmartQRButton 
                       url={qrFormData.link.url}
                       onGenerate={handleSmartQR}

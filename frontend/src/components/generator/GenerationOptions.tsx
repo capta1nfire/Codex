@@ -535,10 +535,10 @@ function GenerationOptions({
                       />
                     </div>
 
-                    {/* Options in compact horizontal layout */}
+                    {/* Options in vertical layout - 1 column, 3 rows */}
                     <div className="space-y-2">
                       <Label className="text-sm text-slate-600 dark:text-slate-400">Opciones</Label>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-1 gap-2">
                         {/* Gradient Borders */}
                         <div className="flex items-center justify-between py-2 px-3 rounded-md bg-slate-50 dark:bg-slate-900/30">
                           <Label htmlFor="gradient-borders" className="text-sm cursor-pointer text-slate-600 dark:text-slate-400">

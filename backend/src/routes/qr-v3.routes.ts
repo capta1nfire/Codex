@@ -50,45 +50,71 @@ const customizationSchema = z
           .optional(),
       })
       .optional(),
-    
+
     // New enhanced eye color system - for eye centers
     eye_color_mode: z.enum(['inherit', 'solid', 'gradient']).optional(),
-    eye_color_solid: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-    eye_color_gradient: z.object({
-      type: z.enum(['linear', 'radial']).optional(),
-      color1: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-      color2: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-      direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
-    }).optional(),
-    
+    eye_color_solid: z
+      .string()
+      .regex(/^#[0-9A-Fa-f]{6}$/)
+      .optional(),
+    eye_color_gradient: z
+      .object({
+        type: z.enum(['linear', 'radial']).optional(),
+        color1: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+        color2: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+        direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
+      })
+      .optional(),
+
     // Eye border/frame color system
     eye_border_color_mode: z.enum(['inherit', 'solid', 'gradient']).optional(),
-    eye_border_color_solid: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-    eye_border_color_gradient: z.object({
-      type: z.enum(['linear', 'radial']).optional(),
-      color1: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-      color2: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-      direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
-    }).optional(),
+    eye_border_color_solid: z
+      .string()
+      .regex(/^#[0-9A-Fa-f]{6}$/)
+      .optional(),
+    eye_border_color_gradient: z
+      .object({
+        type: z.enum(['linear', 'radial']).optional(),
+        color1: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+        color2: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+        direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
+      })
+      .optional(),
     // Separate gradient definitions for eye borders and centers
-    eye_border_gradient: z.object({
-      enabled: z.boolean(),
-      gradient_type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']).optional(),
-      colors: z
-        .array(z.string().regex(/^#[0-9A-Fa-f]{6}$/))
-        .min(2)
-        .max(5)
-        .optional(),
-    }).optional(),
-    eye_center_gradient: z.object({
-      enabled: z.boolean(),
-      gradient_type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']).optional(),
-      colors: z
-        .array(z.string().regex(/^#[0-9A-Fa-f]{6}$/))
-        .min(2)
-        .max(5)
-        .optional(),
-    }).optional(),
+    eye_border_gradient: z
+      .object({
+        enabled: z.boolean(),
+        gradient_type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']).optional(),
+        colors: z
+          .array(z.string().regex(/^#[0-9A-Fa-f]{6}$/))
+          .min(2)
+          .max(5)
+          .optional(),
+      })
+      .optional(),
+    eye_center_gradient: z
+      .object({
+        enabled: z.boolean(),
+        gradient_type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']).optional(),
+        colors: z
+          .array(z.string().regex(/^#[0-9A-Fa-f]{6}$/))
+          .min(2)
+          .max(5)
+          .optional(),
+      })
+      .optional(),
     eye_shape: z
       .enum([
         'square',
@@ -815,11 +841,12 @@ router.post('/enhanced', generationRateLimit, async (req, res) => {
       dataKeys: rustResponse.data ? Object.keys(rustResponse.data) : null,
       hasDefinitions: !!rustResponse.data?.definitions,
       definitionsCount: rustResponse.data?.definitions?.length || 0,
-      definitions: rustResponse.data?.definitions?.map((d: any) => ({ 
-        type: d.type, 
-        id: d.id,
-        gradientType: d.gradient_type
-      })) || [],
+      definitions:
+        rustResponse.data?.definitions?.map((d: any) => ({
+          type: d.type,
+          id: d.id,
+          gradientType: d.gradient_type,
+        })) || [],
     });
 
     // Si la generación fue exitosa, incrementar uso
