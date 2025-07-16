@@ -214,19 +214,32 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
   const bgColor = transparentBackground ? 'transparent' : (getStyle('background.fill') || backgroundColor || '#FFFFFF');
   
   // Debug log
+  const hasPerModuleGradient = data?.definitions?.some(
+    def => def.type === 'gradient' && (def as QRGradientDef).per_module
+  );
+  
   console.log('[EnhancedQRV3] Rendering with data:', {
     hasData: !!data,
     dataKeys: data ? Object.keys(data) : null,
     totalModules,
     dataModules,
     hasDataPath: !!data?.paths?.data,
-    dataPathLength: data?.paths?.data?.length,
+    hasDataModulesPath: !!data?.paths?.data_modules,
+    dataModulesCount: data?.paths?.data_modules?.length || 0,
+    dataFill: getStyle('data.fill'),
+    definitions: data?.definitions,
     transparentBackground,
     backgroundColor,
     bgColor,
     // Debug stroke settings
     dataStroke: data?.styles?.data?.stroke,
-    eyesStroke: data?.styles?.eyes?.stroke
+    eyesStroke: data?.styles?.eyes?.stroke,
+    // Debug per-module gradient
+    hasPerModuleGradient,
+    dataModulesArray: data?.paths?.data_modules,
+    // CRITICAL DEBUG: Show which rendering path we'll take
+    willRenderModules: !!data?.paths?.data_modules && data.paths.data_modules.length > 0,
+    willRenderSinglePath: !data?.paths?.data_modules || data.paths.data_modules.length === 0
   });
   
   // Calcular viewBox usando la fórmula QR v3
@@ -240,17 +253,78 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
   
   // Renderizar definiciones (gradientes y efectos)
   const definitions = useMemo(() => {
-    if (!data.definitions || data.definitions.length === 0) return null;
+    const defs = [];
     
-    return data.definitions.map((def) => {
-      if (def.type === 'gradient') {
-        return renderGradient(def as QRGradientDef, dataModules);
-      } else if (def.type === 'effect') {
-        return renderEffect(def as QREffectDef);
+    // Add standard definitions from data
+    if (data.definitions && data.definitions.length > 0) {
+      data.definitions.forEach((def) => {
+        if (def.type === 'gradient') {
+          defs.push(renderGradient(def as QRGradientDef, dataModules));
+        } else if (def.type === 'effect') {
+          defs.push(renderEffect(def as QREffectDef));
+        }
+      });
+    }
+    
+    // Check if we need per-module gradients
+    const hasPerModuleGradient = data.definitions?.some(
+      def => def.type === 'gradient' && (def as QRGradientDef).per_module
+    );
+    
+    // If we have per-module gradients, create gradient definitions for each module
+    if (hasPerModuleGradient && data?.paths?.data_modules) {
+      const gradDef = data.definitions?.find(
+        def => def.type === 'gradient' && def.id === 'grad_data'
+      ) as QRGradientDef | undefined;
+      
+      if (gradDef) {
+        console.log('[EnhancedQRV3] Creating per-module gradients:', {
+          gradientType: gradDef.gradient_type,
+          colors: gradDef.colors,
+          moduleCount: data.paths.data_modules.length
+        });
+        
+        data.paths.data_modules.forEach((module) => {
+          const gradientId = `grad_module_${module.x}_${module.y}`;
+          
+          if (gradDef.gradient_type === 'radial') {
+            defs.push(
+              <radialGradient
+                key={gradientId}
+                id={gradientId}
+                cx="50%"
+                cy="50%"
+                r="50%"
+                gradientUnits="objectBoundingBox"
+              >
+                <stop offset="0%" stopColor={gradDef.colors[0]} />
+                <stop offset="100%" stopColor={gradDef.colors[1]} />
+              </radialGradient>
+            );
+          } else {
+            // Linear gradient (default)
+            const angle = gradDef.angle || 0;
+            defs.push(
+              <linearGradient
+                key={gradientId}
+                id={gradientId}
+                x1="0%"
+                y1="0%"
+                x2={angle === 45 ? "100%" : angle === 90 ? "0%" : "100%"}
+                y2={angle === 45 ? "100%" : angle === 90 ? "100%" : "0%"}
+                gradientUnits="objectBoundingBox"
+              >
+                <stop offset="0%" stopColor={gradDef.colors[0]} />
+                <stop offset="100%" stopColor={gradDef.colors[1]} />
+              </linearGradient>
+            );
+          }
+        });
       }
-      return null;
-    });
-  }, [data.definitions, dataModules]);
+    }
+    
+    return defs.length > 0 ? defs : null;
+  }, [data.definitions, data.paths?.data_modules, dataModules]);
   
   // IDs únicos para accesibilidad
   const titleId = useMemo(() => 
@@ -274,7 +348,14 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
   }, [data?.overlays?.logo, data?.metadata?.exclusion_info, logoSizeRatio]);
   
   // Verificación temprana de datos mínimos
-  if (!data || !data.paths || !data.paths.data) {
+  if (!data || !data.paths || (!data.paths.data && !data.paths.data_modules)) {
+    console.error('[EnhancedQRV3] Missing required data:', {
+      hasData: !!data,
+      hasPaths: !!data?.paths,
+      hasDataPath: !!data?.paths?.data,
+      hasDataModules: !!data?.paths?.data_modules,
+      paths: data?.paths
+    });
     return (
       <div className={`enhanced-qr-v3-container ${className}`} style={{ width: size, height: size }}>
         <div className="flex items-center justify-center h-full text-gray-400">
@@ -347,26 +428,63 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
           )}
         </defs>
         
+        
         {/* Grupo principal con efectos y máscara si existe */}
         <g 
           filter={getFilterString(data?.styles?.data?.effects)}
           mask={hasLogoWithExclusion ? `url(#${maskId})` : undefined}
         >
           {/* Renderizar módulos individuales si existen (para gradiente por módulo) */}
+          {/* IMPORTANT: Render EITHER individual modules OR single path, never both */}
           {data?.paths?.data_modules && data.paths.data_modules.length > 0 ? (
-            data.paths.data_modules.map((module, index) => (
-              <path
-                key={`module-${module.x}-${module.y}-${index}`}
-                d={module.path}
-                fill={getStyle('data.fill', '#000000')}
-                shapeRendering="crispEdges"
-                {...(getStyle('data.stroke.enabled') ? {
-                  stroke: getStyle('data.stroke.color', '#FFFFFF'),
-                  strokeWidth: getStyle('data.stroke.width', 0.1),
-                  strokeOpacity: getStyle('data.stroke.opacity', 0.3),
-                } : {})}
-              />
-            ))
+            <g>
+              {console.log('[EnhancedQRV3] About to render modules:', {
+                moduleCount: data.paths.data_modules.length,
+                firstFiveModules: data.paths.data_modules.slice(0, 5)
+              })}
+              {data.paths.data_modules.map((module, index) => {
+              // Debug individual module rendering
+              if (index < 5) {
+                console.log(`[EnhancedQRV3] Module ${index}:`, module);
+              }
+              
+              // For per-module gradients, we just need to reference the pre-defined gradients
+              if (hasPerModuleGradient) {
+                const gradientId = `grad_module_${module.x}_${module.y}`;
+                // Use gradient with fallback to solid color
+                const fillValue = `url(#${gradientId})`;
+                
+                return (
+                  <path
+                    key={`module-${module.x}-${module.y}-${index}`}
+                    d={module.path}
+                    fill={fillValue}
+                    shapeRendering="crispEdges"
+                    {...(getStyle('data.stroke.enabled') ? {
+                      stroke: getStyle('data.stroke.color', '#FFFFFF'),
+                      strokeWidth: getStyle('data.stroke.width', 0.1),
+                      strokeOpacity: getStyle('data.stroke.opacity', 0.3),
+                    } : {})}
+                  />
+                );
+              }
+              
+              // Standard module rendering without per-module gradient
+              return (
+                <path
+                  key={`module-${module.x}-${module.y}-${index}`}
+                  d={module.path}
+                  fill={getStyle('data.fill', '#000000')}
+                  shapeRendering="crispEdges"
+                  {...(getStyle('data.stroke.enabled') ? {
+                    stroke: getStyle('data.stroke.color', '#FFFFFF'),
+                    strokeWidth: getStyle('data.stroke.width', 0.1),
+                    strokeOpacity: getStyle('data.stroke.opacity', 0.3),
+                  } : {})}
+                />
+              );
+            })}
+            </g>
           ) : (
             /* Path de datos único (comportamiento normal) */
             /* 🚨 CRITICAL: DO NOT MODIFY WITHOUT EXPLICIT PERMISSION 🚨

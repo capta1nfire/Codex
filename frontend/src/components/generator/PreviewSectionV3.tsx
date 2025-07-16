@@ -638,12 +638,10 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
              qrData && 
              !isPlaceholderData(qrData) && 
              displayState.showRealBarcode && (
-              <div className="absolute -top-2 -right-2 z-50">
-                <HeroScannabilityDisplay
-                  analysis={scannabilityAnalysis}
-                  isNewGeneration={isNewGeneration}
-                />
-              </div>
+              <HeroScannabilityDisplay
+                analysis={scannabilityAnalysis}
+                isNewGeneration={isNewGeneration}
+              />
             )}
           </div>
         </div>

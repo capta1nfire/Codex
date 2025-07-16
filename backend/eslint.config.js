@@ -32,7 +32,7 @@ export default [
     ],
     languageOptions: {
         parserOptions: {
-            project: true, // Auto-detect tsconfig.json based on file location
+            project: './tsconfig.eslint.json',
             tsconfigRootDir: import.meta.dirname, // Sets the base dir for tsconfig lookup
         },
     },

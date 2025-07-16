@@ -127,7 +127,7 @@ export const HeroScannabilityDisplay: React.FC<HeroScannabilityDisplayProps> = (
   };
 
   return (
-    <div className="absolute -top-2 -right-2">
+    <div className="absolute top-0 right-0 z-50">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -138,7 +138,6 @@ export const HeroScannabilityDisplay: React.FC<HeroScannabilityDisplayProps> = (
                 text-white shadow-md cursor-pointer
                 hover:scale-110 
                 transition-all duration-100 ease-out
-                z-50
                 flex items-center justify-center
                 ${getMorphStyles()}
               `}

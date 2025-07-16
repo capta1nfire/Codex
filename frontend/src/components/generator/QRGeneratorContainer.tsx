@@ -200,8 +200,8 @@ export function QRGeneratorContainer() {
 
   // Estados unificados para UI - EXACTO del original
   const serverError = generationError;
-  const clearError = () => resetGeneration();
-  const clearContent = () => resetGeneration();
+  const clearError = useCallback(() => resetGeneration(), [resetGeneration]);
+  const clearContent = useCallback(() => resetGeneration(), [resetGeneration]);
 
   // Handlers - EXACTOS del original
   const lastGeneratedOptions = useRef<string>('');
@@ -213,7 +213,7 @@ export function QRGeneratorContainer() {
                                formData.options.eye_shape !== undefined;
     
     // If Smart QR has specific eye shape, disable separated eye styles
-    if (hasSmartQREyeShape) {
+    if (hasSmartQREyeShape && formData.options) {
       formData.options.use_separated_eye_styles = false;
     }
     
@@ -613,9 +613,11 @@ export function QRGeneratorContainer() {
       if (placeholderConfig) {
         console.log('[Initial QR] Using Studio placeholder config:', placeholderConfig);
         
+        // Type assertion for template_data
+        const config = placeholderConfig as any;
         initialFormData = {
           ...initialFormData,
-          data: placeholderConfig.template_data?.url || initialFormData.data,
+          data: config.template_data?.url || initialFormData.data,
           options: {
             ...initialFormData.options,
             // Colors
@@ -624,7 +626,7 @@ export function QRGeneratorContainer() {
             
             // Gradient
             gradient_enabled: placeholderConfig.gradient?.enabled ?? initialFormData.options.gradient_enabled,
-            gradient_type: placeholderConfig.gradient?.gradient_type || initialFormData.options.gradient_type,
+            gradient_type: ['linear', 'radial'].includes(config.gradient?.gradient_type) ? config.gradient.gradient_type : initialFormData.options.gradient_type,
             gradient_color1: placeholderConfig.gradient?.colors?.[0] || initialFormData.options.gradient_color1,
             gradient_color2: placeholderConfig.gradient?.colors?.[1] || initialFormData.options.gradient_color2,
             
@@ -649,6 +651,47 @@ export function QRGeneratorContainer() {
         };
       }
       
+      // Ensure options is defined
+      initialFormData.options = initialFormData.options || {
+        scale: 4,
+        fgcolor: '#000000',
+        height: 100,
+        includetext: true,
+        ecl: 'M',
+        gradient_enabled: true,
+        gradient_type: 'radial',
+        gradient_color1: '#2563EB',
+        gradient_color2: '#000000',
+        gradient_direction: 'top-bottom',
+        gradient_borders: false, // Align with defaultFormValues
+        // Use separated eye styles by default
+        use_separated_eye_styles: true,
+        eye_border_style: 'circle',
+        eye_center_style: 'circle',
+        data_pattern: 'dots',
+        frame_enabled: false,
+        frame_style: 'simple',
+        frame_text: 'ESCANEA AQUÍ',
+        frame_text_position: 'bottom'
+      };
+
+      // Apply placeholder config if available
+      if (placeholderConfig) {
+        initialFormData.options.gradient_type = ['linear', 'radial'].includes(placeholderConfig.gradient?.gradient_type) ? placeholderConfig.gradient.gradient_type : initialFormData.options.gradient_type;
+        initialFormData.options.gradient_color1 = placeholderConfig.gradient?.colors?.[0] || initialFormData.options.gradient_color1;
+        initialFormData.options.gradient_color2 = placeholderConfig.gradient?.colors?.[1] || initialFormData.options.gradient_color2;
+        initialFormData.options.use_separated_eye_styles = placeholderConfig.use_separated_eye_styles ?? initialFormData.options.use_separated_eye_styles;
+        initialFormData.options.eye_shape = placeholderConfig.eye_shape;
+        initialFormData.options.eye_border_style = placeholderConfig.eye_border_style || initialFormData.options.eye_border_style;
+        initialFormData.options.eye_center_style = placeholderConfig.eye_center_style || initialFormData.options.eye_center_style;
+        initialFormData.options.data_pattern = placeholderConfig.data_pattern || initialFormData.options.data_pattern;
+        initialFormData.options.ecl = placeholderConfig.error_correction || initialFormData.options.ecl;
+        initialFormData.options.frame_enabled = placeholderConfig.frame?.frame_type ? true : false;
+        initialFormData.options.frame_style = placeholderConfig.frame?.frame_type || initialFormData.options.frame_style;
+        initialFormData.options.frame_text = placeholderConfig.frame?.text || initialFormData.options.frame_text;
+        initialFormData.options.frame_text_position = placeholderConfig.frame?.text_position || initialFormData.options.frame_text_position;
+      }
+
       try {
         await generateWithState(initialFormData);
         console.log('[Initial QR] Initial generation completed');
@@ -660,7 +703,7 @@ export function QRGeneratorContainer() {
     };
     
     generateInitialBarcode();
-  }, [getConfigByType]);
+  }, [generateWithState, getConfigByType, isInitialMount]);
 
   // Auto-generación para códigos que no son QR - USES CENTRALIZED GENERATION
   useEffect(() => {
