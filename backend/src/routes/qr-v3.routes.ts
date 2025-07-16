@@ -690,6 +690,9 @@ router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => 
     headers: req.headers,
     ip: req.ip,
   });
+  
+  // Additional debugging for validation errors
+  logger.info('[QR V3 Enhanced] Request body:', JSON.stringify(req.body, null, 2));
 
   try {
     // Validar entrada con esquema más complejo

@@ -95,7 +95,7 @@ export function StudioQRPreview({
           foreground,
           background,
         },
-        error_correction: config.error_correction || 'M',
+        // NOTA: error_correction va en options, no en customization
       };
       
       // Siempre enviamos eye_border_style y eye_center_style
