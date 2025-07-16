@@ -200,9 +200,9 @@ export const DEFAULT_COLORS: ColorConfig = {
 };
 
 export const DEFAULT_GRADIENT: GradientConfig = {
-  enabled: false,
-  gradient_type: 'linear',
-  colors: ['#000000', '#333333'],
+  enabled: true,  // Changed to match page.tsx default
+  gradient_type: 'radial',  // Changed to match page.tsx default
+  colors: ['#000000', '#666666'],  // Changed to match page.tsx default
   angle: 90,
   apply_to_eyes: false,
   apply_to_data: true,
@@ -216,8 +216,9 @@ export const DEFAULT_GRADIENT: GradientConfig = {
 
 export const DEFAULT_QR_CONFIG: QRConfig = {
   use_separated_eye_styles: false,
-  eye_border_style: 'square',
-  eye_center_style: 'square',
+  eye_shape: 'rounded',  // Added to match page.tsx default
+  eye_border_style: 'rounded',  // Changed to match page.tsx default
+  eye_center_style: 'rounded',  // Changed to match page.tsx default  
   data_pattern: 'square',
   colors: DEFAULT_COLORS,
   gradient: DEFAULT_GRADIENT,

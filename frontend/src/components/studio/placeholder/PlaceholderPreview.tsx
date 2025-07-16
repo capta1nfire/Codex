@@ -38,7 +38,7 @@ interface PlaceholderPreviewProps {
 }
 
 // URL placeholder que se usa en la página principal
-const PLACEHOLDER_URL = 'https://qreable.com';
+const PLACEHOLDER_URL = 'https://tu-sitio-web.com';
 
 export function PlaceholderPreview({ 
   config, 

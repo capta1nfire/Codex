@@ -5,16 +5,16 @@
  */
 
 export const DEFAULT_QR_CONFIG = {
-  eye_shape: 'square',
+  eye_shape: 'rounded',  // Changed to match page.tsx default
   data_pattern: 'square',
   colors: {
     foreground: '#000000',
     background: '#FFFFFF',
   },
   gradient: {
-    enabled: false,
-    gradient_type: 'linear',
-    colors: ['#000000', '#333333'],
+    enabled: true,  // Changed to match page.tsx default
+    gradient_type: 'radial',  // Changed to match page.tsx default
+    colors: ['#000000', '#666666'],  // Changed to match page.tsx default
     angle: 90,
     apply_to_eyes: false,
     apply_to_data: true,
