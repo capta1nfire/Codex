@@ -360,6 +360,23 @@ export function PlaceholderForm({
                 </AlertDescription>
               </Alert>
             )}
+            
+            {/* Fondo transparente */}
+            <div className="mt-4 p-3 bg-slate-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="transparent-bg" className="text-sm cursor-pointer">
+                    Fondo transparente
+                  </Label>
+                  <p className="text-xs text-slate-500 mt-0.5">Útil para sobreponer el QR en imágenes</p>
+                </div>
+                <Switch
+                  id="transparent-bg"
+                  checked={config.transparent_background || false}
+                  onCheckedChange={(checked) => updateConfig({ transparent_background: checked })}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Gradiente */}
@@ -467,6 +484,67 @@ export function PlaceholderForm({
                     />
                   </div>
                 )}
+                
+                {/* Opciones adicionales de gradiente */}
+                <div className="space-y-3 border-t pt-3">
+                  {/* Aplicar a ojos */}
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="apply-to-eyes" className="text-sm cursor-pointer">
+                      Aplicar a ojos
+                    </Label>
+                    <Switch
+                      id="apply-to-eyes"
+                      checked={config.gradient?.apply_to_eyes ?? true}
+                      onCheckedChange={(checked) => updateGradient({ apply_to_eyes: checked })}
+                    />
+                  </div>
+                  
+                  {/* Aplicar a datos */}
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="apply-to-data" className="text-sm cursor-pointer">
+                      Aplicar a datos
+                    </Label>
+                    <Switch
+                      id="apply-to-data"
+                      checked={config.gradient?.apply_to_data ?? true}
+                      onCheckedChange={(checked) => updateGradient({ apply_to_data: checked })}
+                    />
+                  </div>
+                  
+                  {/* Por módulo */}
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="per-module" className="text-sm cursor-pointer">
+                      Por módulo
+                      <p className="text-xs text-slate-500 font-normal">Cada módulo tiene su propio gradiente</p>
+                    </Label>
+                    <Switch
+                      id="per-module"
+                      checked={config.gradient?.per_module || false}
+                      onCheckedChange={(checked) => updateGradient({ per_module: checked })}
+                    />
+                  </div>
+                  
+                  {/* Bordes */}
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="stroke-style" className="text-sm cursor-pointer">
+                      Bordes
+                      <p className="text-xs text-slate-500 font-normal">Añade bordes blancos semitransparentes</p>
+                    </Label>
+                    <Switch
+                      id="stroke-style"
+                      checked={config.gradient?.stroke_style?.enabled || false}
+                      onCheckedChange={(checked) => updateGradient({ 
+                        stroke_style: {
+                          ...(config.gradient?.stroke_style || {}),
+                          enabled: checked,
+                          color: config.gradient?.stroke_style?.color || '#FFFFFF',
+                          width: config.gradient?.stroke_style?.width || 0.5,
+                          opacity: config.gradient?.stroke_style?.opacity || 0.3
+                        }
+                      })}
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>

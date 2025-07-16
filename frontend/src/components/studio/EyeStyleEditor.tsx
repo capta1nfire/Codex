@@ -29,15 +29,15 @@ interface EyeStyleEditorProps {
 }
 
 export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleEditorProps) {
-  const useSeparatedStyles = config.use_separated_eye_styles || false;
+  const useSeparatedStyles = config.use_separated_eye_styles ?? true; // Default true como página principal
 
   const handleModeChange = (checked: boolean) => {
     if (checked) {
       // Cambiar a modo separado
       onChange({
         use_separated_eye_styles: true,
-        eye_border_style: config.eye_border_style || 'square',
-        eye_center_style: config.eye_center_style || 'square',
+        eye_border_style: config.eye_border_style || 'circle',  // Default circle como página principal
+        eye_center_style: config.eye_center_style || 'circle',  // Default circle como página principal
       });
     } else {
       // Cambiar a modo unificado - aplicar el mismo estilo a ambos
@@ -121,7 +121,7 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
             <div className="space-y-2">
               <Label htmlFor="eye-border">Estilo del Marco</Label>
               <Select
-                value={config.eye_border_style || 'square'}
+                value={config.eye_border_style || 'circle'}  // Default circle como página principal
                 onValueChange={(value) => onChange({ eye_border_style: value as any })}
                 disabled={disabled}
               >
@@ -144,7 +144,7 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
             <div className="space-y-2">
               <Label htmlFor="eye-center">Estilo del Centro</Label>
               <Select
-                value={config.eye_center_style || 'square'}
+                value={config.eye_center_style || 'circle'}  // Default circle como página principal
                 onValueChange={(value) => onChange({ eye_center_style: value as any })}
                 disabled={disabled}
               >

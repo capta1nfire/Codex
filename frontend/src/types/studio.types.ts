@@ -64,6 +64,7 @@ export const GradientConfigSchema = z.object({
   angle: z.number().min(0).max(360).optional(),
   apply_to_eyes: z.boolean(),
   apply_to_data: z.boolean(),
+  per_module: z.boolean().optional(),
   stroke_style: z.object({
     enabled: z.boolean(),
     color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
@@ -122,6 +123,9 @@ export const QRConfigSchema = z.object({
     style: z.enum(['simple', 'rounded', 'bubble', 'speech', 'badge']),
     color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   }).optional(),
+  
+  // Fondo transparente
+  transparent_background: z.boolean().optional(),
 });
 
 // Schema para configuración de Studio
@@ -202,9 +206,9 @@ export const DEFAULT_COLORS: ColorConfig = {
 export const DEFAULT_GRADIENT: GradientConfig = {
   enabled: true,  // Changed to match page.tsx default
   gradient_type: 'radial',  // Changed to match page.tsx default
-  colors: ['#000000', '#666666'],  // Changed to match page.tsx default
+  colors: ['#2563EB', '#000000'],  // ✅ CAMBIAR A AZUL CODEX + NEGRO como página principal
   angle: 90,
-  apply_to_eyes: false,
+  apply_to_eyes: true,  // ✅ CAMBIAR A TRUE para que los ojos hereden el gradiente
   apply_to_data: true,
   stroke_style: {
     enabled: false,
@@ -215,11 +219,11 @@ export const DEFAULT_GRADIENT: GradientConfig = {
 };
 
 export const DEFAULT_QR_CONFIG: QRConfig = {
-  use_separated_eye_styles: false,
-  eye_shape: 'rounded',  // Added to match page.tsx default
-  eye_border_style: 'rounded',  // Changed to match page.tsx default
-  eye_center_style: 'rounded',  // Changed to match page.tsx default  
-  data_pattern: 'square',
+  use_separated_eye_styles: true,  // ✅ CAMBIAR A TRUE para match con página principal
+  // When using separated styles, we need both border and center styles
+  eye_border_style: 'circle',  // ✅ Anillo exterior circular como en página principal
+  eye_center_style: 'circle',  // ✅ Centro circular como en página principal
+  data_pattern: 'dots',  // ✅ CAMBIAR A DOTS para match con página principal
   colors: DEFAULT_COLORS,
   gradient: DEFAULT_GRADIENT,
   effects: [],

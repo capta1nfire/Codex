@@ -18,6 +18,7 @@ export const defaultFormValues: GenerateFormData = {
     gradient_color2: '#000000', // Negro en los costados para máximo contraste
     gradient_direction: 'top-bottom', // No se usa en radial pero mantenemos por consistencia
     gradient_borders: false, // White semi-transparent borders for gradient modules (disabled by default)
+    gradient_apply_to_eyes: true, // ✅ Los ojos heredan el gradiente como en el diseño principal
     
     // QR v3 Eye & Pattern defaults - Circle style
     eye_shape: undefined, // No usar modo unificado
@@ -25,6 +26,10 @@ export const defaultFormValues: GenerateFormData = {
     use_separated_eye_styles: true, // ✅ USAR ESTILOS SEPARADOS para anillos concéntricos
     eye_border_style: 'circle', // ✅ Anillo exterior circular
     eye_center_style: 'circle', // ✅ Centro circular
+    
+    // Eye color configuration - inherit gradient for both border and center
+    eye_border_color_mode: 'inherit', // ✅ Los bordes heredan el gradiente del patrón
+    eye_color_mode: 'inherit', // ✅ Los centros heredan el gradiente del patrón
     
     // Frame defaults
     frame_enabled: false, // Disable frame temporarily

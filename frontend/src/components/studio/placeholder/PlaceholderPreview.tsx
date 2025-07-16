@@ -63,22 +63,31 @@ export function PlaceholderPreview({
     // Only include necessary QR v3 fields
     const options: any = {
       error_correction: config.error_correction || 'M',
-      customization: {
-        gradient: config.gradient?.enabled ? {
-          enabled: true,
-          gradient_type: config.gradient?.gradient_type || 'linear',
-          colors: config.gradient?.colors || ['#000000', '#666666'],
-          angle: config.gradient?.angle || 90,
-        } : undefined,
+      // ✅ Mapear a formato de formulario con estilos separados
+      ecl: config.error_correction || 'M',
+      use_separated_eye_styles: config.use_separated_eye_styles ?? true,  // Default true como página principal
+      ...(config.use_separated_eye_styles ? {
+        eye_border_style: config.eye_border_style || 'circle',
+        eye_center_style: config.eye_center_style || 'circle',
+      } : {
         eye_shape: config.eye_shape || 'square',
-        data_pattern: config.data_pattern || 'square',
-        colors: {
-          foreground: config.colors?.foreground || '#000000',
-          background: config.colors?.background || '#FFFFFF',
-          eye_outer: config.colors?.eye_colors?.outer,
-          eye_inner: config.colors?.eye_colors?.inner,
-        }
-      }
+      }),
+      data_pattern: config.data_pattern || 'dots',
+      gradient_enabled: config.gradient?.enabled ?? true,
+      gradient_type: config.gradient?.gradient_type || 'radial',
+      gradient_color1: config.gradient?.colors?.[0] || '#2563EB',
+      gradient_color2: config.gradient?.colors?.[1] || '#000000',
+      gradient_direction: 'top-bottom',
+      gradient_apply_to_eyes: config.gradient?.apply_to_eyes ?? true,  // ✅ Agregar para heredar gradiente en ojos
+      gradient_per_module: config.gradient?.per_module || false,  // ✅ Por módulo
+      gradient_borders: config.gradient?.stroke_style?.enabled || false,  // ✅ Bordes
+      fgcolor: config.colors?.foreground || '#000000',
+      bgcolor: config.colors?.background || '#FFFFFF',
+      transparent_background: config.transparent_background || false,  // ✅ Fondo transparente
+      eye_colors: config.colors?.eye_colors,
+      // ✅ Configurar modo de color para que los ojos hereden el gradiente
+      eye_border_color_mode: 'inherit',
+      eye_color_mode: 'inherit'
     };
 
     return {
@@ -94,7 +103,10 @@ export function PlaceholderPreview({
     config.gradient?.gradient_type,
     config.gradient?.colors,
     config.gradient?.angle,
+    config.use_separated_eye_styles,
     config.eye_shape,
+    config.eye_border_style,
+    config.eye_center_style,
     config.data_pattern,
     config.colors?.foreground,
     config.colors?.background,

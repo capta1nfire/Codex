@@ -64,6 +64,10 @@ export function StudioQRPreview({
     setError(null);
 
     console.log('StudioQRPreview config received:', config);
+    console.log('StudioQRPreview use_separated_eye_styles:', config.use_separated_eye_styles);
+    console.log('StudioQRPreview eye_shape:', config.eye_shape);
+    console.log('StudioQRPreview eye_border_style:', config.eye_border_style);
+    console.log('StudioQRPreview eye_center_style:', config.eye_center_style);
 
     // Pilar 2: Validación defensiva - Asegurar estructura completa
     if (!config || typeof config !== 'object') {
@@ -98,10 +102,16 @@ export function StudioQRPreview({
         // NOTA: error_correction va en options, no en customization
       };
       
-      // Siempre enviamos eye_border_style y eye_center_style
-      // En modo unificado ambos tendrán el mismo valor
-      customization.eye_border_style = config.eye_border_style || 'square';
-      customization.eye_center_style = config.eye_center_style || 'square';
+      // CRITICAL: Check if using separated eye styles
+      if (config.use_separated_eye_styles) {
+        // Using separated styles - send both border and center
+        customization.eye_border_style = config.eye_border_style || 'square';
+        customization.eye_center_style = config.eye_center_style || 'square';
+      } else {
+        // Using unified style - send only eye_shape
+        // Use eye_shape if available, otherwise default to 'rounded' to match main page
+        customization.eye_shape = config.eye_shape || config.eye_border_style || 'rounded';
+      }
 
       // Add eye colors if specified
       if (config.colors?.eye_colors) {
@@ -111,7 +121,7 @@ export function StudioQRPreview({
         };
       }
 
-      // Add gradient if enabled
+      // Add gradient if enabled - ensure all required fields
       if (config.gradient?.enabled) {
         customization.gradient = {
           enabled: true,
@@ -120,8 +130,17 @@ export function StudioQRPreview({
           angle: config.gradient.angle || 0,
           apply_to_eyes: config.gradient.apply_to_eyes || false,
           apply_to_data: config.gradient.apply_to_data !== false,
-          stroke_style: config.gradient.stroke_style || {
+          // Ensure stroke_style has all required fields
+          stroke_style: config.gradient.stroke_style ? {
+            enabled: config.gradient.stroke_style.enabled || false,
+            color: config.gradient.stroke_style.color || '#FFFFFF',
+            width: config.gradient.stroke_style.width || 0.5,
+            opacity: config.gradient.stroke_style.opacity || 0.3,
+          } : {
             enabled: false,
+            color: '#FFFFFF',
+            width: 0.5,
+            opacity: 0.3,
           },
         };
       }
@@ -168,6 +187,15 @@ export function StudioQRPreview({
       };
       
       console.log('StudioQRPreview request body:', JSON.stringify(requestBody, null, 2));
+      console.log('StudioQRPreview customization detail:', {
+        hasEyeShape: 'eye_shape' in customization,
+        hasEyeBorderStyle: 'eye_border_style' in customization,
+        hasEyeCenterStyle: 'eye_center_style' in customization,
+        eyeShape: customization.eye_shape,
+        eyeBorderStyle: customization.eye_border_style,
+        eyeCenterStyle: customization.eye_center_style,
+        use_separated_eye_styles: config.use_separated_eye_styles
+      });
       
       const response = await fetch(`${backendUrl}/api/v3/qr/enhanced`, {
         method: 'POST',
