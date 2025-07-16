@@ -12,11 +12,31 @@ import { z } from 'zod';
 
 import { authenticateJwt } from '../middleware/authMiddleware.js';
 import { generationRateLimit } from '../middleware/rateLimitMiddleware.js';
+import passport from 'passport';
 // import { incrementUsage } from '../services/usageService.js'; // TODO: Implement usage service
 import { scannabilityService } from '../services/scannabilityService.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
+
+// Middleware de autenticación opcional - intenta autenticar pero no falla
+const optionalAuth = (req: any, res: any, next: any) => {
+  // Si hay un token de autorización, intentar autenticar
+  if (req.headers.authorization) {
+    passport.authenticate('jwt', { session: false }, (err: any, user: any) => {
+      if (user) {
+        req.user = user;
+        logger.info('[QR V3] User authenticated via optional auth', { 
+          userId: user.id, 
+          userRole: user.role 
+        });
+      }
+      next();
+    })(req, res, next);
+  } else {
+    next();
+  }
+};
 
 // Schema de validación mejorado para v3
 const customizationSchema = z
@@ -659,8 +679,17 @@ router.post(
  * POST /api/v3/qr/enhanced
  * Generate QR code with enhanced structured data output (gradients, effects, etc.)
  */
-router.post('/enhanced', generationRateLimit, async (req, res) => {
+router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => {
   const startTime = Date.now();
+  
+  // Debug logging for rate limit investigation
+  logger.info('[QR V3 Enhanced] Request received', {
+    user: req.user,
+    userId: req.user?.id,
+    userRole: req.user?.role,
+    headers: req.headers,
+    ip: req.ip,
+  });
 
   try {
     // Validar entrada con esquema más complejo

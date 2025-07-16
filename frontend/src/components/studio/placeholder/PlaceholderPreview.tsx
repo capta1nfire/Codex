@@ -48,6 +48,7 @@ export function PlaceholderPreview({
   const [copied, setCopied] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   
   // Use the QR generation hook
   const { 
@@ -100,28 +101,46 @@ export function PlaceholderPreview({
     config.colors?.eye_colors?.inner
   ]);
 
-  // Generate QR when config changes - with proper initialization
+  // Generate QR when config changes - with proper initialization and concurrency control
   useEffect(() => {
+    // Prevent concurrent generations
+    if (isGenerating) {
+      console.log('[PlaceholderPreview] Generation already in progress, skipping');
+      return;
+    }
+
     if (!isInitialized) {
       setIsInitialized(true);
       // Generate initial QR after small delay to ensure component is mounted
-      const initTimer = setTimeout(() => {
-        generateQR(formData).catch((err) => {
+      const initTimer = setTimeout(async () => {
+        setIsGenerating(true);
+        try {
+          await generateQR(formData);
+        } catch (err) {
           console.error('Error generating initial placeholder QR:', err);
           setLocalError('Error generando QR inicial');
-        });
-      }, 100);
+        } finally {
+          setIsGenerating(false);
+        }
+      }, 500); // Increased delay for initial load
       return () => clearTimeout(initTimer);
     }
 
-    // Debounce subsequent changes
-    const timer = setTimeout(() => {
+    // Debounce subsequent changes with longer delay
+    const timer = setTimeout(async () => {
+      if (isGenerating) return; // Double check
+      
+      setIsGenerating(true);
       setLocalError(null);
-      generateQR(formData).catch((err) => {
+      try {
+        await generateQR(formData);
+      } catch (err) {
         console.error('Error generating placeholder QR:', err);
         setLocalError('Error generando QR');
-      });
-    }, 300);
+      } finally {
+        setIsGenerating(false);
+      }
+    }, 800); // Increased debounce time
     
     return () => clearTimeout(timer);
   }, [formData]); // Remove generateQR from deps to avoid infinite loop
