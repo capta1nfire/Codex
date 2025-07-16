@@ -868,6 +868,14 @@ function GenerationOptions({
                                 if (value === 'inherit') {
                                   setValue('options.eye_border_color_solid', undefined);
                                   setValue('options.eye_border_color_gradient', undefined);
+                                } else if (value === 'gradient') {
+                                  // Pre-load gradient colors from main gradient
+                                  const mainColor1 = getValues('options.gradient_color1') || '#000000';
+                                  const mainColor2 = getValues('options.gradient_color2') || '#666666';
+                                  setValue('options.eye_border_color_gradient', {
+                                    color1: mainColor1,
+                                    color2: mainColor2
+                                  });
                                 }
                                 setTimeout(() => {
                                   const currentFormValues = getValues();
@@ -1075,6 +1083,14 @@ function GenerationOptions({
                                 if (value === 'inherit') {
                                   setValue('options.eye_color_solid', undefined);
                                   setValue('options.eye_color_gradient', undefined);
+                                } else if (value === 'gradient') {
+                                  // Pre-load gradient colors from main gradient
+                                  const mainColor1 = getValues('options.gradient_color1') || '#000000';
+                                  const mainColor2 = getValues('options.gradient_color2') || '#666666';
+                                  setValue('options.eye_color_gradient', {
+                                    color1: mainColor1,
+                                    color2: mainColor2
+                                  });
                                 }
                                 setTimeout(() => {
                                   const currentFormValues = getValues();

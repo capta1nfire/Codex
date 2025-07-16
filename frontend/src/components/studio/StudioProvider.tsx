@@ -316,7 +316,7 @@ export function StudioProvider({ children }: StudioProviderProps) {
     if (user?.role === 'SUPERADMIN' && !hasLoadedRef.current && !isLoadingRef.current) {
       loadConfigs();
     }
-  }, [user, loadConfigs]);
+  }, [user]); // Remove loadConfigs from deps to prevent loops
   
   // Pilar 2: Limpiar estado al desmontar
   useEffect(() => {

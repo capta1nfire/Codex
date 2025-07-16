@@ -56,6 +56,24 @@ async function main() {
   });
   console.log(`Created/found premium user: ${premium.email}`);
 
+  // Crear usuario personal capta1nfire
+  const captainPassword = await bcrypt.hash('$Am3r1c4*19.27!', 10);
+  const captain = await prisma.user.upsert({
+    where: { email: 'capta1nfire@me.com' },
+    update: {
+      password: captainPassword, // Actualizar contraseña si el usuario ya existe
+    },
+    create: {
+      email: 'capta1nfire@me.com',
+      firstName: 'Captain',
+      lastName: 'Fire',
+      password: captainPassword,
+      role: Role.SUPERADMIN,
+      isActive: true,
+    },
+  });
+  console.log(`Created/found captain user: ${captain.email}`);
+
   console.log(`Seeding finished.`);
 }
 

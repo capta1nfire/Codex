@@ -13,7 +13,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { QRConfig } from '@/types/studio.types';
 import { EnhancedQRV3 } from '@/components/generator/EnhancedQRV3';
 import { Button } from '@/components/ui/button';
@@ -25,9 +25,12 @@ import {
   Smartphone,
   Monitor,
   Copy,
-  Check
+  Check,
+  Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useQRGenerationState } from '@/hooks/useQRGenerationState';
+import { GenerateFormData } from '@/schemas/generate.schema';
 
 interface PlaceholderPreviewProps {
   config: QRConfig;
@@ -35,7 +38,7 @@ interface PlaceholderPreviewProps {
 }
 
 // URL placeholder que se usa en la página principal
-const PLACEHOLDER_URL = 'https://codex.example';
+const PLACEHOLDER_URL = 'https://qreable.com';
 
 export function PlaceholderPreview({ 
   config, 
@@ -43,41 +46,85 @@ export function PlaceholderPreview({
 }: PlaceholderPreviewProps) {
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [copied, setCopied] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+  
+  // Use the QR generation hook
+  const { 
+    enhancedData,
+    isLoading,
+    error,
+    generateQR
+  } = useQRGenerationState();
 
-  // Crear un objeto QR data mock para EnhancedQRV3
-  const qrData = useMemo(() => {
-    // Estructura completa para EnhancedQRV3
-    return {
-      paths: {
-        data: 'M10,10 L10,15 L15,15 L15,10 Z M20,10 L20,15 L25,15 L25,10 Z M10,20 L10,25 L15,25 L15,20 Z', // Mock QR pattern
-        eyes: [
-          { type: 'top-left', path: 'M4,4 L4,11 L11,11 L11,4 Z M5,5 L10,5 L10,10 L5,10 Z', shape: 'square' },
-          { type: 'top-right', path: 'M18,4 L18,11 L25,11 L25,4 Z M19,5 L24,5 L24,10 L19,10 Z', shape: 'square' },
-          { type: 'bottom-left', path: 'M4,18 L4,25 L11,25 L11,18 Z M5,19 L10,19 L10,24 L5,24 Z', shape: 'square' }
-        ]
-      },
-      styles: {
-        data: {
-          fill: config.colors?.foreground || '#000000'
-        },
-        background: {
-          fill: config.colors?.background || '#FFFFFF'
-        },
-        eyes: {
-          fill: config.colors?.foreground || '#000000'
+  // Convert StudioConfig to GenerateFormData - memoize properly
+  const formData = useMemo((): GenerateFormData => {
+    // Only include necessary QR v3 fields
+    const options: any = {
+      error_correction: config.error_correction || 'M',
+      customization: {
+        gradient: config.gradient?.enabled ? {
+          enabled: true,
+          gradient_type: config.gradient?.gradient_type || 'linear',
+          colors: config.gradient?.colors || ['#000000', '#666666'],
+          angle: config.gradient?.angle || 90,
+        } : undefined,
+        eye_shape: config.eye_shape || 'square',
+        data_pattern: config.data_pattern || 'square',
+        colors: {
+          foreground: config.colors?.foreground || '#000000',
+          background: config.colors?.background || '#FFFFFF',
+          eye_outer: config.colors?.eye_colors?.outer,
+          eye_inner: config.colors?.eye_colors?.inner,
         }
-      },
-      metadata: {
-        generation_time_ms: 1,
-        quiet_zone: 4,
-        content_hash: 'placeholder',
-        total_modules: 29,
-        data_modules: 21,
-        version: 1,
-        error_correction: config.error_correction || 'M'
       }
     };
-  }, [config]);
+
+    return {
+      type: 'qrcode',
+      qr_type: 'link', 
+      data: PLACEHOLDER_URL,
+      options
+    };
+  }, [
+    config.error_correction,
+    config.gradient?.enabled,
+    config.gradient?.gradient_type,
+    config.gradient?.colors,
+    config.gradient?.angle,
+    config.eye_shape,
+    config.data_pattern,
+    config.colors?.foreground,
+    config.colors?.background,
+    config.colors?.eye_colors?.outer,
+    config.colors?.eye_colors?.inner
+  ]);
+
+  // Generate QR when config changes - with proper initialization
+  useEffect(() => {
+    if (!isInitialized) {
+      setIsInitialized(true);
+      // Generate initial QR after small delay to ensure component is mounted
+      const initTimer = setTimeout(() => {
+        generateQR(formData).catch((err) => {
+          console.error('Error generating initial placeholder QR:', err);
+          setLocalError('Error generando QR inicial');
+        });
+      }, 100);
+      return () => clearTimeout(initTimer);
+    }
+
+    // Debounce subsequent changes
+    const timer = setTimeout(() => {
+      setLocalError(null);
+      generateQR(formData).catch((err) => {
+        console.error('Error generating placeholder QR:', err);
+        setLocalError('Error generando QR');
+      });
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [formData]); // Remove generateQR from deps to avoid infinite loop
 
   // Descargar QR como SVG
   const handleDownload = () => {
@@ -137,7 +184,7 @@ export function PlaceholderPreview({
               variant="outline"
               size="sm"
               onClick={handleDownload}
-              disabled={!qrData}
+              disabled={!enhancedData}
             >
               <Download className="h-4 w-4" />
             </Button>
@@ -164,14 +211,27 @@ export function PlaceholderPreview({
         {/* QR Code */}
         <div className="relative">
           <div className="bg-white p-4 rounded-lg shadow-lg">
-            <EnhancedQRV3 
-              data={qrData} 
-              size={viewMode === 'mobile' ? 280 : 320}
-              totalModules={25}
-              dataModules={21}
-              version={1}
-              errorCorrection={config.error_correction || 'M'}
-            />
+            {isLoading ? (
+              <div className="flex items-center justify-center" style={{ width: viewMode === 'mobile' ? 280 : 320, height: viewMode === 'mobile' ? 280 : 320 }}>
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              </div>
+            ) : (error || localError) ? (
+              <div className="flex items-center justify-center p-8 text-red-600" style={{ width: viewMode === 'mobile' ? 280 : 320, height: viewMode === 'mobile' ? 280 : 320 }}>
+                <div className="text-center">
+                  <p className="text-sm font-medium">Error generando QR</p>
+                  <p className="text-xs mt-1">{error || localError}</p>
+                </div>
+              </div>
+            ) : enhancedData ? (
+              <EnhancedQRV3 
+                data={enhancedData} 
+                size={viewMode === 'mobile' ? 280 : 320}
+                totalModules={enhancedData.metadata.total_modules}
+                dataModules={enhancedData.metadata.data_modules}
+                version={enhancedData.metadata.version}
+                errorCorrection={enhancedData.metadata.error_correction}
+              />
+            ) : null}
           </div>
         </div>
 
@@ -182,17 +242,19 @@ export function PlaceholderPreview({
             <span>URL: {PLACEHOLDER_URL}</span>
           </div>
           
-          <div className="flex flex-wrap gap-2 justify-center">
-            <Badge variant="secondary" className="text-xs">
-              Versión: {qrData.metadata.version}
-            </Badge>
-            <Badge variant="secondary" className="text-xs">
-              Módulos: {qrData.metadata.total_modules}
-            </Badge>
-            <Badge variant="secondary" className="text-xs">
-              Tiempo: {qrData.metadata.generation_time_ms}ms
-            </Badge>
-          </div>
+          {enhancedData && (
+            <div className="flex flex-wrap gap-2 justify-center">
+              <Badge variant="secondary" className="text-xs">
+                Versión: {enhancedData.metadata.version}
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                Módulos: {enhancedData.metadata.total_modules}
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                Tiempo: {enhancedData.metadata.generation_time_ms}ms
+              </Badge>
+            </div>
+          )}
         </div>
       </div>
 

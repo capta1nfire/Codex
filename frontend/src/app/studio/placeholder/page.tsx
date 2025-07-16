@@ -58,9 +58,11 @@ export default function PlaceholderEditorPage() {
   const [previewKey, setPreviewKey] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Cargar configuración existente
+  // Cargar configuración existente - avoid unnecessary re-renders
   useEffect(() => {
     const existingConfig = getConfigByType(StudioConfigType.PLACEHOLDER);
+    console.log('[PlaceholderEditorPage] Loading config:', { existingConfig });
+    
     if (existingConfig) {
       setLocalConfig(existingConfig.config as QRConfig);
       setActiveConfig(existingConfig);
@@ -68,7 +70,7 @@ export default function PlaceholderEditorPage() {
       // Si no existe, usar valores por defecto
       setLocalConfig(DEFAULT_QR_CONFIG);
     }
-  }, [getConfigByType, setActiveConfig]);
+  }, []); // Remove dependencies to avoid loops
 
   // Pilar 2: Manejo robusto del guardado
   const handleSave = async () => {
