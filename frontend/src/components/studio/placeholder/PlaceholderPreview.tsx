@@ -82,7 +82,8 @@ export function PlaceholderPreview({
     };
 
     return {
-      type: 'qrcode',
+      barcode_type: 'qrcode',  // Changed from 'type' to 'barcode_type'
+      type: 'qrcode',  // Keep both for compatibility
       qr_type: 'link', 
       data: PLACEHOLDER_URL,
       options
