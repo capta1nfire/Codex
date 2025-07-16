@@ -33,8 +33,10 @@ export const DEFAULT_QR_CONFIG = {
     padding: 10,
     shape: 'square',
   },
+  // MARCO TEMPORALMENTE DESHABILITADO en el frontend (useQRGenerationState.ts)
+  // para sincronizar con la página principal que no muestra marco
   frame: {
-    enabled: false,
+    enabled: false,  // Ya está deshabilitado aquí también
     style: 'simple',
     color: '#000000',
   },

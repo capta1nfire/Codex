@@ -553,12 +553,18 @@ export const useQRGenerationState = () => {
               effect_type: effect as 'shadow' | 'glow' | 'blur' | 'noise' | 'vintage',
               config: {}
             })) : undefined,
+          // MARCO TEMPORALMENTE DESHABILITADO - Para sincronizar con página principal
+          // TODO: Reactivar cuando se decida incluir marcos en el QR principal
+          // Para reactivar, descomentar el siguiente bloque:
+          /*
           frame: formData.options?.frame_enabled !== false ? {
             frame_type: formData.options?.frame_style || 'simple',
             text: formData.options?.frame_text || 'ESCANEA AQUÍ',
             text_position: formData.options?.frame_text_position || 'bottom',
             color: formData.options?.fgcolor || '#000000'
           } : undefined
+          */
+          frame: undefined  // Deshabilitado temporalmente
         };
         
         console.log('[useQRGenerationState] Final customizationConfig:', JSON.stringify(customizationConfig, null, 2));

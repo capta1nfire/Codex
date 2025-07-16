@@ -224,6 +224,8 @@ export const DEFAULT_QR_CONFIG: QRConfig = {
   gradient: DEFAULT_GRADIENT,
   effects: [],
   error_correction: 'M',
+  // NOTA: El marco está temporalmente deshabilitado en useQRGenerationState.ts
+  // para sincronizar con la página principal que no muestra marco
 };
 
 // ==================== VALIDATION HELPERS ====================
