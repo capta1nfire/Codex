@@ -98,6 +98,8 @@ export function StudioProvider({ children }: StudioProviderProps) {
 
   // Cargar configuraciones del backend con protección contra llamadas múltiples
   const loadConfigs = useCallback(async () => {
+    console.log('[StudioProvider] loadConfigs called, isLoading:', isLoadingRef.current);
+    
     // Pilar 2: Evitar llamadas múltiples
     if (isLoadingRef.current) return;
     
@@ -105,7 +107,10 @@ export function StudioProvider({ children }: StudioProviderProps) {
     updateState({ isLoading: true, error: null });
     
     try {
+      console.log('[StudioProvider] Fetching configs from API...');
       const response = await api.get<{ configs: any[] }>('/api/studio/configs');
+      
+      console.log('[StudioProvider] API returned configs:', response.configs);
       
       // Pilar 1: Validar datos recibidos
       const validatedConfigs = response.configs.map((config: any) => {
@@ -117,6 +122,8 @@ export function StudioProvider({ children }: StudioProviderProps) {
         }
       }).filter(Boolean) as StudioConfig[];
       
+      console.log('[StudioProvider] Validated configs:', validatedConfigs);
+      
       updateState({
         configs: validatedConfigs,
         isLoading: false,
@@ -125,6 +132,7 @@ export function StudioProvider({ children }: StudioProviderProps) {
       
       hasLoadedRef.current = true;
     } catch (error) {
+      console.error('[StudioProvider] Error loading configs:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error cargando configuraciones';
       updateState({
         error: errorMessage,
@@ -140,8 +148,16 @@ export function StudioProvider({ children }: StudioProviderProps) {
 
   // Guardar configuración con validación
   const saveConfig = useCallback(async (config: Partial<StudioConfig>) => {
+    console.log('[StudioProvider] saveConfig called with:', {
+      type: config.type,
+      name: config.name,
+      configKeys: config.config ? Object.keys(config.config) : [],
+      fullConfig: JSON.stringify(config, null, 2)
+    });
+    
     // Pilar 1: Validar antes de enviar
     if (!config.type || !config.name || !config.config) {
+      console.error('[StudioProvider] Missing required fields:', { type: config.type, name: config.name, hasConfig: !!config.config });
       toast.error('Faltan campos requeridos en la configuración');
       return;
     }
@@ -150,8 +166,10 @@ export function StudioProvider({ children }: StudioProviderProps) {
     try {
       if (config.config) {
         validateQRConfig(config.config);
+        console.log('[StudioProvider] QR config validated successfully');
       }
     } catch (error) {
+      console.error('[StudioProvider] QR config validation failed:', error);
       toast.error('La configuración QR contiene valores inválidos');
       return;
     }
@@ -168,8 +186,15 @@ export function StudioProvider({ children }: StudioProviderProps) {
         updatedAt: new Date().toISOString(),
       };
       
+      console.log('[StudioProvider] Sending to API:', configToSave);
+      
       const response = await api.post<{ config: any }>('/api/studio/configs', configToSave);
+      
+      console.log('[StudioProvider] API response:', response);
+      
       const savedConfig = validateStudioConfig(response.config);
+      
+      console.log('[StudioProvider] Validated saved config:', savedConfig);
       
       // Actualizar estado con la configuración guardada
       setState(prev => {
@@ -180,6 +205,8 @@ export function StudioProvider({ children }: StudioProviderProps) {
           }
           return c.type !== savedConfig.type;
         });
+        
+        console.log('[StudioProvider] Updated configs:', [...updatedConfigs, savedConfig]);
         
         return {
           ...prev,
@@ -194,6 +221,7 @@ export function StudioProvider({ children }: StudioProviderProps) {
       // Pilar 5: Feedback positivo con detalles
       toast.success(`${savedConfig.name} guardada (v${savedConfig.version})`);
     } catch (error) {
+      console.error('[StudioProvider] Save error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error guardando configuración';
       updateState({
         error: errorMessage,

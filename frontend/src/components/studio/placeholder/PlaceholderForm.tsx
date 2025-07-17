@@ -56,7 +56,9 @@ export function PlaceholderForm({
   
   // Pilar 3: Helpers para actualización simple con validación
   const updateConfig = useCallback((updates: Partial<QRConfig>) => {
+    console.log('[PlaceholderForm] updateConfig called with:', updates);
     const newConfig = { ...config, ...updates };
+    console.log('[PlaceholderForm] New config will be:', newConfig);
     onChange(newConfig);
     onPreviewUpdate();
     

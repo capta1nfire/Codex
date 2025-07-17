@@ -51,7 +51,8 @@ export default function PlaceholderEditorPage() {
     error,
     isDirty,
     setActiveConfig,
-    activeConfig
+    activeConfig,
+    markAsDirty
   } = useStudio();
   
   const [localConfig, setLocalConfig] = useState<QRConfig>(DEFAULT_QR_CONFIG);
@@ -61,12 +62,17 @@ export default function PlaceholderEditorPage() {
   // Cargar configuración existente - avoid unnecessary re-renders
   useEffect(() => {
     const existingConfig = getConfigByType(StudioConfigType.PLACEHOLDER);
-    console.log('[PlaceholderEditorPage] Loading config:', { existingConfig });
+    console.log('[PlaceholderEditorPage] Loading config:', { 
+      existingConfig,
+      configKeys: existingConfig ? Object.keys(existingConfig.config) : [],
+      configDetails: existingConfig ? JSON.stringify(existingConfig.config, null, 2) : 'No config'
+    });
     
     if (existingConfig) {
       setLocalConfig(existingConfig.config as QRConfig);
       setActiveConfig(existingConfig);
     } else {
+      console.log('[PlaceholderEditorPage] No existing config, using defaults:', DEFAULT_QR_CONFIG);
       // Si no existe, usar valores por defecto
       setLocalConfig(DEFAULT_QR_CONFIG);
     }
@@ -74,27 +80,52 @@ export default function PlaceholderEditorPage() {
 
   // Pilar 2: Manejo robusto del guardado
   const handleSave = async () => {
+    console.log('[PlaceholderEditorPage] Starting save with config:', {
+      localConfig,
+      configKeys: Object.keys(localConfig),
+      fullConfig: JSON.stringify(localConfig, null, 2)
+    });
+    
     setIsSaving(true);
     try {
       // Validar antes de guardar
       const validation = validateQRConfig(localConfig);
+      console.log('[PlaceholderEditorPage] Validation result:', validation);
+      
       if (!validation.isValid) {
+        console.error('[PlaceholderEditorPage] Validation failed:', validation);
         toast.error('La configuración contiene errores. Revísala antes de guardar.');
         return;
       }
       
-      await saveConfig({
+      const configToSave = {
         type: StudioConfigType.PLACEHOLDER,
         name: 'Configuración de Placeholder',
         description: 'QR de ejemplo mostrado en la página principal',
         config: localConfig,
-      });
+      };
+      
+      console.log('[PlaceholderEditorPage] Sending config to save:', configToSave);
+      
+      await saveConfig(configToSave);
+      
+      console.log('[PlaceholderEditorPage] Save completed successfully');
       
       // Forzar actualización del preview
       setPreviewKey(prev => prev + 1);
+      
+      // Verificar que se guardó correctamente
+      setTimeout(() => {
+        const savedConfig = getConfigByType(StudioConfigType.PLACEHOLDER);
+        console.log('[PlaceholderEditorPage] After save verification:', {
+          savedConfig,
+          savedConfigDetails: savedConfig ? JSON.stringify(savedConfig.config, null, 2) : 'No config'
+        });
+      }, 1000);
+      
       toast.success('Configuración guardada exitosamente');
     } catch (error) {
-      console.error('Error guardando configuración:', error);
+      console.error('[PlaceholderEditorPage] Error guardando configuración:', error);
       toast.error('Error al guardar la configuración. Intenta nuevamente.');
     } finally {
       setIsSaving(false);
@@ -203,7 +234,18 @@ export default function PlaceholderEditorPage() {
                   <CardContent>
                     <PlaceholderForm
                       config={localConfig}
-                      onChange={setLocalConfig}
+                      onChange={(newConfig) => {
+                        console.log('[PlaceholderEditorPage] Config changed:', {
+                          oldConfig: localConfig,
+                          newConfig,
+                          changes: JSON.stringify(newConfig) !== JSON.stringify(localConfig)
+                        });
+                        setLocalConfig(newConfig);
+                        // Marcar como dirty cuando hay cambios
+                        if (markAsDirty) {
+                          markAsDirty();
+                        }
+                      }}
                       onPreviewUpdate={() => setPreviewKey(prev => prev + 1)}
                     />
                   </CardContent>

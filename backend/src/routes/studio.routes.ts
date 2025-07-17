@@ -18,6 +18,8 @@ const router = express.Router();
 
 // Schema de validación para configuración QR
 const qrConfigSchema = z.object({
+  // Estilos de ojos - soporte para modo separado
+  use_separated_eye_styles: z.boolean().optional(),
   eye_shape: z
     .enum([
       'square',
@@ -34,6 +36,20 @@ const qrConfigSchema = z.object({
       'crystal',
       'flower',
       'arrow',
+    ])
+    .optional(),
+  eye_border_style: z
+    .enum([
+      'square', 'rounded_square', 'circle', 'quarter_round', 'cut_corner',
+      'thick_border', 'double_border', 'diamond', 'hexagon', 'cross',
+      'star', 'leaf', 'arrow', 'teardrop', 'wave', 'petal',
+      'crystal', 'flame', 'organic'
+    ])
+    .optional(),
+  eye_center_style: z
+    .enum([
+      'square', 'rounded_square', 'circle', 'dot', 'star', 
+      'diamond', 'cross', 'plus'
     ])
     .optional(),
   data_pattern: z
@@ -75,6 +91,7 @@ const qrConfigSchema = z.object({
       angle: z.number().min(0).max(360).optional(),
       apply_to_eyes: z.boolean().optional(),
       apply_to_data: z.boolean().optional(),
+      per_module: z.boolean().optional(),
       stroke_style: z
         .object({
           enabled: z.boolean(),
@@ -115,6 +132,7 @@ const qrConfigSchema = z.object({
         .optional(),
     })
     .optional(),
+  transparent_background: z.boolean().optional(),
 });
 
 // Schema para crear/actualizar configuración

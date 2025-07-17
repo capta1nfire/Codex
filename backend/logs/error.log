@@ -4308,3 +4308,4 @@
 {"level":"error","message":"[Route:/] Error: Faltan parámetros requeridos: barcode_type y data","service":"qreable-backend","timestamp":"2025-07-15 21:23:50"}
 {"level":"error","message":"[400] BAD_REQUEST: Faltan parámetros requeridos: barcode_type y data","method":"POST","path":"/api/v1/barcode","service":"qreable-backend","timestamp":"2025-07-15 21:23:50"}
 {"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"qreable-backend","timestamp":"2025-07-15 22:23:45"}
+{"level":"error","message":"[401] UNAUTHORIZED: No autorizado","method":"GET","path":"/api/auth/me","service":"qreable-backend","timestamp":"2025-07-16 19:04:59"}
