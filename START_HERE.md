@@ -65,7 +65,7 @@ Sistema avanzado de validación que garantiza 95% de éxito:
 ## 🤖 **Guía para Agentes IA**
 
 ### **Documentación Esencial**
-- **🤖 [IA_MANIFESTO.md](./frontend/IA_MANIFESTO.md)** - ⚠️ **CRÍTICO**: Pilares fundamentales obligatorios para desarrollo con IA
+- **🤖 [IA_MANIFESTO.md](./IA_MANIFESTO.md)** - ⚠️ **CRÍTICO**: Pilares fundamentales obligatorios para desarrollo con IA
 - **Si eres Claude, lee [CLAUDE.md](./CLAUDE.md). Si eres Gemini, lee [GEMINI.md](./GEMINI.md).**
 - **[README.md](./README.md)** - Arquitectura general del proyecto
 - **[.nav.md](./.nav.md)** - GPS para navegación rápida

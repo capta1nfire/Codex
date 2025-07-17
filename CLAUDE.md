@@ -175,7 +175,7 @@ QReable Project/
 
 ### Critical Files to Read First
 1. `START_HERE.md` - Understand project rules and current state
-2. **🤖 `frontend/IA_MANIFESTO.md`** - ⚠️ **OBLIGATORIO**: Pilares fundamentales para desarrollo con IA
+2. **🤖 `IA_MANIFESTO.md`** - ⚠️ **OBLIGATORIO**: Pilares fundamentales para desarrollo con IA
 3. `.nav.md` - Quick navigation to find files and workflows efficiently
 4. `MULTI_AGENT_COLLABORATION_PROTOCOL.md` - Multi-agent collaboration rules
 5. `docs/qr-engine/QR_V3_ARCHITECTURE.md` - ⚠️ Primary QR Engine (MUST READ)

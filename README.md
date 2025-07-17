@@ -109,7 +109,7 @@ QReable incluye un sistema avanzado de validación de URLs que garantiza máxima
 
 ### **Para Nuevos Desarrolladores**
 1. **[START_HERE.md](./START_HERE.md)** - Portal de entrada al proyecto
-2. **🤖 [IA_MANIFESTO.md](./frontend/IA_MANIFESTO.md)** - ⚠️ **CRÍTICO**: Pilares fundamentales para desarrollo con IA
+2. **🤖 [IA_MANIFESTO.md](./IA_MANIFESTO.md)** - ⚠️ **CRÍTICO**: Pilares fundamentales para desarrollo con IA
 3. **[QReable.md](./QReable.md)** - Visión estratégica y roadmap
 4. **[CLAUDE.md](./CLAUDE.md)** - Guía para desarrollo con IA
 5. **🛡️ [MAIN_PAGE_PROTECTION_POLICY.md](./docs/policies/MAIN_PAGE_PROTECTION_POLICY.md)** - ⚠️ Política crítica para page.tsx
