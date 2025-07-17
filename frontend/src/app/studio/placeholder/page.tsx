@@ -94,7 +94,14 @@ export default function PlaceholderEditorPage() {
       
       if (!validation.isValid) {
         console.error('[PlaceholderEditorPage] Validation failed:', validation);
-        toast.error('La configuración contiene errores. Revísala antes de guardar.');
+        console.error('[PlaceholderEditorPage] Validation errors:', JSON.stringify(validation.errors, null, 2));
+        
+        // Mostrar errores específicos
+        const errorMessages = Object.entries(validation.errors || {}).map(([field, message]) => 
+          `${field}: ${message}`
+        ).join('\n');
+        
+        toast.error(`Errores de validación:\n${errorMessages}`);
         return;
       }
       

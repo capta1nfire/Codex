@@ -22,7 +22,7 @@ const errorCorrectionSchema = z.enum(['L', 'M', 'Q', 'H'], {
   errorMap: () => ({ message: 'Nivel de corrección inválido' })
 });
 
-// Validación de formas de ojos
+// Validación de formas de ojos (modo unificado)
 const eyeShapeSchema = z.enum([
   'square',
   'rounded_square',
@@ -36,6 +36,24 @@ const eyeShapeSchema = z.enum([
   'hexagon'
 ], {
   errorMap: () => ({ message: 'Forma de ojo inválida' })
+});
+
+// Validación de estilos de borde de ojo (modo separado)
+const eyeBorderStyleSchema = z.enum([
+  'square', 'rounded_square', 'circle', 'quarter_round', 'cut_corner',
+  'thick_border', 'double_border', 'diamond', 'hexagon', 'cross',
+  'star', 'leaf', 'arrow', 'teardrop', 'wave', 'petal',
+  'crystal', 'flame', 'organic'
+], {
+  errorMap: () => ({ message: 'Estilo de borde de ojo inválido' })
+});
+
+// Validación de estilos de centro de ojo (modo separado)
+const eyeCenterStyleSchema = z.enum([
+  'square', 'rounded_square', 'circle', 'dot', 'star', 
+  'diamond', 'cross', 'plus'
+], {
+  errorMap: () => ({ message: 'Estilo de centro de ojo inválido' })
 });
 
 // Validación de patrones de datos
@@ -82,10 +100,16 @@ const eyeColorsSchema = z.object({
 
 // Esquema de colores
 const colorsSchema = z.object({
-  foreground: hexColorSchema,
-  background: hexColorSchema,
+  foreground: hexColorSchema.optional(),
+  background: hexColorSchema.optional(),
   eye_colors: eyeColorsSchema,
-}).refine(data => data.foreground !== data.background, {
+}).refine(data => {
+  // Solo validar si ambos colores están presentes
+  if (data.foreground && data.background) {
+    return data.foreground !== data.background;
+  }
+  return true;
+}, {
   message: 'Los colores de primer plano y fondo deben ser diferentes',
   path: ['background'],
 });
@@ -103,6 +127,13 @@ const gradientSchema = z.object({
     .optional(),
   apply_to_eyes: z.boolean().optional(),
   apply_to_data: z.boolean().optional(),
+  per_module: z.boolean().optional(),
+  stroke_style: z.object({
+    enabled: z.boolean(),
+    color: hexColorSchema.optional(),
+    width: z.number().min(0.1).max(2.0).optional(),
+    opacity: z.number().min(0.1).max(1.0).optional(),
+  }).optional(),
 }).optional();
 
 // Esquema de efectos
@@ -115,12 +146,32 @@ const effectSchema = z.object({
 
 // Esquema principal de configuración QR
 export const qrConfigSchema = z.object({
-  eye_shape: eyeShapeSchema,
-  data_pattern: dataPatternSchema,
-  colors: colorsSchema,
-  error_correction: errorCorrectionSchema,
+  // Soporte para estilos de ojos separados o unificados
+  use_separated_eye_styles: z.boolean().optional(),
+  eye_shape: eyeShapeSchema.optional(), // Opcional porque puede usar estilos separados
+  eye_border_style: eyeBorderStyleSchema.optional(),
+  eye_center_style: eyeCenterStyleSchema.optional(),
+  
+  data_pattern: dataPatternSchema.optional(),
+  colors: colorsSchema.optional(),
+  error_correction: errorCorrectionSchema.optional(),
   gradient: gradientSchema,
   effects: z.array(effectSchema).optional(),
+  transparent_background: z.boolean().optional(),
+  
+  // Campos adicionales opcionales
+  logo: z.object({
+    enabled: z.boolean(),
+    size_percentage: z.number().min(10).max(30).optional(),
+    padding: z.number().min(0).max(20).optional(),
+    shape: z.enum(['square', 'circle', 'rounded_square']).optional(),
+  }).optional(),
+  
+  frame: z.object({
+    enabled: z.boolean(),
+    style: z.enum(['simple', 'rounded', 'bubble', 'speech', 'badge']).optional(),
+    color: hexColorSchema.optional(),
+  }).optional(),
 });
 
 // Esquema para configuración de Studio
