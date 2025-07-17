@@ -206,11 +206,13 @@ export function StudioProvider({ children }: StudioProviderProps) {
           return c.type !== savedConfig.type;
         });
         
-        console.log('[StudioProvider] Updated configs:', [...updatedConfigs, savedConfig]);
+        const newConfigs = [...updatedConfigs, savedConfig];
+        console.log('[StudioProvider] Updated configs:', newConfigs);
+        console.log('[StudioProvider] State will have', newConfigs.length, 'configs');
         
         return {
           ...prev,
-          configs: [...updatedConfigs, savedConfig],
+          configs: newConfigs,
           activeConfig: savedConfig,
           isLoading: false,
           isDirty: false,
@@ -313,11 +315,18 @@ export function StudioProvider({ children }: StudioProviderProps) {
 
   // Helpers
   const getConfigByType = useCallback((type: StudioConfigType, templateType?: TemplateType) => {
+    console.log('[Studio] getConfigByType - Current configs:', state.configs.length, state.configs);
     const config = state.configs.find(c => 
       c.type === type && 
       (!templateType || c.templateType === templateType)
     );
-    console.log('[Studio] getConfigByType called:', { type, templateType, found: !!config, config });
+    console.log('[Studio] getConfigByType called:', { 
+      type, 
+      templateType, 
+      found: !!config, 
+      config,
+      totalConfigs: state.configs.length 
+    });
     return config;
   }, [state.configs]);
 

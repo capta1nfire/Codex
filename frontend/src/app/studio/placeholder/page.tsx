@@ -47,6 +47,7 @@ export default function PlaceholderEditorPage() {
   const { 
     getConfigByType, 
     saveConfig, 
+    loadConfigs,
     isLoading,
     error,
     isDirty,
@@ -121,8 +122,14 @@ export default function PlaceholderEditorPage() {
       // Forzar actualización del preview
       setPreviewKey(prev => prev + 1);
       
-      // Verificar que se guardó correctamente
-      setTimeout(() => {
+      // Verificar que se guardó correctamente y recargar configuraciones
+      setTimeout(async () => {
+        // Recargar configuraciones desde el servidor
+        if (loadConfigs) {
+          console.log('[PlaceholderEditorPage] Reloading configs after save...');
+          await loadConfigs();
+        }
+        
         const savedConfig = getConfigByType(StudioConfigType.PLACEHOLDER);
         console.log('[PlaceholderEditorPage] After save verification:', {
           savedConfig,
