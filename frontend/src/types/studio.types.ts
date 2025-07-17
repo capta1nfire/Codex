@@ -85,7 +85,7 @@ export const QRConfigSchema = z.object({
     'crystal', 'flame', 'organic'
   ]).optional(),
   eye_center_style: z.enum([
-    'square', 'rounded_square', 'circle', 'dot', 'star', 
+    'square', 'rounded_square', 'circle', 'squircle', 'dot', 'star', 
     'diamond', 'cross', 'plus'
   ]).optional(),
   

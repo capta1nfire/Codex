@@ -74,6 +74,7 @@ export const QR_V3_EYE_CENTER_STYLES = [
   { value: 'diamond', label: 'Diamante', icon: '♦' },
   { value: 'cross', label: 'Cruz', icon: '+' },
   { value: 'plus', label: 'Más', icon: '✚' },
+  { value: 'squircle', label: 'Squircle', icon: '◗' },
 ] as const;
 
 export const QR_V3_DATA_PATTERNS = [

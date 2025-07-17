@@ -55,7 +55,9 @@ export default function EffectsConfigPage() {
   
   const [patternConfig, setPatternConfig] = useState<Partial<QRConfig>>({
     data_pattern: 'dots',
-    eye_shape: 'rounded_square'
+    use_separated_eye_styles: true,
+    eye_border_style: 'rounded_square',
+    eye_center_style: 'rounded_square'
   });
   
   const [premiumConfig] = useState<Partial<QRConfig>>({
@@ -67,7 +69,9 @@ export default function EffectsConfigPage() {
       apply_to_data: true
     },
     data_pattern: 'star',
-    eye_shape: 'leaf'
+    use_separated_eye_styles: true,
+    eye_border_style: 'leaf',
+    eye_center_style: 'diamond'
   });
   
   const [selectedEffect, setSelectedEffect] = useState<'gradient' | 'pattern' | 'premium'>('gradient');
@@ -281,8 +285,8 @@ export default function EffectsConfigPage() {
                     <div>
                       <Label>Forma de Ojos</Label>
                       <Select
-                        value={patternConfig.eye_shape}
-                        onValueChange={(value) => setPatternConfig(prev => ({ ...prev, eye_shape: value as any }))}
+                        value={patternConfig.eye_border_style}
+                        onValueChange={(value) => setPatternConfig(prev => ({ ...prev, eye_border_style: value as any }))}
                       >
                         <SelectTrigger>
                           <SelectValue />

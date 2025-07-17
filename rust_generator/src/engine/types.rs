@@ -175,6 +175,7 @@ pub enum EyeCenterStyle {
     Square,           // Cuadrado
     RoundedSquare,    // Cuadrado redondeado
     Circle,           // Círculo
+    Squircle,         // Squircle (cuadrado con esquinas redondeadas)
     Dot,              // Punto pequeño
     Star,             // Estrella
     Diamond,          // Diamante

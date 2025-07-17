@@ -37,6 +37,7 @@ import { useUrlValidation } from '@/hooks/useUrlValidation';
 import { useTypingTracker } from '@/hooks/useTypingTracker';
 import { useStudio } from '@/components/studio/StudioProvider';
 import { StudioConfigType } from '@/types/studio.types';
+import { api } from '@/lib/api';
 
 // Constantes del original
 import { getDefaultDataForType } from '@/constants/barcodeTypes';
@@ -48,6 +49,8 @@ import { SmartValidators } from '@/lib/smartValidation';
 const GeneratorMarketingZone = lazy(() => import('./marketing/GeneratorMarketingZone'));
 
 export function QRGeneratorContainer() {
+  console.log('[QRGeneratorContainer] Component mounting...');
+  
   // Get Studio context for placeholder config
   const { getConfigByType } = useStudio();
   
@@ -56,6 +59,7 @@ export function QRGeneratorContainer() {
   const [realTimeValidationError, setRealTimeValidationError] = useState<string | null>(null);
   const [hasUserStartedTyping, setHasUserStartedTyping] = useState(false);
   const [autoGenerationEnabled] = useState(true); // Enable auto-generation by default
+  const [shouldRefreshPlaceholder, setShouldRefreshPlaceholder] = useState(false);
   
   // Estados para validación de existencia de URL - EXACTOS del original
   const [urlValidationState, setUrlValidationState] = useState<{
@@ -570,16 +574,43 @@ export function QRGeneratorContainer() {
   
   // Generate initial QR on mount - ONLY ONCE
   useEffect(() => {
-    if (hasGeneratedInitialQR.current || !isInitialMount) {
+    console.log('[Initial QR] useEffect triggered:', {
+      hasGeneratedInitialQR: hasGeneratedInitialQR.current,
+      isInitialMount,
+      willGenerate: !hasGeneratedInitialQR.current && isInitialMount
+    });
+    
+    // Remove the hasGeneratedInitialQR check to ensure it always runs on mount
+    if (!isInitialMount) {
       return;
     }
     
-    hasGeneratedInitialQR.current = true;
+    // Only set this after successful generation
     console.log('[Initial QR] Generating initial QR code...');
     
     const generateInitialBarcode = async () => {
-      // Get placeholder config from Studio
-      const placeholderConfig = getConfigByType(StudioConfigType.PLACEHOLDER)?.config;
+      // Get placeholder config from public API
+      let placeholderConfig = null;
+      try {
+        console.log('[Initial QR] Fetching placeholder config from public API...');
+        // Add timestamp to prevent caching
+        const response = await api.get(`/api/studio/public/placeholder?t=${Date.now()}`);
+        console.log('[Initial QR] API response:', response);
+        
+        if (response.config?.config) {
+          placeholderConfig = response.config.config;
+          console.log('[Initial QR] Using public placeholder config:', {
+            hasConfig: true,
+            configDetails: JSON.stringify(placeholderConfig, null, 2),
+            updatedAt: response.config.updatedAt
+          });
+        } else {
+          console.log('[Initial QR] No placeholder config found in API response');
+        }
+      } catch (error) {
+        console.log('[Initial QR] Failed to fetch public placeholder config:', error);
+        console.log('[Initial QR] Will use default values');
+      }
       
       // Default form data
       let initialFormData: GenerateFormData = {
@@ -677,24 +708,98 @@ export function QRGeneratorContainer() {
 
       // Apply placeholder config if available
       if (placeholderConfig) {
-        initialFormData.options.gradient_type = ['linear', 'radial'].includes(placeholderConfig.gradient?.gradient_type) ? placeholderConfig.gradient.gradient_type : initialFormData.options.gradient_type;
+        console.log('[Initial QR] Applying placeholder config to form data:', {
+          placeholderConfig,
+          before: { ...initialFormData.options }
+        });
+        
+        // Colors
+        initialFormData.options.fgcolor = placeholderConfig.colors?.foreground || initialFormData.options.fgcolor;
+        initialFormData.options.bgcolor = placeholderConfig.colors?.background || initialFormData.options.bgcolor;
+        
+        // Gradient
+        initialFormData.options.gradient_enabled = placeholderConfig.gradient?.enabled ?? initialFormData.options.gradient_enabled;
+        initialFormData.options.gradient_type = ['linear', 'radial', 'conic', 'diamond', 'spiral'].includes(placeholderConfig.gradient?.gradient_type) ? placeholderConfig.gradient.gradient_type : initialFormData.options.gradient_type;
         initialFormData.options.gradient_color1 = placeholderConfig.gradient?.colors?.[0] || initialFormData.options.gradient_color1;
         initialFormData.options.gradient_color2 = placeholderConfig.gradient?.colors?.[1] || initialFormData.options.gradient_color2;
+        initialFormData.options.gradient_apply_to_eyes = placeholderConfig.gradient?.apply_to_eyes ?? initialFormData.options.gradient_apply_to_eyes;
+        initialFormData.options.gradient_per_module = placeholderConfig.gradient?.per_module ?? initialFormData.options.gradient_per_module;
+        initialFormData.options.gradient_borders = placeholderConfig.gradient?.stroke_style?.enabled ?? initialFormData.options.gradient_borders;
+        
+        // Eye styles - Critical fix: properly apply separated eye styles from config
         initialFormData.options.use_separated_eye_styles = placeholderConfig.use_separated_eye_styles ?? initialFormData.options.use_separated_eye_styles;
-        initialFormData.options.eye_shape = placeholderConfig.eye_shape;
-        initialFormData.options.eye_border_style = placeholderConfig.eye_border_style || initialFormData.options.eye_border_style;
-        initialFormData.options.eye_center_style = placeholderConfig.eye_center_style || initialFormData.options.eye_center_style;
+        
+        // If using separated eye styles, apply border and center styles
+        if (placeholderConfig.use_separated_eye_styles || placeholderConfig.eye_border_style || placeholderConfig.eye_center_style) {
+          initialFormData.options.use_separated_eye_styles = true;
+          initialFormData.options.eye_border_style = placeholderConfig.eye_border_style || initialFormData.options.eye_border_style;
+          initialFormData.options.eye_center_style = placeholderConfig.eye_center_style || initialFormData.options.eye_center_style;
+          // Clear unified eye_shape when using separated styles
+          initialFormData.options.eye_shape = undefined;
+        } else if (placeholderConfig.eye_shape) {
+          // If using unified eye shape
+          initialFormData.options.use_separated_eye_styles = false;
+          initialFormData.options.eye_shape = placeholderConfig.eye_shape;
+        }
+        
+        // Data pattern
         initialFormData.options.data_pattern = placeholderConfig.data_pattern || initialFormData.options.data_pattern;
+        
+        // Error correction
         initialFormData.options.ecl = placeholderConfig.error_correction || initialFormData.options.ecl;
-        initialFormData.options.frame_enabled = placeholderConfig.frame?.frame_type ? true : false;
-        initialFormData.options.frame_style = placeholderConfig.frame?.frame_type || initialFormData.options.frame_style;
+        
+        // Frame
+        initialFormData.options.frame_enabled = placeholderConfig.frame?.enabled ?? false;
+        initialFormData.options.frame_style = placeholderConfig.frame?.style || initialFormData.options.frame_style;
         initialFormData.options.frame_text = placeholderConfig.frame?.text || initialFormData.options.frame_text;
         initialFormData.options.frame_text_position = placeholderConfig.frame?.text_position || initialFormData.options.frame_text_position;
+        
+        // Logo
+        if (placeholderConfig.logo?.enabled && placeholderConfig.logo?.data) {
+          initialFormData.options.logo_enabled = true;
+          initialFormData.options.logo_data = placeholderConfig.logo.data;
+          initialFormData.options.logo_size = placeholderConfig.logo.size_percentage || 20;
+          initialFormData.options.logo_shape = placeholderConfig.logo.shape || 'square';
+          initialFormData.options.logo_padding = placeholderConfig.logo.padding || 5;
+        }
+        
+        // Effects
+        if (placeholderConfig.effects && Array.isArray(placeholderConfig.effects)) {
+          initialFormData.options.effects = placeholderConfig.effects.map((effect: any) => effect.type || effect);
+        }
+        
+        // Eye colors - convert from backend format
+        if (placeholderConfig.colors?.eye_colors || placeholderConfig.eye_colors) {
+          const eyeColors = placeholderConfig.colors?.eye_colors || placeholderConfig.eye_colors;
+          if (eyeColors.outer) {
+            initialFormData.options.eye_border_color_mode = 'solid';
+            initialFormData.options.eye_border_color_solid = eyeColors.outer;
+          }
+          if (eyeColors.inner) {
+            initialFormData.options.eye_color_mode = 'solid';
+            initialFormData.options.eye_color_solid = eyeColors.inner;
+          }
+        }
+        
+        // Also update the form values to ensure they're in sync
+        setValue('options', initialFormData.options);
+        
+        console.log('[Initial QR] After applying placeholder config:', {
+          after: { ...initialFormData.options },
+          eye_styles: {
+            use_separated: initialFormData.options.use_separated_eye_styles,
+            border: initialFormData.options.eye_border_style,
+            center: initialFormData.options.eye_center_style,
+            unified: initialFormData.options.eye_shape
+          }
+        });
       }
 
       try {
         await generateWithState(initialFormData);
         console.log('[Initial QR] Initial generation completed');
+        // Mark as generated only after successful generation
+        hasGeneratedInitialQR.current = true;
       } catch (error) {
         console.error('[Initial QR] Initial generation failed:', error);
       } finally {
@@ -703,7 +808,7 @@ export function QRGeneratorContainer() {
     };
     
     generateInitialBarcode();
-  }, [generateWithState, getConfigByType, isInitialMount]);
+  }, [generateWithState, isInitialMount]);
 
   // Auto-generación para códigos que no son QR - USES CENTRALIZED GENERATION
   useEffect(() => {
@@ -799,6 +904,142 @@ export function QRGeneratorContainer() {
       }
     };
   }, []);
+
+  // Effect to refresh placeholder config when window gets focus (user returns from studio)
+  useEffect(() => {
+    const handleFocus = async () => {
+      // Only refresh if we're showing the default QR (not user-generated)
+      if (selectedType === 'qrcode' && 
+          selectedQRType === 'link' && 
+          qrFormData.link.url === 'https://tu-sitio-web.com' &&
+          !hasUserStartedTyping) {
+        
+        console.log('[QRGeneratorContainer] Window focused, refreshing placeholder config...');
+        
+        try {
+          const response = await api.get('/api/studio/public/placeholder');
+          if (response.config?.config) {
+            const placeholderConfig = response.config.config;
+            console.log('[QRGeneratorContainer] Refreshed placeholder config:', {
+              configDetails: JSON.stringify(placeholderConfig, null, 2)
+            });
+            
+            // Re-generate with new config
+            const currentFormValues = getValues();
+            const updatedOptions = {
+              ...currentFormValues.options,
+              // Colors
+              fgcolor: placeholderConfig.colors?.foreground || currentFormValues.options.fgcolor,
+              bgcolor: placeholderConfig.colors?.background || '#FFFFFF',
+              
+              // Gradient
+              gradient_enabled: placeholderConfig.gradient?.enabled ?? currentFormValues.options.gradient_enabled,
+              gradient_type: ['linear', 'radial', 'conic', 'diamond', 'spiral'].includes(placeholderConfig.gradient?.gradient_type) ? placeholderConfig.gradient.gradient_type : currentFormValues.options.gradient_type,
+              gradient_color1: placeholderConfig.gradient?.colors?.[0] || currentFormValues.options.gradient_color1,
+              gradient_color2: placeholderConfig.gradient?.colors?.[1] || currentFormValues.options.gradient_color2,
+              gradient_apply_to_eyes: placeholderConfig.gradient?.apply_to_eyes ?? currentFormValues.options.gradient_apply_to_eyes,
+              gradient_per_module: placeholderConfig.gradient?.per_module ?? currentFormValues.options.gradient_per_module,
+              gradient_borders: placeholderConfig.gradient?.stroke_style?.enabled ?? currentFormValues.options.gradient_borders,
+              
+              // Eye styles - Critical fix: properly apply separated eye styles from config
+              use_separated_eye_styles: placeholderConfig.use_separated_eye_styles ?? currentFormValues.options.use_separated_eye_styles,
+              
+              // Apply eye styles based on configuration
+              ...(placeholderConfig.use_separated_eye_styles || placeholderConfig.eye_border_style || placeholderConfig.eye_center_style ? {
+                use_separated_eye_styles: true,
+                eye_border_style: placeholderConfig.eye_border_style || currentFormValues.options.eye_border_style,
+                eye_center_style: placeholderConfig.eye_center_style || currentFormValues.options.eye_center_style,
+                eye_shape: undefined
+              } : placeholderConfig.eye_shape ? {
+                use_separated_eye_styles: false,
+                eye_shape: placeholderConfig.eye_shape
+              } : {}),
+              
+              // Data pattern
+              data_pattern: placeholderConfig.data_pattern || currentFormValues.options.data_pattern,
+              
+              // Error correction
+              ecl: placeholderConfig.error_correction || currentFormValues.options.ecl,
+              
+              // Frame
+              frame_enabled: placeholderConfig.frame?.enabled ?? false,
+              frame_style: placeholderConfig.frame?.style || currentFormValues.options.frame_style,
+              frame_text: placeholderConfig.frame?.text || currentFormValues.options.frame_text,
+              frame_text_position: placeholderConfig.frame?.text_position || currentFormValues.options.frame_text_position,
+              
+              // Logo
+              ...(placeholderConfig.logo?.enabled && placeholderConfig.logo?.data ? {
+                logo_enabled: true,
+                logo_data: placeholderConfig.logo.data,
+                logo_size: placeholderConfig.logo.size_percentage || 20,
+                logo_shape: placeholderConfig.logo.shape || 'square',
+                logo_padding: placeholderConfig.logo.padding || 5
+              } : {}),
+              
+              // Effects
+              ...(placeholderConfig.effects && Array.isArray(placeholderConfig.effects) ? {
+                effects: placeholderConfig.effects.map((effect: any) => effect.type || effect)
+              } : {}),
+              
+              // Eye colors - convert from backend format
+              ...(placeholderConfig.colors?.eye_colors || placeholderConfig.eye_colors ? (() => {
+                const eyeColors = placeholderConfig.colors?.eye_colors || placeholderConfig.eye_colors;
+                const colorOptions: any = {};
+                if (eyeColors.outer) {
+                  colorOptions.eye_border_color_mode = 'solid';
+                  colorOptions.eye_border_color_solid = eyeColors.outer;
+                }
+                if (eyeColors.inner) {
+                  colorOptions.eye_color_mode = 'solid';
+                  colorOptions.eye_color_solid = eyeColors.inner;
+                }
+                return colorOptions;
+              })() : {})
+            };
+            
+            console.log('[Window Focus] Updated options with placeholder config:', {
+              eye_styles: {
+                use_separated: updatedOptions.use_separated_eye_styles,
+                border: updatedOptions.eye_border_style,
+                center: updatedOptions.eye_center_style,
+                unified: updatedOptions.eye_shape
+              }
+            });
+            
+            const updatedFormData = {
+              ...currentFormValues,
+              options: updatedOptions
+            };
+            
+            // Update form values
+            setValue('options', updatedOptions);
+            
+            // Generate with new config
+            await generateWithState(updatedFormData);
+            console.log('[QRGeneratorContainer] Regenerated QR with refreshed placeholder config');
+          }
+        } catch (error) {
+          console.error('[QRGeneratorContainer] Failed to refresh placeholder config:', error);
+        }
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    
+    // Also check if we're navigating from studio
+    const checkForStudioReturn = () => {
+      const referrer = document.referrer;
+      if (referrer.includes('/studio/placeholder')) {
+        handleFocus();
+      }
+    };
+    
+    checkForStudioReturn();
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [selectedType, selectedQRType, qrFormData.link.url, hasUserStartedTyping, getValues, setValue, generateWithState]);
 
   return (
     <GeneratorLayout>

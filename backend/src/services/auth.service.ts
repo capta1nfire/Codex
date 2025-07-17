@@ -124,12 +124,12 @@ export class AuthService {
    * Verifica si un usuario tiene el rol requerido
    */
   hasRole(userRole: UserRole, requiredRole: UserRole): boolean {
-    // Implementar jerarquía de roles correcta
-    // SUPERADMIN puede hacer todo
-    if (userRole === 'SUPERADMIN') return true;
+    // SUPERADMIN y ADMIN pueden hacer todo
+    if (userRole === 'SUPERADMIN' || userRole === 'ADMIN') return true;
 
     // WEBADMIN puede hacer casi todo excepto funciones de SUPERADMIN
-    if (userRole === 'WEBADMIN' && requiredRole !== 'SUPERADMIN') return true;
+    if (userRole === 'WEBADMIN' && requiredRole !== 'SUPERADMIN' && requiredRole !== 'ADMIN')
+      return true;
 
     // Los demás roles solo pueden hacer lo que su rol permite
     return userRole === requiredRole;

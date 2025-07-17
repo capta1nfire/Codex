@@ -349,7 +349,11 @@ export default function PlaceholderEditorPage() {
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-slate-600">Forma de ojos:</dt>
-                    <dd className="font-medium">{localConfig.eye_shape || 'square'}</dd>
+                    <dd className="font-medium">
+                      {localConfig.use_separated_eye_styles 
+                        ? `Borde: ${localConfig.eye_border_style || 'square'}, Centro: ${localConfig.eye_center_style || 'square'}`
+                        : localConfig.eye_shape || localConfig.eye_border_style || 'square'}
+                    </dd>
                   </div>
                 </dl>
               </CardContent>

@@ -71,7 +71,23 @@ describe('UserStore', () => {
     it('should call prisma.user.findUnique with the correct email', async () => {
       const email = 'test@example.com';
       const mockUser = {
-        /* ... */
+        id: '1',
+        email: 'test@example.com',
+        password: 'hashedPassword',
+        firstName: 'Test',
+        lastName: null,
+        username: null,
+        role: 'USER',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isActive: true,
+        lastLogin: null,
+        apiKeyPrefix: null,
+        apiKey: null,
+        apiUsage: 0,
+        avatarUrl: null,
+        avatarType: null,
+        phone: null,
       } as PrismaGeneratedUser;
       // Usar el mock importado directamente
       prismaMock.user.findUnique.mockResolvedValue(mockUser);
@@ -135,6 +151,23 @@ describe('UserStore', () => {
       const result = await userStore.findByApiKey(apiKey);
       expect(prismaMock.user.findMany).toHaveBeenCalledWith({
         where: { apiKeyPrefix: prefix, isActive: true },
+        select: {
+          id: true,
+          apiKey: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          username: true,
+          role: true,
+          avatarUrl: true,
+          avatarType: true,
+          createdAt: true,
+          updatedAt: true,
+          lastLogin: true,
+          apiKeyPrefix: true,
+          apiUsage: true,
+          isActive: true,
+        },
       });
       expect(result).toBeNull();
     });

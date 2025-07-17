@@ -1,6 +1,6 @@
 /**
  * Tests para StudioService
- * 
+ *
  * Cobertura completa del servicio de Studio incluyendo:
  * - CRUD de configuraciones
  * - Validaciones
@@ -10,9 +10,10 @@
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { StudioConfigType } from '@prisma/client';
-import { studioService } from '../../services/studioService.js';
+
 import prisma from '../../lib/prisma.js';
 import { redisCache } from '../../lib/redisCache.js';
+import { studioService } from '../../services/studioService.js';
 import { AppError } from '../../utils/errors.js';
 
 // Mock de dependencias
@@ -80,11 +81,7 @@ describe('StudioService', () => {
 
       expect(prisma.studioConfig.findMany).toHaveBeenCalledWith({
         where: { isActive: true },
-        orderBy: [
-          { type: 'asc' },
-          { templateType: 'asc' },
-          { updatedAt: 'desc' },
-        ],
+        orderBy: [{ type: 'asc' }, { templateType: 'asc' }, { updatedAt: 'desc' }],
       });
       expect(result).toEqual(mockConfigs);
     });
@@ -101,10 +98,7 @@ describe('StudioService', () => {
       const cachedConfig = JSON.stringify(mockConfig);
       (redisCache.get as jest.Mock).mockResolvedValue(cachedConfig);
 
-      const result = await studioService.getConfigByType(
-        StudioConfigType.PLACEHOLDER,
-        undefined
-      );
+      const result = await studioService.getConfigByType(StudioConfigType.PLACEHOLDER, undefined);
 
       expect(redisCache.get).toHaveBeenCalledWith('studio:config:PLACEHOLDER:default');
       expect(result).toEqual(mockConfig);
@@ -115,10 +109,7 @@ describe('StudioService', () => {
       (redisCache.get as jest.Mock).mockResolvedValue(null);
       (prisma.studioConfig.findFirst as jest.Mock).mockResolvedValue(mockConfig);
 
-      const result = await studioService.getConfigByType(
-        StudioConfigType.PLACEHOLDER,
-        undefined
-      );
+      const result = await studioService.getConfigByType(StudioConfigType.PLACEHOLDER, undefined);
 
       expect(prisma.studioConfig.findFirst).toHaveBeenCalledWith({
         where: {
@@ -135,10 +126,7 @@ describe('StudioService', () => {
       (redisCache.get as jest.Mock).mockResolvedValue(null);
       (prisma.studioConfig.findFirst as jest.Mock).mockResolvedValue(null);
 
-      const result = await studioService.getConfigByType(
-        StudioConfigType.PLACEHOLDER,
-        undefined
-      );
+      const result = await studioService.getConfigByType(StudioConfigType.PLACEHOLDER, undefined);
 
       expect(result).toBeNull();
     });
@@ -205,9 +193,7 @@ describe('StudioService', () => {
 
       await studioService.upsertConfig(mockUserId, newConfigData);
 
-      expect(redisCache.del).toHaveBeenCalledWith(
-        'studio:config:PLACEHOLDER:default'
-      );
+      expect(redisCache.del).toHaveBeenCalledWith('studio:config:PLACEHOLDER:default');
     });
   });
 
@@ -234,9 +220,9 @@ describe('StudioService', () => {
     it('debe lanzar error si configuración no existe', async () => {
       (prisma.studioConfig.findUnique as jest.Mock).mockResolvedValue(null);
 
-      await expect(
-        studioService.deleteConfig('non-existent-id', mockUserId)
-      ).rejects.toThrow(AppError);
+      await expect(studioService.deleteConfig('non-existent-id', mockUserId)).rejects.toThrow(
+        AppError
+      );
     });
   });
 

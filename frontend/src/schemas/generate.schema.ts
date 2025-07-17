@@ -109,7 +109,7 @@ export const generateFormSchema = z.object({
       eye_shape: z.enum(['square', 'rounded_square', 'circle', 'dot', 'leaf', 'bars-horizontal', 'bars-vertical', 'star', 'diamond', 'cross', 'hexagon', 'heart', 'shield', 'crystal', 'flower', 'arrow', 'custom']).optional(),
       use_separated_eye_styles: z.boolean().optional(),
       eye_border_style: z.enum(['square', 'rounded_square', 'circle', 'leaf', 'bars_horizontal', 'bars_vertical', 'star', 'diamond', 'cross', 'hexagon', 'heart', 'shield', 'crystal', 'flower', 'arrow', 'propuesta01']).optional(),
-      eye_center_style: z.enum(['square', 'rounded_square', 'circle', 'dot', 'star', 'diamond', 'cross', 'plus']).optional(),
+      eye_center_style: z.enum(['square', 'rounded_square', 'circle', 'squircle', 'dot', 'star', 'diamond', 'cross', 'plus']).optional(),
       data_pattern: z.enum(['square', 'square_small', 'dots', 'rounded', 'vertical', 'horizontal', 'diamond', 'circular', 'star', 'cross', 'random', 'wave', 'mosaic']).optional(),
       
       // Logo options

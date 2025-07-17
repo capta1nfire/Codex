@@ -2,6 +2,47 @@
 
 All notable changes to the CODEX project are documented in the [docs/](./docs/) directory.
 
+## 2025-01-17
+
+### ✅ Added
+- **Semi-Circle Eye Border Style**: Added new 'semi_circle' eye border style
+  - Added to frontend options list in qrV3Options.ts
+  - Added to backend validation schema in studio.routes.ts
+  - Implemented custom path rendering in Rust generator
+  - Uses provided SVG path with asymmetric rounded corners
+  - Properly scaled from 100x100 to 7x7 QR eye dimensions
+  - Creates hollow frame effect with inner and outer paths
+
+### 🔧 Fixed
+- **QR Studio Placeholder Persistence**: Fixed critical issue where placeholder configurations weren't being applied correctly
+  - Placeholder config now properly applies all settings including eye styles, gradients, colors, logo, and effects
+  - Fixed separated eye styles (eye_border_style, eye_center_style) not being applied from Studio config
+  - Ensured form values are updated synchronously with Studio configuration
+  - Added comprehensive logging for debugging configuration application
+  - Window focus refresh now applies all configuration fields correctly
+
+- **QR Studio Eye Style Editor**: Fixed issue where saved eye styles weren't being displayed correctly
+  - Fixed EyeStyleEditor to maintain existing values when toggling between unified/separated modes
+  - Updated unified mode to properly handle eye_shape field for backwards compatibility
+  - Fixed info panel to correctly display eye styles based on mode (unified vs separated)
+  - Ensured that saved configurations are properly loaded and displayed in the editor
+
+### ✅ Added
+- **Public Placeholder Config API**: Created `/api/studio/public/placeholder` endpoint
+  - Allows non-authenticated users to fetch placeholder QR configuration
+  - Main page now uses Studio-configured placeholder settings
+  - Auto-refresh when returning from Studio editor
+
+### 🔧 Fixed
+- **QR Studio Placeholder Integration**: Fixed issue where saved placeholder configs weren't showing on main page
+  - Main page now fetches config via public API instead of relying on StudioProvider
+  - Added window focus listener to refresh config when returning from Studio
+  - Enhanced logging throughout Studio save/load flow for debugging
+- **Placeholder Config Persistence on Refresh**: Fixed issue where placeholder config was lost on page refresh
+  - Removed hasGeneratedInitialQR check that prevented loading on hard refresh
+  - Config now properly loads from API on every initial mount
+  - Maintains compatibility with SPA navigation
+
 ## 2025-07-12
 
 ### ✅ Added

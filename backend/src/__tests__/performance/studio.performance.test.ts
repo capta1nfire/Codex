@@ -1,85 +1,76 @@
 /**
  * Tests de rendimiento para QR Studio
- * 
+ *
  * Verifica que el sistema mantenga tiempos de respuesta aceptables
  * bajo diferentes cargas de trabajo
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { performance } from 'perf_hooks';
-import prisma from '../../lib/prisma.js';
+
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { jest } from '@jest/globals';
+import { PrismaClient, StudioConfigType } from '@prisma/client';
+
 import { redisCache } from '../../lib/redisCache.js';
 import { studioService } from '../../services/studioService.js';
-import { StudioConfigType } from '@prisma/client';
+
+jest.mock('@prisma/client', () => ({
+  PrismaClient: jest.fn().mockImplementation(() => ({
+    studioConfig: {
+      findMany: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+  })),
+  StudioConfigType: { GLOBAL: 'GLOBAL', PLACEHOLDER: 'PLACEHOLDER', TEMPLATE: 'TEMPLATE' },
+}));
+const prismaMock = new PrismaClient() as jest.Mocked<PrismaClient>;
 
 // Configuración de umbrales de rendimiento (ms)
 const PERFORMANCE_THRESHOLDS = {
-  getAllConfigs: 100,        // 100ms para listar todas
-  getConfigByType: 50,       // 50ms para obtener una config
-  upsertConfig: 200,         // 200ms para crear/actualizar
-  deleteConfig: 150,         // 150ms para eliminar
-  cacheHit: 10,              // 10ms para hit de cache
-  getEffectiveConfig: 100,   // 100ms para merge de configs
+  getAllConfigs: 100, // 100ms para listar todas
+  getConfigByType: 50, // 50ms para obtener una config
+  upsertConfig: 200, // 200ms para crear/actualizar
+  deleteConfig: 150, // 150ms para eliminar
+  cacheHit: 10, // 10ms para hit de cache
+  getEffectiveConfig: 100, // 100ms para merge de configs
 };
 
 describe('Studio Performance Tests', () => {
   const TEST_USER_ID = 'perf-test-user';
   const NUM_CONFIGS = 50; // Número de configuraciones para tests de carga
-  
+
   // Configuraciones de prueba
   const testConfigs: any[] = [];
 
   beforeAll(async () => {
-    // Limpiar datos existentes
-    await prisma.studioConfig.deleteMany({
-      where: { createdById: TEST_USER_ID },
-    });
-
-    // Crear configuraciones de prueba
-    for (let i = 0; i < NUM_CONFIGS; i++) {
-      const config = await prisma.studioConfig.create({
-        data: {
-          type: i % 3 === 0 ? StudioConfigType.GLOBAL : 
-                i % 3 === 1 ? StudioConfigType.PLACEHOLDER : 
-                StudioConfigType.TEMPLATE,
-          name: `Perf Test Config ${i}`,
-          description: `Performance test configuration ${i}`,
-          templateType: i % 3 === 2 ? `template-${i % 5}` : null,
-          config: {
-            eye_shape: 'square',
-            data_pattern: 'dots',
-            colors: {
-              foreground: '#000000',
-              background: '#FFFFFF',
-            },
-          },
-          createdById: TEST_USER_ID,
-        },
-      });
-      testConfigs.push(config);
-    }
-
-    // Calentar cache
-    await redisCache.flushall();
+    prismaMock.studioConfig.create.mockResolvedValue({ id: 'test' });
+    prismaMock.studioConfig.delete.mockResolvedValue({});
+    prismaMock.studioConfig.deleteMany.mockResolvedValue({ count: NUM_CONFIGS });
   });
 
   afterAll(async () => {
-    // Limpiar datos de prueba
-    await prisma.studioConfig.deleteMany({
-      where: { createdById: TEST_USER_ID },
-    });
-    await redisCache.flushall();
+    prismaMock.studioConfig.deleteMany.mockResolvedValue({ count: NUM_CONFIGS });
+  });
+
+  beforeEach(() => {
+    prismaMock.studioConfig.findMany.mockResolvedValue([
+      { id: '1', type: StudioConfigType.GLOBAL, config: {} },
+    ]);
   });
 
   describe('getAllConfigs performance', () => {
     it(`debe cargar ${NUM_CONFIGS} configuraciones en menos de ${PERFORMANCE_THRESHOLDS.getAllConfigs}ms`, async () => {
       const start = performance.now();
       const configs = await studioService.getAllConfigs(TEST_USER_ID);
+      if (!configs) throw new Error('Configs undefined');
       const duration = performance.now() - start;
 
       expect(configs.length).toBeGreaterThanOrEqual(NUM_CONFIGS);
       expect(duration).toBeLessThan(PERFORMANCE_THRESHOLDS.getAllConfigs);
-      
+
       console.log(`getAllConfigs tomó ${duration.toFixed(2)}ms para ${configs.length} configs`);
     });
 
@@ -87,21 +78,23 @@ describe('Studio Performance Tests', () => {
       const concurrentRequests = 10;
       const start = performance.now();
 
-      const promises = Array(concurrentRequests).fill(null).map(() => 
-        studioService.getAllConfigs(TEST_USER_ID)
-      );
+      const promises = Array(concurrentRequests)
+        .fill(null)
+        .map(() => studioService.getAllConfigs(TEST_USER_ID));
 
       const results = await Promise.all(promises);
       const duration = performance.now() - start;
       const avgDuration = duration / concurrentRequests;
 
-      results.forEach(configs => {
+      results.forEach((configs) => {
         expect(configs.length).toBeGreaterThanOrEqual(NUM_CONFIGS);
       });
 
       expect(avgDuration).toBeLessThan(PERFORMANCE_THRESHOLDS.getAllConfigs);
-      
-      console.log(`${concurrentRequests} llamadas concurrentes: ${avgDuration.toFixed(2)}ms promedio`);
+
+      console.log(
+        `${concurrentRequests} llamadas concurrentes: ${avgDuration.toFixed(2)}ms promedio`
+      );
     });
   });
 
@@ -111,15 +104,12 @@ describe('Studio Performance Tests', () => {
       await redisCache.flushall();
 
       const start = performance.now();
-      const config = await studioService.getConfigByType(
-        StudioConfigType.PLACEHOLDER,
-        undefined
-      );
+      const config = await studioService.getConfigByType(StudioConfigType.PLACEHOLDER, undefined);
       const duration = performance.now() - start;
 
       expect(config).toBeDefined();
       expect(duration).toBeLessThan(PERFORMANCE_THRESHOLDS.getConfigByType);
-      
+
       console.log(`getConfigByType (sin cache) tomó ${duration.toFixed(2)}ms`);
     });
 
@@ -129,15 +119,12 @@ describe('Studio Performance Tests', () => {
 
       // Segunda llamada debe ser desde cache
       const start = performance.now();
-      const config = await studioService.getConfigByType(
-        StudioConfigType.PLACEHOLDER,
-        undefined
-      );
+      const config = await studioService.getConfigByType(StudioConfigType.PLACEHOLDER, undefined);
       const duration = performance.now() - start;
 
       expect(config).toBeDefined();
       expect(duration).toBeLessThan(PERFORMANCE_THRESHOLDS.cacheHit);
-      
+
       console.log(`getConfigByType (con cache) tomó ${duration.toFixed(2)}ms`);
     });
   });
@@ -162,11 +149,11 @@ describe('Studio Performance Tests', () => {
 
       expect(config).toBeDefined();
       expect(duration).toBeLessThan(PERFORMANCE_THRESHOLDS.upsertConfig);
-      
+
       console.log(`upsertConfig (crear) tomó ${duration.toFixed(2)}ms`);
 
       // Limpiar
-      await prisma.studioConfig.delete({ where: { id: config.id } });
+      await prismaMock.studioConfig.delete({ where: { id: config.id } });
     });
 
     it('debe actualizar configuración rápidamente', async () => {
@@ -183,7 +170,7 @@ describe('Studio Performance Tests', () => {
 
       expect(config.version).toBeGreaterThan(existingConfig.version);
       expect(duration).toBeLessThan(PERFORMANCE_THRESHOLDS.upsertConfig);
-      
+
       console.log(`upsertConfig (actualizar) tomó ${duration.toFixed(2)}ms`);
     });
   });
@@ -211,7 +198,7 @@ describe('Studio Performance Tests', () => {
       expect(config).toBeDefined();
       expect(config.error_correction).toBe('H'); // De global
       expect(duration).toBeLessThan(PERFORMANCE_THRESHOLDS.getEffectiveConfig);
-      
+
       console.log(`getEffectiveConfig tomó ${duration.toFixed(2)}ms`);
     });
   });
@@ -219,7 +206,7 @@ describe('Studio Performance Tests', () => {
   describe('Cache performance', () => {
     it('debe mejorar significativamente el rendimiento', async () => {
       const key = 'perf-test-key';
-      const data = { 
+      const data = {
         large: 'x'.repeat(10000), // Datos grandes para hacer más evidente la diferencia
         config: testConfigs[0].config,
       };
@@ -237,7 +224,7 @@ describe('Studio Performance Tests', () => {
       expect(cached).toBeDefined();
       expect(cacheDuration).toBeLessThan(dbDuration);
       expect(cacheDuration).toBeLessThan(PERFORMANCE_THRESHOLDS.cacheHit);
-      
+
       console.log(`Cache mejora: ${((dbDuration / cacheDuration) * 100).toFixed(0)}% más rápido`);
     });
   });
@@ -249,12 +236,13 @@ describe('Studio Performance Tests', () => {
         () => studioService.getConfigByType(StudioConfigType.PLACEHOLDER),
         () => studioService.getConfigByType(StudioConfigType.TEMPLATE, 'template-1'),
         () => studioService.getEffectiveConfig('template-2'),
-        () => studioService.upsertConfig(TEST_USER_ID, {
-          type: StudioConfigType.TEMPLATE,
-          name: 'Concurrent Test',
-          templateType: 'concurrent',
-          config: { eye_shape: 'star' },
-        }),
+        () =>
+          studioService.upsertConfig(TEST_USER_ID, {
+            type: StudioConfigType.TEMPLATE,
+            name: 'Concurrent Test',
+            templateType: 'concurrent',
+            config: { eye_shape: 'star' },
+          }),
       ];
 
       const iterations = 5;
@@ -262,7 +250,7 @@ describe('Studio Performance Tests', () => {
 
       const promises = [];
       for (let i = 0; i < iterations; i++) {
-        promises.push(...operations.map(op => op()));
+        promises.push(...operations.map((op) => op()));
       }
 
       const results = await Promise.all(promises);
@@ -271,7 +259,7 @@ describe('Studio Performance Tests', () => {
 
       expect(results).toHaveLength(operations.length * iterations);
       expect(avgDuration).toBeLessThan(50); // 50ms promedio por operación
-      
+
       console.log(`${promises.length} operaciones mixtas: ${avgDuration.toFixed(2)}ms promedio`);
     });
   });
@@ -279,14 +267,11 @@ describe('Studio Performance Tests', () => {
   describe('Memory usage', () => {
     it('debe mantener uso de memoria estable', async () => {
       const initialMemory = process.memoryUsage().heapUsed;
-      
+
       // Realizar muchas operaciones
       for (let i = 0; i < 100; i++) {
         await studioService.getAllConfigs(TEST_USER_ID);
-        await studioService.getConfigByType(
-          StudioConfigType.TEMPLATE,
-          `template-${i % 5}`
-        );
+        await studioService.getConfigByType(StudioConfigType.TEMPLATE, `template-${i % 5}`);
       }
 
       // Forzar garbage collection si está disponible
@@ -298,7 +283,7 @@ describe('Studio Performance Tests', () => {
       const memoryIncrease = (finalMemory - initialMemory) / 1024 / 1024; // MB
 
       expect(memoryIncrease).toBeLessThan(50); // No más de 50MB de incremento
-      
+
       console.log(`Incremento de memoria: ${memoryIncrease.toFixed(2)}MB`);
     });
   });

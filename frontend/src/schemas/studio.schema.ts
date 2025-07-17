@@ -50,7 +50,7 @@ const eyeBorderStyleSchema = z.enum([
 
 // Validación de estilos de centro de ojo (modo separado)
 const eyeCenterStyleSchema = z.enum([
-  'square', 'rounded_square', 'circle', 'dot', 'star', 
+  'square', 'rounded_square', 'circle', 'squircle', 'dot', 'star', 
   'diamond', 'cross', 'plus'
 ], {
   errorMap: () => ({ message: 'Estilo de centro de ojo inválido' })

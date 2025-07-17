@@ -8,11 +8,11 @@
 
 import axios from 'axios';
 import express from 'express';
+import passport from 'passport';
 import { z } from 'zod';
 
 import { authenticateJwt } from '../middleware/authMiddleware.js';
 import { generationRateLimit } from '../middleware/rateLimitMiddleware.js';
-import passport from 'passport';
 // import { incrementUsage } from '../services/usageService.js'; // TODO: Implement usage service
 import { scannabilityService } from '../services/scannabilityService.js';
 import logger from '../utils/logger.js';
@@ -26,9 +26,9 @@ const optionalAuth = (req: any, res: any, next: any) => {
     passport.authenticate('jwt', { session: false }, (err: any, user: any) => {
       if (user) {
         req.user = user;
-        logger.info('[QR V3] User authenticated via optional auth', { 
-          userId: user.id, 
-          userRole: user.role 
+        logger.info('[QR V3] User authenticated via optional auth', {
+          userId: user.id,
+          userRole: user.role,
         });
       }
       next();
@@ -180,7 +180,17 @@ const customizationSchema = z
       ])
       .optional(),
     eye_center_style: z
-      .enum(['square', 'rounded_square', 'circle', 'dot', 'star', 'diamond', 'cross', 'plus'])
+      .enum([
+        'square',
+        'rounded_square',
+        'circle',
+        'squircle',
+        'dot',
+        'star',
+        'diamond',
+        'cross',
+        'plus',
+      ])
       .optional(),
     data_pattern: z
       .enum([
@@ -681,7 +691,7 @@ router.post(
  */
 router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => {
   const startTime = Date.now();
-  
+
   // Debug logging for rate limit investigation
   logger.info('[QR V3 Enhanced] Request received', {
     user: req.user,
@@ -690,7 +700,7 @@ router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => 
     headers: req.headers,
     ip: req.ip,
   });
-  
+
   // Additional debugging for validation errors
   logger.info('[QR V3 Enhanced] Request body:', JSON.stringify(req.body, null, 2));
 

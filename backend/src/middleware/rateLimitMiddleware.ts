@@ -58,19 +58,11 @@ export const generationRateLimit = rateLimit({
     return apiKey ? `apikey:${apiKey}` : `ip:${req.ip}`;
   },
   skip: (req: Request) => {
-    // Skip rate limiting para SUPERADMIN
     const user = req.user as any;
     const isSkipped = user?.role === 'SUPERADMIN';
-
-    // Debug logging para SUPERADMIN
-    if (user?.role === 'SUPERADMIN') {
-      logger.info('[Rate Limit] SUPERADMIN detected - skipping rate limit', {
-        userId: user.id,
-        userEmail: user.email,
-        path: req.path,
-      });
+    if (isSkipped) {
+      logger.info('[Rate Limit] SUPERADMIN skipped rate limit', { path: req.path });
     }
-
     return isSkipped;
   },
   message: (req: Request) => {

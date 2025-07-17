@@ -101,10 +101,15 @@ export class StudioService {
   ): Promise<StudioConfig | null> {
     const cacheKey = `${this.CACHE_PREFIX}${type}:${templateType || 'default'}`;
 
+    logger.info(
+      `[StudioService] getConfigByType called with type: ${type}, templateType: ${templateType}`
+    );
+
     // Intentar obtener de cache
     try {
       const cached = await redisCache.get(cacheKey);
       if (cached) {
+        logger.info(`[StudioService] Found config in cache for ${type}`);
         return JSON.parse(cached) as StudioConfig;
       }
     } catch (error) {
@@ -119,6 +124,12 @@ export class StudioService {
           templateType: templateType || null,
           isActive: true,
         },
+      });
+
+      logger.info(`[StudioService] Database query result for ${type}:`, {
+        found: !!config,
+        id: config?.id,
+        configKeys: config?.config ? Object.keys(config.config) : [],
       });
 
       // Guardar en cache si existe
@@ -154,6 +165,12 @@ export class StudioService {
       config: QRConfig;
     }
   ): Promise<StudioConfig> {
+    logger.info(`[StudioService] upsertConfig called for type: ${data.type}`, {
+      name: data.name,
+      templateType: data.templateType,
+      configKeys: Object.keys(data.config),
+    });
+
     try {
       // Si es una actualización, buscar configuración existente
       const existing = await prisma.studioConfig.findFirst({
@@ -163,10 +180,14 @@ export class StudioService {
         },
       });
 
+      logger.info(`[StudioService] Existing config found: ${!!existing}`, {
+        existingId: existing?.id,
+      });
+
       let config: StudioConfig;
 
       if (existing) {
-        // Actualizar configuración existente
+        logger.info(`[StudioService] Updating existing config with ID: ${existing.id}`);
         config = await prisma.studioConfig.update({
           where: { id: existing.id },
           data: {
@@ -178,7 +199,6 @@ export class StudioService {
           },
         });
       } else {
-        // Crear nueva configuración
         config = await prisma.studioConfig.create({
           data: {
             type: data.type,
@@ -195,11 +215,19 @@ export class StudioService {
       const cacheKey = `${this.CACHE_PREFIX}${data.type}:${data.templateType || 'default'}`;
       try {
         await redisCache.del(cacheKey);
+        logger.info(`[StudioService] Cache invalidated for key: ${cacheKey}`);
       } catch (error) {
         logger.warn('Error invalidando cache:', error);
       }
 
-      logger.info(`Configuración ${existing ? 'actualizada' : 'creada'}: ${config.id}`);
+      logger.info(
+        `[StudioService] Configuración ${existing ? 'actualizada' : 'creada'}: ${config.id}`,
+        {
+          type: config.type,
+          name: config.name,
+          configSample: JSON.stringify(config.config).substring(0, 200) + '...',
+        }
+      );
 
       // Notificar por WebSocket
       await studioWebSocketService.publishConfigUpdate(

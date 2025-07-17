@@ -40,16 +40,38 @@ const qrConfigSchema = z.object({
     .optional(),
   eye_border_style: z
     .enum([
-      'square', 'rounded_square', 'circle', 'quarter_round', 'cut_corner',
-      'thick_border', 'double_border', 'diamond', 'hexagon', 'cross',
-      'star', 'leaf', 'arrow', 'teardrop', 'wave', 'petal',
-      'crystal', 'flame', 'organic'
+      'square',
+      'rounded_square',
+      'circle',
+      'quarter_round',
+      'cut_corner',
+      'thick_border',
+      'double_border',
+      'diamond',
+      'hexagon',
+      'cross',
+      'star',
+      'leaf',
+      'arrow',
+      'teardrop',
+      'wave',
+      'petal',
+      'crystal',
+      'flame',
+      'organic',
     ])
     .optional(),
   eye_center_style: z
     .enum([
-      'square', 'rounded_square', 'circle', 'dot', 'star', 
-      'diamond', 'cross', 'plus'
+      'square',
+      'rounded_square',
+      'circle',
+      'squircle',
+      'dot',
+      'star',
+      'diamond',
+      'cross',
+      'plus',
     ])
     .optional(),
   data_pattern: z
@@ -325,6 +347,43 @@ router.get('/effective-config/:templateType?', requireSuperAdmin, async (req, re
       templateType: templateType || 'default',
     });
   } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/studio/public/placeholder
+ * Obtener configuración de placeholder (público - no requiere autenticación)
+ * Esta configuración se usa para mostrar el QR de ejemplo en la página principal
+ */
+router.get('/public/placeholder', async (req, res, next) => {
+  try {
+    logger.info('[Studio] Public placeholder config requested');
+
+    const config = await studioService.getConfigByType(StudioConfigType.PLACEHOLDER);
+
+    if (!config) {
+      logger.info('[Studio] No placeholder config found, returning null');
+      return res.json({ config: null });
+    }
+
+    logger.info('[Studio] Returning placeholder config:', {
+      id: config.id,
+      hasConfig: !!config.config,
+      configKeys: config.config ? Object.keys(config.config) : [],
+    });
+
+    // Solo devolver la configuración necesaria para el frontend
+    res.json({
+      config: {
+        id: config.id,
+        type: config.type,
+        config: config.config,
+        updatedAt: config.updatedAt,
+      },
+    });
+  } catch (error) {
+    logger.error('[Studio] Error fetching public placeholder config:', error);
     next(error);
   }
 });

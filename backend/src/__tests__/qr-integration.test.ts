@@ -1,4 +1,5 @@
 import request from 'supertest';
+
 import app from '../index.js';
 import { prisma } from '../lib/prisma.js';
 
@@ -18,12 +19,10 @@ describe('QR Engine v2 Integration Tests', () => {
       },
     });
 
-    const loginResponse = await request(app)
-      .post('/api/auth/login')
-      .send({
-        email: 'qrtest@example.com',
-        password: 'testpassword',
-      });
+    const loginResponse = await request(app).post('/api/auth/login').send({
+      email: 'qrtest@example.com',
+      password: 'testpassword',
+    });
 
     authToken = loginResponse.body.token;
   });
@@ -172,15 +171,13 @@ describe('QR Engine v2 Integration Tests', () => {
 
   describe('GET /api/qr/preview', () => {
     test('should generate preview with query parameters', async () => {
-      const response = await request(app)
-        .get('/api/qr/preview')
-        .query({
-          data: 'https://example.com',
-          eyeShape: 'circle',
-          fgColor: '#FF0000',
-          bgColor: '#FFFFFF',
-          size: 200,
-        });
+      const response = await request(app).get('/api/qr/preview').query({
+        data: 'https://example.com',
+        eyeShape: 'circle',
+        fgColor: '#FF0000',
+        bgColor: '#FFFFFF',
+        size: 200,
+      });
 
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toBe('image/svg+xml');
@@ -193,13 +190,9 @@ describe('QR Engine v2 Integration Tests', () => {
         size: 300,
       };
 
-      const response1 = await request(app)
-        .get('/api/qr/preview')
-        .query(query);
+      const response1 = await request(app).get('/api/qr/preview').query(query);
 
-      const response2 = await request(app)
-        .get('/api/qr/preview')
-        .query(query);
+      const response2 = await request(app).get('/api/qr/preview').query(query);
 
       expect(response1.status).toBe(200);
       expect(response2.status).toBe(200);
@@ -251,15 +244,13 @@ describe('QR Engine v2 Integration Tests', () => {
   describe('Rate Limiting', () => {
     test('should apply rate limits to QR endpoints', async () => {
       // Make many requests quickly
-      const promises = Array(20).fill(null).map(() =>
-        request(app)
-          .post('/api/qr/generate')
-          .send({ data: 'test' })
-      );
+      const promises = Array(20)
+        .fill(null)
+        .map(() => request(app).post('/api/qr/generate').send({ data: 'test' }));
 
       const responses = await Promise.all(promises);
-      const rateLimited = responses.some(r => r.status === 429);
-      
+      const rateLimited = responses.some((r) => r.status === 429);
+
       expect(rateLimited).toBe(true);
     });
   });
@@ -279,13 +270,13 @@ describe('QR Engine v2 Integration Tests', () => {
   describe('Performance', () => {
     test('should generate basic QR in under 50ms', async () => {
       const start = Date.now();
-      
+
       const response = await request(app)
         .post('/api/qr/generate')
         .send({ data: 'https://example.com' });
 
       const duration = Date.now() - start;
-      
+
       expect(response.status).toBe(200);
       expect(response.body.performance.processingTimeMs).toBeLessThan(50);
       expect(duration).toBeLessThan(100); // Including network overhead
@@ -293,17 +284,19 @@ describe('QR Engine v2 Integration Tests', () => {
 
     test('should handle concurrent requests efficiently', async () => {
       const start = Date.now();
-      
-      const promises = Array(10).fill(null).map((_, i) =>
-        request(app)
-          .post('/api/qr/generate')
-          .send({ data: `https://example.com/${i}` })
-      );
+
+      const promises = Array(10)
+        .fill(null)
+        .map((_, i) =>
+          request(app)
+            .post('/api/qr/generate')
+            .send({ data: `https://example.com/${i}` })
+        );
 
       const responses = await Promise.all(promises);
       const duration = Date.now() - start;
-      
-      expect(responses.every(r => r.status === 200)).toBe(true);
+
+      expect(responses.every((r) => r.status === 200)).toBe(true);
       expect(duration).toBeLessThan(500); // 10 requests in under 500ms
     });
   });

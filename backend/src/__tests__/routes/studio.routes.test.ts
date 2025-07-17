@@ -1,17 +1,18 @@
 /**
  * Tests para Studio Routes
- * 
+ *
  * Tests de integración para los endpoints de QR Studio
  */
 
-import request from 'supertest';
-import express from 'express';
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { StudioConfigType } from '@prisma/client';
-import studioRoutes from '../../routes/studio.routes.js';
+import express from 'express';
+import request from 'supertest';
+
 import { authMiddleware } from '../../middleware/auth.middleware.js';
-import { studioService } from '../../services/studioService.js';
 import { errorHandler } from '../../middleware/errorHandler.js';
+import studioRoutes from '../../routes/studio.routes.js';
+import { studioService } from '../../services/studioService.js';
 
 // Mock de dependencias
 jest.mock('../../middleware/auth.middleware.js', () => ({
@@ -111,7 +112,11 @@ describe('Studio Routes', () => {
     });
 
     it('debe retornar configuración de plantilla', async () => {
-      const templateConfig = { ...mockConfig, type: StudioConfigType.TEMPLATE, templateType: 'url' };
+      const templateConfig = {
+        ...mockConfig,
+        type: StudioConfigType.TEMPLATE,
+        templateType: 'url',
+      };
       (studioService.getConfigByType as jest.Mock).mockResolvedValue(templateConfig);
 
       const response = await request(app)
@@ -120,10 +125,7 @@ describe('Studio Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ config: templateConfig });
-      expect(studioService.getConfigByType).toHaveBeenCalledWith(
-        StudioConfigType.TEMPLATE,
-        'url'
-      );
+      expect(studioService.getConfigByType).toHaveBeenCalledWith(StudioConfigType.TEMPLATE, 'url');
     });
 
     it('debe retornar 404 si no existe configuración', async () => {
@@ -176,10 +178,7 @@ describe('Studio Routes', () => {
         config: mockConfig,
         message: 'Configuración guardada exitosamente',
       });
-      expect(studioService.upsertConfig).toHaveBeenCalledWith(
-        'test-user-id',
-        validPayload
-      );
+      expect(studioService.upsertConfig).toHaveBeenCalledWith('test-user-id', validPayload);
     });
 
     it('debe validar payload requerido', async () => {
@@ -232,7 +231,9 @@ describe('Studio Routes', () => {
         .send(templatePayload);
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('templateType es requerido para configuraciones de tipo TEMPLATE');
+      expect(response.body.error).toBe(
+        'templateType es requerido para configuraciones de tipo TEMPLATE'
+      );
     });
   });
 
@@ -248,10 +249,7 @@ describe('Studio Routes', () => {
       expect(response.body).toEqual({
         message: 'Configuración eliminada exitosamente',
       });
-      expect(studioService.deleteConfig).toHaveBeenCalledWith(
-        'test-config-id',
-        'test-user-id'
-      );
+      expect(studioService.deleteConfig).toHaveBeenCalledWith('test-config-id', 'test-user-id');
     });
   });
 
@@ -291,10 +289,7 @@ describe('Studio Routes', () => {
       expect(response.body).toEqual({
         message: 'Configuración aplicada a todas las plantillas exitosamente',
       });
-      expect(studioService.applyToAllTemplates).toHaveBeenCalledWith(
-        'test-user-id',
-        configToApply
-      );
+      expect(studioService.applyToAllTemplates).toHaveBeenCalledWith('test-user-id', configToApply);
     });
 
     it('debe validar configuración antes de aplicar', async () => {

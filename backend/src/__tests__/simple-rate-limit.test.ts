@@ -1,59 +1,38 @@
 import { Request } from 'express';
+import { rateLimit } from 'express-rate-limit';
+
 import { generationRateLimit } from '../middleware/rateLimitMiddleware.js';
+const generationRateLimitWithSkip = generationRateLimit as any;
 
 describe('Simple Rate Limit Skip Test', () => {
   test('Skip function should return true for SUPERADMIN', () => {
-    const mockReq = {
-      user: { 
-        id: 'test-id',
-        email: 'test@example.com',
-        role: 'SUPERADMIN' 
-      },
-      body: { barcode_type: 'qrcode' },
-      ip: '127.0.0.1',
-      path: '/api/generate'
-    } as unknown as Request;
-
-    const skipResult = generationRateLimit.skip?.(mockReq, {} as any, () => {});
-    
-    console.log('Mock request user:', mockReq.user);
-    console.log('Skip result:', skipResult);
-    
+    const skipResult = generationRateLimitWithSkip.skip({
+      user: { role: 'SUPERADMIN' },
+    });
     expect(skipResult).toBe(true);
   });
 
   test('Skip function should return false for regular USER', () => {
-    const mockReq = {
-      user: { 
-        id: 'test-id',
-        email: 'test@example.com',
-        role: 'USER' 
-      },
-      body: { barcode_type: 'qrcode' },
-      ip: '127.0.0.1',
-      path: '/api/generate'
-    } as unknown as Request;
-
-    const skipResult = generationRateLimit.skip?.(mockReq, {} as any, () => {});
-    
-    console.log('Mock request user:', mockReq.user);
-    console.log('Skip result:', skipResult);
-    
+    const skipResult = generationRateLimit.skip?.(
+      {
+        user: { role: 'USER' },
+      } as unknown as Request,
+      {} as any,
+      () => {}
+    );
     expect(skipResult).toBe(false);
   });
 
   test('Skip function should return false when no user', () => {
-    const mockReq = {
-      body: { barcode_type: 'qrcode' },
-      ip: '127.0.0.1',
-      path: '/api/generate'
-    } as unknown as Request;
-
-    const skipResult = generationRateLimit.skip?.(mockReq, {} as any, () => {});
-    
-    console.log('Mock request user:', mockReq.user);
-    console.log('Skip result:', skipResult);
-    
+    const skipResult = generationRateLimit.skip?.(
+      {
+        body: { barcode_type: 'qrcode' },
+        ip: '127.0.0.1',
+        path: '/api/generate',
+      } as unknown as Request,
+      {} as any,
+      () => {}
+    );
     expect(skipResult).toBe(false);
   });
 });

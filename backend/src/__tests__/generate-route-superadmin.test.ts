@@ -1,16 +1,30 @@
-import request from 'supertest';
-import jwt from 'jsonwebtoken';
-import express from 'express';
 import { jest } from '@jest/globals';
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import request from 'supertest';
+import supertest from 'supertest';
+
 import { config } from '../config.js';
-import { generateRoutes } from '../routes/generate.routes.js';
+import app from '../index';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { rateLimitMonitor, generationRateLimit } from '../middleware/rateLimitMiddleware.js';
+import { generateRoutes } from '../routes/generate.routes.js';
+
+jest.mock('../middleware/authMiddleware', () => ({
+  authenticateJwt: jest.fn((req, res, next) => {
+    req.user = { role: 'SUPERADMIN' };
+    next();
+  }),
+}));
+
+jest.mock('../services/barcodeService', () => ({
+  generateBarcode: jest.fn().mockResolvedValue('<svg>mock</svg>'),
+}));
 
 // Mock the barcode service
 jest.unstable_mockModule('../services/barcodeService.js', () => ({
   generateBarcode: jest.fn().mockResolvedValue('<svg>mock</svg>'),
-  generateBarcodesBatch: jest.fn().mockResolvedValue({ success: true, results: [] })
+  generateBarcodesBatch: jest.fn().mockResolvedValue({ success: true, results: [] }),
 }));
 
 // Mock logger to reduce noise
@@ -18,8 +32,8 @@ jest.unstable_mockModule('../utils/logger.js', () => ({
   default: {
     info: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn()
-  }
+    error: jest.fn(),
+  },
 }));
 
 describe('Generate Route - SUPERADMIN Rate Limit', () => {
@@ -52,7 +66,7 @@ describe('Generate Route - SUPERADMIN Rate Limit', () => {
 
   test('SUPERADMIN with JWT token should bypass rate limit', async () => {
     const requests = [];
-    
+
     // Make 10 requests with SUPERADMIN token
     for (let i = 0; i < 10; i++) {
       requests.push(
@@ -64,7 +78,7 @@ describe('Generate Route - SUPERADMIN Rate Limit', () => {
     }
 
     const responses = await Promise.all(requests);
-    
+
     // All should succeed
     responses.forEach((response, index) => {
       console.log(`SUPERADMIN Request ${index + 1}: Status ${response.status}`);
@@ -77,7 +91,7 @@ describe('Generate Route - SUPERADMIN Rate Limit', () => {
 
   test('Regular USER with JWT should hit rate limit eventually', async () => {
     const requests = [];
-    
+
     // Make many requests with USER token (more than the limit)
     for (let i = 0; i < 600; i++) {
       requests.push(
@@ -89,12 +103,12 @@ describe('Generate Route - SUPERADMIN Rate Limit', () => {
     }
 
     const responses = await Promise.all(requests);
-    
-    const successful = responses.filter(r => r.status === 200);
-    const rateLimited = responses.filter(r => r.status === 429);
-    
+
+    const successful = responses.filter((r) => r.status === 200);
+    const rateLimited = responses.filter((r) => r.status === 429);
+
     console.log(`USER - Successful: ${successful.length}, Rate Limited: ${rateLimited.length}`);
-    
+
     expect(rateLimited.length).toBeGreaterThan(0);
   });
 
@@ -102,13 +116,13 @@ describe('Generate Route - SUPERADMIN Rate Limit', () => {
     // Create a test app with debug logging
     const debugApp = express();
     debugApp.use(express.json());
-    
+
     // Add debug middleware to log user state
     debugApp.use((req, res, next) => {
       console.log('Before auth - req.user:', req.user);
       next();
     });
-    
+
     debugApp.use(
       '/api/generate',
       rateLimitMonitor,

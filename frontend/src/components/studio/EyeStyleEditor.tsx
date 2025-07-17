@@ -33,17 +33,19 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
 
   const handleModeChange = (checked: boolean) => {
     if (checked) {
-      // Cambiar a modo separado
+      // Cambiar a modo separado - mantener valores existentes si los hay
       onChange({
         use_separated_eye_styles: true,
-        eye_border_style: config.eye_border_style || 'circle',  // Default circle como página principal
-        eye_center_style: config.eye_center_style || 'circle',  // Default circle como página principal
+        eye_border_style: config.eye_border_style || config.eye_shape || 'circle',
+        eye_center_style: config.eye_center_style || config.eye_shape || 'circle',
+        eye_shape: undefined  // Limpiar eye_shape en modo separado
       });
     } else {
       // Cambiar a modo unificado - aplicar el mismo estilo a ambos
-      const unifiedStyle = config.eye_border_style || 'square';
+      const unifiedStyle = config.eye_shape || config.eye_border_style || 'square';
       onChange({
         use_separated_eye_styles: false,
+        eye_shape: unifiedStyle,
         eye_border_style: unifiedStyle,
         eye_center_style: unifiedStyle,
       });
@@ -51,8 +53,9 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
   };
 
   const handleUnifiedStyleChange = (value: string) => {
-    // En modo unificado, actualizar ambos estilos con el mismo valor
+    // En modo unificado, actualizar todos los estilos con el mismo valor
     onChange({
+      eye_shape: value,
       eye_border_style: value,
       eye_center_style: value,
     });
@@ -83,7 +86,7 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
             <div className="space-y-2">
               <Label htmlFor="unified-style">Estilo de Ojo (Unificado)</Label>
               <Select
-                value={config.eye_border_style || 'square'}
+                value={config.eye_shape || config.eye_border_style || 'square'}
                 onValueChange={handleUnifiedStyleChange}
                 disabled={disabled}
               >

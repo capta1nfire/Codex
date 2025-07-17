@@ -3108,6 +3108,27 @@ impl QrCode {
                     cx, cy + 1.2 * scale
                 )
             }
+            EyeCenterStyle::Squircle => {
+                // Squircle para el centro del ojo usando el path correcto
+                // Escalado de 100x100 a 3x3 unidades y centrado
+                let scale = 0.03;
+                let offset_x = x as f32 + 1.5 - 50.0 * scale; // Centrar en x+1.5 
+                let offset_y = y as f32 + 1.5 - 50.0 * scale; // Centrar en y+1.5
+                
+                // Path del squircle escalado y centrado en el área 3x3
+                format!(
+                    "M{:.3},{:.3}C{:.3},{:.3} {:.3},{:.3} {:.3},{:.3}C{:.3},{:.3} {:.3},{:.3} {:.3},{:.3}C{:.3},{:.3} {:.3},{:.3} {:.3},{:.3}C{:.3},{:.3} {:.3},{:.3} {:.3},{:.3}C{:.3},{:.3} {:.3},{:.3} {:.3},{:.3}C{:.3},{:.3} {:.3},{:.3} {:.3},{:.3}C{:.3},{:.3} {:.3},{:.3} {:.3},{:.3}C{:.3},{:.3} {:.3},{:.3} {:.3},{:.3}Z",
+                    offset_x + 5.267 * scale, offset_y + 18.67 * scale,
+                    offset_x + 7.407 * scale, offset_y + 12.384 * scale, offset_x + 12.344 * scale, offset_y + 7.447 * scale, offset_x + 18.63 * scale, offset_y + 5.307 * scale,
+                    offset_x + 38.491 * scale, offset_y + -1.407 * scale, offset_x + 61.492 * scale, offset_y + -1.407 * scale, offset_x + 81.353 * scale, offset_y + 5.307 * scale,
+                    offset_x + 87.64 * scale, offset_y + 7.447 * scale, offset_x + 92.577 * scale, offset_y + 12.384 * scale, offset_x + 94.716 * scale, offset_y + 18.67 * scale,
+                    offset_x + 101.43 * scale, offset_y + 38.531 * scale, offset_x + 101.43 * scale, offset_y + 61.532 * scale, offset_x + 94.716 * scale, offset_y + 81.393 * scale,
+                    offset_x + 92.577 * scale, offset_y + 87.68 * scale, offset_x + 87.64 * scale, offset_y + 92.617 * scale, offset_x + 81.353 * scale, offset_y + 94.756 * scale,
+                    offset_x + 61.492 * scale, offset_y + 101.47 * scale, offset_x + 38.491 * scale, offset_y + 101.47 * scale, offset_x + 18.63 * scale, offset_y + 94.756 * scale,
+                    offset_x + 12.344 * scale, offset_y + 92.617 * scale, offset_x + 7.407 * scale, offset_y + 87.68 * scale, offset_x + 5.267 * scale, offset_y + 81.393 * scale,
+                    offset_x + -1.447 * scale, offset_y + 61.532 * scale, offset_x + -1.447 * scale, offset_y + 38.531 * scale, offset_x + 5.267 * scale, offset_y + 18.67 * scale
+                )
+            }
         }
     }
     
