@@ -101,23 +101,10 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
         console.log('[useQRGenerationV3Enhanced] Added logo_size_ratio:', logoSizeRatio);
       }
       
-      // DETAILED LOGGING FOR SMART QR DEBUG
-      console.log('=== SMART QR REQUEST DEBUG ===');
-      console.log('Endpoint:', `${backendUrl}/api/v3/qr/enhanced`);
-      console.log('Headers:', headers);
-      console.log('Request Body:', JSON.stringify(requestBody, null, 2));
-      
-      // Log specific customization details if present
-      if (options?.customization) {
-        console.log('--- Customization Details ---');
-        console.log('Eye Shape:', options.customization.eye_shape);
-        console.log('Data Pattern:', options.customization.data_pattern);
-        console.log('Gradient:', options.customization.gradient);
-        console.log('Logo:', options.customization.logo);
-        console.log('Frame:', options.customization.frame);
-        console.log('Effects:', options.customization.effects);
+      // Debug logging only in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[QR Enhanced] Generating QR:', { data: data.substring(0, 50), hasCustomization: !!options?.customization });
       }
-      console.log('=============================');
       
       const response = await fetch(`${backendUrl}/api/v3/qr/enhanced`, {
         method: 'POST',
@@ -127,11 +114,10 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
 
       const result: QRV3EnhancedResponse = await response.json();
       
-      console.log('=== SMART QR RESPONSE DEBUG ===');
-      console.log('Response Status:', response.status);
-      console.log('Response OK:', response.ok);
-      console.log('Result:', JSON.stringify(result, null, 2));
-      console.log('================================');
+      // Response debug only in development
+      if (process.env.NODE_ENV === 'development' && (!response.ok || !result.success)) {
+        console.log('[QR Enhanced] Response error:', { status: response.status, error: result.error });
+      }
 
       if (!response.ok || !result.success) {
         if (response.status === 422 && result.error) {
@@ -144,18 +130,14 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
       }
 
       if (result.data) {
-        console.log('[useQRGenerationV3Enhanced] Setting enhanced data:', result.data);
         setEnhancedData(result.data);
         setIsUsingCache(result.metadata.cached);
         setMetadata(result.metadata);
         
         // Set scannability data if available
         if (result.scannability) {
-          console.log('[useQRGenerationV3Enhanced] Setting scannability:', result.scannability);
           setScannability(result.scannability);
         }
-      } else {
-        console.warn('[useQRGenerationV3Enhanced] No data in result:', result);
       }
     } catch (err: any) {
       console.error('QR v3 Enhanced generation error:', err);

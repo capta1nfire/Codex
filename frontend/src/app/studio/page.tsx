@@ -36,6 +36,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import Link from 'next/link';
+import { StudioAccordion } from '@/components/studio/StudioAccordion';
 
 export default function StudioPage() {
   const { user, loading: authLoading } = useAuth();
@@ -174,56 +175,41 @@ export default function StudioPage() {
         </Card>
       </div>
 
-      {/* Secciones principales */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Configuración Global */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5 text-blue-600" />
-              Configuración Global
-            </CardTitle>
-            <CardDescription>
-              Valores por defecto para todos los códigos QR
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Estado:</span>
+      {/* Nueva navegación con acordeón */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Panel de navegación principal */}
+        <div className="lg:col-span-2">
+          <StudioAccordion />
+        </div>
+        
+        {/* Panel lateral con información adicional */}
+        <div className="space-y-6">
+          {/* Estado del sistema */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Activity className="h-5 w-5 text-slate-600" />
+                Estado del Sistema
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Configuraciones activas:</span>
+                <Badge variant="default">{stats.total}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Configuración global:</span>
                 {stats.global > 0 ? (
                   <Badge variant="success">
                     <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Configurado
+                    OK
                   </Badge>
                 ) : (
-                  <Badge variant="secondary">Sin configurar</Badge>
+                  <Badge variant="secondary">Pendiente</Badge>
                 )}
               </div>
-              <Button asChild className="w-full">
-                <Link href="/studio/global">
-                  Gestionar Configuración
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Editor de Placeholder */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-purple-600" />
-              Editor de Placeholder
-            </CardTitle>
-            <CardDescription>
-              Personaliza el QR de ejemplo en la página principal
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Estado:</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Placeholder:</span>
                 {stats.placeholder > 0 ? (
                   <Badge variant="success">
                     <CheckCircle2 className="h-3 w-3 mr-1" />
@@ -233,47 +219,36 @@ export default function StudioPage() {
                   <Badge variant="secondary">Por defecto</Badge>
                 )}
               </div>
-              <Button asChild className="w-full">
-                <Link href="/studio/placeholder">
-                  Editar Placeholder
+            </CardContent>
+          </Card>
+          
+          {/* Acciones rápidas adicionales */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Zap className="h-5 w-5 text-amber-600" />
+                Herramientas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button asChild variant="outline" className="w-full justify-start">
+                <Link href="/">
+                  <Palette className="h-4 w-4 mr-2" />
+                  Ver página principal
                 </Link>
               </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Plantillas por Dominio */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-green-600" />
-              Plantillas por Dominio
-            </CardTitle>
-            <CardDescription>
-              Configuraciones específicas para cada plataforma
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Plantillas activas:</span>
-                <Badge variant="default">{stats.templates}</Badge>
-              </div>
-              <div className="flex gap-2">
-                <Button asChild className="flex-1">
-                  <Link href="/studio/templates">
-                    Editor
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="flex-1">
-                  <Link href="/studio/templates/list">
-                    Ver Lista
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              <Button 
+                onClick={() => loadConfigs()} 
+                variant="outline" 
+                className="w-full justify-start"
+                disabled={studioLoading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${studioLoading ? 'animate-spin' : ''}`} />
+                Recargar configuraciones
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Actividad reciente */}

@@ -103,14 +103,21 @@ export function StudioQRPreview({
       };
       
       // CRITICAL: Check if using separated eye styles
-      if (config.use_separated_eye_styles) {
+      // Fix for undefined use_separated_eye_styles causing 400 errors
+      const hasSeparatedStyles = config.use_separated_eye_styles === true || 
+                                (config.eye_border_style && config.eye_center_style);
+      const hasUnifiedStyle = config.eye_shape && !hasSeparatedStyles;
+      
+      if (hasSeparatedStyles) {
         // Using separated styles - send both border and center
         customization.eye_border_style = config.eye_border_style || 'square';
         customization.eye_center_style = config.eye_center_style || 'square';
-      } else {
+      } else if (hasUnifiedStyle) {
         // Using unified style - send only eye_shape
-        // Use eye_shape if available, otherwise default to 'rounded' to match main page
-        customization.eye_shape = config.eye_shape || config.eye_border_style || 'rounded';
+        customization.eye_shape = config.eye_shape;
+      } else {
+        // Default fallback - use unified style 'rounded'
+        customization.eye_shape = 'rounded';
       }
 
       // Add eye colors if specified

@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { useStudio } from '@/components/studio/StudioProvider';
 import { StudioGuard } from '@/components/studio/StudioGuard';
-import { StudioAction, useStudioPermissions } from '@/hooks/useStudioPermissions';
+import { StudioAction } from '@/hooks/useStudioPermissions';
 import { QRConfig, StudioConfigType } from '@/types/studio.types';
 import { StudioQRPreview } from '@/components/studio/StudioQRPreview';
 import toast from 'react-hot-toast';
@@ -35,19 +35,15 @@ import { ColorPickerPopover } from '@/components/ui/color-picker-popover';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
 import { EyeStyleEditor } from '@/components/studio/EyeStyleEditor';
 
 export default function GlobalConfigPage() {
   const { 
-    configs, 
     saveConfig, 
-    getConfigByType, 
-    isLoading,
+    getConfigByType,
     canEdit 
   } = useStudio();
   
-  const { hasPermission } = useStudioPermissions();
   
   // Obtener configuración global actual o usar valores por defecto
   const currentGlobalConfig = getConfigByType(StudioConfigType.GLOBAL);
@@ -312,7 +308,7 @@ export default function GlobalConfigPage() {
                   </div>
                   <Switch
                     checked={true}
-                    onCheckedChange={(checked) => {}}
+                    onCheckedChange={() => {}}
                     disabled
                   />
                 </div>

@@ -104,6 +104,7 @@ app.use(
       'Authorization',
       'Cache-Control',
       'Pragma',
+      'Expires',
       'X-Requested-With',
     ],
   })
@@ -134,6 +135,12 @@ const limiter = rateLimit({
       code: 'RATE_LIMIT_EXCEEDED',
       message: 'Demasiadas solicitudes. Intenta de nuevo más tarde.',
     },
+  },
+  skip: (req) => {
+    // Skip rate limiting for public studio endpoints and QR generation
+    return req.path.startsWith('/api/studio/public/') || 
+           req.path.startsWith('/api/v3/qr/') ||
+           req.path.startsWith('/api/v1/barcode');
   },
 });
 app.use(limiter);

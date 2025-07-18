@@ -236,14 +236,14 @@ export const useQRGenerationState = () => {
       ];
       
       // Check if the data contains any placeholder value (case insensitive)
-      return placeholders.some(placeholder => 
+      return inputData && placeholders.some(placeholder => 
         inputData.toLowerCase().includes(placeholder.toLowerCase())
       );
     };
 
     // Only apply minimum loading time for actual user data, not placeholders
     if (isPlaceholderData(data)) {
-      console.log(`[UX Enhancement] Skipping minimum loading time for placeholder data: ${data.substring(0, 30)}...`);
+      console.log(`[UX Enhancement] Skipping minimum loading time for placeholder data: ${data?.substring(0, 30) || 'undefined'}...`);
       return;
     }
 
@@ -596,6 +596,7 @@ export const useQRGenerationState = () => {
         }
       } else {
         // Generate other barcode types with v2
+        console.log('[useQRGenerationState] Using v2 barcode for:', formData.barcode_type);
         await v2Barcode.generateBarcode(formData);
 
         if (!signal.aborted) {
