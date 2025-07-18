@@ -581,7 +581,7 @@ export function QRGeneratorContainer() {
     });
     
     // Remove the hasGeneratedInitialQR check to ensure it always runs on mount
-    if (!isInitialMount) {
+    if (!isInitialMount && !shouldRefreshPlaceholder) {
       return;
     }
     
@@ -594,7 +594,11 @@ export function QRGeneratorContainer() {
       try {
         console.log('[Initial QR] Fetching placeholder config from public API...');
         // Add timestamp to prevent caching
-        const response = await api.get(`/api/studio/public/placeholder?t=${Date.now()}`);
+        const response = await api.get(`/api/studio/public/placeholder?t=${Date.now()}`, false, {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        });
         console.log('[Initial QR] API response:', response);
         
         if (response.config?.config) {
@@ -808,7 +812,32 @@ export function QRGeneratorContainer() {
     };
     
     generateInitialBarcode();
-  }, [generateWithState, isInitialMount]);
+  }, [generateWithState, isInitialMount, shouldRefreshPlaceholder]);
+
+  // Detectar refresh de página y forzar recarga del placeholder
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      // Si la página viene del cache (back/forward) o es un refresh
+      if (event.persisted || performance.navigation.type === 1) {
+        console.log('[QRGeneratorContainer] Page refresh detected, forcing placeholder reload...');
+        setShouldRefreshPlaceholder(prev => !prev); // Toggle para forzar useEffect
+      }
+    };
+
+    // Detectar refresh inmediatamente al cargar
+    if (performance.navigation.type === 1) {
+      console.log('[QRGeneratorContainer] Initial page refresh detected');
+      setTimeout(() => {
+        setShouldRefreshPlaceholder(prev => !prev);
+      }, 100); // Pequeño delay para asegurar que otros efectos se ejecuten primero
+    }
+
+    window.addEventListener('pageshow', handlePageShow);
+    
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+  }, []); // Solo ejecutar una vez al montar
 
   // Auto-generación para códigos que no son QR - USES CENTRALIZED GENERATION
   useEffect(() => {
@@ -917,7 +946,11 @@ export function QRGeneratorContainer() {
         console.log('[QRGeneratorContainer] Window focused, refreshing placeholder config...');
         
         try {
-          const response = await api.get('/api/studio/public/placeholder');
+          const response = await api.get(`/api/studio/public/placeholder?t=${Date.now()}`, false, {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          });
           if (response.config?.config) {
             const placeholderConfig = response.config.config;
             console.log('[QRGeneratorContainer] Refreshed placeholder config:', {

@@ -364,6 +364,12 @@ router.get('/public/placeholder', async (req, res, next) => {
 
     if (!config) {
       logger.info('[Studio] No placeholder config found, returning null');
+      // Configurar headers para evitar cache incluso cuando no hay config
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
       return res.json({ config: null });
     }
 
@@ -373,6 +379,13 @@ router.get('/public/placeholder', async (req, res, next) => {
       configKeys: config.config ? Object.keys(config.config) : [],
     });
 
+    // Configurar headers para evitar cache
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
     // Solo devolver la configuración necesaria para el frontend
     res.json({
       config: {

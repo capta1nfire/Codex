@@ -95,10 +95,11 @@ class ApiClient {
   /**
    * GET request
    */
-  async get<T = any>(endpoint: string, includeAuth = true): Promise<T> {
+  async get<T = any>(endpoint: string, includeAuth = true, customHeaders?: HeadersInit): Promise<T> {
+    const headers = { ...this.getHeaders(includeAuth), ...customHeaders };
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'GET',
-      headers: this.getHeaders(includeAuth),
+      headers,
     });
 
     return this.handleResponse<T>(response);
