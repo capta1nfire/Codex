@@ -59,11 +59,16 @@ const eyeCenterStyleSchema = z.enum([
 // Validación de patrones de datos
 const dataPatternSchema = z.enum([
   'square',
+  'square_small',
   'dots',
   'rounded',
+  'vertical',
+  'horizontal',
+  'diamond',
   'circular',
   'star',
   'cross',
+  'random',
   'wave',
   'mosaic'
 ], {

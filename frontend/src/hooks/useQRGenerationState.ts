@@ -70,7 +70,7 @@ export const useQRGenerationState = () => {
       if (currentState === newState) {
         if (currentState === 'GENERATING') {
           // Don't allow GENERATING -> GENERATING
-          console.warn(`Prevented duplicate generation: ${currentState} -> ${newState}`);
+          // Silently prevent duplicate generation (common in React StrictMode)
           return prev;
         }
         // Allow other same-state transitions for updates
@@ -82,7 +82,7 @@ export const useQRGenerationState = () => {
       }
 
       if (!allowedTransitions.includes(newState)) {
-        console.warn(`Invalid state transition: ${currentState} -> ${newState}`);
+        // Silently ignore invalid transitions (common in React StrictMode)
         return prev;
       }
 
@@ -293,8 +293,7 @@ export const useQRGenerationState = () => {
         // Map Smart QR config to backend format
         const smartConfig = options.smartQRConfig;
         
-        console.log('=== SMART QR CONFIG MAPPING DEBUG ===');
-        console.log('Input Smart Config:', JSON.stringify(smartConfig, null, 2));
+        // Smart QR config mapping
         
         // When using a Smart QR with a specific eyeShape, don't use separated eye styles
         const hasSpecificEyeShape = smartConfig.eyeShape && smartConfig.eyeShape !== 'square';
@@ -340,7 +339,7 @@ export const useQRGenerationState = () => {
               enabled: false
             }
           };
-          console.log('Mapped Gradient:', customization.gradient);
+          // Gradient mapped successfully
         }
 
         // Map logo format - backend expects 'data' not 'url' and all fields are required
@@ -354,10 +353,7 @@ export const useQRGenerationState = () => {
               padding: smartConfig.logo.padding || 8, // Reduced padding
               shape: smartConfig.logo.shape === 'rounded' ? 'rounded_square' : (smartConfig.logo.shape || 'square') // Map 'rounded' to 'rounded_square'
             };
-            console.log('Mapped Logo with Base64 data:', { 
-              ...customization.logo, 
-              data: customization.logo.data.substring(0, 50) + '...' // Log only first 50 chars
-            });
+            // Logo mapped with Base64 data
           } catch (error) {
             console.error('Failed to load logo:', error);
             // Continue without logo if loading fails
@@ -372,11 +368,10 @@ export const useQRGenerationState = () => {
             text_position: 'bottom',
             color: '#000000'
           };
-          console.log('Mapped Frame:', customization.frame);
+          // Frame mapped successfully
         }
         
-        console.log('Final Customization Object:', JSON.stringify(customization, null, 2));
-        console.log('====================================');
+        // Customization object ready for Smart QR
 
         await v3Enhanced.generateEnhancedQR(
           formData.data,
@@ -400,11 +395,7 @@ export const useQRGenerationState = () => {
         }
       } else if (formData.barcode_type === 'qrcode') {
         // Generate with v3 Enhanced for regular QR
-        console.log('[useQRGenerationState] Full formData.options:', JSON.stringify(formData.options, null, 2));
-        console.log('[useQRGenerationState] use_separated_eye_styles:', formData.options?.use_separated_eye_styles);
-        console.log('[useQRGenerationState] eye_shape:', formData.options?.eye_shape);
-        console.log('[useQRGenerationState] eye_border_style:', formData.options?.eye_border_style);
-        console.log('[useQRGenerationState] eye_center_style:', formData.options?.eye_center_style);
+        // Removed verbose logging for production
         
         const customizationConfig = {
           // Only include eye_shape if NOT using separated styles
@@ -485,8 +476,7 @@ export const useQRGenerationState = () => {
           // Add eye gradient configuration if gradient mode is selected for borders OR if inherit mode with gradient enabled
           // ✅ También incluir cuando gradient_apply_to_eyes es true
           ...((formData.options?.eye_border_color_mode === 'gradient' && formData.options?.eye_border_color_gradient) || 
-              (formData.options?.eye_border_color_mode === 'inherit' && formData.options?.gradient_enabled) ||
-              (formData.options?.gradient_apply_to_eyes && formData.options?.gradient_enabled) ? {
+              ((formData.options?.eye_border_color_mode === 'inherit' || formData.options?.eye_border_color_mode === undefined) && formData.options?.gradient_enabled && formData.options?.gradient_apply_to_eyes) ? {
             eye_border_gradient: {
               enabled: true,
               gradient_type: formData.options?.eye_border_color_mode === 'gradient' 
@@ -500,14 +490,16 @@ export const useQRGenerationState = () => {
                 : [
                     formData.options.gradient_color1 || '#000000',
                     formData.options.gradient_color2 || '#666666'
-                  ]
+                  ],
+              angle: formData.options?.eye_border_color_mode === 'gradient'
+                ? (formData.options.eye_border_color_gradient?.angle || 0)
+                : (formData.options.gradient_angle || 0)
             }
           } : {}),
           // Add eye center gradient configuration if gradient mode is selected for centers OR if inherit mode with gradient enabled
           // ✅ También incluir cuando gradient_apply_to_eyes es true
           ...((formData.options?.eye_color_mode === 'gradient' && formData.options?.eye_color_gradient) ||
-              (formData.options?.eye_color_mode === 'inherit' && formData.options?.gradient_enabled) ||
-              (formData.options?.gradient_apply_to_eyes && formData.options?.gradient_enabled) ? {
+              ((formData.options?.eye_color_mode === 'inherit' || formData.options?.eye_color_mode === undefined) && formData.options?.gradient_enabled && formData.options?.gradient_apply_to_eyes) ? {
             eye_center_gradient: {
               enabled: true,
               gradient_type: formData.options?.eye_color_mode === 'gradient'
@@ -521,7 +513,10 @@ export const useQRGenerationState = () => {
                 : [
                     formData.options.gradient_color1 || '#000000',
                     formData.options.gradient_color2 || '#666666'
-                  ]
+                  ],
+              angle: formData.options?.eye_color_mode === 'gradient'
+                ? (formData.options.eye_color_gradient?.angle || 0)
+                : (formData.options.gradient_angle || 0)
             }
           } : {}),
           // Add fixed size if specified
@@ -573,7 +568,7 @@ export const useQRGenerationState = () => {
           frame: undefined  // Deshabilitado temporalmente
         };
         
-        console.log('[useQRGenerationState] Final customizationConfig:', JSON.stringify(customizationConfig, null, 2));
+        // Final customizationConfig constructed
         
         await v3Enhanced.generateEnhancedQR(
           formData.data,

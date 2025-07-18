@@ -2,6 +2,14 @@
 
 All notable changes to the CODEX project are documented in the [docs/](./docs/) directory.
 
+## 2025-01-18
+
+### 🔧 Fixed
+- **QR Studio Race Condition**: Fixed placeholder config reverting to defaults on page refresh
+  - PlaceholderEditorPage now waits for StudioProvider to finish loading configs
+  - Prevents race condition where component loaded before backend data was ready
+  - Ensures saved configurations (eye styles, colors, etc.) persist after refresh
+
 ## 2025-01-17
 
 ### ✅ Added

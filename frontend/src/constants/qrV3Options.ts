@@ -40,7 +40,7 @@ export const QR_V3_EYE_BORDER_STYLES = [
   { value: 'square', label: 'Cuadrado', icon: '◼' },
   { value: 'rounded_square', label: 'Redondeado', icon: '▢' },
   { value: 'circle', label: 'Círculo', icon: '●' },
-  { value: 'quarter_round', label: 'Esquina Curva', icon: '◜' },
+  { value: 'quarter_round', label: 'Squircle', icon: '◜' },
   { value: 'cut_corner', label: 'Esquina Cortada', icon: '◤' },
   { value: 'thick_border', label: 'Marco Grueso', icon: '⬛' },
   { value: 'double_border', label: 'Marco Doble', icon: '◈' },

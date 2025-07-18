@@ -1013,6 +1013,41 @@ function GenerationOptions({
                                     )}
                                   />
                                 </div>
+                                
+                                {/* Angle Control for Eye Border Gradient */}
+                                <div className="mt-2">
+                                  <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                                    Ángulo del Gradiente
+                                  </Label>
+                                  <Controller
+                                    name="options.eye_border_color_gradient.angle"
+                                    control={control}
+                                    defaultValue={0}
+                                    render={({ field }) => (
+                                      <div className="flex gap-2 items-center">
+                                        <Input
+                                          type="range"
+                                          min="0"
+                                          max="360"
+                                          step="15"
+                                          value={field.value || 0}
+                                          onChange={(e) => {
+                                            field.onChange(Number(e.target.value));
+                                            setTimeout(() => {
+                                              const currentFormValues = getValues();
+                                              onSubmit(currentFormValues);
+                                            }, 100);
+                                          }}
+                                          disabled={isLoading}
+                                          className="flex-1"
+                                        />
+                                        <div className="w-12 text-xs text-right">
+                                          {field.value || 0}°
+                                        </div>
+                                      </div>
+                                    )}
+                                  />
+                                </div>
                               </div>
                             )}
                           </div>
@@ -1228,6 +1263,41 @@ function GenerationOptions({
                                     )}
                                   />
                                 </div>
+                                
+                                {/* Angle Control for Eye Center Gradient */}
+                                <div className="mt-2">
+                                  <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                                    Ángulo del Gradiente
+                                  </Label>
+                                  <Controller
+                                    name="options.eye_color_gradient.angle"
+                                    control={control}
+                                    defaultValue={0}
+                                    render={({ field }) => (
+                                      <div className="flex gap-2 items-center">
+                                        <Input
+                                          type="range"
+                                          min="0"
+                                          max="360"
+                                          step="15"
+                                          value={field.value || 0}
+                                          onChange={(e) => {
+                                            field.onChange(Number(e.target.value));
+                                            setTimeout(() => {
+                                              const currentFormValues = getValues();
+                                              onSubmit(currentFormValues);
+                                            }, 100);
+                                          }}
+                                          disabled={isLoading}
+                                          className="flex-1"
+                                        />
+                                        <div className="w-12 text-xs text-right">
+                                          {field.value || 0}°
+                                        </div>
+                                      </div>
+                                    )}
+                                  />
+                                </div>
                               </div>
                             )}
                           </div>
@@ -1236,11 +1306,6 @@ function GenerationOptions({
                     />
                   </div>
 
-                  <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                    <p className="text-xs text-blue-800 dark:text-blue-200">
-                      <strong>Nota:</strong> Ahora puedes personalizar el borde y el centro de los ojos de forma independiente.
-                    </p>
-                  </div>
                 </div>
               )}
             </div>

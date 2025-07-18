@@ -18,9 +18,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Info } from 'lucide-react';
 import { QRConfig } from '@/types/studio.types';
 import { QR_V3_EYE_SHAPES, QR_V3_EYE_BORDER_STYLES, QR_V3_EYE_CENTER_STYLES } from '@/constants/qrV3Options';
+import { EYE_BORDER_SVG_PATHS, EYE_CENTER_SVG_PATHS } from '@/constants/eyeStyleSvgPaths';
 
 interface EyeStyleEditorProps {
   config: QRConfig;
@@ -84,30 +86,40 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
           // Modo Unificado - Usa los mismos estilos pero aplicados a ambos
           <div className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="unified-style">Estilo de Ojo (Unificado)</Label>
-              <Select
-                value={config.eye_shape || config.eye_border_style || 'square'}
-                onValueChange={handleUnifiedStyleChange}
-                disabled={disabled}
-              >
-                <SelectTrigger id="unified-style">
-                  <SelectValue placeholder="Seleccionar estilo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {/* Mostramos los estilos de borde que se pueden aplicar a ambos */}
-                  {QR_V3_EYE_BORDER_STYLES.filter(style => 
-                    // Filtrar solo los estilos que funcionan bien para ambos (marco y centro)
-                    ['square', 'rounded_square', 'circle', 'diamond', 'hexagon', 'cross', 'star'].includes(style.value)
-                  ).map((style) => (
-                    <SelectItem key={style.value} value={style.value}>
-                      <span className="flex items-center gap-2">
-                        <span className="text-lg">{style.icon}</span>
-                        <span>{style.label}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Estilo de Ojo (Unificado)</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {QR_V3_EYE_BORDER_STYLES.filter(style => 
+                  // Filtrar solo los estilos que funcionan bien para ambos (marco y centro)
+                  ['square', 'rounded_square', 'circle', 'diamond', 'hexagon', 'cross', 'star'].includes(style.value)
+                ).map((style) => {
+                  const svgPath = EYE_BORDER_SVG_PATHS[style.value as keyof typeof EYE_BORDER_SVG_PATHS];
+                  return (
+                    <Button
+                      key={style.value}
+                      variant="outline"
+                      size="sm"
+                      className={`flex items-center justify-center p-2 min-h-16 min-w-16 transition-all duration-200 ${
+                        config.eye_shape === style.value || config.eye_border_style === style.value
+                          ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100' 
+                          : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                      }`}
+                      onClick={() => handleUnifiedStyleChange(style.value)}
+                      disabled={disabled}
+                      title={style.label}
+                    >
+                      <svg 
+                        width="50" 
+                        height="50" 
+                        viewBox="0 0 7 7" 
+                        className="fill-current" 
+                        style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}
+                      >
+                        <path d={svgPath} fillRule="evenodd"/>
+                      </svg>
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
 
             <Alert>
@@ -120,99 +132,77 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
           </div>
         ) : (
           // Modo Separado
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="eye-border">Estilo del Marco</Label>
-              <Select
-                value={config.eye_border_style || 'circle'}  // Default circle como página principal
-                onValueChange={(value) => onChange({ eye_border_style: value as any })}
-                disabled={disabled}
-              >
-                <SelectTrigger id="eye-border">
-                  <SelectValue placeholder="Seleccionar estilo de marco" />
-                </SelectTrigger>
-                <SelectContent>
-                  {QR_V3_EYE_BORDER_STYLES.map((style) => (
-                    <SelectItem key={style.value} value={style.value}>
-                      <span className="flex items-center gap-2">
-                        <span className="text-lg">{style.icon}</span>
-                        <span>{style.label}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Estilo del Marco</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {QR_V3_EYE_BORDER_STYLES.map((style) => {
+                  const svgPath = EYE_BORDER_SVG_PATHS[style.value as keyof typeof EYE_BORDER_SVG_PATHS];
+                  if (!svgPath) return null;
+                  return (
+                    <Button
+                      key={style.value}
+                      variant="outline"
+                      size="sm"
+                      className={`flex items-center justify-center p-2 min-h-16 min-w-16 transition-all duration-200 ${
+                        config.eye_border_style === style.value
+                          ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100' 
+                          : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                      }`}
+                      onClick={() => onChange({ eye_border_style: style.value as any })}
+                      disabled={disabled}
+                      title={style.label}
+                    >
+                      <svg 
+                        width="50" 
+                        height="50" 
+                        viewBox="0 0 7 7" 
+                        className="fill-current" 
+                        style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}
+                      >
+                        <path d={svgPath} fillRule="evenodd"/>
+                      </svg>
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="eye-center">Estilo del Centro</Label>
-              <Select
-                value={config.eye_center_style || 'circle'}  // Default circle como página principal
-                onValueChange={(value) => onChange({ eye_center_style: value as any })}
-                disabled={disabled}
-              >
-                <SelectTrigger id="eye-center">
-                  <SelectValue placeholder="Seleccionar estilo de centro" />
-                </SelectTrigger>
-                <SelectContent>
-                  {QR_V3_EYE_CENTER_STYLES.map((style) => (
-                    <SelectItem key={style.value} value={style.value}>
-                      <span className="flex items-center gap-2">
-                        <span className="text-lg">{style.icon}</span>
-                        <span>{style.label}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Estilo del Centro</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {QR_V3_EYE_CENTER_STYLES.map((style) => {
+                  const svgPath = EYE_CENTER_SVG_PATHS[style.value as keyof typeof EYE_CENTER_SVG_PATHS];
+                  if (!svgPath) return null;
+                  return (
+                    <Button
+                      key={style.value}
+                      variant="outline"
+                      size="sm"
+                      className={`flex items-center justify-center p-2 min-h-16 min-w-16 transition-all duration-200 ${
+                        config.eye_center_style === style.value
+                          ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100' 
+                          : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                      }`}
+                      onClick={() => onChange({ eye_center_style: style.value as any })}
+                      disabled={disabled}
+                      title={style.label}
+                    >
+                      <svg 
+                        width="50" 
+                        height="50" 
+                        viewBox="0 0 3 3" 
+                        className="fill-current" 
+                        style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}
+                      >
+                        <path d={svgPath} fillRule="evenodd"/>
+                      </svg>
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
 
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                El modo separado permite personalizar el marco y el centro de forma independiente,
-                creando combinaciones únicas como marco hexagonal con centro circular.
-              </AlertDescription>
-            </Alert>
-          </div>
-        )}
-
-        {/* Preview de combinaciones populares */}
-        {useSeparatedStyles && (
-          <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-            <p className="text-sm font-medium mb-2">Combinaciones populares:</p>
-            <div className="space-y-1 text-sm text-slate-600 dark:text-slate-400">
-              <button
-                onClick={() => onChange({ 
-                  eye_border_style: 'rounded_square', 
-                  eye_center_style: 'circle' 
-                })}
-                className="block hover:text-blue-600 transition-colors"
-                disabled={disabled}
-              >
-                • Marco redondeado + Centro circular
-              </button>
-              <button
-                onClick={() => onChange({ 
-                  eye_border_style: 'circle', 
-                  eye_center_style: 'dot' 
-                })}
-                className="block hover:text-blue-600 transition-colors"
-                disabled={disabled}
-              >
-                • Marco circular + Centro punto
-              </button>
-              <button
-                onClick={() => onChange({ 
-                  eye_border_style: 'hexagon', 
-                  eye_center_style: 'star' 
-                })}
-                className="block hover:text-blue-600 transition-colors"
-                disabled={disabled}
-              >
-                • Marco hexagonal + Centro estrella
-              </button>
-            </div>
           </div>
         )}
       </CardContent>

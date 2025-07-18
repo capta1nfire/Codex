@@ -98,19 +98,21 @@ export function StudioProvider({ children }: StudioProviderProps) {
 
   // Cargar configuraciones del backend con protección contra llamadas múltiples
   const loadConfigs = useCallback(async () => {
-    console.log('[StudioProvider] loadConfigs called, isLoading:', isLoadingRef.current);
-    
     // Pilar 2: Evitar llamadas múltiples
-    if (isLoadingRef.current) return;
+    if (isLoadingRef.current) {
+      return;
+    }
+    
+    // También verificar si ya hemos cargado
+    if (hasLoadedRef.current && state.configs.length > 0) {
+      return;
+    }
     
     isLoadingRef.current = true;
     updateState({ isLoading: true, error: null });
     
     try {
-      console.log('[StudioProvider] Fetching configs from API...');
       const response = await api.get<{ configs: any[] }>('/api/studio/configs');
-      
-      console.log('[StudioProvider] API returned configs:', response.configs);
       
       // Pilar 1: Validar datos recibidos
       const validatedConfigs = response.configs.map((config: any) => {
@@ -122,7 +124,7 @@ export function StudioProvider({ children }: StudioProviderProps) {
         }
       }).filter(Boolean) as StudioConfig[];
       
-      console.log('[StudioProvider] Validated configs:', validatedConfigs);
+      // Configs validated successfully
       
       updateState({
         configs: validatedConfigs,
@@ -144,7 +146,7 @@ export function StudioProvider({ children }: StudioProviderProps) {
     } finally {
       isLoadingRef.current = false;
     }
-  }, [updateState]);
+  }, [updateState, state.configs.length]);
 
   // Guardar configuración con validación
   const saveConfig = useCallback(async (config: Partial<StudioConfig>) => {
@@ -220,8 +222,8 @@ export function StudioProvider({ children }: StudioProviderProps) {
         };
       });
       
-      // Pilar 5: Feedback positivo con detalles
-      toast.success(`${savedConfig.name} guardada (v${savedConfig.version})`);
+      // Toast de éxito se muestra en el componente que llama a saveConfig
+      // para evitar duplicación de notificaciones
     } catch (error) {
       console.error('[StudioProvider] Save error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error guardando configuración';
@@ -315,18 +317,10 @@ export function StudioProvider({ children }: StudioProviderProps) {
 
   // Helpers
   const getConfigByType = useCallback((type: StudioConfigType, templateType?: TemplateType) => {
-    console.log('[Studio] getConfigByType - Current configs:', state.configs.length, state.configs);
     const config = state.configs.find(c => 
       c.type === type && 
       (!templateType || c.templateType === templateType)
     );
-    console.log('[Studio] getConfigByType called:', { 
-      type, 
-      templateType, 
-      found: !!config, 
-      config,
-      totalConfigs: state.configs.length 
-    });
     return config;
   }, [state.configs]);
 
@@ -349,8 +343,9 @@ export function StudioProvider({ children }: StudioProviderProps) {
 
   // Pilar 2: Cargar configuraciones al montar con protección
   useEffect(() => {
-    // Solo cargar si es SuperAdmin y no se han cargado antes
-    if (user?.role === 'SUPERADMIN' && !hasLoadedRef.current && !isLoadingRef.current) {
+    // Cargar configuraciones para todos los usuarios (necesarias para el placeholder)
+    // Solo SUPERADMIN puede editar, pero todos necesitan leer
+    if (user && !hasLoadedRef.current && !isLoadingRef.current) {
       loadConfigs();
     }
   }, [user]); // Remove loadConfigs from deps to prevent loops

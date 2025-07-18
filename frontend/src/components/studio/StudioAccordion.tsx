@@ -188,11 +188,11 @@ export function StudioAccordion() {
   };
 
   return (
-    <Card className="w-full">
-      <CardContent className="p-6">
+    <div className="h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 overflow-y-auto">
+      <div className="p-6 h-full flex flex-col">
         <div className="flex items-center gap-2 mb-6">
           <Shield className="h-5 w-5 text-blue-600" />
-          <h2 className="text-xl font-semibold text-slate-900">QR Studio</h2>
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">QR Studio</h2>
           <Badge variant="default" className="bg-blue-600">
             SuperAdmin
           </Badge>
@@ -202,7 +202,7 @@ export function StudioAccordion() {
           type="single" 
           value={value} 
           onValueChange={setValue}
-          className="space-y-2"
+          className="space-y-2 flex-1"
         >
           {sections.map((section) => {
             const IconComponent = section.icon;
@@ -310,8 +310,8 @@ export function StudioAccordion() {
             </Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

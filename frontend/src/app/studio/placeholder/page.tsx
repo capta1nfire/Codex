@@ -30,9 +30,13 @@ import {
   RotateCcw,
   Sparkles,
   Info,
-  Eye,
   Settings,
-  Palette
+  Palette,
+  Monitor,
+  Smartphone,
+  Copy,
+  Check,
+  Download
 } from 'lucide-react';
 import { 
   StudioConfigType, 
@@ -59,33 +63,38 @@ export default function PlaceholderEditorPage() {
   const [localConfig, setLocalConfig] = useState<QRConfig>(DEFAULT_QR_CONFIG);
   const [previewKey, setPreviewKey] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Estados para los controles del preview
+  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [copied, setCopied] = useState(false);
+  const [qrMetadata, setQrMetadata] = useState<any>(null);
 
-  // Cargar configuración existente - avoid unnecessary re-renders
+  // Track if we've already initialized to prevent duplicate loads
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Cargar configuración existente cuando StudioProvider termine de cargar
   useEffect(() => {
+    // Solo ejecutar cuando no estamos cargando y no hemos inicializado aún
+    if (isLoading || hasInitialized) {
+      return;
+    }
+    
     const existingConfig = getConfigByType(StudioConfigType.PLACEHOLDER);
-    console.log('[PlaceholderEditorPage] Loading config:', { 
-      existingConfig,
-      configKeys: existingConfig ? Object.keys(existingConfig.config) : [],
-      configDetails: existingConfig ? JSON.stringify(existingConfig.config, null, 2) : 'No config'
-    });
     
     if (existingConfig) {
       setLocalConfig(existingConfig.config as QRConfig);
       setActiveConfig(existingConfig);
     } else {
-      console.log('[PlaceholderEditorPage] No existing config, using defaults:', DEFAULT_QR_CONFIG);
       // Si no existe, usar valores por defecto
       setLocalConfig(DEFAULT_QR_CONFIG);
     }
-  }, []); // Remove dependencies to avoid loops
+    
+    // Mark as initialized
+    setHasInitialized(true);
+  }, [isLoading, hasInitialized, getConfigByType, setActiveConfig]); // Depend on loading state and initialization
 
   // Pilar 2: Manejo robusto del guardado
   const handleSave = async () => {
-    console.log('[PlaceholderEditorPage] Starting save with config:', {
-      localConfig,
-      configKeys: Object.keys(localConfig),
-      fullConfig: JSON.stringify(localConfig, null, 2)
-    });
     
     setIsSaving(true);
     try {
@@ -160,6 +169,30 @@ export default function PlaceholderEditorPage() {
     toast.success('Preset aplicado exitosamente');
   };
 
+  // Copiar configuración al portapapeles
+  const handleCopyConfig = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(localConfig, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast.success('Configuración copiada al portapapeles');
+    } catch (err) {
+      toast.error('No se pudo copiar la configuración');
+    }
+  };
+
+  // Descargar QR como SVG
+  const handleDownload = () => {
+    // Simular un click en el botón de descarga interno del PlaceholderPreview
+    const event = new MouseEvent('click', { bubbles: true });
+    const internalDownloadBtn = document.querySelector('[data-download-internal]');
+    if (internalDownloadBtn) {
+      internalDownloadBtn.dispatchEvent(event);
+    } else {
+      toast.error('QR aún no generado');
+    }
+  };
+
   return (
     <StudioFeature feature="placeholder">
       <div className="space-y-6">
@@ -200,16 +233,6 @@ export default function PlaceholderEditorPage() {
           </div>
         </div>
 
-        {/* Alert informativo */}
-        <Alert className="border-blue-200 bg-blue-50">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="text-blue-900">Impacto del Placeholder</AlertTitle>
-          <AlertDescription className="text-blue-700">
-            Este QR es lo primero que ven los usuarios al entrar a la plataforma.
-            Una buena configuración puede aumentar el engagement y mostrar las capacidades del sistema.
-          </AlertDescription>
-        </Alert>
-
         {/* Error display */}
         {error && (
           <Alert variant="destructive">
@@ -218,34 +241,34 @@ export default function PlaceholderEditorPage() {
         )}
 
         {/* Contenido principal con tabs */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-[60%_40%]">
           {/* Panel de edición */}
           <div>
-            <Tabs defaultValue="design" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="design">
-                  <Palette className="h-4 w-4 mr-2" />
-                  Diseño
-                </TabsTrigger>
-                <TabsTrigger value="presets">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Presets
-                </TabsTrigger>
-                <TabsTrigger value="advanced">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Avanzado
-                </TabsTrigger>
-              </TabsList>
+            <Card>
+              <CardHeader>
+                <CardTitle>Personalización Visual</CardTitle>
+                <CardDescription>
+                  Configura colores, formas y estilos del QR
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="design" className="space-y-4">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="design">
+                      <Palette className="h-4 w-4 mr-2" />
+                      Diseño
+                    </TabsTrigger>
+                    <TabsTrigger value="presets">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Presets
+                    </TabsTrigger>
+                    <TabsTrigger value="advanced">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Avanzado
+                    </TabsTrigger>
+                  </TabsList>
 
-              <TabsContent value="design" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Personalización Visual</CardTitle>
-                    <CardDescription>
-                      Configura colores, formas y estilos del QR
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                  <TabsContent value="design" className="space-y-4">
                     <PlaceholderForm
                       config={localConfig}
                       onChange={(newConfig) => {
@@ -262,36 +285,16 @@ export default function PlaceholderEditorPage() {
                       }}
                       onPreviewUpdate={() => setPreviewKey(prev => prev + 1)}
                     />
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  </TabsContent>
 
-              <TabsContent value="presets" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Configuraciones Predefinidas</CardTitle>
-                    <CardDescription>
-                      Aplica estilos profesionales con un clic
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                  <TabsContent value="presets" className="space-y-4">
                     <PlaceholderPresets
                       onApply={handleApplyPreset}
                       currentConfig={localConfig}
                     />
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  </TabsContent>
 
-              <TabsContent value="advanced" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Configuración Avanzada</CardTitle>
-                    <CardDescription>
-                      Opciones expertas y optimizaciones
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                  <TabsContent value="advanced" className="space-y-4">
                     <div className="space-y-4">
                       <Alert>
                         <Settings className="h-4 w-4" />
@@ -301,34 +304,12 @@ export default function PlaceholderEditorPage() {
                         </AlertDescription>
                       </Alert>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Panel de preview */}
-          <div className="lg:sticky lg:top-24 lg:h-fit">
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="h-5 w-5 text-blue-600" />
-                  Vista Previa en Tiempo Real
-                </CardTitle>
-                <CardDescription>
-                  Así se verá el QR en la página principal
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <PlaceholderPreview
-                  key={previewKey}
-                  config={localConfig}
-                  showControls
-                />
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
-
-            {/* Información adicional */}
+            
+            {/* Información del QR */}
             <Card className="mt-4">
               <CardHeader>
                 <CardTitle className="text-sm">Información del QR</CardTitle>
@@ -337,7 +318,7 @@ export default function PlaceholderEditorPage() {
                 <dl className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <dt className="text-slate-600">Contenido:</dt>
-                    <dd className="font-mono text-xs">https://codex.example</dd>
+                    <dd className="font-mono text-xs">https://tu-sitio-web.com</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-slate-600">Corrección de errores:</dt>
@@ -355,9 +336,94 @@ export default function PlaceholderEditorPage() {
                         : localConfig.eye_shape || localConfig.eye_border_style || 'square'}
                     </dd>
                   </div>
+                  {qrMetadata && (
+                    <>
+                      <div className="flex justify-between">
+                        <dt className="text-slate-600">Versión:</dt>
+                        <dd className="font-medium">{qrMetadata.version}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-slate-600">Módulos:</dt>
+                        <dd className="font-medium">{qrMetadata.total_modules}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-slate-600">Tiempo:</dt>
+                        <dd className="font-medium">{qrMetadata.generation_time_ms}ms</dd>
+                      </div>
+                    </>
+                  )}
                 </dl>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Panel de preview */}
+          <div className="lg:sticky lg:top-24 lg:h-[85vh]">
+            <Card className="overflow-hidden h-full flex flex-col">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Vista Previa en Tiempo Real</CardTitle>
+                    <CardDescription>
+                      Así se verá el QR en la página principal
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant={viewMode === 'desktop' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setViewMode('desktop')}
+                      >
+                        <Monitor className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={viewMode === 'mobile' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setViewMode('mobile')}
+                      >
+                        <Smartphone className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="h-6 w-px bg-slate-200" />
+                    
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopyConfig}
+                      >
+                        {copied ? (
+                          <Check className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDownload}
+                        id="placeholder-download-btn"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 flex-1 overflow-auto">
+                <PlaceholderPreview
+                  key={previewKey}
+                  config={localConfig}
+                  showControls={false}
+                  viewMode={viewMode}
+                  onDownload={setPreviewKey}
+                  onMetadataChange={setQrMetadata}
+                />
+              </CardContent>
+            </Card>
+
           </div>
         </div>
       </div>

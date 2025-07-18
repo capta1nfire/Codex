@@ -218,29 +218,7 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
     def => def.type === 'gradient' && (def as QRGradientDef).per_module
   );
   
-  console.log('[EnhancedQRV3] Rendering with data:', {
-    hasData: !!data,
-    dataKeys: data ? Object.keys(data) : null,
-    totalModules,
-    dataModules,
-    hasDataPath: !!data?.paths?.data,
-    hasDataModulesPath: !!data?.paths?.data_modules,
-    dataModulesCount: data?.paths?.data_modules?.length || 0,
-    dataFill: getStyle('data.fill'),
-    definitions: data?.definitions,
-    transparentBackground,
-    backgroundColor,
-    bgColor,
-    // Debug stroke settings
-    dataStroke: data?.styles?.data?.stroke,
-    eyesStroke: data?.styles?.eyes?.stroke,
-    // Debug per-module gradient
-    hasPerModuleGradient,
-    dataModulesArray: data?.paths?.data_modules,
-    // CRITICAL DEBUG: Show which rendering path we'll take
-    willRenderModules: !!data?.paths?.data_modules && data.paths.data_modules.length > 0,
-    willRenderSinglePath: !data?.paths?.data_modules || data.paths.data_modules.length === 0
-  });
+  // EnhancedQRV3 render initialized with data
   
   // Calcular viewBox usando la fórmula QR v3
   const viewBox = useMemo(() => {

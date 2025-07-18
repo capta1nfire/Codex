@@ -36,7 +36,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import Link from 'next/link';
-import { StudioAccordion } from '@/components/studio/StudioAccordion';
+import { StudioTabs } from '@/components/studio/StudioTabs';
 
 export default function StudioPage() {
   const { user, loading: authLoading } = useAuth();
@@ -175,81 +175,8 @@ export default function StudioPage() {
         </Card>
       </div>
 
-      {/* Nueva navegación con acordeón */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Panel de navegación principal */}
-        <div className="lg:col-span-2">
-          <StudioAccordion />
-        </div>
-        
-        {/* Panel lateral con información adicional */}
-        <div className="space-y-6">
-          {/* Estado del sistema */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Activity className="h-5 w-5 text-slate-600" />
-                Estado del Sistema
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Configuraciones activas:</span>
-                <Badge variant="default">{stats.total}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Configuración global:</span>
-                {stats.global > 0 ? (
-                  <Badge variant="success">
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    OK
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary">Pendiente</Badge>
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Placeholder:</span>
-                {stats.placeholder > 0 ? (
-                  <Badge variant="success">
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Personalizado
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary">Por defecto</Badge>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Acciones rápidas adicionales */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Zap className="h-5 w-5 text-amber-600" />
-                Herramientas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button asChild variant="outline" className="w-full justify-start">
-                <Link href="/">
-                  <Palette className="h-4 w-4 mr-2" />
-                  Ver página principal
-                </Link>
-              </Button>
-              <Button 
-                onClick={() => loadConfigs()} 
-                variant="outline" 
-                className="w-full justify-start"
-                disabled={studioLoading}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${studioLoading ? 'animate-spin' : ''}`} />
-                Recargar configuraciones
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Nueva navegación con tabs */}
+      <StudioTabs />
 
       {/* Actividad reciente */}
       <Card>

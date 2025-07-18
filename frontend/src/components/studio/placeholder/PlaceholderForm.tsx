@@ -35,6 +35,7 @@ import {
   Info
 } from 'lucide-react';
 import { EyeStyleEditor } from '@/components/studio/EyeStyleEditor';
+import { DataPatternSelector } from '@/components/studio/DataPatternSelector';
 import { validateQRConfig, validateColorContrast } from '@/schemas/studio.schema';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -159,6 +160,15 @@ export function PlaceholderForm({
 
         {/* Configuración Básica */}
         <TabsContent value="basics" className="space-y-4 mt-4">
+          {/* Patrón de datos - Ahora primero */}
+          <DataPatternSelector
+            config={config}
+            onChange={(updates) => {
+              updateConfig(updates);
+              markTouched('data_pattern');
+            }}
+          />
+
           {/* Editor de estilos de ojos - Modo unificado o separado */}
           <EyeStyleEditor
             config={config}
@@ -167,32 +177,6 @@ export function PlaceholderForm({
               markTouched('eye_styles');
             }}
           />
-
-          {/* Patrón de datos */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Grid3x3 className="h-4 w-4 text-slate-600" />
-              Patrón de Datos
-            </Label>
-            <Select
-              value={config.data_pattern || 'square'}
-              onValueChange={(value) => updateConfig({ data_pattern: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="square">Cuadrado</SelectItem>
-                <SelectItem value="dots">Puntos</SelectItem>
-                <SelectItem value="rounded">Redondeado</SelectItem>
-                <SelectItem value="circular">Circular</SelectItem>
-                <SelectItem value="star">Estrella</SelectItem>
-                <SelectItem value="cross">Cruz</SelectItem>
-                <SelectItem value="wave">Onda</SelectItem>
-                <SelectItem value="mosaic">Mosaico</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           {/* Nivel de corrección */}
           <div className="space-y-2">

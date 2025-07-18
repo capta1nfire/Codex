@@ -63,12 +63,6 @@ export const EyeStyleSelector: React.FC<EyeStyleSelectorProps> = ({
           </Select>
         </div>
 
-        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
-            <strong>Nota:</strong> Ahora puedes personalizar el borde y el centro de los ojos de forma independiente.
-            Esto te permite crear combinaciones únicas como un borde en forma de corazón con un centro circular.
-          </p>
-        </div>
       </CardContent>
     </Card>
   );

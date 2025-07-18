@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -14,11 +15,13 @@ import {
   Menu,
   X,
   ChevronRight,
+  ChevronDown,
   Home,
   LogIn,
   UserPlus,
   FileText,
-  Palette
+  Palette,
+  Zap
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -36,6 +39,46 @@ interface MenuItem {
   requiredRoles?: string[];
   isExternal?: boolean;
 }
+
+// Sub-items para QR Studio
+const studioSubItems = [
+  {
+    href: '/studio',
+    label: 'Dashboard',
+    icon: <Settings className="h-5 w-5" />,
+    description: 'Vista general y estadísticas',
+  },
+  {
+    href: '/studio/global',
+    label: 'Configuración Global',
+    icon: <Database className="h-5 w-5" />,
+    description: 'Valores por defecto para todos los QR',
+  },
+  {
+    href: '/studio/placeholder',
+    label: 'Editor de Placeholder',
+    icon: <Palette className="h-5 w-5" />,
+    description: 'Personalizar QR de ejemplo',
+  },
+  {
+    href: '/studio/templates',
+    label: 'Plantillas',
+    icon: <FileText className="h-5 w-5" />,
+    description: 'Configurar plantillas por dominio',
+  },
+  {
+    href: '/studio/effects',
+    label: 'Efectos y Estilos',
+    icon: <Zap className="h-5 w-5" />,
+    description: 'Gestionar efectos visuales',
+  },
+  {
+    href: '/studio/permissions',
+    label: 'Permisos',
+    icon: <Shield className="h-5 w-5" />,
+    description: 'Configurar acceso Premium',
+  },
+];
 
 const menuItems: MenuItem[] = [
   // Core - Disponible para todos
@@ -151,6 +194,8 @@ export default function AppSidebar() {
   const pathname = usePathname();
   const { user, logout, isAuthenticated } = useAuth();
   const { userRole } = usePermissions();
+  const [isStudioExpanded, setIsStudioExpanded] = useState(pathname.startsWith('/studio'));
+  const [isHovering, setIsHovering] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -174,7 +219,10 @@ export default function AppSidebar() {
     return acc;
   }, {} as Record<string, MenuItem[]>);
 
-  const SidebarContent = () => (
+  const SidebarContent = () => {
+    const showExpanded = !isCollapsed || isHovering;
+    
+    return (
     <div className="flex flex-col h-full">
       {/* CODEX Logo & Brand */}
       <div className="p-4 border-b border-border/50">
@@ -183,7 +231,7 @@ export default function AppSidebar() {
           <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-corporate-blue-600 to-corporate-blue-700 shadow-lg">
             <span className="text-white font-bold text-lg">C</span>
           </div>
-          {!isCollapsed && (
+          {showExpanded && (
             <div className="flex-1">
               <h1 className="font-bold text-xl text-slate-800 dark:text-slate-100 tracking-tight">
                 CODEX
@@ -201,7 +249,7 @@ export default function AppSidebar() {
         {isAuthenticated && user ? (
           <div className="space-y-3">
             {/* User Info Card */}
-            {!isCollapsed && (
+            {showExpanded && (
               <Link
                 href="/profile"
                 className={cn(
@@ -227,7 +275,7 @@ export default function AppSidebar() {
             )}
             
             {/* Collapsed state */}
-            {isCollapsed && (
+            {!showExpanded && (
               <Link
                 href="/profile"
                 className={cn(
@@ -245,7 +293,7 @@ export default function AppSidebar() {
         ) : (
           // Auth options for non-authenticated users
           <div className="space-y-2">
-            {!isCollapsed ? (
+            {showExpanded ? (
               <div className="space-y-2">
                 <Link
                   href="/login"
@@ -304,13 +352,84 @@ export default function AppSidebar() {
           {/* Menu Categories */}
           {Object.entries(groupedItems).map(([category, items]) => (
             <div key={category}>
-              {!isCollapsed && (
+              {showExpanded && (
                 <h3 className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                   {category}
                 </h3>
               )}
               <ul className="space-y-1">
-                {items.map((item) => (
+                {items.map((item) => {
+                  // Renderizado especial para QR Studio
+                  if (item.label === 'QR Studio' && userRole === 'SUPERADMIN') {
+                    return (
+                      <li key={item.href}>
+                        <div>
+                          {/* Toggle del acordeón de Studio */}
+                          <button
+                            onClick={() => setIsStudioExpanded(!isStudioExpanded)}
+                            className={cn(
+                              "flex items-center gap-3 px-3 py-2 w-full rounded-lg transition-all duration-200 group",
+                              "hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-950/50",
+                              pathname.startsWith('/studio')
+                                ? "bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300" 
+                                : "text-slate-700 dark:text-slate-300"
+                            )}
+                          >
+                            <div className="flex-shrink-0">
+                              {item.icon}
+                            </div>
+                            {showExpanded && (
+                              <>
+                                <div className="flex-1 min-w-0 text-left">
+                                  <div className="font-medium truncate">{item.label}</div>
+                                  {item.description && (
+                                    <div className="text-xs opacity-75 truncate">{item.description}</div>
+                                  )}
+                                </div>
+                                <ChevronDown className={cn(
+                                  "h-4 w-4 transition-transform",
+                                  isStudioExpanded ? "rotate-180" : ""
+                                )} />
+                              </>
+                            )}
+                          </button>
+                          
+                          {/* Sub-items del acordeón */}
+                          {showExpanded && isStudioExpanded && (
+                            <ul className="mt-1 ml-4 space-y-1 border-l-2 border-slate-200 dark:border-slate-700 pl-2">
+                              {studioSubItems.map((subItem) => (
+                                <li key={subItem.href}>
+                                  <Link
+                                    href={subItem.href}
+                                    className={cn(
+                                      "flex items-center gap-2 px-2 py-1.5 rounded-md transition-all duration-200 text-sm",
+                                      "hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-950/50",
+                                      pathname === subItem.href 
+                                        ? "bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300" 
+                                        : "text-slate-600 dark:text-slate-400"
+                                    )}
+                                  >
+                                    <div className="flex-shrink-0">
+                                      {subItem.icon}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-medium truncate">{subItem.label}</div>
+                                      {subItem.description && (
+                                        <div className="text-xs opacity-75 truncate">{subItem.description}</div>
+                                      )}
+                                    </div>
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  }
+                  
+                  // Renderizado normal para otros items
+                  return (
                   <li key={item.href}>
                     {item.isExternal ? (
                       <a
@@ -326,7 +445,7 @@ export default function AppSidebar() {
                         <div className="flex-shrink-0">
                           {item.icon}
                         </div>
-                        {!isCollapsed && (
+                        {showExpanded && (
                           <div className="flex-1 min-w-0">
                             <div className="font-medium truncate">{item.label}</div>
                             {item.description && (
@@ -334,7 +453,7 @@ export default function AppSidebar() {
                             )}
                           </div>
                         )}
-                        {isCollapsed && (
+                        {!showExpanded && (
                           <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                         )}
                       </a>
@@ -352,7 +471,7 @@ export default function AppSidebar() {
                         <div className="flex-shrink-0">
                           {item.icon}
                         </div>
-                        {!isCollapsed && (
+                        {showExpanded && (
                           <div className="flex-1 min-w-0">
                             <div className="font-medium truncate">{item.label}</div>
                             {item.description && (
@@ -360,13 +479,14 @@ export default function AppSidebar() {
                             )}
                           </div>
                         )}
-                        {isCollapsed && (
+                        {!showExpanded && (
                           <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                         )}
                       </Link>
                     )}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </div>
           ))}
@@ -385,7 +505,7 @@ export default function AppSidebar() {
             )}
           >
             <LogOut className="h-5 w-5 flex-shrink-0" />
-            {!isCollapsed && (
+            {showExpanded && (
               <div className="flex-1 text-left">
                 <div className="font-medium">Cerrar Sesión</div>
                 <div className="text-xs opacity-75">Salir del sistema</div>
@@ -395,7 +515,8 @@ export default function AppSidebar() {
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   return (
     <>
@@ -420,16 +541,26 @@ export default function AppSidebar() {
         className={cn(
           "hidden lg:flex fixed left-0 top-0 bg-white/95 backdrop-blur-sm border-r border-border/50 shadow-lg z-40 transition-all duration-300",
           "h-screen", // Altura completa de la pantalla
-          isCollapsed ? "w-16" : "w-72"
+          (isCollapsed && !isHovering) ? "w-16" : "w-72"
         )}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        onClick={() => {
+          if (isCollapsed) {
+            setIsCollapsed(false);
+          }
+        }}
       >
         <div className="flex flex-col w-full">
           {/* Collapse Toggle */}
           <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsCollapsed(!isCollapsed);
+            }}
             className="absolute -right-3 top-8 w-6 h-6 bg-white border border-border/50 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow"
           >
-            <ChevronRight className={cn("h-4 w-4 transition-transform", isCollapsed ? "rotate-0" : "rotate-180")} />
+            <ChevronRight className={cn("h-4 w-4 transition-transform", (isCollapsed && !isHovering) ? "rotate-0" : "rotate-180")} />
           </button>
           
           <SidebarContent />

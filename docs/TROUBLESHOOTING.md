@@ -33,6 +33,32 @@ The `handleQRFormChange` function in `page.tsx` treats the default URL as empty 
 
 ---
 
+### QR Studio Placeholder Configuration Lost on Refresh
+**Problem**: QR Studio placeholder configuration reverts to default values (circle/circle) after page refresh.
+
+**Symptoms**:
+- Studio page shows default eye styles instead of saved configuration
+- Console shows config loaded but UI displays wrong values
+- Configuration exists in backend but not applied on refresh
+
+**Cause**: Race condition - PlaceholderEditorPage loads before StudioProvider fetches configs from backend.
+
+**Solution**: Wait for StudioProvider to finish loading before applying configuration:
+```javascript
+// In PlaceholderEditorPage useEffect
+useEffect(() => {
+  if (isLoading) return; // Wait for configs to load
+  const existingConfig = getConfigByType(StudioConfigType.PLACEHOLDER);
+  // ... apply config
+}, [isLoading, getConfigByType, setActiveConfig]);
+```
+
+**Prevention**: Always check loading state when accessing context data that loads asynchronously.
+
+**Code Location**: `/frontend/src/app/studio/placeholder/page.tsx` - Line 64-87
+
+---
+
 ## Backend Issues
 
 ### QR v3 Gradient Support

@@ -35,6 +35,17 @@ import { GenerateFormData } from '@/schemas/generate.schema';
 interface PlaceholderPreviewProps {
   config: QRConfig;
   showControls?: boolean;
+  viewMode?: 'desktop' | 'mobile';
+  onDownload?: () => void;
+  onMetadataChange?: (metadata: any) => void;
+  renderControls?: (props: {
+    viewMode: 'desktop' | 'mobile';
+    setViewMode: (mode: 'desktop' | 'mobile') => void;
+    handleCopyConfig: () => void;
+    handleDownload: () => void;
+    copied: boolean;
+    enhancedData: any;
+  }) => React.ReactNode;
 }
 
 // URL placeholder que se usa en la página principal
@@ -42,13 +53,22 @@ const PLACEHOLDER_URL = 'https://tu-sitio-web.com';
 
 export function PlaceholderPreview({ 
   config, 
-  showControls = true 
+  showControls = true,
+  viewMode: viewModeProp,
+  onDownload,
+  onMetadataChange,
+  renderControls
 }: PlaceholderPreviewProps) {
-  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [internalViewMode, setInternalViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [copied, setCopied] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [lastConfigHash, setLastConfigHash] = useState<string>('');
+  
+  // Usar viewMode del prop si se proporciona, sino usar el estado interno
+  const viewMode = viewModeProp || internalViewMode;
+  const setViewMode = viewModeProp ? () => {} : setInternalViewMode;
   
   // Use the QR generation hook
   const { 
@@ -87,81 +107,75 @@ export function PlaceholderPreview({
       eye_colors: config.colors?.eye_colors,
       // ✅ Configurar modo de color para que los ojos hereden el gradiente
       eye_border_color_mode: 'inherit',
-      eye_color_mode: 'inherit'
+      eye_center_color_mode: 'inherit',
     };
+
+    // Map additional options
+    if (config.border) {
+      options.border_size = config.border.size;
+      options.border_color = config.border.color;
+    }
+
+    if (config.logo) {
+      options.logo_image = config.logo.image;
+      options.logo_size = config.logo.size;
+      options.logo_background = config.logo.background;
+    }
+
+    if (config.gradient?.stroke_style) {
+      options.gradient_stroke_width = config.gradient.stroke_style.width;
+      options.gradient_stroke_blend_mode = config.gradient.stroke_style.blend_mode;
+    }
 
     return {
-      barcode_type: 'qrcode',  // Changed from 'type' to 'barcode_type'
-      type: 'qrcode',  // Keep both for compatibility
-      qr_type: 'link', 
       data: PLACEHOLDER_URL,
+      barcode_type: 'qrcode',
+      version: 'v3',
       options
     };
-  }, [
-    config.error_correction,
-    config.gradient?.enabled,
-    config.gradient?.gradient_type,
-    config.gradient?.colors,
-    config.gradient?.angle,
-    config.use_separated_eye_styles,
-    config.eye_shape,
-    config.eye_border_style,
-    config.eye_center_style,
-    config.data_pattern,
-    config.colors?.foreground,
-    config.colors?.background,
-    config.colors?.eye_colors?.outer,
-    config.colors?.eye_colors?.inner
-  ]);
+  }, [config]);
 
-  // Generate QR when config changes - with proper initialization and concurrency control
+  // Initialize preview on mount and config changes
   useEffect(() => {
-    // Prevent concurrent generations
-    if (isGenerating) {
-      console.log('[PlaceholderPreview] Generation already in progress, skipping');
-      return;
-    }
-
-    if (!isInitialized) {
-      setIsInitialized(true);
-      // Generate initial QR after small delay to ensure component is mounted
-      const initTimer = setTimeout(async () => {
-        setIsGenerating(true);
-        try {
-          await generateQR(formData);
-        } catch (err) {
-          console.error('Error generating initial placeholder QR:', err);
-          setLocalError('Error generando QR inicial');
-        } finally {
-          setIsGenerating(false);
-        }
-      }, 500); // Increased delay for initial load
-      return () => clearTimeout(initTimer);
-    }
-
-    // Debounce subsequent changes with longer delay
-    const timer = setTimeout(async () => {
-      if (isGenerating) return; // Double check
-      
+    // Only generate when config actually changes
+    const configHash = JSON.stringify(formData);
+    
+    if (configHash !== lastConfigHash && !isGenerating) {
+      setLastConfigHash(configHash);
       setIsGenerating(true);
       setLocalError(null);
-      try {
-        await generateQR(formData);
-      } catch (err) {
-        console.error('Error generating placeholder QR:', err);
-        setLocalError('Error generando QR');
-      } finally {
+      generateQR(formData).finally(() => {
         setIsGenerating(false);
-      }
-    }, 800); // Increased debounce time
-    
-    return () => clearTimeout(timer);
-  }, [formData]); // Remove generateQR from deps to avoid infinite loop
+      });
+    }
+  }, [formData, lastConfigHash, isGenerating, generateQR]);
+
+  // Notify parent when metadata changes
+  useEffect(() => {
+    if (enhancedData?.metadata && onMetadataChange) {
+      onMetadataChange(enhancedData.metadata);
+    }
+  }, [enhancedData, onMetadataChange]);
 
   // Descargar QR como SVG
   const handleDownload = () => {
-    // Por ahora, mostrar mensaje de que la descarga no está disponible
-    toast.info('La descarga de QR placeholder estará disponible próximamente');
+    if (!enhancedData) return;
+    
+    try {
+      const blob = new Blob([enhancedData.svg_data], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'qr-placeholder.svg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('QR descargado exitosamente');
+    } catch (err) {
+      toast.error('Error al descargar el QR');
+    }
   };
 
   // Copiar configuración al portapapeles
@@ -179,9 +193,18 @@ export function PlaceholderPreview({
 
 
   return (
-    <div className="space-y-4">
-      {/* Controles */}
-      {showControls && (
+    <div className="h-full flex flex-col">
+      {/* Controles - Si se proporciona renderControls, usarlo, sino usar los controles por defecto */}
+      {showControls && renderControls ? (
+        renderControls({
+          viewMode,
+          setViewMode,
+          handleCopyConfig,
+          handleDownload,
+          copied,
+          enhancedData
+        })
+      ) : showControls ? (
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
             <Button
@@ -222,33 +245,24 @@ export function PlaceholderPreview({
             </Button>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Área de preview */}
       <div className={`
         relative bg-gradient-to-br from-slate-50 to-slate-100 
         ${viewMode === 'mobile' ? 'max-w-sm mx-auto' : ''}
-        p-8 rounded-lg
+        p-4 rounded-lg w-[95%] mx-auto flex-1 flex flex-col
       `}>
-        {/* Simulación de la página principal */}
-        <div className="text-center mb-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-2">
-            Prueba nuestro generador de QR
-          </h3>
-          <p className="text-sm text-slate-600">
-            Escanea este código para ver un ejemplo
-          </p>
-        </div>
 
         {/* QR Code */}
-        <div className="relative">
-          <div className="bg-white p-4 rounded-lg shadow-lg">
+        <div className="relative flex-1 flex items-center justify-center">
+          <div className="bg-white p-4 rounded-lg shadow-lg overflow-hidden">
             {isLoading ? (
-              <div className="flex items-center justify-center" style={{ width: viewMode === 'mobile' ? 280 : 320, height: viewMode === 'mobile' ? 280 : 320 }}>
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <div className="w-full h-full flex items-center justify-center">
+                <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
               </div>
             ) : (error || localError) ? (
-              <div className="flex items-center justify-center p-8 text-red-600" style={{ width: viewMode === 'mobile' ? 280 : 320, height: viewMode === 'mobile' ? 280 : 320 }}>
+              <div className="w-full h-full flex items-center justify-center p-8 text-red-600">
                 <div className="text-center">
                   <p className="text-sm font-medium">Error generando QR</p>
                   <p className="text-xs mt-1">{error || localError}</p>
@@ -257,7 +271,7 @@ export function PlaceholderPreview({
             ) : enhancedData ? (
               <EnhancedQRV3 
                 data={enhancedData} 
-                size={viewMode === 'mobile' ? 280 : 320}
+                size={500}
                 totalModules={enhancedData.metadata.total_modules}
                 dataModules={enhancedData.metadata.data_modules}
                 version={enhancedData.metadata.version}
@@ -267,38 +281,16 @@ export function PlaceholderPreview({
           </div>
         </div>
 
-        {/* Información adicional */}
-        <div className="mt-6 space-y-3">
-          <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
-            <Info className="h-4 w-4" />
-            <span>URL: {PLACEHOLDER_URL}</span>
-          </div>
-          
-          {enhancedData && (
-            <div className="flex flex-wrap gap-2 justify-center">
-              <Badge variant="secondary" className="text-xs">
-                Versión: {enhancedData.metadata.version}
-              </Badge>
-              <Badge variant="secondary" className="text-xs">
-                Módulos: {enhancedData.metadata.total_modules}
-              </Badge>
-              <Badge variant="secondary" className="text-xs">
-                Tiempo: {enhancedData.metadata.generation_time_ms}ms
-              </Badge>
-            </div>
-          )}
-        </div>
       </div>
-
-      {/* Nota sobre el impacto */}
-      {showControls && (
-        <Alert className="border-blue-200 bg-blue-50">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-700">
-            Este QR aparece en la página principal y es lo primero que ven los usuarios.
-            Los cambios se aplicarán inmediatamente después de guardar.
-          </AlertDescription>
-        </Alert>
+      
+      {/* Botón oculto para descarga que puede ser activado desde fuera */}
+      {!showControls && (
+        <button
+          data-download-internal
+          onClick={handleDownload}
+          style={{ display: 'none' }}
+          aria-hidden="true"
+        />
       )}
     </div>
   );

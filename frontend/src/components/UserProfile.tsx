@@ -254,10 +254,10 @@ export default function UserProfile({ isAdvancedMode }: UserProfileProps) {
                       <Shield className="h-4 w-4 text-corporate-blue-600" />
                       <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Estado</span>
                     </div>
-                    <p className="text-sm font-semibold text-corporate-blue-600 dark:text-corporate-blue-400 flex items-center gap-1">
+                    <div className="text-sm font-semibold text-corporate-blue-600 dark:text-corporate-blue-400 flex items-center gap-1">
                       <div className="w-2 h-2 bg-corporate-blue-500 rounded-full animate-pulse"></div>
                       Activo
-                    </p>
+                    </div>
                   </div>
 
                   <div className="bg-white dark:bg-slate-900 shadow-sm hover:shadow-md rounded-lg p-4 border border-slate-200 dark:border-slate-700 transition-all duration-200 hover:border-corporate-blue-300 dark:hover:border-corporate-blue-600 hover:transform hover:-translate-y-0.5">

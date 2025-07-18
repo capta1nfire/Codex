@@ -15,14 +15,10 @@
 import { useEffect, ReactNode, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { StudioProvider } from '@/components/studio/StudioProvider';
-import { StudioSidebar } from '@/components/studio/StudioSidebar';
-import { StudioHeader } from '@/components/studio/StudioHeader';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { 
-  Loader2, 
-  AlertTriangle,
+  Loader2,
   Home,
   ShieldOff
 } from 'lucide-react';
@@ -110,48 +106,19 @@ export default function StudioLayout({ children }: StudioLayoutProps) {
 
   // Pilar 5: Valor - Interfaz fluida con animaciones suaves
   return (
-    <StudioProvider>
-      <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        {/* Sidebar con animación */}
-        <div className="hidden lg:block">
-          <StudioSidebar />
-        </div>
-        
-        {/* Contenido principal */}
-        <div className="flex-1 flex flex-col">
-          {/* Header pegajoso */}
-          <StudioHeader />
-          
-          {/* Área de contenido con animación de entrada */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8">
-            <div 
-              key={pathname}
-              className="animate-in slide-in-from-right-5 duration-300 ease-out"
-            >
-              <div className="max-w-7xl mx-auto">
-                {children}
-              </div>
-            </div>
-          </main>
-          
-          {/* Footer con información de contexto */}
-          <footer className="border-t border-slate-200 bg-white/50 backdrop-blur-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                  <span>QR Studio v1.0.0</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span>Usuario: {user?.email}</span>
-                  <span>•</span>
-                  <span>Rol: SuperAdmin</span>
-                </div>
-              </div>
-            </div>
-          </footer>
-        </div>
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Contenido principal sin sidebar adicional */}
+      <div className="flex-1 flex flex-col">
+        {/* Área de contenido con animación de entrada */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <div 
+            key={pathname}
+            className="animate-in slide-in-from-right-5 duration-300 ease-out"
+          >
+            {children}
+          </div>
+        </main>
       </div>
-    </StudioProvider>
+    </div>
   );
 }
