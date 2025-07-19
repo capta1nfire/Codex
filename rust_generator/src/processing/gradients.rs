@@ -186,6 +186,55 @@ impl GradientProcessor {
         self.create_linear_gradient(start_color, end_color, 45.0)
     }
 
+    /// Crea un gradiente diamante real
+    pub fn create_diamond_gradient(
+        &self,
+        center_color: &Color,
+        edge_color: &Color,
+        canvas_size: Option<usize>,
+    ) -> Gradient {
+        let id = self.generate_gradient_id();
+        
+        // El gradiente diamante necesita un patrón especial
+        // Usamos un gradiente radial con transformación para crear el efecto diamante
+        let svg_def = if let Some(size) = canvas_size {
+            // Usar coordenadas absolutas
+            let center = size as f64 / 2.0;
+            
+            format!(
+                r#"<radialGradient id="{}" cx="{:.2}" cy="{:.2}" r="{:.2}" gradientUnits="userSpaceOnUse" gradientTransform="scale(1, 0.5) rotate(45, {:.2}, {:.2})">
+  <stop offset="0%" style="stop-color:{};stop-opacity:1" />
+  <stop offset="100%" style="stop-color:{};stop-opacity:1" />
+</radialGradient>"#,
+                id,
+                center, center, center * 1.414, // r = center * sqrt(2) para cubrir las esquinas
+                center, center,
+                ColorProcessor::to_hex(center_color),
+                ColorProcessor::to_hex(edge_color)
+            )
+        } else {
+            // Usar porcentajes
+            format!(
+                r#"<radialGradient id="{}" cx="50%" cy="50%" r="70.71%" gradientUnits="objectBoundingBox" gradientTransform="scale(1, 0.5) rotate(45, 0.5, 0.5)">
+  <stop offset="0%" style="stop-color:{};stop-opacity:1" />
+  <stop offset="100%" style="stop-color:{};stop-opacity:1" />
+</radialGradient>"#,
+                id,
+                ColorProcessor::to_hex(center_color),
+                ColorProcessor::to_hex(edge_color)
+            )
+        };
+        
+        Gradient {
+            id: id.clone(),
+            start_color: center_color.clone(),
+            end_color: edge_color.clone(),
+            gradient_type: "diamond".to_string(),
+            svg_definition: svg_def,
+            fill_reference: format!("url(#{})", id),
+        }
+    }
+
     /// Crea un gradiente cónico (simulado con múltiples paradas)
     pub fn create_conical_gradient(
         &self,

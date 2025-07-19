@@ -82,6 +82,7 @@ export const QR_V3_DATA_PATTERNS = [
   { value: 'square_small', label: 'Cuadrado Pequeño', preview: '▪' },
   { value: 'dots', label: 'Puntos', preview: '●' },
   { value: 'rounded', label: 'Redondeado', preview: '▢' },
+  { value: 'squircle', label: 'Squircle', preview: '◗' },
   { value: 'vertical', label: 'Vertical', preview: '|||' },
   { value: 'horizontal', label: 'Horizontal', preview: '===' },
   { value: 'diamond', label: 'Diamante', preview: '◆' },

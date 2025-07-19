@@ -921,10 +921,11 @@ impl QrCode {
                 )
             },
             GradientType::Diamond => {
-                // Diamond usa diagonal (45 grados)
-                processor.create_diagonal_gradient(
+                // Gradiente diamante real
+                processor.create_diamond_gradient(
                     &colors[0],
                     &colors[1],
+                    canvas_size,
                 )
             },
             GradientType::Conic | GradientType::Spiral => {
