@@ -14,9 +14,9 @@ export const QRContentSelector: React.FC<QRContentSelectorProps> = ({
   isLoading
 }) => {
   return (
-    <div className="space-y-1.5">
-      {/* Grid de tipos de contenido QR */}
-      <div className="grid grid-cols-5 gap-1.5">
+    <div className="space-y-2">
+      {/* Material Design Chip Grid */}
+      <div className="grid grid-cols-5 gap-2">
         {qrContentTypes.slice(0, 10).map((qrType) => {
           const Icon = qrType.icon;
           const isSelected = selectedQRType === qrType.id;
@@ -27,27 +27,35 @@ export const QRContentSelector: React.FC<QRContentSelectorProps> = ({
               type="button"
               onClick={() => onQRTypeChange(qrType.id)}
               className={cn(
-                "flex items-center gap-1 p-2 rounded-lg transition-all duration-200 group",
-                "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700",
-                "hover:shadow-md hover:border-corporate-blue-300 dark:hover:border-corporate-blue-600",
-                "hover:transform hover:scale-105 hover:-translate-y-0.5",
+                // Material Design Chip/Button
+                "flex items-center gap-1.5 px-3 py-2.5",
+                "rounded-full",
+                "transition-all duration-200",
+                "relative overflow-hidden",
+                // Default state
+                "bg-gray-100 dark:bg-gray-800",
+                "hover:bg-gray-200 dark:hover:bg-gray-700",
+                // Selected state
                 isSelected && [
-                  "bg-gradient-to-br from-corporate-blue-50 to-corporate-blue-100/50",
-                  "dark:from-corporate-blue-950 dark:to-corporate-blue-900/50",
-                  "border-corporate-blue-400 dark:border-corporate-blue-500",
-                  "shadow-md shadow-corporate-blue-500/10"
-                ]
+                  "bg-blue-100 dark:bg-blue-900/30",
+                  "text-blue-700 dark:text-blue-300",
+                  "shadow-sm"
+                ],
+                // Ripple effect on click
+                "before:absolute before:inset-0",
+                "before:bg-current before:opacity-0",
+                "before:transition-opacity before:duration-200",
+                "active:before:opacity-10"
               )}
               disabled={isLoading}
             >
               <Icon className={cn(
-                "h-4 w-4 flex-shrink-0 transition-all duration-200",
-                "group-hover:scale-110",
-                isSelected ? "text-corporate-blue-600 dark:text-corporate-blue-400" : "text-slate-600 dark:text-slate-400"
+                "h-4 w-4 flex-shrink-0 transition-colors duration-200",
+                isSelected ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-400"
               )} />
               <span className={cn(
-                "text-xs font-medium text-left truncate transition-colors duration-200",
-                isSelected ? "text-corporate-blue-700 dark:text-corporate-blue-300" : "text-slate-600 dark:text-slate-400"
+                "text-xs font-medium truncate",
+                isSelected ? "text-blue-700 dark:text-blue-300" : "text-gray-700 dark:text-gray-300"
               )}>
                 {qrType.name}
               </span>
@@ -56,8 +64,8 @@ export const QRContentSelector: React.FC<QRContentSelectorProps> = ({
         })}
       </div>
 
-      {/* Segunda fila para los tipos restantes */}
-      <div className="grid grid-cols-5 gap-1.5">
+      {/* Segunda fila - Material Design Chips */}
+      <div className="grid grid-cols-5 gap-2">
         {qrContentTypes.slice(10).map((qrType) => {
           const Icon = qrType.icon;
           const isSelected = selectedQRType === qrType.id;
@@ -68,27 +76,35 @@ export const QRContentSelector: React.FC<QRContentSelectorProps> = ({
               type="button"
               onClick={() => onQRTypeChange(qrType.id)}
               className={cn(
-                "flex items-center gap-1 p-2 rounded-lg transition-all duration-200 group",
-                "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700",
-                "hover:shadow-md hover:border-corporate-blue-300 dark:hover:border-corporate-blue-600",
-                "hover:transform hover:scale-105 hover:-translate-y-0.5",
+                // Material Design Chip/Button
+                "flex items-center gap-1.5 px-3 py-2.5",
+                "rounded-full",
+                "transition-all duration-200",
+                "relative overflow-hidden",
+                // Default state
+                "bg-gray-100 dark:bg-gray-800",
+                "hover:bg-gray-200 dark:hover:bg-gray-700",
+                // Selected state
                 isSelected && [
-                  "bg-gradient-to-br from-corporate-blue-50 to-corporate-blue-100/50",
-                  "dark:from-corporate-blue-950 dark:to-corporate-blue-900/50",
-                  "border-corporate-blue-400 dark:border-corporate-blue-500",
-                  "shadow-md shadow-corporate-blue-500/10"
-                ]
+                  "bg-blue-100 dark:bg-blue-900/30",
+                  "text-blue-700 dark:text-blue-300",
+                  "shadow-sm"
+                ],
+                // Ripple effect on click
+                "before:absolute before:inset-0",
+                "before:bg-current before:opacity-0",
+                "before:transition-opacity before:duration-200",
+                "active:before:opacity-10"
               )}
               disabled={isLoading}
             >
               <Icon className={cn(
-                "h-4 w-4 flex-shrink-0 transition-all duration-200",
-                "group-hover:scale-110",
-                isSelected ? "text-corporate-blue-600 dark:text-corporate-blue-400" : "text-slate-600 dark:text-slate-400"
+                "h-4 w-4 flex-shrink-0 transition-colors duration-200",
+                isSelected ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-400"
               )} />
               <span className={cn(
-                "text-xs font-medium text-left truncate transition-colors duration-200",
-                isSelected ? "text-corporate-blue-700 dark:text-corporate-blue-300" : "text-slate-600 dark:text-slate-400"
+                "text-xs font-medium truncate",
+                isSelected ? "text-blue-700 dark:text-blue-300" : "text-gray-700 dark:text-gray-300"
               )}>
                 {qrType.name}
               </span>

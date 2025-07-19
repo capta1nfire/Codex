@@ -41,28 +41,35 @@ export const BarcodeTypeTabs: React.FC<BarcodeTypeTabsProps> = ({
                 type="button"
                 onClick={() => onTypeChange(type.id)}
                 className={cn(
-                  "flex items-center gap-1 px-4 py-2.5 rounded-lg transition-all duration-200 border flex-1",
-                  colors.bg,
-                  colors.border,
-                  "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20",
-                  "min-w-0 justify-center"
+                  // Material Design Tab Button
+                  "flex items-center gap-2 px-4 py-3",
+                  "rounded-lg transition-all duration-200",
+                  "relative overflow-hidden flex-1",
+                  "min-w-0 justify-center",
+                  // Default state
+                  "bg-gray-100/50 dark:bg-gray-800/50",
+                  "hover:bg-gray-200/70 dark:hover:bg-gray-700/70",
+                  // Selected state with elevation
+                  isSelected && [
+                    "bg-white dark:bg-gray-900",
+                    "shadow-md",
+                    "border-b-2 border-blue-600 dark:border-blue-400"
+                  ],
+                  // Ripple effect
+                  "before:absolute before:inset-0",
+                  "before:bg-current before:opacity-0",
+                  "before:transition-opacity before:duration-200",
+                  "active:before:opacity-10"
                 )}
               >
                 <span className={cn(
                   "font-medium text-sm whitespace-nowrap",
-                  colors.text
+                  isSelected 
+                    ? "text-blue-600 dark:text-blue-400" 
+                    : "text-gray-700 dark:text-gray-300"
                 )}>
                   {type.name}
                 </span>
-                {isSelected && (
-                  <div className={cn(
-                    "w-2 h-2 rounded-full",
-                    type.color === 'blue' && "bg-blue-500",
-                    type.color === 'green' && "bg-green-500", 
-                    type.color === 'orange' && "bg-orange-500",
-                    type.color === 'purple' && "bg-purple-500"
-                  )}></div>
-                )}
               </button>
             );
           })}
@@ -74,15 +81,22 @@ export const BarcodeTypeTabs: React.FC<BarcodeTypeTabsProps> = ({
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className={cn(
-              "flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 border",
-              "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700",
-              "hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600",
-              "focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              // Material Design Icon Button
+              "flex items-center justify-center w-12 h-12",
+              "rounded-full transition-all duration-200",
+              "bg-gray-100/50 dark:bg-gray-800/50",
+              "hover:bg-gray-200/70 dark:hover:bg-gray-700/70",
+              "relative overflow-hidden",
+              // Ripple effect
+              "before:absolute before:inset-0",
+              "before:bg-current before:opacity-0",
+              "before:transition-opacity before:duration-200",
+              "active:before:opacity-10"
             )}
           >
             <svg 
               className={cn(
-                "w-5 h-5 transition-transform duration-200 text-slate-500 dark:text-slate-400",
+                "w-5 h-5 transition-transform duration-200 text-gray-600 dark:text-gray-400",
                 isDropdownOpen && "rotate-180"
               )}
               fill="none" 
@@ -95,11 +109,10 @@ export const BarcodeTypeTabs: React.FC<BarcodeTypeTabsProps> = ({
 
           {/* Dropdown content */}
           {isDropdownOpen && (
-            <div className="absolute top-full right-0 mt-1 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50">
-              <div className="p-2 space-y-1">
+            <div className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-gray-900 rounded-xl shadow-lg z-50 overflow-hidden">
+              <div className="py-2">
                 {additionalTypes.map((type) => {
                   const isSelected = selectedType === type.id;
-                  const colors = getTypeColors(type.color, isSelected);
                   
                   return (
                     <button
@@ -107,26 +120,28 @@ export const BarcodeTypeTabs: React.FC<BarcodeTypeTabsProps> = ({
                       type="button"
                       onClick={() => handleDropdownSelection(type.id)}
                       className={cn(
-                        "w-full flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 text-left",
+                        // Material Design List Item
+                        "w-full flex items-center gap-3 px-4 py-3",
+                        "transition-all duration-200 text-left",
+                        "relative overflow-hidden",
+                        // States
                         isSelected 
-                          ? `${colors.bg} ${colors.border.replace('hover:', '')} border`
-                          : "hover:bg-slate-50 dark:hover:bg-slate-800"
+                          ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300",
+                        // Ripple effect
+                        "before:absolute before:inset-0",
+                        "before:bg-current before:opacity-0",
+                        "before:transition-opacity before:duration-200",
+                        "active:before:opacity-10"
                       )}
                     >
-                      <span className={cn(
-                        "font-medium text-sm",
-                        isSelected ? colors.text : "text-slate-700 dark:text-slate-300"
-                      )}>
+                      <span className="font-medium text-sm">
                         {type.name}
                       </span>
                       {isSelected && (
-                        <div className={cn(
-                          "w-2 h-2 rounded-full ml-auto",
-                          type.color === 'blue' && "bg-blue-500",
-                          type.color === 'green' && "bg-green-500", 
-                          type.color === 'orange' && "bg-orange-500",
-                          type.color === 'purple' && "bg-purple-500"
-                        )}></div>
+                        <svg className="w-5 h-5 ml-auto text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
                       )}
                     </button>
                   );

@@ -48,14 +48,14 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
   };
 
   return (
-    <Card className="border-4 border-purple-500">
-      <CardHeader className="border-2 border-orange-500">
+    <Card>
+      <CardHeader>
         <CardTitle className="text-base">Patrón de Datos</CardTitle>
       </CardHeader>
-      <CardContent className="border-2 border-green-500">
-        <div className="grid gap-4 border-2 border-yellow-500" style={{ gridTemplateColumns: '1fr 1fr' }}>
+      <CardContent>
+        <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 1fr' }}>
           {/* Contenedor 1: Selector de patrones */}
-          <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3 border-4 border-blue-500">
+          <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3">
             <Label className="flex items-center gap-2">
               <Grid3x3 className="h-4 w-4 text-slate-600" />
               Forma del Patrón
@@ -95,7 +95,7 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
       </div>
       
       {/* Contenedor 2: Colores del Patrón - Material Design */}
-      <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3 border-4 border-red-500">
+      <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3">
         <Label className="flex items-center gap-2">
           <Palette className="h-4 w-4 text-slate-600" />
           Colores del Patrón

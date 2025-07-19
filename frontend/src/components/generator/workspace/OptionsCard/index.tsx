@@ -38,15 +38,27 @@ export function OptionsCard({
 }: OptionsCardProps) {
   return (
     <div className={cn(
-      "bg-transparent",
-      "dark:bg-transparent",
-      "border-0",
-      "rounded-xl p-5 sm:p-6",
-      "shadow-none",
-      "transition-all duration-300",
+      // Material Design Surface - Elevation 1
+      "bg-white/40 dark:bg-gray-900/40",
+      "backdrop-blur-sm",
+      "rounded-2xl",
+      "shadow-sm",
+      "border border-white/10 dark:border-white/5",
+      "p-6 sm:p-8",
+      "transition-all duration-200",
       "animate-fade-in-delayed",
       className
     )}>
+      
+      {/* Material Design Header Section */}
+      <div className="space-y-2 mb-6">
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+          Personalización
+        </h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Ajusta el estilo y apariencia de tu código
+        </p>
+      </div>
       
       <div className="relative">
         <GenerationOptions

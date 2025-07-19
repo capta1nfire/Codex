@@ -67,16 +67,28 @@ export function DataCard({
 }: DataCardProps) {
   return (
     <div className={cn(
-      "bg-transparent",
-      "dark:bg-transparent",
-      "border-0",
-      "rounded-xl p-5 sm:p-6 sm:pt-3 sm:pl-8",
-      "shadow-none",
-      "transition-all duration-300",
+      // Material Design Surface - Elevation 1
+      "bg-white/40 dark:bg-gray-900/40",
+      "backdrop-blur-sm",
+      "rounded-2xl",
+      "shadow-sm",
+      "border border-white/10 dark:border-white/5",
+      "p-6 sm:p-8",
+      "transition-all duration-200",
       className
     )}>
       
-      <div className="relative space-y-5">
+      <div className="relative space-y-6">
+        {/* Material Design Header Section */}
+        <div className="space-y-2">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+            Contenido
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Ingresa la información que contendrá tu código
+          </p>
+        </div>
+        
         {/* QR Content Selector - Only show for QR codes */}
         {selectedType === 'qrcode' && (
           <div className="animate-fade-in">
@@ -90,9 +102,14 @@ export function DataCard({
         
         {/* Dynamic Forms based on type */}
         {selectedType === 'qrcode' ? (
-          <div className="space-y-5 animate-fade-in">
-            {/* QR Form with smooth transitions */}
-            <div className="transition-all duration-300 ease-out">
+          <div className="space-y-6 animate-fade-in">
+            {/* Material Design Form Container */}
+            <div className="
+              bg-white/30 dark:bg-gray-800/30 
+              rounded-xl p-4 
+              border border-gray-200/20 dark:border-gray-700/20
+              transition-all duration-200 ease-out
+            ">
               <QRForm
                 type={selectedQRType}
                 data={qrFormData[selectedQRType]}
@@ -115,21 +132,20 @@ export function DataCard({
               />
             </div>
             
-            {/* Manual Generate Button - Hidden when auto-generation is on */}
+            {/* Material Design Primary Button */}
             {!autoGenerationEnabled && (
               <Button
                 type="submit"
                 disabled={isLoading}
                 className={cn(
-                  "w-full h-11",
-                  "bg-gradient-to-r from-blue-600 to-blue-700",
-                  "hover:from-blue-700 hover:to-blue-800",
-                  "dark:from-blue-500 dark:to-blue-600",
-                  "dark:hover:from-blue-600 dark:hover:to-blue-700",
+                  "w-full h-12",
+                  "bg-blue-600 hover:bg-blue-700",
+                  "dark:bg-blue-500 dark:hover:bg-blue-600",
                   "text-white font-medium",
-                  "shadow-lg shadow-blue-600/25",
+                  "rounded-full",
+                  "shadow-md hover:shadow-lg",
                   "transition-all duration-200",
-                  "transform hover:scale-[1.02] active:scale-[0.98]"
+                  "transform active:scale-[0.98]"
                 )}
               >
                 {isLoading ? (
@@ -150,34 +166,42 @@ export function DataCard({
             )}
           </div>
         ) : (
-          /* Simple input for non-QR barcodes */
+          /* Material Design Text Field */
           <div className="flex gap-3 animate-fade-in">
-            <Input
-              {...register('data', {
-                onChange: (e) => trackInput(e.target.value)
-              })}
-              placeholder="Ingresa el contenido del código..."
-              className={cn(
-                "h-11 flex-1",
-                "bg-white/80 dark:bg-slate-900/80",
-                "border-blue-200 dark:border-blue-800",
-                "focus:border-blue-400 dark:focus:border-blue-600",
-                "placeholder:text-slate-400 dark:placeholder:text-slate-500",
-                errors.data && "border-red-400 dark:border-red-600"
-              )}
-            />
+            <div className="flex-1 relative">
+              <Input
+                {...register('data', {
+                  onChange: (e) => trackInput(e.target.value)
+                })}
+                placeholder=" "
+                className={cn(
+                  "h-14 flex-1 pt-4",
+                  "bg-white/50 dark:bg-gray-900/50",
+                  "border-0 border-b-2",
+                  "border-gray-300 dark:border-gray-600",
+                  "focus:border-blue-600 dark:focus:border-blue-400",
+                  "rounded-t-md",
+                  "placeholder:text-transparent",
+                  "transition-all duration-200",
+                  errors.data && "border-red-500 dark:border-red-400"
+                )}
+              />
+              <label className="absolute left-3 top-4 text-sm text-gray-600 dark:text-gray-400 pointer-events-none transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-blue-600">
+                Contenido del código
+              </label>
+            </div>
             {!autoGenerationEnabled && (
               <Button
                 type="submit"
                 disabled={isLoading}
                 className={cn(
-                  "h-11 px-6",
-                  "bg-gradient-to-r from-blue-600 to-blue-700",
-                  "hover:from-blue-700 hover:to-blue-800",
+                  "h-14 px-8",
+                  "bg-blue-600 hover:bg-blue-700",
                   "text-white font-medium",
-                  "shadow-lg shadow-blue-600/25",
+                  "rounded-full",
+                  "shadow-md hover:shadow-lg",
                   "transition-all duration-200",
-                  "transform hover:scale-[1.02] active:scale-[0.98]"
+                  "transform active:scale-[0.98]"
                 )}
               >
                 {isLoading ? (
