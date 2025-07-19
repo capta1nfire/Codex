@@ -22,8 +22,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Download, 
   Info,
-  Smartphone,
-  Monitor,
   Copy,
   Check,
   Loader2
@@ -35,12 +33,9 @@ import { GenerateFormData } from '@/schemas/generate.schema';
 interface PlaceholderPreviewProps {
   config: QRConfig;
   showControls?: boolean;
-  viewMode?: 'desktop' | 'mobile';
   onDownload?: () => void;
   onMetadataChange?: (metadata: any) => void;
   renderControls?: (props: {
-    viewMode: 'desktop' | 'mobile';
-    setViewMode: (mode: 'desktop' | 'mobile') => void;
     handleCopyConfig: () => void;
     handleDownload: () => void;
     copied: boolean;
@@ -54,21 +49,15 @@ const PLACEHOLDER_URL = 'https://tu-sitio-web.com';
 export function PlaceholderPreview({ 
   config, 
   showControls = true,
-  viewMode: viewModeProp,
   onDownload,
   onMetadataChange,
   renderControls
 }: PlaceholderPreviewProps) {
-  const [internalViewMode, setInternalViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [copied, setCopied] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastConfigHash, setLastConfigHash] = useState<string>('');
-  
-  // Usar viewMode del prop si se proporciona, sino usar el estado interno
-  const viewMode = viewModeProp || internalViewMode;
-  const setViewMode = viewModeProp ? () => {} : setInternalViewMode;
   
   // Use the QR generation hook
   const { 
@@ -197,8 +186,6 @@ export function PlaceholderPreview({
       {/* Controles - Si se proporciona renderControls, usarlo, sino usar los controles por defecto */}
       {showControls && renderControls ? (
         renderControls({
-          viewMode,
-          setViewMode,
           handleCopyConfig,
           handleDownload,
           copied,
@@ -206,23 +193,6 @@ export function PlaceholderPreview({
         })
       ) : showControls ? (
         <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === 'desktop' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('desktop')}
-            >
-              <Monitor className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'mobile' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('mobile')}
-            >
-              <Smartphone className="h-4 w-4" />
-            </Button>
-          </div>
-          
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -248,11 +218,7 @@ export function PlaceholderPreview({
       ) : null}
 
       {/* Área de preview */}
-      <div className={`
-        relative bg-gradient-to-br from-slate-50 to-slate-100 
-        ${viewMode === 'mobile' ? 'max-w-sm mx-auto' : ''}
-        p-4 rounded-lg w-[95%] mx-auto flex-1 flex flex-col
-      `}>
+      <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 p-4 rounded-lg w-[95%] mx-auto flex-1 flex flex-col">
 
         {/* QR Code */}
         <div className="relative flex-1 flex items-center justify-center">

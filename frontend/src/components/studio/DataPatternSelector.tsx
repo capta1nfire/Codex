@@ -17,7 +17,6 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Grid3x3, Palette, Sparkles, Plus, X } from 'lucide-react';
@@ -48,14 +47,14 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
   };
 
   return (
-    <Card className="border-4 border-purple-500">
-      <CardHeader className="border-2 border-orange-500">
+    <Card>
+      <CardHeader>
         <CardTitle className="text-base">Patrón de Datos</CardTitle>
       </CardHeader>
-      <CardContent className="border-2 border-green-500">
-        <div className="grid gap-4 border-2 border-yellow-500" style={{ gridTemplateColumns: '1fr 1fr' }}>
+      <CardContent>
+        <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 1fr' }}>
           {/* Contenedor 1: Selector de patrones */}
-          <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3 border-4 border-blue-500">
+          <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3">
             <Label className="flex items-center gap-2">
               <Grid3x3 className="h-4 w-4 text-slate-600" />
               Forma del Patrón
@@ -95,7 +94,7 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
       </div>
       
       {/* Contenedor 2: Colores del Patrón - Material Design */}
-      <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3 border-4 border-red-500">
+      <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3">
         <Label className="flex items-center gap-2">
           <Palette className="h-4 w-4 text-slate-600" />
           Colores del Patrón
@@ -172,22 +171,31 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
               {/* Tipo de gradiente */}
               <div className="space-y-2">
                 <Label className="text-xs font-medium text-slate-600">Tipo</Label>
-                <Select
-                  value={config.gradient?.gradient_type || 'linear'}
-                  onValueChange={(value) => updateGradient({ gradient_type: value as any })}
-                  disabled={disabled}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="linear">Linear</SelectItem>
-                    <SelectItem value="radial">Radial</SelectItem>
-                    <SelectItem value="conic">Cónico</SelectItem>
-                    <SelectItem value="diamond">Diamante</SelectItem>
-                    <SelectItem value="spiral">Espiral</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="grid grid-cols-5 gap-1">
+                  {[
+                    { value: 'linear', label: 'Linear', icon: '↗' },
+                    { value: 'radial', label: 'Radial', icon: '◎' },
+                    { value: 'conic', label: 'Cónico', icon: '◠' },
+                    { value: 'diamond', label: 'Diamante', icon: '◆' },
+                    { value: 'spiral', label: 'Espiral', icon: '◉' }
+                  ].map((type) => (
+                    <Button
+                      key={type.value}
+                      variant="outline"
+                      size="sm"
+                      className={`h-9 px-2 text-xs transition-all duration-200 ${
+                        config.gradient?.gradient_type === type.value
+                          ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100'
+                          : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                      }`}
+                      onClick={() => updateGradient({ gradient_type: type.value as any })}
+                      disabled={disabled}
+                      title={type.label}
+                    >
+                      <span className="text-base">{type.icon}</span>
+                    </Button>
+                  ))}
+                </div>
               </div>
 
               {/* Colores del gradiente */}

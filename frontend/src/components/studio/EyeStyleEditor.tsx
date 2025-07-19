@@ -64,8 +64,8 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
   };
 
   return (
-    <Card className="border-4 border-pink-500">
-      <CardHeader className="border-2 border-cyan-500">
+    <Card>
+      <CardHeader>
         <CardTitle className="text-base flex items-center justify-between">
           Estilos de Ojos
           <div className="flex items-center gap-2">
@@ -81,7 +81,7 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 border-2 border-lime-500">
+      <CardContent className="space-y-4">
         {!useSeparatedStyles ? (
           // Modo Unificado - Usa los mismos estilos pero aplicados a ambos
           <div className="space-y-3">

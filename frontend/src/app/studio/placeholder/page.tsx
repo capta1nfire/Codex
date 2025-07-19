@@ -32,8 +32,6 @@ import {
   Info,
   Settings,
   Palette,
-  Monitor,
-  Smartphone,
   Copy,
   Check,
   Download
@@ -65,7 +63,6 @@ export default function PlaceholderEditorPage() {
   const [isSaving, setIsSaving] = useState(false);
   
   // Estados para los controles del preview
-  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [copied, setCopied] = useState(false);
   const [qrMetadata, setQrMetadata] = useState<any>(null);
 
@@ -204,33 +201,12 @@ export default function PlaceholderEditorPage() {
               Personaliza el QR de ejemplo que ven todos los usuarios
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            {isDirty && (
-              <div className="flex items-center gap-2 text-sm text-amber-600">
-                <div className="h-2 w-2 bg-amber-500 rounded-full animate-pulse" />
-                <span>Cambios sin guardar</span>
-              </div>
-            )}
-            <Button
-              variant="outline"
-              onClick={handleReset}
-              disabled={isLoading}
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Resetear
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={isLoading || isSaving}
-            >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Guardar Cambios
-            </Button>
-          </div>
+          {isDirty && (
+            <div className="flex items-center gap-2 text-sm text-amber-600">
+              <div className="h-2 w-2 bg-amber-500 rounded-full animate-pulse" />
+              <span>Cambios sin guardar</span>
+            </div>
+          )}
         </div>
 
         {/* Error display */}
@@ -363,31 +339,9 @@ export default function PlaceholderEditorPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Vista Previa en Tiempo Real</CardTitle>
-                    <CardDescription>
-                      Así se verá el QR en la página principal
-                    </CardDescription>
+                    <CardTitle>Preview</CardTitle>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant={viewMode === 'desktop' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setViewMode('desktop')}
-                      >
-                        <Monitor className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={viewMode === 'mobile' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setViewMode('mobile')}
-                      >
-                        <Smartphone className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="h-6 w-px bg-slate-200" />
-                    
                     <div className="flex items-center gap-1">
                       <Button
                         variant="outline"
@@ -409,6 +363,32 @@ export default function PlaceholderEditorPage() {
                         <Download className="h-4 w-4" />
                       </Button>
                     </div>
+                    
+                    <div className="h-6 w-px bg-slate-200" />
+                    
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleReset}
+                        disabled={isLoading}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-1" />
+                        Resetear
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleSave}
+                        disabled={isLoading || isSaving}
+                      >
+                        {isSaving ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4 mr-1" />
+                        )}
+                        Guardar
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -417,7 +397,6 @@ export default function PlaceholderEditorPage() {
                   key={previewKey}
                   config={localConfig}
                   showControls={false}
-                  viewMode={viewMode}
                   onDownload={setPreviewKey}
                   onMetadataChange={setQrMetadata}
                 />
