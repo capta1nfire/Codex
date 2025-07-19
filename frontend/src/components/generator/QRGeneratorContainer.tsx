@@ -1279,9 +1279,12 @@ export function QRGeneratorContainer() {
                   />
                   </div>
                   
-                  {/* Material Design Divider */}
-                  <div className="relative w-full my-6">
-                    <div className="h-[1px] w-full bg-gray-300/50 dark:bg-gray-700/50"></div>
+                  {/* Separador 3D */}
+                  <div className="relative w-full my-4">
+                    {/* Línea oscura superior */}
+                    <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-slate-300/40 to-transparent dark:via-slate-700/40"></div>
+                    {/* Línea clara inferior para efecto 3D */}
+                    <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/50 to-transparent dark:via-white/10"></div>
                   </div>
                   
                   {/* Tarjeta 2: Opciones Avanzadas */}
