@@ -1248,16 +1248,15 @@ export function QRGeneratorContainer() {
               />
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr,auto] gap-6 lg:gap-[10px] generator-grid px-6 pr-6 lg:pr-[10px] pb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr,auto] gap-6 lg:gap-[10px] generator-grid pl-0 pr-6 lg:pr-[10px] pb-6">
               {/* Columna de configuración - Original */}
               <section className="row-start-1 lg:col-start-1" id="form-content">
                 <div className="h-full">
-                {/* Espaciador para alinear con el QR */}
-                <div className="hidden lg:block h-[14px]"></div>
-                
-                <div className="space-y-6">
-                  {/* Tarjeta 1: Datos */}
-                  <DataCard
+                <div className="space-y-3">
+                  {/* Tarjeta 1: Datos - Se extiende hasta el borde izquierdo */}
+                  <div className="-ml-0 lg:-ml-0">
+                    <DataCard
+                      className="rounded-l-none"
                     selectedType={selectedType}
                     selectedQRType={selectedQRType}
                     qrFormData={qrFormData}
@@ -1278,6 +1277,15 @@ export function QRGeneratorContainer() {
                     onGenerateAnyway={handleGenerateAnyway}
                     trackInput={trackInput}
                   />
+                  </div>
+                  
+                  {/* Separador 3D */}
+                  <div className="relative w-full my-4">
+                    {/* Línea oscura superior */}
+                    <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-slate-300/40 to-transparent dark:via-slate-700/40"></div>
+                    {/* Línea clara inferior para efecto 3D */}
+                    <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/50 to-transparent dark:via-white/10"></div>
+                  </div>
                   
                   {/* Tarjeta 2: Opciones Avanzadas */}
                   <OptionsCard
@@ -1341,7 +1349,7 @@ export function QRGeneratorContainer() {
                 
                 {/* Smart QR Button - Movido más abajo del QR */}
                 {selectedType === 'qrcode' && qrFormData.link?.url && (
-                  <div className="mt-16 px-4">
+                  <div className="mt-16 px-4 pb-3">
                     <SmartQRButton 
                       url={qrFormData.link.url}
                       onGenerate={handleSmartQR}

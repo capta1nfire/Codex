@@ -60,8 +60,8 @@ const SmartQRButtonComponent: React.FC<SmartQRButtonProps> = ({
         "bg-white/30 dark:bg-gray-900/30",
         "backdrop-blur-md backdrop-saturate-150",
         "border border-white/20 dark:border-white/10",
-        "shadow-xl shadow-black/5",
-        "hover:shadow-2xl hover:bg-white/40 dark:hover:bg-gray-900/40",
+        "shadow-sm",
+        "hover:shadow-md hover:bg-white/40 dark:hover:bg-gray-900/40",
         className
       )}>
         <div className="flex flex-col items-center text-center space-y-3">

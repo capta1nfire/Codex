@@ -41,14 +41,13 @@ export const BarcodeTypeTabs: React.FC<BarcodeTypeTabsProps> = ({
                 type="button"
                 onClick={() => onTypeChange(type.id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 border flex-1",
+                  "flex items-center gap-1 px-4 py-2.5 rounded-lg transition-all duration-200 border flex-1",
                   colors.bg,
                   colors.border,
                   "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20",
                   "min-w-0 justify-center"
                 )}
               >
-                <span className="text-sm">{type.icon}</span>
                 <span className={cn(
                   "font-medium text-sm whitespace-nowrap",
                   colors.text
@@ -108,13 +107,12 @@ export const BarcodeTypeTabs: React.FC<BarcodeTypeTabsProps> = ({
                       type="button"
                       onClick={() => handleDropdownSelection(type.id)}
                       className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 text-left",
+                        "w-full flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 text-left",
                         isSelected 
                           ? `${colors.bg} ${colors.border.replace('hover:', '')} border`
                           : "hover:bg-slate-50 dark:hover:bg-slate-800"
                       )}
                     >
-                      <span className="text-sm">{type.icon}</span>
                       <span className={cn(
                         "font-medium text-sm",
                         isSelected ? colors.text : "text-slate-700 dark:text-slate-300"

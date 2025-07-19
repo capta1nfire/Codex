@@ -211,22 +211,22 @@ function GenerationOptions({
   const tabs = useMemo(() => [
     {
       id: 'shapes',
-      name: 'SHAPES',
+      name: 'Shapes',
       icon: Settings2,
     },
     {
       id: 'color',
-      name: 'COLOR',
+      name: 'Color',
       icon: Palette,
     },
     {
       id: 'logo',
-      name: 'LOGO',
+      name: 'Logo',
       icon: Settings2,
     },
     {
       id: 'advanced',
-      name: 'ADVANCED',
+      name: 'Advanced',
       icon: Settings2,
     },
   ], []);

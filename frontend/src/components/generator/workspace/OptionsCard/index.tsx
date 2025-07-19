@@ -38,18 +38,15 @@ export function OptionsCard({
 }: OptionsCardProps) {
   return (
     <div className={cn(
-      "bg-gradient-to-br from-slate-50/80 to-slate-100/80",
-      "dark:from-slate-950/50 dark:to-slate-900/50",
-      "backdrop-blur-sm border border-slate-200/60 dark:border-slate-800/60",
+      "bg-transparent",
+      "dark:bg-transparent",
+      "border-0",
       "rounded-xl p-5 sm:p-6",
-      "shadow-lg shadow-slate-100/20 dark:shadow-slate-900/20",
+      "shadow-none",
       "transition-all duration-300",
-      "ring-1 ring-[#757DBA]/30",
       "animate-fade-in-delayed",
       className
     )}>
-      {/* Card inner glow effect */}
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#757DBA]/10 to-transparent pointer-events-none" />
       
       <div className="relative">
         <GenerationOptions

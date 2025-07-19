@@ -12,13 +12,19 @@
 
 'use client';
 
+import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Grid3x3, Palette } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Grid3x3, Palette, Sparkles, Plus, X } from 'lucide-react';
 import { QRConfig } from '@/types/studio.types';
 import { QR_V3_DATA_PATTERNS } from '@/constants/qrV3Options';
 import { DATA_PATTERN_SVG_PATHS } from '@/constants/eyeStyleSvgPaths';
+import toast from 'react-hot-toast';
 
 interface DataPatternSelectorProps {
   config: QRConfig;
@@ -35,71 +41,81 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
     });
   };
 
+  const updateGradient = (gradientUpdates: Partial<QRConfig['gradient']>) => {
+    onChange({
+      gradient: { ...config.gradient, ...gradientUpdates }
+    });
+  };
+
   return (
-    <div className="border border-slate-200 rounded-lg p-3 bg-white space-y-3">
-      <Label className="flex items-center gap-2">
-        <Grid3x3 className="h-4 w-4 text-slate-600" />
-        Patrón de Datos
-      </Label>
-      
-      <div className="grid grid-cols-[60%_1px_40%] gap-4 items-start">
-        {/* Columna 1: Selector de patrones */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Forma</Label>
-          <div className="grid grid-cols-5 gap-2">
-        {QR_V3_DATA_PATTERNS.map((pattern) => {
-          const svgPath = DATA_PATTERN_SVG_PATHS[pattern.value as keyof typeof DATA_PATTERN_SVG_PATHS];
-          if (!svgPath) return null;
-          
-          return (
-            <Button
-              key={pattern.value}
-              variant="outline"
-              size="sm"
-              className={`flex items-center justify-center p-2 min-h-16 min-w-16 transition-all duration-200 ${
-                currentPattern === pattern.value 
-                  ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100' 
-                  : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
-              }`}
-              onClick={() => onChange({ data_pattern: pattern.value })}
-              disabled={disabled}
-              title={pattern.label}
-            >
-              <svg 
-                width="50" 
-                height="50" 
-                viewBox="0 0 3 3" 
-                className="fill-current" 
-                style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}
+    <Card className="border-4 border-purple-500">
+      <CardHeader className="border-2 border-orange-500">
+        <CardTitle className="text-base">Patrón de Datos</CardTitle>
+      </CardHeader>
+      <CardContent className="border-2 border-green-500">
+        <div className="grid gap-4 border-2 border-yellow-500" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          {/* Contenedor 1: Selector de patrones */}
+          <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3 border-4 border-blue-500">
+            <Label className="flex items-center gap-2">
+              <Grid3x3 className="h-4 w-4 text-slate-600" />
+              Forma del Patrón
+            </Label>
+        <div className="grid grid-cols-7 gap-2 justify-items-center">
+          {QR_V3_DATA_PATTERNS.map((pattern) => {
+            const svgPath = DATA_PATTERN_SVG_PATHS[pattern.value as keyof typeof DATA_PATTERN_SVG_PATHS];
+            if (!svgPath) return null;
+            
+            return (
+              <Button
+                key={pattern.value}
+                variant="outline"
+                size="sm"
+                className={`flex items-center justify-center p-2 h-16 w-16 transition-all duration-200 ${
+                  currentPattern === pattern.value 
+                    ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100' 
+                    : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                }`}
+                onClick={() => onChange({ data_pattern: pattern.value })}
+                disabled={disabled}
+                title={pattern.label}
               >
-                <path d={svgPath} fillRule="evenodd"/>
-              </svg>
-            </Button>
-          );
-        })}
-          </div>
+                <svg 
+                  width="50" 
+                  height="50" 
+                  viewBox="0 0 3 3" 
+                  className="fill-current" 
+                  style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}
+                >
+                  <path d={svgPath} fillRule="evenodd"/>
+                </svg>
+              </Button>
+            );
+          })}
         </div>
+      </div>
+      
+      {/* Contenedor 2: Colores del Patrón - Material Design */}
+      <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3 border-4 border-red-500">
+        <Label className="flex items-center gap-2">
+          <Palette className="h-4 w-4 text-slate-600" />
+          Colores del Patrón
+        </Label>
         
-        {/* Separador vertical */}
-        <div className="bg-slate-200 h-full min-h-32"></div>
+        {/* Contenido */}
+        <div className="space-y-4">
         
-        {/* Columna 2: Controles de colores */}
+        {/* Colores Básicos - Material Design */}
         <div className="space-y-3">
-          <Label className="flex items-center gap-2 text-sm font-medium">
-            <Palette className="h-4 w-4 text-slate-600" />
-            Colores
-          </Label>
-          
           <div className="grid grid-cols-2 gap-3">
-            {/* Color principal */}
+            {/* Color del Patrón */}
             <div className="space-y-2">
-              <Label className="text-xs text-slate-600">Principal</Label>
-              <div className="space-y-1">
+              <Label className="text-xs font-medium text-slate-600">Color del Patrón</Label>
+              <div className="flex gap-2">
                 <Input
                   type="color"
                   value={config.colors?.foreground || '#000000'}
                   onChange={(e) => updateColors({ foreground: e.target.value })}
-                  className="h-8 w-full cursor-pointer"
+                  className="h-10 w-14 cursor-pointer border border-slate-200 rounded"
                   disabled={disabled}
                 />
                 <Input
@@ -107,21 +123,21 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
                   value={config.colors?.foreground || '#000000'}
                   onChange={(e) => updateColors({ foreground: e.target.value })}
                   placeholder="#000000"
-                  className="w-full font-mono text-xs"
+                  className="flex-1 font-mono text-sm"
                   disabled={disabled}
                 />
               </div>
             </div>
             
-            {/* Color de fondo */}
+            {/* Color de Fondo */}
             <div className="space-y-2">
-              <Label className="text-xs text-slate-600">Fondo</Label>
-              <div className="space-y-1">
+              <Label className="text-xs font-medium text-slate-600">Color de Fondo</Label>
+              <div className="flex gap-2">
                 <Input
                   type="color"
                   value={config.colors?.background || '#FFFFFF'}
                   onChange={(e) => updateColors({ background: e.target.value })}
-                  className="h-8 w-full cursor-pointer"
+                  className="h-10 w-14 cursor-pointer border border-slate-200 rounded"
                   disabled={disabled}
                 />
                 <Input
@@ -129,14 +145,211 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
                   value={config.colors?.background || '#FFFFFF'}
                   onChange={(e) => updateColors({ background: e.target.value })}
                   placeholder="#FFFFFF"
-                  className="w-full font-mono text-xs"
+                  className="flex-1 font-mono text-sm"
                   disabled={disabled}
                 />
               </div>
             </div>
           </div>
         </div>
+
+        {/* Sección de Gradiente - Material Design */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-slate-500" />
+              Gradiente
+            </Label>
+            <Switch
+              checked={config.gradient?.enabled || false}
+              onCheckedChange={(checked) => updateGradient({ enabled: checked })}
+              disabled={disabled}
+            />
+          </div>
+
+          {config.gradient?.enabled && (
+            <div className="space-y-3 pl-6">
+              {/* Tipo de gradiente */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-slate-600">Tipo</Label>
+                <Select
+                  value={config.gradient?.gradient_type || 'linear'}
+                  onValueChange={(value) => updateGradient({ gradient_type: value as any })}
+                  disabled={disabled}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="linear">Linear</SelectItem>
+                    <SelectItem value="radial">Radial</SelectItem>
+                    <SelectItem value="conic">Cónico</SelectItem>
+                    <SelectItem value="diamond">Diamante</SelectItem>
+                    <SelectItem value="spiral">Espiral</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Colores del gradiente */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-slate-600">Colores</Label>
+                <div className="space-y-2">
+                  {(config.gradient?.colors || ['#000000', '#666666']).map((color, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        type="color"
+                        value={color}
+                        onChange={(e) => {
+                          const newColors = [...(config.gradient?.colors || [])];
+                          newColors[index] = e.target.value;
+                          updateGradient({ colors: newColors });
+                        }}
+                        className="h-9 w-12 cursor-pointer"
+                        disabled={disabled}
+                      />
+                      <Input
+                        type="text"
+                        value={color}
+                        onChange={(e) => {
+                          const newColors = [...(config.gradient?.colors || [])];
+                          newColors[index] = e.target.value;
+                          updateGradient({ colors: newColors });
+                        }}
+                        className="flex-1 font-mono text-sm"
+                        disabled={disabled}
+                      />
+                      {(config.gradient?.colors || []).length > 2 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 w-9 p-0"
+                          onClick={() => {
+                            const newColors = [...(config.gradient?.colors || [])];
+                            newColors.splice(index, 1);
+                            updateGradient({ colors: newColors });
+                            toast.success('Color eliminado');
+                          }}
+                          disabled={disabled}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {(config.gradient?.colors || []).length < 5 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      const newColors = [...(config.gradient?.colors || []), '#999999'];
+                      updateGradient({ colors: newColors });
+                      toast.success('Color agregado');
+                    }}
+                    disabled={disabled}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Agregar Color
+                  </Button>
+                )}
+              </div>
+
+              {/* Control de Ángulo */}
+              {config.gradient?.gradient_type === 'linear' && (
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium text-slate-600">
+                    Ángulo: {config.gradient?.angle || 90}°
+                  </Label>
+                  <Slider
+                    value={[config.gradient?.angle || 90]}
+                    onValueChange={([value]) => updateGradient({ angle: value })}
+                    max={360}
+                    step={15}
+                    className="w-full"
+                    disabled={disabled}
+                  />
+                </div>
+              )}
+              
+              {/* Opciones adicionales */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-slate-600">Opciones</Label>
+                <div className="space-y-2">
+                  {/* Aplicar a ojos */}
+                  <div className="flex items-center justify-between py-1">
+                    <Label htmlFor="apply-to-eyes" className="text-sm cursor-pointer">
+                      Aplicar a ojos
+                    </Label>
+                    <Switch
+                      id="apply-to-eyes"
+                      checked={config.gradient?.apply_to_eyes ?? true}
+                      onCheckedChange={(checked) => updateGradient({ apply_to_eyes: checked })}
+                      disabled={disabled}
+                    />
+                  </div>
+                  
+                  {/* Aplicar a datos */}
+                  <div className="flex items-center justify-between py-1">
+                    <Label htmlFor="apply-to-data" className="text-sm cursor-pointer">
+                      Aplicar a datos
+                    </Label>
+                    <Switch
+                      id="apply-to-data"
+                      checked={config.gradient?.apply_to_data ?? true}
+                      onCheckedChange={(checked) => updateGradient({ apply_to_data: checked })}
+                      disabled={disabled}
+                    />
+                  </div>
+                  
+                  {/* Por módulo */}
+                  <div className="flex items-center justify-between py-1">
+                    <div>
+                      <Label htmlFor="per-module" className="text-sm cursor-pointer">
+                        Por módulo
+                      </Label>
+                      <p className="text-xs text-slate-500">Cada módulo con gradiente único</p>
+                    </div>
+                    <Switch
+                      id="per-module"
+                      checked={config.gradient?.per_module || false}
+                      onCheckedChange={(checked) => updateGradient({ per_module: checked })}
+                      disabled={disabled}
+                    />
+                  </div>
+                  
+                  {/* Bordes */}
+                  <div className="flex items-center justify-between py-1">
+                    <div>
+                      <Label htmlFor="stroke-style" className="text-sm cursor-pointer">
+                        Bordes
+                      </Label>
+                      <p className="text-xs text-slate-500">Bordes blancos semitransparentes</p>
+                    </div>
+                    <Switch
+                      id="stroke-style"
+                      checked={config.gradient?.stroke_style?.enabled || false}
+                      onCheckedChange={(checked) => updateGradient({ 
+                        stroke_style: {
+                          ...(config.gradient?.stroke_style || {}),
+                          enabled: checked,
+                          color: config.gradient?.stroke_style?.color || '#FFFFFF',
+                          width: config.gradient?.stroke_style?.width || 0.5,
+                          opacity: config.gradient?.stroke_style?.opacity || 0.3
+                        }
+                      })}
+                      disabled={disabled}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        </div>
       </div>
     </div>
+      </CardContent>
+    </Card>
   );
 }
