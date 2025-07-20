@@ -17,6 +17,7 @@ export const defaultFormValues: GenerateFormData = {
     gradient_color1: '#2563EB', // CODEX Corporate Blue en el centro
     gradient_color2: '#000000', // Negro en los costados para máximo contraste
     gradient_direction: 'top-bottom', // No se usa en radial pero mantenemos por consistencia
+    gradient_angle: 90, // Default angle for linear gradients
     gradient_borders: false, // White semi-transparent borders for gradient modules (disabled by default)
     gradient_border_color: '#FFFFFF', // Default border color
     gradient_border_width: 0.1, // Default border width (mínimo permitido por backend)

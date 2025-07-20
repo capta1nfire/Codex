@@ -673,7 +673,7 @@ function renderGradient(gradient: QRGradientDef, viewBoxSize: number): React.Rea
         x2: `${x2}%`,
         y2: `${y2}%`,
         colors: gradient.colors,
-        stopDistribution: gradient.colors.length === 2 ? '30%-70% (60/40)' : 'uniform'
+        stopDistribution: gradient.colors.length === 2 ? '0%-100% (full distribution)' : 'uniform'
       });
       
       return (
@@ -690,8 +690,8 @@ function renderGradient(gradient: QRGradientDef, viewBoxSize: number): React.Rea
             // Ajustar distribución SOLO para lineales - balance 60/40 visual
             let offset;
             if (gradient.colors.length === 2) {
-              // Para gradientes lineales: usar 30%-70% para balance visual 60/40
-              offset = i === 0 ? 30 : 70;
+              // Para gradientes lineales: usar 0%-100% para distribución completa
+              offset = i === 0 ? 0 : 100;
             } else {
               // Para más colores: distribución uniforme
               offset = (i / (gradient.colors.length - 1)) * 100;

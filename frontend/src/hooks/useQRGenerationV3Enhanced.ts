@@ -106,7 +106,13 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
         console.log('[QR Enhanced] Generating QR:', { data: data.substring(0, 50), hasCustomization: !!options?.customization });
         console.log('[QR Enhanced] Request body:', JSON.stringify(requestBody, null, 2));
         if (options?.customization?.gradient) {
-          console.log('[QR Enhanced] Gradient config:', options.customization.gradient);
+          console.log('[QR Enhanced] 🎯 GRADIENT CONFIG:', {
+            enabled: options.customization.gradient.enabled,
+            type: options.customization.gradient.gradient_type,
+            angle: options.customization.gradient.angle,
+            colors: options.customization.gradient.colors,
+            fullGradient: options.customization.gradient
+          });
         }
       }
       

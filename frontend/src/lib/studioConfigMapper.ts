@@ -14,10 +14,14 @@ import { GenerateFormData } from '@/schemas/generate.schema';
 type FormOptions = NonNullable<GenerateFormData['options']>;
 
 export function mapStudioConfigToFormOptions(config: QRConfig): FormOptions {
+  console.log('[studioConfigMapper] 🎯 INPUT config:', config);
+  console.log('[studioConfigMapper] 🎯 GRADIENT config:', config?.gradient);
+  
   const formOptions: FormOptions = {};
 
   // Early return if config is null or undefined
   if (!config) {
+    console.log('[studioConfigMapper] ❌ Config is null/undefined, returning empty options');
     return formOptions;
   }
 
@@ -29,8 +33,17 @@ export function mapStudioConfigToFormOptions(config: QRConfig): FormOptions {
 
   // Map gradient
   if (config.gradient) {
+    console.log('[studioConfigMapper] 📐 Mapping gradient:', {
+      enabled: config.gradient.enabled,
+      type: config.gradient.gradient_type,
+      angle: config.gradient.angle,
+      colors: config.gradient.colors
+    });
+    
     formOptions.gradient_enabled = config.gradient.enabled;
-    if (config.gradient.gradient_type === 'linear' || config.gradient.gradient_type === 'radial') {
+    if (config.gradient.gradient_type === 'linear' || config.gradient.gradient_type === 'radial' || 
+        config.gradient.gradient_type === 'conic' || config.gradient.gradient_type === 'diamond' || 
+        config.gradient.gradient_type === 'spiral') {
        formOptions.gradient_type = config.gradient.gradient_type;
     }
     // Safe access to gradient colors array
@@ -39,6 +52,8 @@ export function mapStudioConfigToFormOptions(config: QRConfig): FormOptions {
       formOptions.gradient_color2 = config.gradient.colors[1];
     }
     formOptions.gradient_angle = config.gradient.angle;
+    console.log('[studioConfigMapper] 📐 Setting gradient_angle to:', config.gradient.angle);
+    
     formOptions.gradient_apply_to_eyes = config.gradient.apply_to_eyes;
     formOptions.gradient_per_module = config.gradient.per_module;
 
@@ -79,5 +94,8 @@ export function mapStudioConfigToFormOptions(config: QRConfig): FormOptions {
   // Map transparent background
   formOptions.transparent_background = config.transparent_background;
 
+  console.log('[studioConfigMapper] 🎯 FINAL formOptions:', formOptions);
+  console.log('[studioConfigMapper] 📐 FINAL gradient_angle:', formOptions.gradient_angle);
+  
   return formOptions;
 } 

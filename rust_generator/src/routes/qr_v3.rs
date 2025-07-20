@@ -285,6 +285,18 @@ async fn generate_qr_v3_enhanced(
     let start = Instant::now();
     info!("QR v3 Enhanced generation request for data length: {}", payload.data.len());
     
+    // Log gradient configuration if present
+    if let Some(ref customization) = payload.options.customization {
+        if let Some(ref gradient) = customization.gradient {
+            info!("🎯 GRADIENT CONFIG RECEIVED: enabled={}, type={:?}, angle={:?}, colors={:?}", 
+                gradient.enabled, 
+                gradient.gradient_type,
+                gradient.angle,
+                gradient.colors.len()
+            );
+        }
+    }
+    
     // Validar entrada
     if payload.data.is_empty() {
         return Ok(Json(serde_json::json!({

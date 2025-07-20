@@ -531,7 +531,24 @@ function GenerationOptions({
                             <button
                               key={pattern.value}
                               type="button"
-                              onClick={() => field.onChange(pattern.value)}
+                              onClick={() => {
+                                console.log('[GenerationOptions] 🎯 Data pattern clicked:', {
+                                  oldValue: field.value,
+                                  newValue: pattern.value,
+                                  patternLabel: pattern.label
+                                });
+                                field.onChange(pattern.value);
+                                
+                                // Verificar cambio y regenerar
+                                setTimeout(() => {
+                                  const currentFormValues = getValues();
+                                  console.log('[GenerationOptions] 🎯 Data pattern after change:', {
+                                    data_pattern: currentFormValues.options?.data_pattern,
+                                    willSubmit: true
+                                  });
+                                  onSubmit(currentFormValues);
+                                }, 100);
+                              }}
                               className={cn(
                                 "aspect-square flex items-center justify-center p-3 rounded-lg border-2 transition-all backdrop-blur-md backdrop-saturate-150 shadow-sm",
                                 field.value === pattern.value
@@ -751,14 +768,29 @@ function GenerationOptions({
                                   rawTargetValue: e.target.value
                                 });
                                 field.onChange(value);
+                                
+                                // Log inmediato para verificar el cambio
+                                console.log(`[GenerationOptions] 🎯 ANGLE CHANGE - Before submit:`, {
+                                  newAngle: value,
+                                  fieldValue: field.value,
+                                  gradientType: getValues('options.gradient_type'),
+                                  gradientEnabled: getValues('options.gradient_enabled')
+                                });
+                                
                                 setTimeout(() => {
                                   const currentFormValues = getValues();
-                                  console.log(`[GenerationOptions] Form values after gradient angle change:`, {
+                                  console.log(`[GenerationOptions] 🎯 ANGLE CHANGE - After timeout:`, {
                                     gradient_angle: currentFormValues.options?.gradient_angle,
                                     gradient_type: currentFormValues.options?.gradient_type,
                                     gradient_enabled: currentFormValues.options?.gradient_enabled,
-                                    fullFormData: currentFormValues
+                                    willSubmit: true
                                   });
+                                  
+                                  // Log el objeto completo que se enviará
+                                  console.log(`[GenerationOptions] 🎯 ANGLE CHANGE - Full submission data:`, 
+                                    JSON.stringify(currentFormValues, null, 2)
+                                  );
+                                  
                                   onSubmit(currentFormValues);
                                 }, 100);
                               }}

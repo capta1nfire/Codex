@@ -79,6 +79,7 @@ export function useStudioConfigToCustomization(config: QRConfig): QRV3Customizat
         enabled: true,
         gradient_type: config.gradient.gradient_type,
         colors: config.gradient.colors,
+        angle: config.gradient.angle, // Add angle mapping
         apply_to_data: config.gradient.apply_to_data ?? true,
         apply_to_eyes: config.gradient.apply_to_eyes ?? true,
         per_module: config.gradient.per_module,

@@ -889,6 +889,9 @@ impl QrCode {
     ) -> crate::engine::types::Gradient {
         use crate::engine::types::Color;
         
+        tracing::info!("🎯 create_gradient_from_options called with: type={:?}, angle={:?}, colors={:?}", 
+            options.gradient_type, options.angle, options.colors);
+        
         // Convertir colores hex a struct Color
         let colors: Vec<Color> = options.colors.iter()
             .map(|hex| self.hex_to_color(hex))
@@ -903,10 +906,12 @@ impl QrCode {
         
         match options.gradient_type {
             GradientType::Linear => {
+                let angle = options.angle.unwrap_or(90.0);
+                tracing::info!("🎯 Creating LINEAR gradient with angle: {}", angle);
                 processor.create_linear_gradient_with_size(
                     &colors[0],
                     &colors[1],
-                    options.angle.unwrap_or(90.0) as f64,
+                    angle as f64,
                     canvas_size,
                 )
             },

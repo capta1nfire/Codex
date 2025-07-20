@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -34,8 +35,10 @@ import {
   CheckCircle2,
   Info
 } from 'lucide-react';
-import { EyeStyleEditor } from '@/components/studio/EyeStyleEditor';
+import { EyeStyleSelector } from '@/components/studio/EyeStyleSelector';
 import { DataPatternSelector } from '@/components/studio/DataPatternSelector';
+import { QR_V3_EYE_CENTER_STYLES } from '@/constants/qrV3Options';
+import { EYE_CENTER_SVG_PATHS } from '@/constants/eyeStyleSvgPaths';
 import { validateQRConfig, validateColorContrast } from '@/schemas/studio.schema';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -101,8 +104,14 @@ export function PlaceholderForm({
   }, [config.colors, updateConfig]);
 
   const updateGradient = useCallback((gradientUpdates: Partial<QRConfig['gradient']>) => {
+    const newGradient = { ...config.gradient, ...gradientUpdates };
+    console.log('[PlaceholderForm] updateGradient called:', {
+      currentGradient: config.gradient,
+      updates: gradientUpdates,
+      newGradient: newGradient
+    });
     updateConfig({
-      gradient: { ...config.gradient, ...gradientUpdates }
+      gradient: newGradient
     });
   }, [config.gradient, updateConfig]);
   
@@ -169,14 +178,108 @@ export function PlaceholderForm({
             }}
           />
 
-          {/* Editor de estilos de ojos - Modo unificado o separado */}
-          <EyeStyleEditor
-            config={config}
-            onChange={(updates) => {
-              updateConfig(updates);
-              markTouched('eye_styles');
-            }}
-          />
+          {/* Selector de estilos de ojos - Con el mismo diseño que DataPatternSelector */}
+          {console.log('[PlaceholderForm] Rendering EyeStyleSelector with config:', config)}
+          <div key="eye-style-selector-wrapper">
+            <EyeStyleSelector
+              config={config}
+              onChange={(updates) => {
+                updateConfig(updates);
+                markTouched('eye_styles');
+              }}
+            />
+          </div>
+
+          {/* Estilo del Centro */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Estilo del Centro</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Columna 1: Selector de estilos */}
+                <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3">
+                  <Label className="flex items-center gap-2">
+                    <Grid3x3 className="h-4 w-4 text-slate-600" />
+                    Forma del Centro
+                  </Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {QR_V3_EYE_CENTER_STYLES.map((style) => {
+                      const svgPath = EYE_CENTER_SVG_PATHS[style.value as keyof typeof EYE_CENTER_SVG_PATHS];
+                      if (!svgPath) return null;
+                      return (
+                        <Button
+                          key={style.value}
+                          variant="outline"
+                          size="sm"
+                          className={`flex items-center justify-center p-2 min-h-16 min-w-16 transition-all duration-200 ${
+                            config.eye_center_style === style.value
+                              ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100' 
+                              : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                          }`}
+                          onClick={() => {
+                            updateConfig({ 
+                              eye_center_style: style.value,
+                              use_separated_eye_styles: true 
+                            });
+                            markTouched('eye_center_style');
+                          }}
+                          disabled={false}
+                          title={style.label}
+                        >
+                          <svg 
+                            width="50" 
+                            height="50" 
+                            viewBox="0 0 3 3" 
+                            className="fill-current" 
+                            style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}
+                          >
+                            <path d={svgPath} fillRule="evenodd"/>
+                          </svg>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Columna 2: Color del centro */}
+                <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3">
+                  <Label className="flex items-center gap-2">
+                    <Palette className="h-4 w-4 text-slate-600" />
+                    Color del Centro
+                  </Label>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-slate-600">Centro Interior</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="color"
+                        value={config.eye_colors?.inner || config.colors?.foreground || '#000000'}
+                        onChange={(e) => updateColors({ 
+                          eye_colors: { 
+                            ...config.eye_colors, 
+                            inner: e.target.value 
+                          }
+                        })}
+                        className="h-10 w-14 cursor-pointer border border-slate-200 rounded"
+                      />
+                      <Input
+                        type="text"
+                        value={config.eye_colors?.inner || config.colors?.foreground || '#000000'}
+                        onChange={(e) => updateColors({ 
+                          eye_colors: { 
+                            ...config.eye_colors, 
+                            inner: e.target.value 
+                          }
+                        })}
+                        placeholder="#000000"
+                        className="flex-1 font-mono text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Nivel de corrección */}
           <div className="space-y-2">
@@ -363,6 +466,199 @@ export function PlaceholderForm({
                 />
               </div>
             </div>
+          </div>
+
+          {/* Sección de Gradiente */}
+          <div className="space-y-4 mt-6">
+            <h3 className="text-sm font-medium flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              Configuración de Gradiente
+            </h3>
+            
+            {/* Activar gradiente */}
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <Label htmlFor="gradient-enabled" className="text-sm cursor-pointer">
+                  Activar gradiente
+                </Label>
+                <p className="text-xs text-slate-500 mt-0.5">Usar gradiente en lugar de color sólido</p>
+              </div>
+              <Switch
+                id="gradient-enabled"
+                checked={config.gradient?.enabled || false}
+                onCheckedChange={(checked) => {
+                  updateGradient({ enabled: checked });
+                  markTouched('gradient.enabled');
+                }}
+              />
+            </div>
+
+            {/* Opciones de gradiente */}
+            {config.gradient?.enabled && (
+              <div className="space-y-4 p-4 border rounded-lg bg-slate-50/50">
+                {/* Tipo de gradiente */}
+                <div className="space-y-2">
+                  <Label>Tipo de gradiente</Label>
+                  <Select
+                    value={config.gradient?.gradient_type || 'linear'}
+                    onValueChange={(value) => {
+                      updateGradient({ gradient_type: value });
+                      markTouched('gradient.gradient_type');
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="linear">Lineal</SelectItem>
+                      <SelectItem value="radial">Radial</SelectItem>
+                      <SelectItem value="conic">Cónico</SelectItem>
+                      <SelectItem value="diamond">Diamante</SelectItem>
+                      <SelectItem value="spiral">Espiral</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Ángulo del gradiente - Solo para gradientes lineales */}
+                {config.gradient?.gradient_type === 'linear' && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center justify-between">
+                      <span>Ángulo del gradiente</span>
+                      <span className="text-sm font-semibold text-blue-600 transition-all duration-200">
+                        {config.gradient?.angle || 90}°
+                      </span>
+                    </Label>
+                    <div className="relative">
+                      <Slider
+                        value={[config.gradient?.angle || 90]}
+                        onValueChange={([value]) => {
+                          console.log('[PlaceholderForm] Gradient angle changed to:', value);
+                          updateGradient({ angle: value });
+                          markTouched('gradient.angle');
+                        }}
+                        min={0}
+                        max={360}
+                        step={1}
+                        className="w-full py-4"
+                      />
+                      {/* Marcadores visuales para ángulos comunes */}
+                      <div className="absolute inset-x-0 -bottom-1 flex justify-between px-1 pointer-events-none">
+                        <div className="w-0.5 h-1.5 bg-slate-300 rounded-full" />
+                        <div className="w-0.5 h-1.5 bg-slate-300 rounded-full" />
+                        <div className="w-0.5 h-1.5 bg-slate-300 rounded-full" />
+                        <div className="w-0.5 h-1.5 bg-slate-300 rounded-full" />
+                        <div className="w-0.5 h-1.5 bg-slate-300 rounded-full" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      0° = De izquierda a derecha, 90° = De abajo hacia arriba
+                    </p>
+                    {/* Botones de ángulos predefinidos */}
+                    <div className="flex gap-1 mt-2">
+                      {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
+                        <Button
+                          key={angle}
+                          type="button"
+                          variant={config.gradient?.angle === angle ? "default" : "outline"}
+                          size="sm"
+                          className="flex-1 px-2 py-1 text-xs transition-all duration-200 hover:scale-105"
+                          onClick={() => {
+                            updateGradient({ angle });
+                            markTouched('gradient.angle');
+                          }}
+                        >
+                          {angle}°
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Colores del gradiente */}
+                <div className="space-y-3">
+                  <Label>Colores del gradiente</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Color inicial */}
+                    <div className="space-y-2">
+                      <Label className="text-xs">Color inicial</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={config.gradient?.colors?.[0] || '#000000'}
+                          onChange={(e) => {
+                            const newColors = [...(config.gradient?.colors || ['#000000', '#666666'])];
+                            newColors[0] = e.target.value;
+                            updateGradient({ colors: newColors });
+                            markTouched('gradient.colors');
+                          }}
+                          className="h-9 w-16 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={config.gradient?.colors?.[0] || '#000000'}
+                          onChange={(e) => {
+                            const newColors = [...(config.gradient?.colors || ['#000000', '#666666'])];
+                            newColors[0] = e.target.value;
+                            updateGradient({ colors: newColors });
+                            markTouched('gradient.colors');
+                          }}
+                          placeholder="#000000"
+                          className="flex-1 font-mono text-xs"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Color final */}
+                    <div className="space-y-2">
+                      <Label className="text-xs">Color final</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={config.gradient?.colors?.[1] || '#666666'}
+                          onChange={(e) => {
+                            const newColors = [...(config.gradient?.colors || ['#000000', '#666666'])];
+                            newColors[1] = e.target.value;
+                            updateGradient({ colors: newColors });
+                            markTouched('gradient.colors');
+                          }}
+                          className="h-9 w-16 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={config.gradient?.colors?.[1] || '#666666'}
+                          onChange={(e) => {
+                            const newColors = [...(config.gradient?.colors || ['#000000', '#666666'])];
+                            newColors[1] = e.target.value;
+                            updateGradient({ colors: newColors });
+                            markTouched('gradient.colors');
+                          }}
+                          placeholder="#666666"
+                          className="flex-1 font-mono text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Aplicar a ojos */}
+                <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                  <div>
+                    <Label htmlFor="gradient-eyes" className="text-sm cursor-pointer">
+                      Aplicar gradiente a ojos
+                    </Label>
+                    <p className="text-xs text-slate-500 mt-0.5">Usar gradiente también en los patrones de ojos</p>
+                  </div>
+                  <Switch
+                    id="gradient-eyes"
+                    checked={config.gradient?.apply_to_eyes || false}
+                    onCheckedChange={(checked) => {
+                      updateGradient({ apply_to_eyes: checked });
+                      markTouched('gradient.apply_to_eyes');
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
         </TabsContent>

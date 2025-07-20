@@ -699,6 +699,7 @@ export function QRGeneratorContainer() {
         // FIX: placeholderConfig ya ES el config, no necesita .config
         const formOptions = mapStudioConfigToFormOptions(placeholderConfig);
         console.log('[InitialMount] 🔥 DEBUG formOptions after mapping:', formOptions);
+        console.log('[InitialMount] 📐 gradient_angle from mapping:', formOptions.gradient_angle);
         
         // Aplicar datos y opciones básicas del placeholder
         const templateData = (placeholderConfig as any)?.template_data;
@@ -712,6 +713,7 @@ export function QRGeneratorContainer() {
         };
         
         console.log('[InitialMount] 🔥 DEBUG finalFormData.options:', initialFormData.options);
+        console.log('[InitialMount] 📐 FINAL gradient_angle in options:', initialFormData.options.gradient_angle);
       }
       
       // Aplicar los valores iniciales al formulario
@@ -886,6 +888,7 @@ export function QRGeneratorContainer() {
             console.log('[QRGeneratorContainer] Refreshed placeholder config:', {
               configDetails: JSON.stringify(placeholderConfig, null, 2)
             });
+            console.log('[QRGeneratorContainer] 📐 Placeholder gradient angle:', placeholderConfig.gradient?.angle);
             
             // Re-generate with new config
             const updatedOptions = {
@@ -899,7 +902,15 @@ export function QRGeneratorContainer() {
               gradient_type: (['linear', 'radial', 'conic', 'diamond', 'spiral'].includes(placeholderConfig.gradient?.gradient_type) ? placeholderConfig.gradient.gradient_type : currentFormData.options.gradient_type) || 'linear',
               gradient_color1: placeholderConfig.gradient?.colors?.[0] || currentFormData.options.gradient_color1,
               gradient_color2: placeholderConfig.gradient?.colors?.[1] || currentFormData.options.gradient_color2,
-              gradient_angle: placeholderConfig.gradient?.angle ?? currentFormData.options.gradient_angle,
+              gradient_angle: (() => {
+                const angle = placeholderConfig.gradient?.angle ?? currentFormData.options.gradient_angle;
+                console.log('[QRGeneratorContainer] 📐 Setting gradient_angle:', {
+                  fromPlaceholder: placeholderConfig.gradient?.angle,
+                  fromCurrentForm: currentFormData.options.gradient_angle,
+                  finalValue: angle
+                });
+                return angle;
+              })(),
               gradient_apply_to_eyes: placeholderConfig.gradient?.apply_to_eyes ?? currentFormData.options.gradient_apply_to_eyes,
               gradient_per_module: placeholderConfig.gradient?.per_module ?? currentFormData.options.gradient_per_module,
               gradient_borders: placeholderConfig.gradient?.stroke_style?.enabled ?? currentFormData.options.gradient_borders,
@@ -1148,17 +1159,48 @@ export function QRGeneratorContainer() {
 
   // Regenerar QR cuando cambian opciones importantes de diseño
   useEffect(() => {
+    console.log('[QRGeneratorContainer] Design options useEffect triggered:', {
+      selectedType,
+      isInitialMount,
+      hasData: !!watchedData,
+      dataLength: watchedData?.length,
+      hasChangedOptions,
+      data_pattern: watchedOptions?.data_pattern,
+      eye_border_style: watchedOptions?.eye_border_style,
+      eye_center_style: watchedOptions?.eye_center_style
+    });
+    
     // Solo para QR codes y después del mount inicial
-    if (selectedType !== 'qrcode' || isInitialMount) return;
+    if (selectedType !== 'qrcode' || isInitialMount) {
+      console.log('[QRGeneratorContainer] Skipping regeneration:', {
+        reason: selectedType !== 'qrcode' ? 'Not QR code' : 'Initial mount'
+      });
+      return;
+    }
     
     // Solo regenerar si hay datos
-    if (!watchedData || watchedData.trim() === '') return;
+    if (!watchedData || watchedData.trim() === '') {
+      console.log('[QRGeneratorContainer] Skipping regeneration: No data');
+      return;
+    }
     
     // Solo regenerar si el usuario ha interactuado con las opciones
-    if (!hasChangedOptions) return;
+    if (!hasChangedOptions) {
+      console.log('[QRGeneratorContainer] Skipping regeneration: No options changed');
+      return;
+    }
     
-    console.log('[QRGeneratorContainer] Design option changed, regenerating QR...');
+    console.log('[QRGeneratorContainer] 🎯 Design option changed, regenerating QR...');
     const currentFormValues = getValues();
+    console.log('[QRGeneratorContainer] Form values for regeneration:', {
+      data_pattern: currentFormValues.options?.data_pattern,
+      gradient_enabled: currentFormValues.options?.gradient_enabled,
+      eye_styles: {
+        eye_border_style: currentFormValues.options?.eye_border_style,
+        eye_center_style: currentFormValues.options?.eye_center_style,
+        use_separated: currentFormValues.options?.use_separated_eye_styles
+      }
+    });
     onSubmit(currentFormValues);
   }, [
     watchedOptions?.data_pattern,
