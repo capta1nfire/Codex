@@ -1471,21 +1471,102 @@ impl QrCode {
                             ));
                         },
                         DataPattern::Star => {
-                            // Estrella de 5 puntas
-                            let cx = x_pos as f32 + 0.5;
-                            let cy = y_pos as f32 + 0.5;
-                            let outer_r = 0.45;
-                            let inner_r = 0.2;
-                            let mut star_path = format!("M{} {}", cx, cy - outer_r);
+                            // Estrella EXACTA del usuario para patrón de datos
+                            let base_x = x_pos as f32;
+                            let base_y = y_pos as f32;
                             
-                            for i in 1..10 {
-                                let angle = (i as f32 * 36.0 - 90.0).to_radians();
-                                let r = if i % 2 == 0 { outer_r } else { inner_r };
-                                let px = cx + r * angle.cos();
-                                let py = cy + r * angle.sin();
-                                star_path.push_str(&format!("L{} {}", px, py));
-                            }
-                            star_path.push('z');
+                            // El path original va de x=44.282 a x=96.884 (ancho=52.602) y de y=15.023 a y=67.479 (alto=52.456)
+                            // Para módulo 1x1 con espaciado reducido, usar 90% del espacio disponible
+                            let path_width: f32 = 52.602;
+                            let path_height: f32 = 52.456;
+                            let available_space: f32 = 0.9; // 90% del módulo para espaciado reducido
+                            let scale = available_space / path_width.max(path_height);
+                            
+                            // Centrar la estrella en el módulo
+                            let center_x = base_x + 0.5;
+                            let center_y = base_y + 0.5;
+                            let path_center_x = 44.282 + path_width / 2.0;
+                            let path_center_y = 15.023 + path_height / 2.0;
+                            
+                            let sc = |coord: f32| -> f32 { (coord - path_center_x) * scale + center_x };
+                            let scy = |coord: f32| -> f32 { (coord - path_center_y) * scale + center_y };
+                            
+                            // Construir el path EXACTO por concatenación
+                            let mut star_path = String::new();
+                            
+                            // M67.833,16.838
+                            star_path.push_str(&format!("M{},{}", sc(67.833), scy(16.838)));
+                            
+                            // C68.304,15.737 69.386,15.023 70.583,15.023
+                            star_path.push_str(&format!("C{},{} {},{} {},{}",
+                                sc(68.304), scy(15.737), sc(69.386), scy(15.023), sc(70.583), scy(15.023)));
+                            
+                            // C71.78,15.023 72.862,15.737 73.333,16.838
+                            star_path.push_str(&format!("C{},{} {},{} {},{}",
+                                sc(71.78), scy(15.023), sc(72.862), scy(15.737), sc(73.333), scy(16.838)));
+                            
+                            // L79.521,31.297
+                            star_path.push_str(&format!("L{},{}", sc(79.521), scy(31.297)));
+                            
+                            // L95.185,32.713
+                            star_path.push_str(&format!("L{},{}", sc(95.185), scy(32.713)));
+                            
+                            // C96.377,32.821 97.39,33.63 97.76,34.768
+                            star_path.push_str(&format!("C{},{} {},{} {},{}",
+                                sc(96.377), scy(32.821), sc(97.39), scy(33.63), sc(97.76), scy(34.768)));
+                            
+                            // C98.13,35.907 97.785,37.156 96.884,37.945
+                            star_path.push_str(&format!("C{},{} {},{} {},{}",
+                                sc(98.13), scy(35.907), sc(97.785), scy(37.156), sc(96.884), scy(37.945)));
+                            
+                            // L85.045,48.297
+                            star_path.push_str(&format!("L{},{}", sc(85.045), scy(48.297)));
+                            
+                            // L88.538,63.632
+                            star_path.push_str(&format!("L{},{}", sc(88.538), scy(63.632)));
+                            
+                            // C88.804,64.799 88.348,66.013 87.379,66.717
+                            star_path.push_str(&format!("C{},{} {},{} {},{}",
+                                sc(88.804), scy(64.799), sc(88.348), scy(66.013), sc(87.379), scy(66.717)));
+                            
+                            // C86.411,67.42 85.116,67.479 84.088,66.865
+                            star_path.push_str(&format!("C{},{} {},{} {},{}",
+                                sc(86.411), scy(67.42), sc(85.116), scy(67.479), sc(84.088), scy(66.865)));
+                            
+                            // L70.583,58.804
+                            star_path.push_str(&format!("L{},{}", sc(70.583), scy(58.804)));
+                            
+                            // L57.079,66.865
+                            star_path.push_str(&format!("L{},{}", sc(57.079), scy(66.865)));
+                            
+                            // C56.05,67.479 54.756,67.42 53.787,66.717
+                            star_path.push_str(&format!("C{},{} {},{} {},{}",
+                                sc(56.05), scy(67.479), sc(54.756), scy(67.42), sc(53.787), scy(66.717)));
+                            
+                            // C52.818,66.013 52.363,64.799 52.629,63.632
+                            star_path.push_str(&format!("C{},{} {},{} {},{}",
+                                sc(52.818), scy(66.013), sc(52.363), scy(64.799), sc(52.629), scy(63.632)));
+                            
+                            // L56.122,48.297
+                            star_path.push_str(&format!("L{},{}", sc(56.122), scy(48.297)));
+                            
+                            // L44.282,37.945
+                            star_path.push_str(&format!("L{},{}", sc(44.282), scy(37.945)));
+                            
+                            // C43.381,37.156 43.036,35.907 43.406,34.768
+                            star_path.push_str(&format!("C{},{} {},{} {},{}",
+                                sc(43.381), scy(37.156), sc(43.036), scy(35.907), sc(43.406), scy(34.768)));
+                            
+                            // C43.776,33.63 44.79,32.821 45.982,32.713
+                            star_path.push_str(&format!("C{},{} {},{} {},{}",
+                                sc(43.776), scy(33.63), sc(44.79), scy(32.821), sc(45.982), scy(32.713)));
+                            
+                            // L61.646,31.297
+                            star_path.push_str(&format!("L{},{}", sc(61.646), scy(31.297)));
+                            
+                            // Z para cerrar
+                            star_path.push_str("Z");
+                            
                             data_path.push_str(&star_path);
                         },
                         DataPattern::Cross => {
@@ -1610,6 +1691,33 @@ impl QrCode {
                                 size, 
                                 size, 
                                 size
+                            ));
+                        },
+                        DataPattern::Squircle => {
+                            // Squircle - cuadrado con esquinas super-redondeadas
+                            let padding = 0.03; // Reducido a 0.03 para módulos más grandes (94% del espacio)
+                            let size = 1.0 - 2.0 * padding;
+                            let x0 = x_pos as f32 + padding;
+                            let y0 = y_pos as f32 + padding;
+                            
+                            data_path.push_str(&format!(
+                                "M{} {}Q{} {} {} {}L{} {}Q{} {} {} {}L{} {}Q{} {} {} {}L{} {}Q{} {} {} {}z",
+                                // Punto inicial (parte superior del lado izquierdo)
+                                x0, y0 + size * 0.5,
+                                // Esquina superior izquierda
+                                x0, y0, x0 + size * 0.5, y0,
+                                // Lado superior
+                                x0 + size * 0.5, y0,
+                                // Esquina superior derecha
+                                x0 + size, y0, x0 + size, y0 + size * 0.5,
+                                // Lado derecho
+                                x0 + size, y0 + size * 0.5,
+                                // Esquina inferior derecha
+                                x0 + size, y0 + size, x0 + size * 0.5, y0 + size,
+                                // Lado inferior
+                                x0 + size * 0.5, y0 + size,
+                                // Esquina inferior izquierda
+                                x0, y0 + size, x0, y0 + size * 0.5
                             ));
                         }
                     }
@@ -1753,21 +1861,102 @@ impl QrCode {
                 )
             },
             DataPattern::Star => {
-                // Estrella de 5 puntas
-                let cx = x_pos as f32 + 0.5;
-                let cy = y_pos as f32 + 0.5;
-                let outer_r = 0.45;
-                let inner_r = 0.2;
-                let mut star_path = format!("M{} {}", cx, cy - outer_r);
+                // Estrella EXACTA del usuario para patrón de datos
+                let base_x = x_pos as f32;
+                let base_y = y_pos as f32;
                 
-                for i in 1..10 {
-                    let angle = (i as f32 * 36.0 - 90.0).to_radians();
-                    let r = if i % 2 == 0 { outer_r } else { inner_r };
-                    let px = cx + r * angle.cos();
-                    let py = cy + r * angle.sin();
-                    star_path.push_str(&format!("L{} {}", px, py));
-                }
-                star_path.push('z');
+                // El path original va de x=44.282 a x=96.884 (ancho=52.602) y de y=15.023 a y=67.479 (alto=52.456)
+                // Para módulo 1x1 con espaciado reducido, usar 90% del espacio disponible
+                let path_width: f32 = 52.602;
+                let path_height: f32 = 52.456;
+                let available_space: f32 = 0.9; // 90% del módulo para espaciado reducido
+                let scale = available_space / path_width.max(path_height);
+                
+                // Centrar la estrella en el módulo
+                let center_x = base_x + 0.5;
+                let center_y = base_y + 0.5;
+                let path_center_x = 44.282 + path_width / 2.0;
+                let path_center_y = 15.023 + path_height / 2.0;
+                
+                let sc = |coord: f32| -> f32 { (coord - path_center_x) * scale + center_x };
+                let scy = |coord: f32| -> f32 { (coord - path_center_y) * scale + center_y };
+                
+                // Construir el path EXACTO por concatenación
+                let mut star_path = String::new();
+                
+                // M67.833,16.838
+                star_path.push_str(&format!("M{},{}", sc(67.833), scy(16.838)));
+                
+                // C68.304,15.737 69.386,15.023 70.583,15.023
+                star_path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(68.304), scy(15.737), sc(69.386), scy(15.023), sc(70.583), scy(15.023)));
+                
+                // C71.78,15.023 72.862,15.737 73.333,16.838
+                star_path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(71.78), scy(15.023), sc(72.862), scy(15.737), sc(73.333), scy(16.838)));
+                
+                // L79.521,31.297
+                star_path.push_str(&format!("L{},{}", sc(79.521), scy(31.297)));
+                
+                // L95.185,32.713
+                star_path.push_str(&format!("L{},{}", sc(95.185), scy(32.713)));
+                
+                // C96.377,32.821 97.39,33.63 97.76,34.768
+                star_path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(96.377), scy(32.821), sc(97.39), scy(33.63), sc(97.76), scy(34.768)));
+                
+                // C98.13,35.907 97.785,37.156 96.884,37.945
+                star_path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(98.13), scy(35.907), sc(97.785), scy(37.156), sc(96.884), scy(37.945)));
+                
+                // L85.045,48.297
+                star_path.push_str(&format!("L{},{}", sc(85.045), scy(48.297)));
+                
+                // L88.538,63.632
+                star_path.push_str(&format!("L{},{}", sc(88.538), scy(63.632)));
+                
+                // C88.804,64.799 88.348,66.013 87.379,66.717
+                star_path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(88.804), scy(64.799), sc(88.348), scy(66.013), sc(87.379), scy(66.717)));
+                
+                // C86.411,67.42 85.116,67.479 84.088,66.865
+                star_path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(86.411), scy(67.42), sc(85.116), scy(67.479), sc(84.088), scy(66.865)));
+                
+                // L70.583,58.804
+                star_path.push_str(&format!("L{},{}", sc(70.583), scy(58.804)));
+                
+                // L57.079,66.865
+                star_path.push_str(&format!("L{},{}", sc(57.079), scy(66.865)));
+                
+                // C56.05,67.479 54.756,67.42 53.787,66.717
+                star_path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(56.05), scy(67.479), sc(54.756), scy(67.42), sc(53.787), scy(66.717)));
+                
+                // C52.818,66.013 52.363,64.799 52.629,63.632
+                star_path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(52.818), scy(66.013), sc(52.363), scy(64.799), sc(52.629), scy(63.632)));
+                
+                // L56.122,48.297
+                star_path.push_str(&format!("L{},{}", sc(56.122), scy(48.297)));
+                
+                // L44.282,37.945
+                star_path.push_str(&format!("L{},{}", sc(44.282), scy(37.945)));
+                
+                // C43.381,37.156 43.036,35.907 43.406,34.768
+                star_path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(43.381), scy(37.156), sc(43.036), scy(35.907), sc(43.406), scy(34.768)));
+                
+                // C43.776,33.63 44.79,32.821 45.982,32.713
+                star_path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(43.776), scy(33.63), sc(44.79), scy(32.821), sc(45.982), scy(32.713)));
+                
+                // L61.646,31.297
+                star_path.push_str(&format!("L{},{}", sc(61.646), scy(31.297)));
+                
+                // Z para cerrar
+                star_path.push_str("Z");
+                
                 star_path
             },
             DataPattern::Cross => {
@@ -1863,6 +2052,33 @@ impl QrCode {
                         (r - stroke_width) * 2.0, r - stroke_width, r - stroke_width, (r - stroke_width) * 2.0
                     )
                 }
+            },
+            DataPattern::Squircle => {
+                // Squircle - cuadrado con esquinas super-redondeadas
+                let padding = 0.03; // Reducido a 0.03 para módulos más grandes (94% del espacio)
+                let size = 1.0 - 2.0 * padding;
+                let x0 = x_pos as f32 + padding;
+                let y0 = y_pos as f32 + padding;
+                
+                format!(
+                    "M{} {}Q{} {} {} {}L{} {}Q{} {} {} {}L{} {}Q{} {} {} {}L{} {}Q{} {} {} {}z",
+                    // Punto inicial (parte superior del lado izquierdo)
+                    x0, y0 + size * 0.5,
+                    // Esquina superior izquierda
+                    x0, y0, x0 + size * 0.5, y0,
+                    // Lado superior
+                    x0 + size * 0.5, y0,
+                    // Esquina superior derecha
+                    x0 + size, y0, x0 + size, y0 + size * 0.5,
+                    // Lado derecho
+                    x0 + size, y0 + size * 0.5,
+                    // Esquina inferior derecha
+                    x0 + size, y0 + size, x0 + size * 0.5, y0 + size,
+                    // Lado inferior
+                    x0 + size * 0.5, y0 + size,
+                    // Esquina inferior izquierda
+                    x0, y0 + size, x0, y0 + size * 0.5
+                )
             },
             DataPattern::Square | DataPattern::SquareSmall => {
                 // Cuadrado estándar
@@ -3029,26 +3245,92 @@ impl QrCode {
                 )
             }
             EyeCenterStyle::Star => {
-                let cx = x as f32 + 1.5;
-                let cy = y as f32 + 1.5;
-                let outer_r = 1.5;
-                let inner_r = 0.75;
+                // Estrella EXACTA del usuario - M67.833,16.838C68.304,15.737 69.386,15.023 70.583,15.023C71.78,15.023 72.862,15.737 73.333,16.838L79.521,31.297L95.185,32.713C96.377,32.821 97.39,33.63 97.76,34.768C98.13,35.907 97.785,37.156 96.884,37.945L85.045,48.297L88.538,63.632C88.804,64.799 88.348,66.013 87.379,66.717C86.411,67.42 85.116,67.479 84.088,66.865L70.583,58.804L57.079,66.865C56.05,67.479 54.756,67.42 53.787,66.717C52.818,66.013 52.363,64.799 52.629,63.632L56.122,48.297L44.282,37.945C43.381,37.156 43.036,35.907 43.406,34.768C43.776,33.63 44.79,32.821 45.982,32.713L61.646,31.297L67.833,16.838Z
+                let base_x = x as f32;
+                let base_y = y as f32;
                 
-                let mut star_path = String::from("M ");
-                for i in 0..10 {
-                    let angle = (i as f32 * 36.0 - 90.0).to_radians();
-                    let r = if i % 2 == 0 { outer_r } else { inner_r };
-                    let px = cx + r * angle.cos();
-                    let py = cy + r * angle.sin();
-                    
-                    if i == 0 {
-                        star_path.push_str(&format!("{:.2} {:.2}", px, py));
-                    } else {
-                        star_path.push_str(&format!(" L {:.2} {:.2}", px, py));
-                    }
-                }
-                star_path.push_str(" Z");
-                star_path
+                // Escalado del rango original para centrar en celda 3x3 con espaciado sutil
+                let scale = 2.7 / 55.0; // Factor de escala reducido 10% para espaciado sutil
+                let sc = |coord: f32| -> f32 { (coord - 43.0) * scale + base_x + 0.15 };
+                let scy = |coord: f32| -> f32 { (coord - 15.0) * scale + base_y + 0.15 };
+                
+                // Construir el path EXACTO por concatenación
+                let mut path = String::new();
+                
+                // M67.833,16.838
+                path.push_str(&format!("M{},{}", sc(67.833), scy(16.838)));
+                
+                // C68.304,15.737 69.386,15.023 70.583,15.023
+                path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(68.304), scy(15.737), sc(69.386), scy(15.023), sc(70.583), scy(15.023)));
+                
+                // C71.78,15.023 72.862,15.737 73.333,16.838
+                path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(71.78), scy(15.023), sc(72.862), scy(15.737), sc(73.333), scy(16.838)));
+                
+                // L79.521,31.297
+                path.push_str(&format!("L{},{}", sc(79.521), scy(31.297)));
+                
+                // L95.185,32.713
+                path.push_str(&format!("L{},{}", sc(95.185), scy(32.713)));
+                
+                // C96.377,32.821 97.39,33.63 97.76,34.768
+                path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(96.377), scy(32.821), sc(97.39), scy(33.63), sc(97.76), scy(34.768)));
+                
+                // C98.13,35.907 97.785,37.156 96.884,37.945
+                path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(98.13), scy(35.907), sc(97.785), scy(37.156), sc(96.884), scy(37.945)));
+                
+                // L85.045,48.297
+                path.push_str(&format!("L{},{}", sc(85.045), scy(48.297)));
+                
+                // L88.538,63.632
+                path.push_str(&format!("L{},{}", sc(88.538), scy(63.632)));
+                
+                // C88.804,64.799 88.348,66.013 87.379,66.717
+                path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(88.804), scy(64.799), sc(88.348), scy(66.013), sc(87.379), scy(66.717)));
+                
+                // C86.411,67.42 85.116,67.479 84.088,66.865
+                path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(86.411), scy(67.42), sc(85.116), scy(67.479), sc(84.088), scy(66.865)));
+                
+                // L70.583,58.804
+                path.push_str(&format!("L{},{}", sc(70.583), scy(58.804)));
+                
+                // L57.079,66.865
+                path.push_str(&format!("L{},{}", sc(57.079), scy(66.865)));
+                
+                // C56.05,67.479 54.756,67.42 53.787,66.717
+                path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(56.05), scy(67.479), sc(54.756), scy(67.42), sc(53.787), scy(66.717)));
+                
+                // C52.818,66.013 52.363,64.799 52.629,63.632
+                path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(52.818), scy(66.013), sc(52.363), scy(64.799), sc(52.629), scy(63.632)));
+                
+                // L56.122,48.297
+                path.push_str(&format!("L{},{}", sc(56.122), scy(48.297)));
+                
+                // L44.282,37.945
+                path.push_str(&format!("L{},{}", sc(44.282), scy(37.945)));
+                
+                // C43.381,37.156 43.036,35.907 43.406,34.768
+                path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(43.381), scy(37.156), sc(43.036), scy(35.907), sc(43.406), scy(34.768)));
+                
+                // C43.776,33.63 44.79,32.821 45.982,32.713
+                path.push_str(&format!("C{},{} {},{} {},{}",
+                    sc(43.776), scy(33.63), sc(44.79), scy(32.821), sc(45.982), scy(32.713)));
+                
+                // L61.646,31.297
+                path.push_str(&format!("L{},{}", sc(61.646), scy(31.297)));
+                
+                // Z para cerrar
+                path.push_str("Z");
+                
+                path
             }
             EyeCenterStyle::Diamond => {
                 let cx = x as f32 + 1.5;

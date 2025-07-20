@@ -210,10 +210,12 @@ class QrServiceUnified {
       logger.info('[QR Service] Processing gradient:', {
         gradient: options.gradient,
         hasStrokeStyle: !!options.gradient.strokeStyle,
+        type: options.gradient.type,
+        gradient_type: options.gradient.gradient_type,
       });
 
       transformed.gradient = {
-        type: options.gradient.type,
+        gradient_type: options.gradient.type || options.gradient.gradient_type,
         colors: options.gradient.colors,
         angle: options.gradient.angle,
         enabled: options.gradient.enabled !== false,
@@ -221,6 +223,8 @@ class QrServiceUnified {
           options.gradient.applyToData !== false || options.gradient.apply_to_data !== false,
         apply_to_eyes: options.gradient.applyToEyes || options.gradient.apply_to_eyes || false,
       };
+      
+      logger.info('[QR Service] Transformed gradient:', transformed.gradient);
 
       // Handle stroke_style (support both camelCase and snake_case)
       if (options.gradient.strokeStyle || options.gradient.stroke_style) {

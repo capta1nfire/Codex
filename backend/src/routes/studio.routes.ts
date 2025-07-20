@@ -75,7 +75,22 @@ const qrConfigSchema = z.object({
     ])
     .optional(),
   data_pattern: z
-    .enum(['square', 'dots', 'rounded', 'circular', 'star', 'cross', 'wave', 'mosaic'])
+    .enum([
+      'square',
+      'square_small',
+      'dots',
+      'rounded',
+      'squircle',
+      'vertical',
+      'horizontal',
+      'diamond',
+      'circular',
+      'star',
+      'cross',
+      'random',
+      'wave',
+      'mosaic'
+    ])
     .optional(),
   colors: z
     .object({

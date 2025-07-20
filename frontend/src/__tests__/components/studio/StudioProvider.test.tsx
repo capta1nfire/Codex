@@ -217,7 +217,8 @@ describe('StudioProvider', () => {
             type: StudioConfigType.PLACEHOLDER,
             name: 'New Config',
             config: {
-              eye_shape: 'circle',
+              eye_border_style: 'circle',
+              eye_center_style: 'circle',
               data_pattern: 'dots',
               colors: {
                 foreground: '#000000',

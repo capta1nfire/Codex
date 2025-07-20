@@ -62,6 +62,7 @@ const dataPatternSchema = z.enum([
   'square_small',
   'dots',
   'rounded',
+  'squircle',
   'vertical',
   'horizontal',
   'diamond',

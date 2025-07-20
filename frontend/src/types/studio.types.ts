@@ -68,8 +68,8 @@ export const GradientConfigSchema = z.object({
   stroke_style: z.object({
     enabled: z.boolean(),
     color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-    width: z.number().min(0.1).max(2.0).optional(),
-    opacity: z.number().min(0.1).max(1.0).optional(),
+    width: z.number().min(0.1).max(3.0).optional(), // UI limitado a 0.20, backend validation requires min 0.1
+    opacity: z.number().min(0.1).max(1.0).optional(), // Backend requires minimum 0.1 (10%)
   }).optional(),
 });
 
@@ -90,8 +90,9 @@ export const QRConfigSchema = z.object({
   ]).optional(),
   
   data_pattern: z.enum([
-    'square', 'dots', 'rounded', 'circular', 
-    'star', 'cross', 'wave', 'mosaic'
+    'square', 'square_small', 'dots', 'rounded', 'squircle', 'vertical',
+    'horizontal', 'diamond', 'circular', 'star', 'cross', 'random',
+    'wave', 'mosaic'
   ]).optional(),
   
   // Colores
@@ -126,6 +127,38 @@ export const QRConfigSchema = z.object({
   
   // Fondo transparente
   transparent_background: z.boolean().optional(),
+  
+  // Nuevos campos para colores separados de ojos
+  eye_border_color_mode: z.enum(['inherit', 'custom']).optional(),
+  eye_center_color_mode: z.enum(['inherit', 'custom']).optional(),
+  
+  eye_border_colors: z.object({
+    primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+    secondary: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  }).optional(),
+  
+  eye_border_width: z.number().min(0.1).max(5.0).optional(),
+  eye_border_opacity: z.number().min(0.1).max(1.0).optional(), // Backend requires minimum 0.1 (10%)
+  
+  eye_center_colors: z.object({
+    primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+    secondary: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  }).optional(),
+  
+  eye_border_gradient: z.object({
+    enabled: z.boolean(),
+    gradient_type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']),
+    colors: z.array(z.string().regex(/^#[0-9A-Fa-f]{6}$/)).min(2).max(5),
+    angle: z.number().min(0).max(360).optional(),
+  }).optional(),
+  
+  eye_center_gradient: z.object({
+    enabled: z.boolean(),
+    gradient_type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']),
+    colors: z.array(z.string().regex(/^#[0-9A-Fa-f]{6}$/)).min(2).max(5),
+    angle: z.number().min(0).max(360).optional(),
+  }).optional(),
+  
 });
 
 // Schema para configuración de Studio
@@ -214,7 +247,7 @@ export const DEFAULT_GRADIENT: GradientConfig = {
     enabled: false,
     color: '#FFFFFF',
     width: 0.5,
-    opacity: 0.3,
+    opacity: 0.3, // Mínimo 0.1 requerido por backend
   },
 };
 
@@ -230,6 +263,28 @@ export const DEFAULT_QR_CONFIG: QRConfig = {
   error_correction: 'M',
   // NOTA: El marco está temporalmente deshabilitado en useQRGenerationState.ts
   // para sincronizar con la página principal que no muestra marco
+  
+  // Nuevos campos para colores de ojos - por defecto heredan del patrón principal
+  eye_border_color_mode: 'inherit',
+  eye_center_color_mode: 'inherit',
+  eye_border_colors: {
+    primary: '#000000',
+    secondary: '#666666',
+  },
+  eye_center_colors: {
+    primary: '#000000',
+    secondary: '#666666',
+  },
+  eye_border_gradient: {
+    enabled: false,
+    gradient_type: 'radial',
+    colors: ['#000000', '#666666'],
+  },
+  eye_center_gradient: {
+    enabled: false,
+    gradient_type: 'radial',
+    colors: ['#000000', '#666666'],
+  },
 };
 
 // ==================== VALIDATION HELPERS ====================

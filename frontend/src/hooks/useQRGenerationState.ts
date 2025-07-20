@@ -251,7 +251,7 @@ export const useQRGenerationState = () => {
     const remainingTime = MINIMUM_LOADING_TIME_MS - elapsedTime;
     
     if (remainingTime > 0 && !signal.aborted) {
-      console.log(`[UX Enhancement] Adding ${remainingTime}ms delay (800ms total) for optimal UX: ${data.substring(0, 30)}...`);
+      console.log(`[UX Enhancement] Adding ${remainingTime}ms delay (800ms total) for optimal UX: ${data?.substring(0, 30) || 'undefined'}...`);
       await new Promise(resolve => setTimeout(resolve, remainingTime));
     }
   };
@@ -492,8 +492,8 @@ export const useQRGenerationState = () => {
                     formData.options.gradient_color2 || '#666666'
                   ],
               angle: formData.options?.eye_border_color_mode === 'gradient'
-                ? (formData.options.eye_border_color_gradient?.angle || 0)
-                : (formData.options.gradient_angle || 0)
+                ? (formData.options.eye_border_color_gradient?.angle ?? 0)
+                : (formData.options.gradient_angle ?? 0)
             }
           } : {}),
           // Add eye center gradient configuration if gradient mode is selected for centers OR if inherit mode with gradient enabled
@@ -515,8 +515,8 @@ export const useQRGenerationState = () => {
                     formData.options.gradient_color2 || '#666666'
                   ],
               angle: formData.options?.eye_color_mode === 'gradient'
-                ? (formData.options.eye_color_gradient?.angle || 0)
-                : (formData.options.gradient_angle || 0)
+                ? (formData.options.eye_color_gradient?.angle ?? 0)
+                : (formData.options.gradient_angle ?? 0)
             }
           } : {}),
           // Add fixed size if specified
@@ -531,14 +531,15 @@ export const useQRGenerationState = () => {
               formData.options.gradient_color1 || '#000000',
               formData.options.gradient_color2 || '#666666'
             ],
+            angle: formData.options.gradient_angle ?? 90,
             apply_to_data: true,
             apply_to_eyes: formData.options?.gradient_apply_to_eyes ?? true,  // Default true como página principal
-            per_module: formData.options?.gradient_per_module || false,
+            per_module: formData.options?.gradient_per_module ?? false, // Reactivado - permite gradiente por módulo individual
             stroke_style: formData.options?.gradient_borders ? {
               enabled: true,
-              color: '#FFFFFF',
-              width: 0.1,
-              opacity: 0.3
+              color: formData.options?.gradient_border_color || '#FFFFFF',
+              width: formData.options?.gradient_border_width || 0.5,
+              opacity: formData.options?.gradient_border_opacity || 0.3
             } : {
               enabled: false
             }

@@ -30,6 +30,7 @@ impl PatternRenderer {
             DataPattern::SquareSmall => self.render_square_small(x_pos, y_pos, size, color),
             DataPattern::Dots => self.render_dot(x_pos, y_pos, size, color),
             DataPattern::Rounded => self.render_rounded(x_pos, y_pos, size, color),
+            DataPattern::Squircle => self.render_squircle(x_pos, y_pos, size, color),
             DataPattern::Vertical => self.render_vertical(x_pos, y_pos, size, color),
             DataPattern::Horizontal => self.render_horizontal(x_pos, y_pos, size, color),
             DataPattern::Diamond => self.render_diamond(x_pos, y_pos, size, color),
@@ -128,6 +129,47 @@ impl PatternRenderer {
         format!(
             r#"<rect x="{}" y="{}" width="{}" height="{}" rx="{}" ry="{}" fill="{}" />"#,
             x, y, size, size, radius, radius, color
+        )
+    }
+
+    /// Squircle - cuadrado con esquinas super-redondeadas (superelipse)
+    fn render_squircle(&self, x: f32, y: f32, size: f32, color: &str) -> String {
+        // Usar un path para crear una forma tipo squircle
+        // Basado en la fórmula de superelipse con n=4
+        let padding = size * 0.03; // Reducido a 0.03 para módulos más grandes (94% del espacio)
+        let actual_size = size - 2.0 * padding;
+        let control_point = actual_size * 0.552; // Factor de control para aproximar superelipse
+        
+        let x0 = x + padding;
+        let y0 = y + padding;
+        
+        format!(
+            r#"<path d="M {} {} 
+                      Q {} {} {} {}
+                      L {} {}
+                      Q {} {} {} {}
+                      L {} {}
+                      Q {} {} {} {}
+                      L {} {}
+                      Q {} {} {} {}
+                      Z" fill="{}" />"#,
+            // Punto inicial (parte superior del lado izquierdo)
+            x0, y0 + actual_size * 0.5,
+            // Esquina superior izquierda
+            x0, y0, x0 + actual_size * 0.5, y0,
+            // Lado superior
+            x0 + actual_size * 0.5, y0,
+            // Esquina superior derecha
+            x0 + actual_size, y0, x0 + actual_size, y0 + actual_size * 0.5,
+            // Lado derecho
+            x0 + actual_size, y0 + actual_size * 0.5,
+            // Esquina inferior derecha
+            x0 + actual_size, y0 + actual_size, x0 + actual_size * 0.5, y0 + actual_size,
+            // Lado inferior
+            x0 + actual_size * 0.5, y0 + actual_size,
+            // Esquina inferior izquierda
+            x0, y0 + actual_size, x0, y0 + actual_size * 0.5,
+            color
         )
     }
 

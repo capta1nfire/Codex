@@ -40,7 +40,12 @@ export const generateFormSchema = z.object({
         .optional()
         .or(z.literal('')),
       gradient_direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
+      gradient_angle: z.number().int().min(0).max(360).optional(), // Ángulo del gradiente en grados (0-360)
+      gradient_apply_to_eyes: z.boolean().optional(),
       gradient_borders: z.boolean().optional(), // Control para mostrar/ocultar bordes en gradientes
+      gradient_border_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(), // Color del borde
+      gradient_border_width: z.number().min(0.1).max(3.0).optional(), // Ancho del borde (UI limitado a 0.20 por UX, backend requiere min 0.1)
+      gradient_border_opacity: z.number().min(0.1).max(1.0).optional(), // Opacidad del borde (backend requiere min 0.1)
       gradient_per_module: z.boolean().optional(), // Control para aplicar gradiente por módulo
       
       // Background options for QR codes

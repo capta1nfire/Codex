@@ -18,6 +18,9 @@ export const defaultFormValues: GenerateFormData = {
     gradient_color2: '#000000', // Negro en los costados para máximo contraste
     gradient_direction: 'top-bottom', // No se usa en radial pero mantenemos por consistencia
     gradient_borders: false, // White semi-transparent borders for gradient modules (disabled by default)
+    gradient_border_color: '#FFFFFF', // Default border color
+    gradient_border_width: 0.1, // Default border width (mínimo permitido por backend)
+    gradient_border_opacity: 0.3, // Default border opacity (mínimo 0.1 por validación backend)
     gradient_apply_to_eyes: true, // ✅ Los ojos heredan el gradiente como en el diseño principal
     
     // QR v3 Eye & Pattern defaults - Circle style

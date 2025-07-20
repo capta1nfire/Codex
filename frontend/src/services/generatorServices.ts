@@ -133,7 +133,7 @@ export async function barcodeGenerationService(
               enabled: true,
               gradient_type: options.gradient_type || 'radial',
               colors: options.gradient_colors || ['#000000', '#666666'],
-              angle: options.gradient_direction || 0,
+              angle: options.gradient_angle || 0,
               apply_to_eyes: false,
               apply_to_data: true,
               stroke_style: {

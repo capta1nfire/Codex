@@ -104,6 +104,10 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
       // Debug logging only in development
       if (process.env.NODE_ENV === 'development') {
         console.log('[QR Enhanced] Generating QR:', { data: data.substring(0, 50), hasCustomization: !!options?.customization });
+        console.log('[QR Enhanced] Request body:', JSON.stringify(requestBody, null, 2));
+        if (options?.customization?.gradient) {
+          console.log('[QR Enhanced] Gradient config:', options.customization.gradient);
+        }
       }
       
       const response = await fetch(`${backendUrl}/api/v3/qr/enhanced`, {
@@ -133,6 +137,16 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
         setEnhancedData(result.data);
         setIsUsingCache(result.metadata.cached);
         setMetadata(result.metadata);
+        
+        // Debug logging for definitions
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[QR Enhanced] Received enhanced data:', {
+            hasDefinitions: !!result.data.definitions,
+            definitionsCount: result.data.definitions?.length || 0,
+            definitions: result.data.definitions
+          });
+          
+        }
         
         // Set scannability data if available
         if (result.scannability) {

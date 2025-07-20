@@ -29,6 +29,8 @@ import {
 import toast from 'react-hot-toast';
 import { useQRGenerationState } from '@/hooks/useQRGenerationState';
 import { GenerateFormData } from '@/schemas/generate.schema';
+import { useStudioConfigToCustomization } from '@/hooks/useStudioConfigToCustomization';
+import { useQRGenerationV3Enhanced } from '@/hooks/useQRGenerationV3Enhanced';
 
 interface PlaceholderPreviewProps {
   config: QRConfig;
@@ -59,99 +61,45 @@ export function PlaceholderPreview({
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastConfigHash, setLastConfigHash] = useState<string>('');
   
-  // Use the QR generation hook
-  const { 
-    enhancedData,
-    isLoading,
-    error,
-    generateQR
-  } = useQRGenerationState();
+  // Use the QR generation hooks
+  const v3Enhanced = useQRGenerationV3Enhanced();
+  const customization = useStudioConfigToCustomization(config);
 
-  // Convert StudioConfig to GenerateFormData - memoize properly
-  const formData = useMemo((): GenerateFormData => {
-    // Only include necessary QR v3 fields
-    const options: any = {
-      error_correction: config.error_correction || 'M',
-      // ✅ Mapear a formato de formulario con estilos separados
-      ecl: config.error_correction || 'M',
-      use_separated_eye_styles: config.use_separated_eye_styles ?? true,  // Default true como página principal
-      ...(config.use_separated_eye_styles ? {
-        eye_border_style: config.eye_border_style || 'circle',
-        eye_center_style: config.eye_center_style || 'circle',
-      } : {
-        eye_shape: config.eye_shape || 'square',
-      }),
-      data_pattern: config.data_pattern || 'dots',
-      gradient_enabled: config.gradient?.enabled ?? true,
-      gradient_type: config.gradient?.gradient_type || 'radial',
-      gradient_color1: config.gradient?.colors?.[0] || '#2563EB',
-      gradient_color2: config.gradient?.colors?.[1] || '#000000',
-      gradient_direction: 'top-bottom',
-      gradient_apply_to_eyes: config.gradient?.apply_to_eyes ?? true,  // ✅ Agregar para heredar gradiente en ojos
-      gradient_per_module: config.gradient?.per_module || false,  // ✅ Por módulo
-      gradient_borders: config.gradient?.stroke_style?.enabled || false,  // ✅ Bordes
-      fgcolor: config.colors?.foreground || '#000000',
-      bgcolor: config.colors?.background || '#FFFFFF',
-      transparent_background: config.transparent_background || false,  // ✅ Fondo transparente
-      eye_colors: config.colors?.eye_colors,
-      // ✅ Configurar modo de color para que los ojos hereden el gradiente
-      eye_border_color_mode: 'inherit',
-      eye_center_color_mode: 'inherit',
-    };
-
-    // Map additional options
-    if (config.border) {
-      options.border_size = config.border.size;
-      options.border_color = config.border.color;
-    }
-
-    if (config.logo) {
-      options.logo_image = config.logo.image;
-      options.logo_size = config.logo.size;
-      options.logo_background = config.logo.background;
-    }
-
-    if (config.gradient?.stroke_style) {
-      options.gradient_stroke_width = config.gradient.stroke_style.width;
-      options.gradient_stroke_blend_mode = config.gradient.stroke_style.blend_mode;
-    }
-
-    return {
-      data: PLACEHOLDER_URL,
-      barcode_type: 'qrcode',
-      version: 'v3',
-      options
-    };
-  }, [config]);
+  // Get enhanced data and loading state from v3Enhanced hook
+  const { enhancedData, isLoading, error, metadata } = v3Enhanced;
 
   // Initialize preview on mount and config changes
   useEffect(() => {
-    // Only generate when config actually changes
-    const configHash = JSON.stringify(formData);
+    // Only generate when customization actually changes
+    const configHash = JSON.stringify(customization);
     
     if (configHash !== lastConfigHash && !isGenerating) {
       setLastConfigHash(configHash);
       setIsGenerating(true);
       setLocalError(null);
-      generateQR(formData).finally(() => {
+      
+      v3Enhanced.generateEnhancedQR(PLACEHOLDER_URL, {
+        error_correction: config.error_correction || 'M',
+        customization
+      }).finally(() => {
         setIsGenerating(false);
       });
     }
-  }, [formData, lastConfigHash, isGenerating, generateQR]);
+  }, [customization, config.error_correction, lastConfigHash, isGenerating, v3Enhanced]);
 
   // Notify parent when metadata changes
   useEffect(() => {
-    if (enhancedData?.metadata && onMetadataChange) {
-      onMetadataChange(enhancedData.metadata);
+    if (metadata && onMetadataChange) {
+      onMetadataChange(metadata);
     }
-  }, [enhancedData, onMetadataChange]);
+  }, [metadata, onMetadataChange]);
 
   // Descargar QR como SVG
   const handleDownload = () => {
-    if (!enhancedData) return;
+    if (!v3Enhanced.svgData) return;
     
     try {
-      const blob = new Blob([enhancedData.svg_data], { type: 'image/svg+xml' });
+      const blob = new Blob([v3Enhanced.svgData], { type: 'image/svg+xml' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -242,6 +190,7 @@ export function PlaceholderPreview({
                 dataModules={enhancedData.metadata.data_modules}
                 version={enhancedData.metadata.version}
                 errorCorrection={enhancedData.metadata.error_correction}
+                transparentBackground={config.transparent_background}
               />
             ) : null}
           </div>

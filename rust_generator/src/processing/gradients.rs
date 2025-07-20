@@ -213,9 +213,9 @@ impl GradientProcessor {
                 ColorProcessor::to_hex(edge_color)
             )
         } else {
-            // Usar porcentajes
+            // Usar porcentajes con mejor centrado
             format!(
-                r#"<radialGradient id="{}" cx="50%" cy="50%" r="70.71%" gradientUnits="objectBoundingBox" gradientTransform="scale(1, 0.5) rotate(45, 0.5, 0.5)">
+                r#"<radialGradient id="{}" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox" gradientTransform="scale(1.414, 1) rotate(45, 0.5, 0.5)">
   <stop offset="0%" style="stop-color:{};stop-opacity:1" />
   <stop offset="100%" style="stop-color:{};stop-opacity:1" />
 </radialGradient>"#,

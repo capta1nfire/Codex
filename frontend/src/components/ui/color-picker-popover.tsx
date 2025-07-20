@@ -52,15 +52,25 @@ const defaultPresetColors = [
   '#FF9800', '#795548', '#607D8B', '#E91E63'
 ];
 
-// Validate hex color format for security
+// Validate hex color format for security (with or without #)
 const isValidHexColor = (color: string): boolean => {
-  return /^#[0-9A-F]{6}$/i.test(color);
+  return /^#?[0-9A-F]{6}$/i.test(color);
 };
 
-// Sanitize color value to prevent XSS
+// Sanitize color value to prevent XSS and ensure # prefix
 const sanitizeColor = (color: string): string => {
   const sanitized = color.trim().toUpperCase();
-  return isValidHexColor(sanitized) ? sanitized : '#000000';
+  // Remove # if present, then validate
+  const withoutHash = sanitized.startsWith('#') ? sanitized.slice(1) : sanitized;
+  if (/^[0-9A-F]{6}$/i.test(withoutHash)) {
+    return '#' + withoutHash;
+  }
+  return '#000000';
+};
+
+// Format color for display (without #)
+const formatColorForDisplay = (color: string): string => {
+  return color.startsWith('#') ? color.slice(1) : color;
 };
 
 export function ColorPickerPopover({
@@ -74,7 +84,7 @@ export function ColorPickerPopover({
   'aria-label': ariaLabel,
 }: ColorPickerPopoverProps) {
   const [open, setOpen] = useState(false);
-  const [inputValue, setInputValue] = useState(value || placeholder);
+  const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,9 +92,10 @@ export function ColorPickerPopover({
   // Memoize sanitized value
   const sanitizedValue = useMemo(() => sanitizeColor(value || placeholder), [value, placeholder]);
 
-  // Update input value when prop changes
+  // Update input value when prop changes (display without #)
   useEffect(() => {
-    setInputValue(value || placeholder);
+    const val = value || placeholder;
+    setInputValue(formatColorForDisplay(val));
   }, [value, placeholder]);
 
 
@@ -114,7 +125,7 @@ export function ColorPickerPopover({
     if (!color.hex) return;
     
     const sanitized = sanitizeColor(color.hex);
-    setInputValue(sanitized);
+    setInputValue(formatColorForDisplay(sanitized));
     setError(false);
     onChange(sanitized);
   }, [onChange]);
@@ -124,6 +135,7 @@ export function ColorPickerPopover({
     const newValue = e.target.value;
     setInputValue(newValue);
     
+    // Allow typing without # and validate
     if (isValidHexColor(newValue)) {
       setError(false);
       onChange(sanitizeColor(newValue));
@@ -135,7 +147,7 @@ export function ColorPickerPopover({
   // Handle input blur - reset to valid value if invalid
   const handleInputBlur = useCallback(() => {
     if (!isValidHexColor(inputValue)) {
-      setInputValue(sanitizedValue);
+      setInputValue(formatColorForDisplay(sanitizedValue));
       setError(false);
     }
   }, [inputValue, sanitizedValue]);
@@ -179,19 +191,20 @@ export function ColorPickerPopover({
           onBlur={handleInputBlur}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          placeholder={placeholder}
+          placeholder={formatColorForDisplay(placeholder)}
           className={cn(
-            "h-8 text-sm flex-1",
+            "h-8 text-sm flex-1 font-mono uppercase",
             error && "border-red-500 focus:ring-red-500",
             className
           )}
           aria-invalid={error}
           aria-describedby={error ? `${id}-error` : undefined}
+          maxLength={6}
         />
         
         {error && (
           <span id={`${id}-error`} className="sr-only">
-            Formato de color inválido. Use #RRGGBB
+            Formato de color inválido. Use RRGGBB
           </span>
         )}
       </div>

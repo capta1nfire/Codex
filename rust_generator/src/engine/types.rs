@@ -194,6 +194,7 @@ pub enum DataPattern {
     
     // Creativos
     Rounded,
+    Squircle,
     Vertical,
     Horizontal,
     Diamond,

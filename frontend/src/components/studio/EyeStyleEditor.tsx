@@ -19,10 +19,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Info } from 'lucide-react';
+import { Info, Grid3x3 } from 'lucide-react';
 import { QRConfig } from '@/types/studio.types';
 import { QR_V3_EYE_SHAPES, QR_V3_EYE_BORDER_STYLES, QR_V3_EYE_CENTER_STYLES } from '@/constants/qrV3Options';
 import { EYE_BORDER_SVG_PATHS, EYE_CENTER_SVG_PATHS } from '@/constants/eyeStyleSvgPaths';
+import { EyeBorderColorEditor } from './EyeBorderColorEditor';
+import { EyeCenterColorEditor } from './EyeCenterColorEditor';
 
 interface EyeStyleEditorProps {
   config: QRConfig;
@@ -133,75 +135,117 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
         ) : (
           // Modo Separado
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Estilo del Marco</Label>
-              <div className="grid grid-cols-4 gap-2">
-                {QR_V3_EYE_BORDER_STYLES.map((style) => {
-                  const svgPath = EYE_BORDER_SVG_PATHS[style.value as keyof typeof EYE_BORDER_SVG_PATHS];
-                  if (!svgPath) return null;
-                  return (
-                    <Button
-                      key={style.value}
-                      variant="outline"
-                      size="sm"
-                      className={`flex items-center justify-center p-2 min-h-16 min-w-16 transition-all duration-200 ${
-                        config.eye_border_style === style.value
-                          ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100' 
-                          : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
-                      }`}
-                      onClick={() => onChange({ eye_border_style: style.value as any })}
-                      disabled={disabled}
-                      title={style.label}
-                    >
-                      <svg 
-                        width="50" 
-                        height="50" 
-                        viewBox="0 0 7 7" 
-                        className="fill-current" 
-                        style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}
-                      >
-                        <path d={svgPath} fillRule="evenodd"/>
-                      </svg>
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
+            {/* Contenedor del Marco con 2 columnas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Estilo del Marco</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                  {/* Columna 1: Selector de estilos */}
+                  <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3">
+                    <Label className="flex items-center gap-2">
+                      <Grid3x3 className="h-4 w-4 text-slate-600" />
+                      Forma del Marco
+                    </Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {QR_V3_EYE_BORDER_STYLES.map((style) => {
+                        const svgPath = EYE_BORDER_SVG_PATHS[style.value as keyof typeof EYE_BORDER_SVG_PATHS];
+                        if (!svgPath) return null;
+                        return (
+                          <Button
+                            key={style.value}
+                            variant="outline"
+                            size="sm"
+                            className={`flex items-center justify-center p-2 min-h-16 min-w-16 transition-all duration-200 ${
+                              config.eye_border_style === style.value
+                                ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100' 
+                                : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                            }`}
+                            onClick={() => onChange({ eye_border_style: style.value as any })}
+                            disabled={disabled}
+                            title={style.label}
+                          >
+                            <svg 
+                              width="50" 
+                              height="50" 
+                              viewBox="0 0 7 7" 
+                              className="fill-current" 
+                              style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}
+                            >
+                              <path d={svgPath} fillRule="evenodd"/>
+                            </svg>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-            <div className="space-y-2">
-              <Label>Estilo del Centro</Label>
-              <div className="grid grid-cols-4 gap-2">
-                {QR_V3_EYE_CENTER_STYLES.map((style) => {
-                  const svgPath = EYE_CENTER_SVG_PATHS[style.value as keyof typeof EYE_CENTER_SVG_PATHS];
-                  if (!svgPath) return null;
-                  return (
-                    <Button
-                      key={style.value}
-                      variant="outline"
-                      size="sm"
-                      className={`flex items-center justify-center p-2 min-h-16 min-w-16 transition-all duration-200 ${
-                        config.eye_center_style === style.value
-                          ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100' 
-                          : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
-                      }`}
-                      onClick={() => onChange({ eye_center_style: style.value as any })}
-                      disabled={disabled}
-                      title={style.label}
-                    >
-                      <svg 
-                        width="50" 
-                        height="50" 
-                        viewBox="0 0 3 3" 
-                        className="fill-current" 
-                        style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}
-                      >
-                        <path d={svgPath} fillRule="evenodd"/>
-                      </svg>
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
+                  {/* Columna 2: Editor de colores */}
+                  <EyeBorderColorEditor
+                    config={config}
+                    onChange={onChange}
+                    disabled={disabled}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contenedor del Centro con 2 columnas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Estilo del Centro</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                  {/* Columna 1: Selector de estilos */}
+                  <div className="border border-slate-200 rounded-lg p-4 bg-white space-y-3">
+                    <Label className="flex items-center gap-2">
+                      <Grid3x3 className="h-4 w-4 text-slate-600" />
+                      Forma del Centro
+                    </Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {QR_V3_EYE_CENTER_STYLES.map((style) => {
+                        const svgPath = EYE_CENTER_SVG_PATHS[style.value as keyof typeof EYE_CENTER_SVG_PATHS];
+                        if (!svgPath) return null;
+                        return (
+                          <Button
+                            key={style.value}
+                            variant="outline"
+                            size="sm"
+                            className={`flex items-center justify-center p-2 min-h-16 min-w-16 transition-all duration-200 ${
+                              config.eye_center_style === style.value
+                                ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100' 
+                                : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                            }`}
+                            onClick={() => onChange({ eye_center_style: style.value as any })}
+                            disabled={disabled}
+                            title={style.label}
+                          >
+                            <svg 
+                              width="50" 
+                              height="50" 
+                              viewBox="0 0 3 3" 
+                              className="fill-current" 
+                              style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}
+                            >
+                              <path d={svgPath} fillRule="evenodd"/>
+                            </svg>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Columna 2: Editor de colores */}
+                  <EyeCenterColorEditor
+                    config={config}
+                    onChange={onChange}
+                    disabled={disabled}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
           </div>
         )}

@@ -19,6 +19,79 @@ import logger from '../utils/logger.js';
 
 const router = express.Router();
 
+/**
+ * Transform form-style options to customization format for Rust
+ */
+function transformFormOptionsToCustomization(options: any): any {
+  // If already has customization, return as-is
+  if (options.customization) {
+    return options;
+  }
+
+  const customization: any = {};
+
+  // Transform gradient options
+  if (options.gradient_enabled) {
+    customization.gradient = {
+      enabled: true,
+      gradient_type: options.gradient_type || 'linear',
+      colors: [
+        options.gradient_color1 || '#000000',
+        options.gradient_color2 || '#666666'
+      ],
+      angle: options.gradient_angle,
+      apply_to_data: options.gradient_apply_to_data !== false,
+      apply_to_eyes: options.gradient_apply_to_eyes || false,
+      per_module: options.gradient_per_module || false,
+      ...(options.gradient_borders && {
+        stroke_style: {
+          enabled: true,
+          width: options.gradient_stroke_width || 1,
+          blend_mode: options.gradient_stroke_blend_mode || 'normal'
+        }
+      })
+    };
+  }
+
+  // Transform eye styles
+  if (options.use_separated_eye_styles) {
+    customization.eye_border_style = options.eye_border_style;
+    customization.eye_center_style = options.eye_center_style;
+  } else if (options.eye_shape) {
+    customization.eye_shape = options.eye_shape;
+  }
+
+  // Transform data pattern
+  if (options.data_pattern) {
+    customization.data_pattern = options.data_pattern;
+  }
+
+  // Transform colors
+  if (options.fgcolor || options.bgcolor || options.eye_colors) {
+    customization.colors = {
+      ...(options.fgcolor && { foreground: options.fgcolor }),
+      ...(options.bgcolor && { background: options.bgcolor }),
+      ...(options.eye_colors && { eye_colors: options.eye_colors })
+    };
+  }
+
+  // Transform logo
+  if (options.logo_image) {
+    customization.logo = {
+      data: options.logo_image,
+      size_percentage: options.logo_size || 20,
+      padding: options.logo_padding || 0,
+      background: options.logo_background,
+      shape: options.logo_shape || 'square'
+    };
+  }
+
+  return {
+    error_correction: options.error_correction || options.ecl || 'M',
+    ...(Object.keys(customization).length > 0 && { customization })
+  };
+}
+
 // Middleware de autenticación opcional - intenta autenticar pero no falla
 const optionalAuth = (req: any, res: any, next: any) => {
   // Si hay un token de autorización, intentar autenticar
@@ -198,6 +271,7 @@ const customizationSchema = z
         'square_small',
         'dots',
         'rounded',
+        'squircle',
         'vertical',
         'horizontal',
         'diamond',
@@ -218,6 +292,7 @@ const customizationSchema = z
           .min(2)
           .max(5)
           .optional(),
+        angle: z.number().min(0).max(360).optional(), // ✅ Added missing angle field
         apply_to_eyes: z.boolean().optional(),
         apply_to_data: z.boolean().optional(),
         per_module: z.boolean().optional(),
@@ -595,12 +670,20 @@ router.post(
       // URL del generador Rust
       const rustGeneratorUrl = process.env.RUST_GENERATOR_URL || 'http://localhost:3002';
 
+      // Transform form-style options to customization format
+      const transformedOptions = transformFormOptionsToCustomization(options || {});
+      
+      logger.info('Transformed options for v3:', {
+        original: options,
+        transformed: transformedOptions,
+      });
+
       // Llamar al generador Rust v3
       const response = await axios.post(
         `${rustGeneratorUrl}/api/v3/qr/enhanced`,
         {
           data,
-          options: options || {},
+          options: transformedOptions,
         },
         {
           timeout: 5000,

@@ -33,6 +33,7 @@ interface UrlMetadata {
 interface UseUrlValidationOptions {
   enabled?: boolean;
   debounceMs?: number;
+  onValidationComplete?: (exists: boolean | null, error: any, url: string) => void;
 }
 
 interface UseUrlValidationReturn {
@@ -48,7 +49,8 @@ interface UseUrlValidationReturn {
  */
 export function useUrlValidation({
   enabled = true,
-  debounceMs = 600 // Balanced debouncing for responsive UX
+  debounceMs = 600, // Balanced debouncing for responsive UX
+  onValidationComplete
 }: UseUrlValidationOptions = {}): UseUrlValidationReturn {
   const [isValidating, setIsValidating] = useState(false);
   const [metadata, setMetadata] = useState<UrlMetadata | null>(null);
@@ -177,6 +179,7 @@ export function useUrlValidation({
         if (!data.exists) {
           setError(data.error || 'El sitio web no pudo ser verificado');
         }
+        onValidationComplete?.(data.exists, null, cleanUrl);
       }
     } catch (err: any) {
       // Ignorar errores de cancelación
@@ -185,6 +188,8 @@ export function useUrlValidation({
         return;
       }
       
+      onValidationComplete?.(null, err, cleanUrl);
+
       console.error('[useUrlValidation] Error validating URL:', err);
       console.error('[useUrlValidation] Error details:', {
         code: err.code,

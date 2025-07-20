@@ -504,7 +504,7 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
                 - Eventos mouse: CONTROLAN overlay de descarga
             */}
             <div 
-              className="relative w-[320px] h-[320px] flex items-center justify-center overflow-hidden z-10 rounded-lg"
+              className="relative w-[320px] h-[320px] flex items-center justify-center overflow-visible z-10 rounded-lg"
               onMouseEnter={() => {
                 setIsHovering(true);
                 if (qrData && !isPlaceholderData(qrData) && displayState.showRealBarcode) {

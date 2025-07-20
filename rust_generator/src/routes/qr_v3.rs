@@ -356,6 +356,7 @@ async fn generate_qr_v3_enhanced(
                 .is_some();
                 
             info!("Options customization: {:?}", options.customization.as_ref().map(|c| format!("logo_size_ratio: {:?}", c.logo_size_ratio)));
+            info!("Full customization object: {:?}", options.customization);
             info!("has_logo_with_ratio: {}", has_logo_with_ratio);
             
             // Generar QR con estrategia apropiada

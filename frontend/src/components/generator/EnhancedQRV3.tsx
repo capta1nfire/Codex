@@ -213,21 +213,43 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
   // ⚠️ This is a VISUAL-ONLY change, no backend regeneration needed ⚠️
   const bgColor = transparentBackground ? 'transparent' : (getStyle('background.fill') || backgroundColor || '#FFFFFF');
   
-  // Debug log
+  // Debug log - DIAGNÓSTICO URGENTE
   const hasPerModuleGradient = data?.definitions?.some(
     def => def.type === 'gradient' && (def as QRGradientDef).per_module
   );
   
+  console.log('[EnhancedQRV3] 🚨 DIAGNÓSTICO URGENTE - Gradientes recibidos:', {
+    definitions: data?.definitions,
+    gradientCount: data?.definitions?.filter(def => def.type === 'gradient').length,
+    gradientTypes: data?.definitions?.filter(def => def.type === 'gradient').map(def => ({
+      id: def.id,
+      type: (def as QRGradientDef).gradient_type,
+      colors: (def as QRGradientDef).colors,
+      angle: (def as QRGradientDef).angle
+    }))
+  });
+  
   // EnhancedQRV3 render initialized with data
   
-  // Calcular viewBox usando la fórmula QR v3
+  // Calcular viewBox usando la fórmula QR v3, ajustando para bordes
   const viewBox = useMemo(() => {
     if (!dataModules || dataModules <= 0) {
       console.error('Invalid dataModules:', dataModules);
       return '0 0 1 1';
     }
-    return `${QUIET_ZONE} ${QUIET_ZONE} ${dataModules} ${dataModules}`;
-  }, [dataModules, QUIET_ZONE]);
+    
+    // Obtener el ancho máximo de stroke para ajustar el viewBox
+    const maxStrokeWidth = Math.max(
+      getStyle('data.stroke.width', 0),
+      getStyle('eyes.stroke.width', 0)
+    );
+    
+    // Ajustar QUIET_ZONE para incluir espacio para los bordes
+    const adjustedQuietZone = QUIET_ZONE - maxStrokeWidth / 2;
+    const adjustedSize = dataModules + maxStrokeWidth;
+    
+    return `${adjustedQuietZone} ${adjustedQuietZone} ${adjustedSize} ${adjustedSize}`;
+  }, [dataModules, QUIET_ZONE, data?.styles]);
   
   // Renderizar definiciones (gradientes y efectos)
   const definitions = useMemo(() => {
@@ -622,26 +644,76 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
 function renderGradient(gradient: QRGradientDef, viewBoxSize: number): React.ReactElement {
   const key = `gradient-${gradient.id}`;
   
+  console.log('[EnhancedQRV3] 🚨 RENDERIZANDO GRADIENTE:', {
+    id: gradient.id,
+    type: gradient.gradient_type,
+    colors: gradient.colors,
+    angle: gradient.angle,
+    key: key
+  });
+  
   switch (gradient.gradient_type.toLowerCase()) {
     case 'linear':
-      // Si es per_module, usar objectBoundingBox, sino no especificar (usar default que funciona)
+      // Convert angle to SVG linear gradient coordinates
+      // SVG angles are measured clockwise from the positive X axis
+      const angle = gradient.angle || 90;
+      const radians = (angle * Math.PI) / 180;
+      
+      // Calculate end coordinates based on angle
+      // For SVG gradients, we need to project the angle onto a unit circle
+      const x2 = 50 + 50 * Math.cos(radians);
+      const y2 = 50 + 50 * Math.sin(radians);
+      
+      console.log(`[EnhancedQRV3] Linear gradient angle calculation:`, {
+        gradientId: gradient.id,
+        originalAngle: angle,
+        radians: radians,
+        x1: "50%",
+        y1: "50%", 
+        x2: `${x2}%`,
+        y2: `${y2}%`,
+        colors: gradient.colors,
+        stopDistribution: gradient.colors.length === 2 ? '30%-70% (60/40)' : 'uniform'
+      });
+      
       return (
         <linearGradient
           key={key}
           id={gradient.id}
-          x1="0%"
-          y1="0%"
-          x2={gradient.angle === 45 ? "100%" : gradient.angle === 90 ? "0%" : "100%"}
-          y2={gradient.angle === 45 ? "100%" : gradient.angle === 90 ? "100%" : "0%"}
+          x1="50%"
+          y1="50%"
+          x2={`${x2}%`}
+          y2={`${y2}%`}
           {...(gradient.per_module ? { gradientUnits: "objectBoundingBox" } : {})}
         >
-          {gradient.colors.map((color, i) => (
-            <stop
-              key={i}
-              offset={`${(i / (gradient.colors.length - 1)) * 100}%`}
-              stopColor={color}
-            />
-          ))}
+          {gradient.colors.map((color, i) => {
+            // Ajustar distribución SOLO para lineales - balance 60/40 visual
+            let offset;
+            if (gradient.colors.length === 2) {
+              // Para gradientes lineales: usar 30%-70% para balance visual 60/40
+              offset = i === 0 ? 30 : 70;
+            } else {
+              // Para más colores: distribución uniforme
+              offset = (i / (gradient.colors.length - 1)) * 100;
+            }
+            
+            console.log(`[EnhancedQRV3] Linear gradient stop ${i}:`, {
+              gradientType: gradient.gradient_type,
+              gradientId: gradient.id,
+              colorIndex: i,
+              color: color,
+              offset: `${offset}%`,
+              totalColors: gradient.colors.length
+            });
+            
+            return (
+              <stop
+                key={i}
+                offset={`${offset}%`}
+                stopColor={color}
+              />
+            );
+          })}
         </linearGradient>
       );
       
@@ -683,6 +755,56 @@ function renderGradient(gradient: QRGradientDef, viewBoxSize: number): React.Rea
               stopColor={color}
             />
           ))}
+        </radialGradient>
+      );
+      
+    case 'diamond':
+      // Diamond gradient using radial with transform - better centered
+      return (
+        <radialGradient
+          key={key}
+          id={gradient.id}
+          cx="50%"
+          cy="50%"
+          r="50%"
+          gradientUnits="objectBoundingBox"
+          gradientTransform="scale(1.8, 0.6) rotate(45, 0.5, 0.5)"
+        >
+          {gradient.colors.map((color, i) => (
+            <stop
+              key={i}
+              offset={`${(i / (gradient.colors.length - 1)) * 100}%`}
+              stopColor={color}
+            />
+          ))}
+        </radialGradient>
+      );
+      
+    case 'spiral':
+      // Spiral gradient using radial with multiple stops for effect
+      return (
+        <radialGradient
+          key={key}
+          id={gradient.id}
+          cx="50%"
+          cy="50%"
+          r="50%"
+          {...(gradient.per_module ? { gradientUnits: "objectBoundingBox" } : {})}
+        >
+          {gradient.colors.map((color, i) => {
+            // Create spiral effect by alternating colors more frequently
+            const stops = [];
+            for (let j = 0; j <= 100; j += 20) {
+              stops.push(
+                <stop
+                  key={`${i}-${j}`}
+                  offset={`${j}%`}
+                  stopColor={gradient.colors[j % gradient.colors.length]}
+                />
+              );
+            }
+            return stops;
+          }).flat()}
         </radialGradient>
       );
       

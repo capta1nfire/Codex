@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Grid3x3, Palette, Sparkles, Plus, X } from 'lucide-react';
+import { Grid3x3, Palette, Sparkles, Plus, X, Square, Maximize2, Droplets } from 'lucide-react';
 import { QRConfig } from '@/types/studio.types';
 import { QR_V3_DATA_PATTERNS } from '@/constants/qrV3Options';
 import { DATA_PATTERN_SVG_PATHS } from '@/constants/eyeStyleSvgPaths';
@@ -59,7 +59,7 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
               <Grid3x3 className="h-4 w-4 text-slate-600" />
               Forma del Patrón
             </Label>
-        <div className="grid grid-cols-7 gap-2 justify-items-center">
+        <div className="grid grid-cols-5 gap-2 justify-items-center">
           {QR_V3_DATA_PATTERNS.map((pattern) => {
             const svgPath = DATA_PATTERN_SVG_PATHS[pattern.value as keyof typeof DATA_PATTERN_SVG_PATHS];
             if (!svgPath) return null;
@@ -327,27 +327,117 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
                   </div>
                   
                   {/* Bordes */}
-                  <div className="flex items-center justify-between py-1">
-                    <div>
-                      <Label htmlFor="stroke-style" className="text-sm cursor-pointer">
-                        Bordes
-                      </Label>
-                      <p className="text-xs text-slate-500">Bordes blancos semitransparentes</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between py-1">
+                      <div>
+                        <Label htmlFor="stroke-style" className="text-sm cursor-pointer">
+                          Bordes
+                        </Label>
+                        <p className="text-xs text-slate-500">Bordes personalizables</p>
+                      </div>
+                      <Switch
+                        id="stroke-style"
+                        checked={config.gradient?.stroke_style?.enabled || false}
+                        onCheckedChange={(checked) => updateGradient({ 
+                          stroke_style: {
+                            ...(config.gradient?.stroke_style || {}),
+                            enabled: checked,
+                            color: config.gradient?.stroke_style?.color || '#FFFFFF',
+                            width: config.gradient?.stroke_style?.width || 0.5,
+                            opacity: config.gradient?.stroke_style?.opacity || 0.3
+                          }
+                        })}
+                        disabled={disabled}
+                      />
                     </div>
-                    <Switch
-                      id="stroke-style"
-                      checked={config.gradient?.stroke_style?.enabled || false}
-                      onCheckedChange={(checked) => updateGradient({ 
-                        stroke_style: {
-                          ...(config.gradient?.stroke_style || {}),
-                          enabled: checked,
-                          color: config.gradient?.stroke_style?.color || '#FFFFFF',
-                          width: config.gradient?.stroke_style?.width || 0.5,
-                          opacity: config.gradient?.stroke_style?.opacity || 0.3
-                        }
-                      })}
-                      disabled={disabled}
-                    />
+                    
+                    {/* Controles detallados de bordes */}
+                    {config.gradient?.stroke_style?.enabled && (
+                      <div className="space-y-3 pl-4">
+                        {/* Color del borde */}
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium text-slate-600">Color del Borde</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              type="color"
+                              value={config.gradient?.stroke_style?.color || '#FFFFFF'}
+                              onChange={(e) => updateGradient({ 
+                                stroke_style: {
+                                  ...(config.gradient?.stroke_style || {}),
+                                  color: e.target.value
+                                }
+                              })}
+                              className="h-9 w-12 cursor-pointer border border-slate-200 rounded"
+                              disabled={disabled}
+                            />
+                            <Input
+                              type="text"
+                              value={config.gradient?.stroke_style?.color || '#FFFFFF'}
+                              onChange={(e) => updateGradient({ 
+                                stroke_style: {
+                                  ...(config.gradient?.stroke_style || {}),
+                                  color: e.target.value
+                                }
+                              })}
+                              placeholder="#FFFFFF"
+                              className="flex-1 font-mono text-sm"
+                              disabled={disabled}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Control de Ancho del Borde */}
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium text-slate-600 flex items-center gap-2">
+                            <Maximize2 className="h-3 w-3" />
+                            Ancho: {(config.gradient?.stroke_style?.width || 0.5).toFixed(2)}
+                          </Label>
+                          <Slider
+                            value={[config.gradient?.stroke_style?.width || 0.5]}
+                            onValueChange={([value]) => updateGradient({ 
+                              stroke_style: {
+                                ...(config.gradient?.stroke_style || {}),
+                                width: value
+                              }
+                            })}
+                            min={0.1} // Backend validation requires minimum 0.1
+                            max={0.20} // Límite conservador para uso típico. Se puede ampliar hasta 3.0+ si se necesitan efectos dramáticos  
+                            step={0.01}
+                            className="w-full"
+                            disabled={disabled}
+                          />
+                          <div className="flex justify-between text-xs text-slate-500">
+                            <span>0.1 (Sutil)</span>
+                            <span>0.20 (Moderado)</span>
+                          </div>
+                          <p className="text-xs text-slate-400 italic">
+                            💡 Rango ampliable hasta 3.0 modificando el código para efectos dramáticos
+                          </p>
+                        </div>
+                        
+                        {/* Control de Opacidad */}
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium text-slate-600 flex items-center gap-2">
+                            <Droplets className="h-3 w-3" />
+                            Opacidad: {Math.round((config.gradient?.stroke_style?.opacity || 0.3) * 100)}% (mín: 10%)
+                          </Label>
+                          <Slider
+                            value={[config.gradient?.stroke_style?.opacity || 0.3]}
+                            onValueChange={([value]) => updateGradient({ 
+                              stroke_style: {
+                                ...(config.gradient?.stroke_style || {}),
+                                opacity: value
+                              }
+                            })}
+                            min={0.1} // Backend validation requires minimum 0.1 (10%)
+                            max={1.0}
+                            step={0.05}
+                            className="w-full"
+                            disabled={disabled}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
