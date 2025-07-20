@@ -591,6 +591,12 @@ export function QRGeneratorContainer() {
     if (watchedOptions.gradient_direction !== defaults.gradient_direction) return true;
     if (watchedOptions.gradient_borders !== defaults.gradient_borders) return true;
     
+    // Pattern and style options
+    if (watchedOptions.data_pattern !== defaults.data_pattern) return true;
+    if (watchedOptions.eye_shape !== defaults.eye_shape) return true;
+    if (watchedOptions.eye_border_style !== defaults.eye_border_style) return true;
+    if (watchedOptions.eye_center_style !== defaults.eye_center_style) return true;
+    
     return false;
   })();
   
@@ -1139,6 +1145,39 @@ export function QRGeneratorContainer() {
       onSubmit(currentFormValues);
     }
   }, [watchedData, selectedType, getValues, onSubmit, isInitialMount]);
+
+  // Regenerar QR cuando cambian opciones importantes de diseño
+  useEffect(() => {
+    // Solo para QR codes y después del mount inicial
+    if (selectedType !== 'qrcode' || isInitialMount) return;
+    
+    // Solo regenerar si hay datos
+    if (!watchedData || watchedData.trim() === '') return;
+    
+    // Solo regenerar si el usuario ha interactuado con las opciones
+    if (!hasChangedOptions) return;
+    
+    console.log('[QRGeneratorContainer] Design option changed, regenerating QR...');
+    const currentFormValues = getValues();
+    onSubmit(currentFormValues);
+  }, [
+    watchedOptions?.data_pattern,
+    watchedOptions?.eye_shape,
+    watchedOptions?.eye_border_style, 
+    watchedOptions?.eye_center_style,
+    watchedOptions?.gradient_enabled,
+    watchedOptions?.gradient_type,
+    watchedOptions?.gradient_color1,
+    watchedOptions?.gradient_color2,
+    watchedOptions?.gradient_angle,
+    watchedOptions?.gradient_per_module,
+    watchedOptions?.fgcolor,
+    watchedOptions?.bgcolor,
+    selectedType,
+    isInitialMount,
+    hasChangedOptions,
+    watchedData
+  ]);
 
   // Handle StudioProvider config changes - RESTAURADO CON DOBLE FUENTE
   useEffect(() => {

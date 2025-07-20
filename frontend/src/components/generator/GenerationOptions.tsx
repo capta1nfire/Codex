@@ -716,8 +716,9 @@ function GenerationOptions({
                         />
                       </div>
 
-                      {/* Gradient Angle Slider */}
-                      <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-md backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-sm p-3 rounded-lg">
+                      {/* Gradient Angle Slider - Only show for linear gradients */}
+                      {watch('options.gradient_type') === 'linear' && (
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-md backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-sm p-3 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <Label className="text-xs font-medium text-slate-600 dark:text-slate-400">Ángulo</Label>
                           <Controller
@@ -770,6 +771,7 @@ function GenerationOptions({
                           )}
                         />
                       </div>
+                      )}
 
                       {/* Gradient Options - Individual glassmorphism */}
                       <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-md backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-sm p-3 rounded-lg space-y-2">
