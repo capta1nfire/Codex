@@ -936,6 +936,14 @@ router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => 
       logoSizeRatio: transformedOptions?.customization?.logo_size_ratio,
       hasLogo: !!transformedOptions?.customization?.logo,
       logoData: transformedOptions?.customization?.logo?.data?.substring(0, 50) + '...',
+      logoDebug: transformedOptions?.customization?.logo ? {
+        dataLength: transformedOptions.customization.logo.data?.length,
+        dataPreview: transformedOptions.customization.logo.data?.substring(0, 150) + '...',
+        isSVG: transformedOptions.customization.logo.data?.includes('image/svg+xml'),
+        shape: transformedOptions.customization.logo.shape,
+        size: transformedOptions.customization.logo.size_percentage,
+        padding: transformedOptions.customization.logo.padding
+      } : 'No logo',
       selectiveEffects: JSON.stringify(
         transformedOptions?.customization?.selective_effects,
         null,
@@ -965,6 +973,16 @@ router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => 
       hasOverlays: !!rustResponse.data?.overlays,
       overlaysKeys: rustResponse.data?.overlays ? Object.keys(rustResponse.data.overlays) : null,
       hasLogo: !!rustResponse.data?.overlays?.logo,
+      logoDetails: rustResponse.data?.overlays?.logo ? {
+        src: rustResponse.data.overlays.logo.src?.substring(0, 100) + '...',
+        srcLength: rustResponse.data.overlays.logo.src?.length,
+        isSVG: rustResponse.data.overlays.logo.src?.includes('image/svg+xml'),
+        size: rustResponse.data.overlays.logo.size,
+        shape: rustResponse.data.overlays.logo.shape,
+        padding: rustResponse.data.overlays.logo.padding,
+        x: rustResponse.data.overlays.logo.x,
+        y: rustResponse.data.overlays.logo.y
+      } : 'No logo in response',
       dataKeys: rustResponse.data ? Object.keys(rustResponse.data) : null,
       hasDefinitions: !!rustResponse.data?.definitions,
       definitionsCount: rustResponse.data?.definitions?.length || 0,

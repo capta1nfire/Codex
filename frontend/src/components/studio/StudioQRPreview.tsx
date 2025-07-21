@@ -172,6 +172,29 @@ export function StudioQRPreview({
         };
       }
 
+      // Add logo if enabled
+      if (config.logo?.enabled && config.logo?.data) {
+        customization.logo = {
+          data: config.logo.data,
+          size_percentage: config.logo.size_percentage || 20,
+          padding: config.logo.padding || 5,
+          shape: config.logo.shape || 'square',
+        };
+        console.log('[StudioQRPreview] 🖼️ Logo added to customization:', {
+          dataLength: config.logo.data.length,
+          dataPreview: config.logo.data.substring(0, 100) + '...',
+          isSVG: config.logo.data.includes('image/svg+xml'),
+          size: customization.logo.size_percentage,
+          shape: customization.logo.shape
+        });
+      } else {
+        console.log('[StudioQRPreview] 🖼️ Logo not included:', {
+          enabled: config.logo?.enabled,
+          hasData: !!config.logo?.data,
+          dataLength: config.logo?.data?.length
+        });
+      }
+
       // Make API request
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',

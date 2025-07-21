@@ -905,7 +905,13 @@ function renderEffect(effect: QREffectDef): React.ReactElement {
 }
 
 function renderLogo(logo: QRLogo, totalModules: number, hasExclusion: boolean = false): React.ReactElement {
-  console.log('[renderLogo] Input:', { logo, totalModules, hasExclusion });
+  console.log('[renderLogo] Input:', { 
+    logo, 
+    totalModules, 
+    hasExclusion,
+    srcPreview: logo.src ? logo.src.substring(0, 100) + '...' : 'none',
+    isSVG: logo.src?.includes('image/svg+xml')
+  });
   
   // Logo size is a percentage of the total QR size
   const logoSize = totalModules * logo.size;
@@ -931,6 +937,10 @@ function renderLogo(logo: QRLogo, totalModules: number, hasExclusion: boolean = 
     rectSize: logoSize + paddingInUnits * 2
   });
   
+  // For SVG images, we need to handle them differently
+  // SVG in <image> tags sometimes have issues with data URIs
+  const logoSrc = logo.src;
+  
   return (
     <g key="logo-overlay">
       {/* Solo renderizar fondo blanco si NO hay exclusión nativa */}
@@ -945,15 +955,22 @@ function renderLogo(logo: QRLogo, totalModules: number, hasExclusion: boolean = 
         />
       )}
       
-      {/* Logo image */}
+      {/* Logo image - Using xlinkHref for better compatibility */}
       <image
-        href={logo.src}
+        href={logoSrc}
+        xlinkHref={logoSrc}
         x={logoX - logoSize/2}
         y={logoY - logoSize/2}
         width={logoSize}
         height={logoSize}
         preserveAspectRatio="xMidYMid meet"
         clipPath={logo.shape === 'circle' ? 'circle()' : undefined}
+        onError={(e) => {
+          console.error('[renderLogo] Image failed to load:', {
+            error: e,
+            src: logoSrc?.substring(0, 100) + '...'
+          });
+        }}
       />
     </g>
   );

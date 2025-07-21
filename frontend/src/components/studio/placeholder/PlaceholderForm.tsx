@@ -782,11 +782,20 @@ export function PlaceholderForm({
                           if (file && file.size <= 2 * 1024 * 1024) {
                             const reader = new FileReader();
                             reader.onloadend = () => {
-                              console.log('🖼️ [PlaceholderForm] Logo loaded for placeholder');
+                              const result = reader.result as string;
+                              console.log('🖼️ [PlaceholderForm] Logo loaded for placeholder:', {
+                                fileName: file.name,
+                                fileType: file.type,
+                                fileSize: file.size,
+                                isSVG: file.type === 'image/svg+xml',
+                                dataUriPreview: result.substring(0, 100) + '...',
+                                dataUriLength: result.length
+                              });
+                              
                               updateConfig({ 
                                 logo: { 
                                   ...config.logo,
-                                  data: reader.result as string,
+                                  data: result,
                                   enabled: true,
                                   size_percentage: config.logo?.size_percentage || 20,
                                   padding: config.logo?.padding || 5,
