@@ -68,7 +68,7 @@ export const SmartQRPreview: React.FC<SmartQRPreviewProps> = ({
               className="absolute inset-0 opacity-20"
               style={{
                 background: config.gradient.type === 'linear' 
-                  ? `linear-gradient(${config.gradient.angle || 0}deg, ${config.gradient.colors.join(', ')})`
+                  ? `linear-gradient(${config.gradient.angle !== undefined ? config.gradient.angle : 0}deg, ${config.gradient.colors.join(', ')})`
                   : config.gradient.type === 'radial'
                   ? `radial-gradient(circle, ${config.gradient.colors.join(', ')})`
                   : config.gradient.colors[0]

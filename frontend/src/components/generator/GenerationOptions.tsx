@@ -80,7 +80,7 @@ function GenerationOptions({
   const isQrCode = selectedType === 'qrcode';
   
   // Watch the separated eye styles toggle specifically
-  const useSeparatedEyeStyles = watch('options.use_separated_eye_styles');
+  const useSeparatedEyeStyles = watch('options.use_separated_eye_styles') ?? true;
   
   // Force re-render when toggle changes
   React.useEffect(() => {
@@ -89,6 +89,24 @@ function GenerationOptions({
     });
     return () => subscription.unsubscribe();
   }, [watch]);
+  
+  // Establecer valor inicial para estilos separados si no está definido
+  React.useEffect(() => {
+    const currentValue = getValues('options.use_separated_eye_styles');
+    console.log('[GenerationOptions] Initial use_separated_eye_styles value:', currentValue);
+    if (currentValue === undefined || currentValue === null || currentValue === false) {
+      console.log('[GenerationOptions] Setting use_separated_eye_styles to true (was:', currentValue, ')');
+      setValue('options.use_separated_eye_styles', true, { shouldValidate: false });
+      // Forzar actualización del valor
+      setTimeout(() => {
+        const newValue = getValues('options.use_separated_eye_styles');
+        console.log('[GenerationOptions] After setValue, new value is:', newValue);
+        if (!newValue) {
+          setValue('options.use_separated_eye_styles', true, { shouldValidate: true });
+        }
+      }, 100);
+    }
+  }, [getValues, setValue]);
 
 
   // ColorInput como componente interno memoizado
@@ -363,6 +381,153 @@ function GenerationOptions({
                         )}
                       />
                     </div>
+                  </div>
+                )}
+                
+                {/* Gradient Options - QR Only */}
+                {watch('options.gradient_enabled') && isQrCode && (
+                  <div className="space-y-3 animate-in fade-in-50 duration-200">
+                    {/* Gradient Type Selection */}
+                    <Controller
+                      name="options.gradient_type"
+                      control={control}
+                      defaultValue="linear"
+                      render={({ field }) => (
+                        <div className="grid grid-cols-5 gap-2">
+                          {[
+                            { value: 'linear', label: 'Linear', icon: '⬢' },
+                            { value: 'radial', label: 'Radial', icon: '◉' },
+                            { value: 'conic', label: 'Conic', icon: '◐' },
+                            { value: 'diamond', label: 'Diamond', icon: '◆' },
+                            { value: 'spiral', label: 'Spiral', icon: '🌀' },
+                          ].map((type) => (
+                            <button
+                              key={type.value}
+                              type="button"
+                              onClick={() => {
+                                field.onChange(type.value);
+                                setTimeout(() => {
+                                  const currentFormValues = getValues();
+                                  onSubmit(currentFormValues);
+                                }, 100);
+                              }}
+                              className={cn(
+                                "flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all",
+                                field.value === type.value
+                                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                  : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                              )}
+                            >
+                              <span className="text-lg mb-0.5">{type.icon}</span>
+                              <span className="text-xs">{type.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    />
+
+                    {/* Gradient Colors */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-sm text-slate-600 dark:text-slate-400">Color 1</Label>
+                        <Controller
+                          name="options.gradient_color1"
+                          control={control}
+                          defaultValue="#FF0066"
+                          render={({ field }) => (
+                            <ColorPickerPopover
+                              value={field.value || "#FF0066"}
+                              onChange={(color) => {
+                                field.onChange(color);
+                                setTimeout(() => {
+                                  const currentFormValues = getValues();
+                                  onSubmit(currentFormValues);
+                                }, 100);
+                              }}
+                              presetColors={presetColors}
+                              disabled={isLoading}
+                              placeholder="#FF0066"
+                            />
+                          )}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-sm text-slate-600 dark:text-slate-400">Color 2</Label>
+                        <Controller
+                          name="options.gradient_color2"
+                          control={control}
+                          defaultValue="#6600FF"
+                          render={({ field }) => (
+                            <ColorPickerPopover
+                              value={field.value || "#6600FF"}
+                              onChange={(color) => {
+                                field.onChange(color);
+                                setTimeout(() => {
+                                  const currentFormValues = getValues();
+                                  onSubmit(currentFormValues);
+                                }, 100);
+                              }}
+                              presetColors={presetColors}
+                              disabled={isLoading}
+                              placeholder="#6600FF"
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Swap Colors Button */}
+                    <button
+                      type="button"
+                      onClick={handleSwapColors}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200"
+                      disabled={isLoading}
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16" />
+                      </svg>
+                      <span className="text-sm font-medium">Intercambiar colores</span>
+                    </button>
+
+                    {/* Gradient Angle (for linear gradients) */}
+                    {watch('options.gradient_type') === 'linear' && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm text-slate-600 dark:text-slate-400">
+                            Ángulo del gradiente
+                          </Label>
+                          <span className="text-sm font-medium">
+                            {watch('options.gradient_angle') ?? 90}°
+                          </span>
+                        </div>
+                        <Controller
+                          name="options.gradient_angle"
+                          control={control}
+                          defaultValue={90}
+                          render={({ field }) => (
+                            <input
+                              type="range"
+                              min="0"
+                              max="360"
+                              step="15"
+                              value={field.value !== undefined ? field.value : 90}
+                              onChange={(e) => {
+                                field.onChange(Number(e.target.value));
+                                setTimeout(() => {
+                                  const currentFormValues = getValues();
+                                  onSubmit(currentFormValues);
+                                }, 100);
+                              }}
+                              disabled={isLoading}
+                              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                              style={{
+                                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((field.value !== undefined ? field.value : 90) / 360) * 100}%, #e2e8f0 ${((field.value !== undefined ? field.value : 90) / 360) * 100}%, #e2e8f0 100%)`
+                              }}
+                            />
+                          )}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -744,7 +909,7 @@ function GenerationOptions({
                             defaultValue={90}
                             render={({ field }) => (
                               <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
-                                {field.value || 90}°
+                                {field.value !== undefined ? field.value : 90}°
                               </span>
                             )}
                           />
@@ -759,27 +924,33 @@ function GenerationOptions({
                               min="0"
                               max="360"
                               step="15"
-                              value={field.value || 90}
+                              value={field.value !== undefined ? field.value : 90}
                               onChange={(e) => {
                                 const value = parseInt(e.target.value);
-                                console.log(`[GenerationOptions] Gradient angle changed:`, {
+                                console.log(`[GenerationOptions] 🔴 ANGLE SLIDER CHANGED - START:`, {
                                   newValue: value,
                                   fieldName: 'options.gradient_angle',
-                                  rawTargetValue: e.target.value
+                                  rawTargetValue: e.target.value,
+                                  currentFieldValue: field.value,
+                                  timestamp: new Date().toISOString()
                                 });
+                                
+                                // Aplicar el cambio al field
                                 field.onChange(value);
                                 
                                 // Log inmediato para verificar el cambio
-                                console.log(`[GenerationOptions] 🎯 ANGLE CHANGE - Before submit:`, {
+                                console.log(`[GenerationOptions] 🟡 ANGLE CHANGE - After field.onChange:`, {
                                   newAngle: value,
                                   fieldValue: field.value,
                                   gradientType: getValues('options.gradient_type'),
-                                  gradientEnabled: getValues('options.gradient_enabled')
+                                  gradientEnabled: getValues('options.gradient_enabled'),
+                                  fullOptions: getValues('options')
                                 });
                                 
+                                // Force immediate re-render
                                 setTimeout(() => {
                                   const currentFormValues = getValues();
-                                  console.log(`[GenerationOptions] 🎯 ANGLE CHANGE - After timeout:`, {
+                                  console.log(`[GenerationOptions] 🟢 ANGLE CHANGE - Before submit:`, {
                                     gradient_angle: currentFormValues.options?.gradient_angle,
                                     gradient_type: currentFormValues.options?.gradient_type,
                                     gradient_enabled: currentFormValues.options?.gradient_enabled,
@@ -787,9 +958,17 @@ function GenerationOptions({
                                   });
                                   
                                   // Log el objeto completo que se enviará
-                                  console.log(`[GenerationOptions] 🎯 ANGLE CHANGE - Full submission data:`, 
-                                    JSON.stringify(currentFormValues, null, 2)
-                                  );
+                                  console.log(`[GenerationOptions] 📤 ANGLE CHANGE - Full submission data:`, {
+                                    data: currentFormValues.data,
+                                    barcode_type: currentFormValues.barcode_type,
+                                    options: {
+                                      gradient_enabled: currentFormValues.options?.gradient_enabled,
+                                      gradient_type: currentFormValues.options?.gradient_type,
+                                      gradient_angle: currentFormValues.options?.gradient_angle,
+                                      gradient_color1: currentFormValues.options?.gradient_color1,
+                                      gradient_color2: currentFormValues.options?.gradient_color2
+                                    }
+                                  });
                                   
                                   onSubmit(currentFormValues);
                                 }, 100);
@@ -797,7 +976,7 @@ function GenerationOptions({
                               disabled={isLoading}
                               className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                               style={{
-                                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((field.value || 90) / 360) * 100}%, #e2e8f0 ${((field.value || 90) / 360) * 100}%, #e2e8f0 100%)`
+                                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((field.value !== undefined ? field.value : 90) / 360) * 100}%, #e2e8f0 ${((field.value !== undefined ? field.value : 90) / 360) * 100}%, #e2e8f0 100%)`
                               }}
                             />
                           )}
@@ -871,9 +1050,9 @@ function GenerationOptions({
               <div className="h-px bg-white dark:bg-slate-600 w-full"></div>
             </div>
 
-            {/* Eye Shapes Section - MOVED TO BOTTOM */}
+            {/* Eye Shapes Section - 2 columns layout like Data Pattern */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between">
                 <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                   Forma de Ojos (Esquinas)
                 </Label>
@@ -889,7 +1068,7 @@ function GenerationOptions({
                       </Label>
                       <Switch
                         id="separated-eyes"
-                        checked={field.value || false}
+                        checked={field.value !== false}
                         onCheckedChange={(checked) => {
                           field.onChange(checked);
                           // Clear unified style when enabling separated styles
@@ -923,7 +1102,7 @@ function GenerationOptions({
               </div>
 
               {/* Unified Eye Shape Selection */}
-              {!useSeparatedEyeStyles && (
+              {(!useSeparatedEyeStyles && false) && (
                 <Controller
                   key="unified-style"
                   name="options.eye_shape"
@@ -952,53 +1131,103 @@ function GenerationOptions({
                 />
               )}
 
-              {/* Separated Eye Styles */}
-              {useSeparatedEyeStyles && (
-                <div key="separated-styles" className="space-y-4 animate-in slide-in-from-top-2 duration-200">
-                  {/* Eye Border Style */}
-                  <div>
-                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
-                      Estilo del Borde
-                    </Label>
-                    <Controller
-                      name="options.eye_border_style"
-                      control={control}
-                      defaultValue="square"
-                      render={({ field }) => (
-                        <Select 
-                          value={field.value || 'square'} 
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            // Trigger form re-generation
-                            setTimeout(() => {
-                              const currentFormValues = getValues();
-                              onSubmit(currentFormValues);
-                            }, 100);
-                          }}
-                        >
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Selecciona un estilo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {QR_V3_EYE_BORDER_STYLES.map((shape) => (
-                              <SelectItem key={shape.value} value={shape.value}>
-                                <span className="flex items-center gap-2">
-                                  <span className="text-lg">{shape.icon}</span>
-                                  <span>{shape.label}</span>
-                                </span>
-                              </SelectItem>
+              {/* Separated Eye Styles - 2 Column Layout like Data Pattern */}
+              {(useSeparatedEyeStyles || true) && (
+                <div className="flex items-start gap-4">
+                  {/* Left column: Eye style selectors (49%) */}
+                  <div style={{ width: '49%' }} className="space-y-4">
+                    {/* Eye Border Style */}
+                    <div>
+                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
+                        Estilo del Borde
+                      </Label>
+                      <Controller
+                        name="options.eye_border_style"
+                        control={control}
+                        defaultValue="square"
+                        render={({ field }) => (
+                          <div className="grid grid-cols-5 gap-2">
+                            {QR_V3_EYE_BORDER_STYLES.slice(0, 10).map((style) => (
+                              <button
+                                key={style.value}
+                                type="button"
+                                onClick={() => {
+                                  field.onChange(style.value);
+                                  setTimeout(() => {
+                                    const currentFormValues = getValues();
+                                    onSubmit(currentFormValues);
+                                  }, 100);
+                                }}
+                                className={cn(
+                                  "aspect-square flex items-center justify-center p-3 rounded-lg border-2 transition-all backdrop-blur-md backdrop-saturate-150 shadow-sm",
+                                  field.value === style.value
+                                    ? "border-blue-500 bg-white/30 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400 shadow-md"
+                                    : "border-white/20 dark:border-white/10 hover:border-white/40 dark:hover:border-white/20 bg-white/30 dark:bg-gray-900/30 text-gray-500 dark:text-gray-500"
+                                )}
+                                disabled={isLoading}
+                                title={style.label}
+                              >
+                                <span className="text-xl">{style.icon}</span>
+                              </button>
                             ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
+                          </div>
+                        )}
+                      />
+                    </div>
 
-                  {/* Eye Borders/Frames Color Control */}
-                  <div>
-                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
-                      Color del Borde
-                    </Label>
+                    {/* Eye Center Style */}
+                    <div>
+                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
+                        Estilo del Centro
+                      </Label>
+                      <Controller
+                        name="options.eye_center_style"
+                        control={control}
+                        defaultValue="square"
+                        render={({ field }) => (
+                          <div className="grid grid-cols-5 gap-2">
+                            {QR_V3_EYE_CENTER_STYLES.map((style) => (
+                              <button
+                                key={style.value}
+                                type="button"
+                                onClick={() => {
+                                  field.onChange(style.value);
+                                  setTimeout(() => {
+                                    const currentFormValues = getValues();
+                                    onSubmit(currentFormValues);
+                                  }, 100);
+                                }}
+                                className={cn(
+                                  "aspect-square flex items-center justify-center p-3 rounded-lg border-2 transition-all backdrop-blur-md backdrop-saturate-150 shadow-sm",
+                                  field.value === style.value
+                                    ? "border-blue-500 bg-white/30 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400 shadow-md"
+                                    : "border-white/20 dark:border-white/10 hover:border-white/40 dark:hover:border-white/20 bg-white/30 dark:bg-gray-900/30 text-gray-500 dark:text-gray-500"
+                                )}
+                                disabled={isLoading}
+                                title={style.label}
+                              >
+                                <span className="text-xl">{style.icon}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Visual separator */}
+                  <div className="flex self-stretch">
+                    <div className="w-px bg-slate-200 dark:bg-slate-700"></div>
+                    <div className="w-px bg-white dark:bg-slate-600"></div>
+                  </div>
+                  
+                  {/* Right column: Color controls (49%) */}
+                  <div className="space-y-3" style={{ width: '49%' }}>
+                      {/* Eye Borders/Frames Color Control */}
+                      <div>
+                        <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
+                          Color del Borde
+                        </Label>
                     <Controller
                       name="options.eye_border_color_mode"
                       control={control}
@@ -1203,258 +1432,219 @@ function GenerationOptions({
                         );
                       }}
                     />
-                  </div>
+                    </div>
+                    
+                    {/* Eye Center Color Control */}
+                    <div>
+                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
+                        Color del Centro
+                      </Label>
+                      <Controller
+                        name="options.eye_color_mode"
+                        control={control}
+                        defaultValue="inherit"
+                        render={({ field: modeField }) => {
+                          const mode = modeField.value || 'inherit';
+                          
+                          return (
+                            <div className="space-y-2">
+                              {/* Compact Mode Selection */}
+                              <Select 
+                                value={mode} 
+                                onValueChange={(value) => {
+                                  modeField.onChange(value);
+                                  // Clear other fields when mode changes
+                                  if (value === 'inherit') {
+                                    setValue('options.eye_color_solid', undefined);
+                                    setValue('options.eye_color_gradient', undefined);
+                                  } else if (value === 'gradient') {
+                                    // Pre-load gradient colors from main gradient
+                                    const mainColor1 = getValues('options.gradient_color1') || '#000000';
+                                    const mainColor2 = getValues('options.gradient_color2') || '#666666';
+                                    setValue('options.eye_color_gradient', {
+                                      color1: mainColor1,
+                                      color2: mainColor2
+                                    });
+                                  }
+                                  setTimeout(() => {
+                                    const currentFormValues = getValues();
+                                    onSubmit(currentFormValues);
+                                  }, 100);
+                                }}
+                                disabled={isLoading}
+                              >
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="inherit">Heredar del patrón</SelectItem>
+                                  <SelectItem value="solid">Color sólido</SelectItem>
+                                  <SelectItem value="gradient">Gradiente</SelectItem>
+                                </SelectContent>
+                              </Select>
 
-                  {/* Eye Center Style */}
-                  <div>
-                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
-                      Estilo del Centro
-                    </Label>
-                    <Controller
-                      name="options.eye_center_style"
-                      control={control}
-                      defaultValue="square"
-                      render={({ field }) => (
-                        <Select 
-                          value={field.value || 'square'} 
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            // Trigger form re-generation
-                            setTimeout(() => {
-                              const currentFormValues = getValues();
-                              onSubmit(currentFormValues);
-                            }, 100);
-                          }}
-                        >
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Selecciona un estilo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {QR_V3_EYE_CENTER_STYLES.map((style) => (
-                              <SelectItem key={style.value} value={style.value}>
-                                <span className="flex items-center gap-2">
-                                  <span className="text-lg">{style.icon}</span>
-                                  <span>{style.label}</span>
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
-
-                  {/* Eye Centers Color Control */}
-                  <div>
-                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2 block">
-                      Color del Centro
-                    </Label>
-                    <Controller
-                      name="options.eye_color_mode"
-                      control={control}
-                      defaultValue="inherit"
-                      render={({ field: modeField }) => {
-                        const mode = modeField.value || 'inherit';
-                        
-                        return (
-                          <div className="space-y-2">
-                            {/* Compact Mode Selection */}
-                            <Select 
-                              value={mode} 
-                              onValueChange={(value) => {
-                                modeField.onChange(value);
-                                // Clear other fields when mode changes
-                                if (value === 'inherit') {
-                                  setValue('options.eye_color_solid', undefined);
-                                  setValue('options.eye_color_gradient', undefined);
-                                } else if (value === 'gradient') {
-                                  // Pre-load gradient colors from main gradient
-                                  const mainColor1 = getValues('options.gradient_color1') || '#000000';
-                                  const mainColor2 = getValues('options.gradient_color2') || '#666666';
-                                  setValue('options.eye_color_gradient', {
-                                    color1: mainColor1,
-                                    color2: mainColor2
-                                  });
-                                }
-                                setTimeout(() => {
-                                  const currentFormValues = getValues();
-                                  onSubmit(currentFormValues);
-                                }, 100);
-                              }}
-                              disabled={isLoading}
-                            >
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="inherit">Heredar del patrón</SelectItem>
-                                <SelectItem value="solid">Color sólido</SelectItem>
-                                <SelectItem value="gradient">Gradiente</SelectItem>
-                              </SelectContent>
-                            </Select>
-
-                            {/* Solid Color Option */}
-                            {mode === 'solid' && (
-                              <div className="animate-in slide-in-from-top-1 duration-200">
-                                <Controller
-                                  name="options.eye_color_solid"
-                                  control={control}
-                                  defaultValue="#000000"
-                                  render={({ field }) => (
-                                    <div className="flex gap-2 items-center">
-                                      <input
-                                        type="color"
-                                        value={field.value || '#000000'}
-                                        onChange={(e) => {
-                                          field.onChange(e.target.value);
-                                          setTimeout(() => {
-                                            const currentFormValues = getValues();
-                                            onSubmit(currentFormValues);
-                                          }, 100);
-                                        }}
-                                        className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
-                                        disabled={isLoading}
-                                      />
-                                      <Input
-                                        type="text"
-                                        value={field.value || '#000000'}
-                                        onChange={(e) => {
-                                          field.onChange(e.target.value);
-                                          setTimeout(() => {
-                                            const currentFormValues = getValues();
-                                            onSubmit(currentFormValues);
-                                          }, 100);
-                                        }}
-                                        disabled={isLoading}
-                                        placeholder="#000000"
-                                        className="h-8 text-xs flex-1"
-                                      />
-                                    </div>
-                                  )}
-                                />
-                              </div>
-                            )}
-
-                            {/* Gradient Option - Compact */}
-                            {mode === 'gradient' && (
-                              <div className="space-y-2 animate-in slide-in-from-top-1 duration-200">
-                                <div className="grid grid-cols-2 gap-2">
+                              {/* Solid Color Option */}
+                              {mode === 'solid' && (
+                                <div className="animate-in slide-in-from-top-1 duration-200">
                                   <Controller
-                                    name="options.eye_color_gradient.color1"
+                                    name="options.eye_color_solid"
                                     control={control}
-                                    defaultValue="#FF0066"
-                                    render={({ field }) => (
-                                      <div className="flex gap-1 items-center">
-                                        <input
-                                          type="color"
-                                          value={field.value || '#FF0066'}
-                                          onChange={(e) => {
-                                            field.onChange(e.target.value);
-                                            setTimeout(() => {
-                                              const currentFormValues = getValues();
-                                              onSubmit(currentFormValues);
-                                            }, 100);
-                                          }}
-                                          className="w-6 h-6 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
-                                          disabled={isLoading}
-                                        />
-                                        <Input
-                                          type="text"
-                                          value={field.value || '#FF0066'}
-                                          onChange={(e) => {
-                                            field.onChange(e.target.value);
-                                            setTimeout(() => {
-                                              const currentFormValues = getValues();
-                                              onSubmit(currentFormValues);
-                                            }, 100);
-                                          }}
-                                          disabled={isLoading}
-                                          placeholder="#FF0066"
-                                          className="h-6 text-xs flex-1"
-                                        />
-                                      </div>
-                                    )}
-                                  />
-                                  <Controller
-                                    name="options.eye_color_gradient.color2"
-                                    control={control}
-                                    defaultValue="#6600FF"
-                                    render={({ field }) => (
-                                      <div className="flex gap-1 items-center">
-                                        <input
-                                          type="color"
-                                          value={field.value || '#6600FF'}
-                                          onChange={(e) => {
-                                            field.onChange(e.target.value);
-                                            setTimeout(() => {
-                                              const currentFormValues = getValues();
-                                              onSubmit(currentFormValues);
-                                            }, 100);
-                                          }}
-                                          className="w-6 h-6 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
-                                          disabled={isLoading}
-                                        />
-                                        <Input
-                                          type="text"
-                                          value={field.value || '#6600FF'}
-                                          onChange={(e) => {
-                                            field.onChange(e.target.value);
-                                            setTimeout(() => {
-                                              const currentFormValues = getValues();
-                                              onSubmit(currentFormValues);
-                                            }, 100);
-                                          }}
-                                          disabled={isLoading}
-                                          placeholder="#6600FF"
-                                          className="h-6 text-xs flex-1"
-                                        />
-                                      </div>
-                                    )}
-                                  />
-                                </div>
-                                
-                                {/* Angle Control for Eye Center Gradient */}
-                                <div className="mt-2">
-                                  <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
-                                    Ángulo del Gradiente
-                                  </Label>
-                                  <Controller
-                                    name="options.eye_color_gradient.angle"
-                                    control={control}
-                                    defaultValue={0}
+                                    defaultValue="#000000"
                                     render={({ field }) => (
                                       <div className="flex gap-2 items-center">
-                                        <Input
-                                          type="range"
-                                          min="0"
-                                          max="360"
-                                          step="15"
-                                          value={field.value || 0}
+                                        <input
+                                          type="color"
+                                          value={field.value || '#000000'}
                                           onChange={(e) => {
-                                            field.onChange(Number(e.target.value));
+                                            field.onChange(e.target.value);
+                                            setTimeout(() => {
+                                              const currentFormValues = getValues();
+                                              onSubmit(currentFormValues);
+                                            }, 100);
+                                          }}
+                                          className="w-8 h-8 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+                                          disabled={isLoading}
+                                        />
+                                        <Input
+                                          type="text"
+                                          value={field.value || '#000000'}
+                                          onChange={(e) => {
+                                            field.onChange(e.target.value);
                                             setTimeout(() => {
                                               const currentFormValues = getValues();
                                               onSubmit(currentFormValues);
                                             }, 100);
                                           }}
                                           disabled={isLoading}
-                                          className="flex-1"
+                                          placeholder="#000000"
+                                          className="h-8 text-xs flex-1"
                                         />
-                                        <div className="w-12 text-xs text-right">
-                                          {field.value || 0}°
-                                        </div>
                                       </div>
                                     )}
                                   />
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                  </div>
+                              )}
 
+                              {/* Gradient Option - Compact */}
+                              {mode === 'gradient' && (
+                                <div className="space-y-2 animate-in slide-in-from-top-1 duration-200">
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <Controller
+                                      name="options.eye_color_gradient.color1"
+                                      control={control}
+                                      defaultValue="#FF0066"
+                                      render={({ field }) => (
+                                        <div className="flex gap-1 items-center">
+                                          <input
+                                            type="color"
+                                            value={field.value || '#FF0066'}
+                                            onChange={(e) => {
+                                              field.onChange(e.target.value);
+                                              setTimeout(() => {
+                                                const currentFormValues = getValues();
+                                                onSubmit(currentFormValues);
+                                              }, 100);
+                                            }}
+                                            className="w-6 h-6 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+                                            disabled={isLoading}
+                                          />
+                                          <Input
+                                            type="text"
+                                            value={field.value || '#FF0066'}
+                                            onChange={(e) => {
+                                              field.onChange(e.target.value);
+                                              setTimeout(() => {
+                                                const currentFormValues = getValues();
+                                                onSubmit(currentFormValues);
+                                              }, 100);
+                                            }}
+                                            disabled={isLoading}
+                                            placeholder="#FF0066"
+                                            className="h-6 text-xs flex-1"
+                                          />
+                                        </div>
+                                      )}
+                                    />
+                                    <Controller
+                                      name="options.eye_color_gradient.color2"
+                                      control={control}
+                                      defaultValue="#6600FF"
+                                      render={({ field }) => (
+                                        <div className="flex gap-1 items-center">
+                                          <input
+                                            type="color"
+                                            value={field.value || '#6600FF'}
+                                            onChange={(e) => {
+                                              field.onChange(e.target.value);
+                                              setTimeout(() => {
+                                                const currentFormValues = getValues();
+                                                onSubmit(currentFormValues);
+                                              }, 100);
+                                            }}
+                                            className="w-6 h-6 p-0 border border-slate-200 dark:border-slate-600 rounded cursor-pointer"
+                                            disabled={isLoading}
+                                          />
+                                          <Input
+                                            type="text"
+                                            value={field.value || '#6600FF'}
+                                            onChange={(e) => {
+                                              field.onChange(e.target.value);
+                                              setTimeout(() => {
+                                                const currentFormValues = getValues();
+                                                onSubmit(currentFormValues);
+                                              }, 100);
+                                            }}
+                                            disabled={isLoading}
+                                            placeholder="#6600FF"
+                                            className="h-6 text-xs flex-1"
+                                          />
+                                        </div>
+                                      )}
+                                    />
+                                  </div>
+                                  
+                                  {/* Angle Control for Eye Center Gradient */}
+                                  <div className="mt-2">
+                                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                                      Ángulo del Gradiente
+                                    </Label>
+                                    <Controller
+                                      name="options.eye_color_gradient.angle"
+                                      control={control}
+                                      defaultValue={0}
+                                      render={({ field }) => (
+                                        <div className="flex gap-2 items-center">
+                                          <Input
+                                            type="range"
+                                            min="0"
+                                            max="360"
+                                            step="15"
+                                            value={field.value || 0}
+                                            onChange={(e) => {
+                                              field.onChange(Number(e.target.value));
+                                              setTimeout(() => {
+                                                const currentFormValues = getValues();
+                                                onSubmit(currentFormValues);
+                                              }, 100);
+                                            }}
+                                            disabled={isLoading}
+                                            className="flex-1"
+                                          />
+                                          <div className="w-12 text-xs text-right">
+                                            {field.value || 0}°
+                                          </div>
+                                        </div>
+                                      )}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

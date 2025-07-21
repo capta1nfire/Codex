@@ -327,7 +327,7 @@ export const useQRGenerationState = () => {
             enabled: true,
             gradient_type: smartConfig.gradient.type || 'linear',
             colors: smartConfig.gradient.colors || ['#000000', '#666666'],
-            angle: smartConfig.gradient.angle || 0,
+            angle: smartConfig.gradient.angle !== undefined ? smartConfig.gradient.angle : 0,
             apply_to_data: true,
             apply_to_eyes: smartConfig.gradient.applyToEyes === true, // false por defecto
             stroke_style: smartConfig.gradient.borders ? {
@@ -397,6 +397,18 @@ export const useQRGenerationState = () => {
         // Generate with v3 Enhanced for regular QR
         // Removed verbose logging for production
         
+        // Log para verificar herencia de ángulo en gradientes de ojos
+        if ((formData.options?.eye_border_color_mode === 'inherit' || formData.options?.eye_border_color_mode === undefined) && 
+            formData.options?.gradient_enabled && formData.options?.gradient_apply_to_eyes) {
+          console.log('[useQRGenerationState] 👁️ Eye gradient inheriting from main gradient:', {
+            mainGradientAngle: formData.options?.gradient_angle,
+            eyeBorderColorMode: formData.options?.eye_border_color_mode,
+            eyeColorMode: formData.options?.eye_color_mode,
+            gradientEnabled: formData.options?.gradient_enabled,
+            applyToEyes: formData.options?.gradient_apply_to_eyes
+          });
+        }
+        
         const customizationConfig = {
           // Only include eye_shape if NOT using separated styles
           ...(formData.options?.use_separated_eye_styles ? {} : {
@@ -454,8 +466,9 @@ export const useQRGenerationState = () => {
           })(),
           // Still pass the new fields for future backend support
           // ✅ Si apply_to_eyes es true y no hay modo específico, usar 'inherit'
+          // Si gradient_apply_to_eyes es false, no configurar el modo (para que no herede)
           ...(formData.options?.eye_color_mode || (formData.options?.gradient_apply_to_eyes && formData.options?.gradient_enabled) ? {
-            eye_color_mode: formData.options.eye_color_mode || 'inherit'
+            eye_color_mode: formData.options.eye_color_mode || (formData.options?.gradient_apply_to_eyes ? 'inherit' : undefined)
           } : {}),
           ...(formData.options?.eye_color_solid ? {
             eye_color_solid: formData.options.eye_color_solid
@@ -464,8 +477,9 @@ export const useQRGenerationState = () => {
             eye_color_gradient: formData.options.eye_color_gradient
           } : {}),
           // ✅ Si apply_to_eyes es true y no hay modo específico, usar 'inherit'
+          // Si gradient_apply_to_eyes es false, no configurar el modo (para que no herede)
           ...(formData.options?.eye_border_color_mode || (formData.options?.gradient_apply_to_eyes && formData.options?.gradient_enabled) ? {
-            eye_border_color_mode: formData.options.eye_border_color_mode || 'inherit'
+            eye_border_color_mode: formData.options.eye_border_color_mode || (formData.options?.gradient_apply_to_eyes ? 'inherit' : undefined)
           } : {}),
           ...(formData.options?.eye_border_color_solid ? {
             eye_border_color_solid: formData.options.eye_border_color_solid
@@ -493,7 +507,7 @@ export const useQRGenerationState = () => {
                   ],
               angle: formData.options?.eye_border_color_mode === 'gradient'
                 ? (formData.options.eye_border_color_gradient?.angle ?? 0)
-                : (formData.options.gradient_angle ?? 0)
+                : (formData.options.gradient_angle ?? 90)
             }
           } : {}),
           // Add eye center gradient configuration if gradient mode is selected for centers OR if inherit mode with gradient enabled
@@ -516,7 +530,7 @@ export const useQRGenerationState = () => {
                   ],
               angle: formData.options?.eye_color_mode === 'gradient'
                 ? (formData.options.eye_color_gradient?.angle ?? 0)
-                : (formData.options.gradient_angle ?? 0)
+                : (formData.options.gradient_angle ?? 90)
             }
           } : {}),
           // Add fixed size if specified
@@ -570,6 +584,15 @@ export const useQRGenerationState = () => {
         };
         
         // Final customizationConfig constructed
+        
+        // Log gradiente de ojos para debug
+        if (customizationConfig.eye_border_gradient || customizationConfig.eye_center_gradient) {
+          console.log('[useQRGenerationState] 🎯 Eye gradients in final config:', {
+            eye_border_gradient: customizationConfig.eye_border_gradient,
+            eye_center_gradient: customizationConfig.eye_center_gradient,
+            main_gradient_angle: formData.options?.gradient_angle
+          });
+        }
         
         await v3Enhanced.generateEnhancedQR(
           formData.data,

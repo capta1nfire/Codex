@@ -638,9 +638,9 @@ export function QRGeneratorContainer() {
                           !hasUserStartedTyping;
       
       if (isOnMainPage && configs.length === 0) {
-        console.log('[InitialMount] Waiting for StudioProvider configs to load...');
-        // Defer to StudioProvider useEffect to handle this
-        return;
+        console.log('[InitialMount] No StudioProvider configs, continuing with public API...');
+        // Don't wait indefinitely - continue with public API
+        // return;  // REMOVED - don't block initial generation
       }
       
       // Obtener configuración del placeholder - DOBLE FUENTE: Studio Provider + API Pública
@@ -671,7 +671,8 @@ export function QRGeneratorContainer() {
             placeholderConfig = response.config.config;
             console.log('[InitialMount] Using public placeholder config:', {
               hasConfig: true,
-              updatedAt: response.config.updatedAt
+              updatedAt: response.config.updatedAt,
+              use_separated_eye_styles: placeholderConfig.use_separated_eye_styles
             });
           }
         } catch (error) {
@@ -710,10 +711,13 @@ export function QRGeneratorContainer() {
         initialFormData.options = {
           ...initialFormData.options,
           ...formOptions,
+          // Asegurar que use_separated_eye_styles mantenga el valor por defecto si no viene del placeholder
+          use_separated_eye_styles: formOptions.use_separated_eye_styles ?? initialFormData.options.use_separated_eye_styles ?? true,
         };
         
         console.log('[InitialMount] 🔥 DEBUG finalFormData.options:', initialFormData.options);
         console.log('[InitialMount] 📐 FINAL gradient_angle in options:', initialFormData.options.gradient_angle);
+        console.log('[InitialMount] 🎯 FINAL use_separated_eye_styles:', initialFormData.options.use_separated_eye_styles);
       }
       
       // Aplicar los valores iniciales al formulario
@@ -721,6 +725,13 @@ export function QRGeneratorContainer() {
       
       // FORCE UPDATE: Asegurar que los valores se apliquen inmediatamente
       setValue('options', initialFormData.options, { shouldValidate: false, shouldDirty: false });
+      
+      // CRITICAL: Forzar use_separated_eye_styles a true si no está definido
+      const currentSeparatedValue = getValues('options.use_separated_eye_styles');
+      if (currentSeparatedValue === undefined || currentSeparatedValue === null) {
+        console.log('[QRGeneratorContainer] Forcing use_separated_eye_styles to true');
+        setValue('options.use_separated_eye_styles', true, { shouldValidate: false });
+      }
 
       // Generar el código de barras inicial con los datos del formulario actualizados
       // Esto asegura que la primera visualización use la configuración del placeholder
@@ -916,7 +927,7 @@ export function QRGeneratorContainer() {
               gradient_borders: placeholderConfig.gradient?.stroke_style?.enabled ?? currentFormData.options.gradient_borders,
               
               // Eye styles - Critical fix: properly apply separated eye styles from config
-              use_separated_eye_styles: placeholderConfig.use_separated_eye_styles ?? currentFormData.options.use_separated_eye_styles,
+              use_separated_eye_styles: placeholderConfig.use_separated_eye_styles ?? currentFormData.options.use_separated_eye_styles ?? true,
               
               // Apply eye styles based on configuration
               ...(placeholderConfig.use_separated_eye_styles || placeholderConfig.eye_border_style || placeholderConfig.eye_center_style ? {
@@ -987,6 +998,12 @@ export function QRGeneratorContainer() {
             
             // Update form values
             setValue('options', updatedOptions);
+            
+            // CRITICAL: Ensure use_separated_eye_styles is true if not defined
+            if (updatedOptions.use_separated_eye_styles === undefined || updatedOptions.use_separated_eye_styles === null) {
+              console.log('[Window Focus] Forcing use_separated_eye_styles to true');
+              setValue('options.use_separated_eye_styles', true, { shouldValidate: false });
+            }
             
             // Generate with new config (use current function reference)
             const { generateQR } = qrGenerationState;
@@ -1080,7 +1097,15 @@ export function QRGeneratorContainer() {
       gradient_type: (['linear', 'radial', 'conic', 'diamond', 'spiral'].includes(placeholderConfig.gradient?.gradient_type) ? placeholderConfig.gradient.gradient_type : currentFormData.options.gradient_type) || 'linear',
       gradient_color1: placeholderConfig.gradient?.colors?.[0] || currentFormData.options.gradient_color1,
       gradient_color2: placeholderConfig.gradient?.colors?.[1] || currentFormData.options.gradient_color2,
-      gradient_angle: placeholderConfig.gradient?.angle ?? currentFormData.options.gradient_angle,
+      gradient_angle: (() => {
+        const angle = placeholderConfig.gradient?.angle ?? currentFormData.options.gradient_angle;
+        console.log('[QRGeneratorContainer STUDIOPROVIDER] 📐 Setting gradient_angle:', {
+          fromPlaceholder: placeholderConfig.gradient?.angle,
+          fromCurrentForm: currentFormData.options.gradient_angle,
+          finalValue: angle
+        });
+        return angle;
+      })(),
       gradient_apply_to_eyes: placeholderConfig.gradient?.apply_to_eyes ?? currentFormData.options.gradient_apply_to_eyes,
       
       // Eye styles - CRITICAL mapping
@@ -1247,7 +1272,15 @@ export function QRGeneratorContainer() {
           gradient_type: (['linear', 'radial', 'conic', 'diamond', 'spiral'].includes(placeholderConfig.gradient?.gradient_type) ? placeholderConfig.gradient.gradient_type : currentFormData.options.gradient_type) || 'linear',
           gradient_color1: placeholderConfig.gradient?.colors?.[0] || currentFormData.options.gradient_color1,
           gradient_color2: placeholderConfig.gradient?.colors?.[1] || currentFormData.options.gradient_color2,
-          gradient_angle: placeholderConfig.gradient?.angle ?? currentFormData.options.gradient_angle,
+          gradient_angle: (() => {
+            const angle = placeholderConfig.gradient?.angle ?? currentFormData.options.gradient_angle;
+            console.log('[QRGeneratorContainer useEffect SYNC] 📐 Setting gradient_angle:', {
+              fromPlaceholder: placeholderConfig.gradient?.angle,
+              fromCurrentForm: currentFormData.options.gradient_angle,
+              finalValue: angle
+            });
+            return angle;
+          })(),
           gradient_apply_to_eyes: placeholderConfig.gradient?.apply_to_eyes ?? currentFormData.options.gradient_apply_to_eyes,
           gradient_per_module: placeholderConfig.gradient?.per_module ?? currentFormData.options.gradient_per_module,
           gradient_borders: placeholderConfig.gradient?.stroke_style?.enabled ?? currentFormData.options.gradient_borders,

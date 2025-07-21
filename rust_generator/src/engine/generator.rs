@@ -3712,6 +3712,11 @@ impl QrCode {
                                     x1: 0.5, y1: 0.5, x2: 1.0, y2: 1.0,
                                 })
                             },
+                            crate::engine::types::GradientType::Linear => {
+                                // Para gradientes lineales, las coordenadas se calculan en el frontend basándose en el ángulo
+                                // Pero necesitamos pasar None para que el frontend sepa que debe calcularlas
+                                None
+                            },
                             _ => None,
                         },
                         per_module: None,
@@ -3739,6 +3744,11 @@ impl QrCode {
                                 Some(crate::engine::types::GradientCoords {
                                     x1: 0.5, y1: 0.5, x2: 0.5, y2: 0.5,  // Más centrado para el centro del ojo
                                 })
+                            },
+                            crate::engine::types::GradientType::Linear => {
+                                // Para gradientes lineales, las coordenadas se calculan en el frontend basándose en el ángulo
+                                // Pero necesitamos pasar None para que el frontend sepa que debe calcularlas
+                                None
                             },
                             _ => None,
                         },
@@ -3770,6 +3780,10 @@ impl QrCode {
                                         x1: 0.5, y1: 0.5, x2: 1.0, y2: 1.0,
                                     })
                                 },
+                                crate::engine::types::GradientType::Linear => {
+                                    // Para gradientes lineales, las coordenadas se calculan en el frontend basándose en el ángulo
+                                    None
+                                },
                                 _ => None,
                             },
                             per_module: None,
@@ -3797,6 +3811,10 @@ impl QrCode {
                                     Some(crate::engine::types::GradientCoords {
                                         x1: 0.5, y1: 0.5, x2: 0.5, y2: 0.5,
                                     })
+                                },
+                                crate::engine::types::GradientType::Linear => {
+                                    // Para gradientes lineales, las coordenadas se calculan en el frontend basándose en el ángulo
+                                    None
                                 },
                                 _ => None,
                             },

@@ -134,7 +134,7 @@ export function StudioQRPreview({
           enabled: true,
           gradient_type: config.gradient.gradient_type || 'linear',
           colors: config.gradient.colors || ['#000000', '#666666'],
-          angle: config.gradient.angle || 0,
+          angle: config.gradient.angle !== undefined ? config.gradient.angle : 0,
           apply_to_eyes: config.gradient.apply_to_eyes || false,
           apply_to_data: config.gradient.apply_to_data !== false,
           // Ensure stroke_style has all required fields

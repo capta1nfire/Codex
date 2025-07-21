@@ -195,6 +195,7 @@ const customizationSchema = z
           .min(2)
           .max(5)
           .optional(),
+        angle: z.number().min(0).max(360).optional(), // ✅ Added missing angle field for eye borders
       })
       .optional(),
     eye_center_gradient: z
@@ -206,6 +207,7 @@ const customizationSchema = z
           .min(2)
           .max(5)
           .optional(),
+        angle: z.number().min(0).max(360).optional(), // ✅ Added missing angle field for eye centers
       })
       .optional(),
     eye_shape: z

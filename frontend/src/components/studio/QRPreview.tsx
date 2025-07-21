@@ -110,7 +110,7 @@ export function QRPreview({
         id: 'qr-gradient',
         gradient_type: config.gradient.gradient_type || 'linear',
         colors: config.gradient.colors,
-        angle: config.gradient.angle || 0
+        angle: config.gradient.angle !== undefined ? config.gradient.angle : 0
       }];
     }
     

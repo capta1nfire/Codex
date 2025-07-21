@@ -225,9 +225,24 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
       id: def.id,
       type: (def as QRGradientDef).gradient_type,
       colors: (def as QRGradientDef).colors,
-      angle: (def as QRGradientDef).angle
+      angle: (def as QRGradientDef).angle,
+      hasAngle: (def as QRGradientDef).angle !== undefined,
+      angleValue: (def as QRGradientDef).angle ?? 'undefined'
     }))
   });
+  
+  // Log específico para gradientes de ojos
+  const eyeGradients = data?.definitions?.filter(def => 
+    def.type === 'gradient' && (def.id.includes('eye') || def.id === 'grad_eyes')
+  );
+  if (eyeGradients && eyeGradients.length > 0) {
+    console.log('[EnhancedQRV3] 👁️ Eye gradients detail:', eyeGradients.map(grad => ({
+      id: grad.id,
+      angle: (grad as QRGradientDef).angle,
+      type: (grad as QRGradientDef).gradient_type,
+      colors: (grad as QRGradientDef).colors
+    })));
+  }
   
   // EnhancedQRV3 render initialized with data
   
@@ -303,15 +318,37 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
             );
           } else {
             // Linear gradient (default)
-            const angle = gradDef.angle || 0;
+            const angle = gradDef.angle !== undefined ? gradDef.angle : 90;
+            
+            // Calculate gradient coordinates based on angle
+            // Convert angle to radians
+            const angleRad = (angle * Math.PI) / 180;
+            
+            // Calculate gradient vector
+            // Use the same formula as renderGradient for consistency
+            // SVG angles are measured clockwise from the positive X axis
+            const x2 = 50 + 50 * Math.cos(angleRad);
+            const y2 = 50 + 50 * Math.sin(angleRad);
+            const x1 = 50;
+            const y1 = 50;
+            
+            console.log(`[EnhancedQRV3] 📐 Linear gradient calculation for ${gradientId}:`, {
+              angle,
+              angleRad,
+              x1: `${x1}%`,
+              y1: `${y1}%`,
+              x2: `${x2}%`,
+              y2: `${y2}%`
+            });
+            
             defs.push(
               <linearGradient
                 key={gradientId}
                 id={gradientId}
-                x1="0%"
-                y1="0%"
-                x2={angle === 45 ? "100%" : angle === 90 ? "0%" : "100%"}
-                y2={angle === 45 ? "100%" : angle === 90 ? "100%" : "0%"}
+                x1="50%"
+                y1="50%"
+                x2={`${x2}%`}
+                y2={`${y2}%`}
                 gradientUnits="objectBoundingBox"
               >
                 <stop offset="0%" stopColor={gradDef.colors[0]} />
@@ -656,7 +693,7 @@ function renderGradient(gradient: QRGradientDef, viewBoxSize: number): React.Rea
     case 'linear':
       // Convert angle to SVG linear gradient coordinates
       // SVG angles are measured clockwise from the positive X axis
-      const angle = gradient.angle || 90;
+      const angle = gradient.angle !== undefined ? gradient.angle : 90;
       const radians = (angle * Math.PI) / 180;
       
       // Calculate end coordinates based on angle
