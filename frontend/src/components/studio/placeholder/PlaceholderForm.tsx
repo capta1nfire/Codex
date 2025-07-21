@@ -161,10 +161,11 @@ export function PlaceholderForm({
         )}
       </div>
       <Tabs defaultValue="basics" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="basics">Básico</TabsTrigger>
           <TabsTrigger value="colors">Colores</TabsTrigger>
           <TabsTrigger value="effects">Efectos</TabsTrigger>
+          <TabsTrigger value="logo">Logo</TabsTrigger>
         </TabsList>
 
         {/* Configuración Básica */}
@@ -720,6 +721,189 @@ export function PlaceholderForm({
                 );
               })}
             </div>
+          </div>
+        </TabsContent>
+
+        {/* Logo */}
+        <TabsContent value="logo" className="space-y-4 mt-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold">Logo del Placeholder</Label>
+              <Badge variant="secondary" className="text-xs">
+                Solo visible en placeholder
+              </Badge>
+            </div>
+            
+            {/* Enable Logo Toggle */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+              <Label htmlFor="logo-enabled" className="text-sm font-medium cursor-pointer">
+                Mostrar Logo
+              </Label>
+              <Switch
+                id="logo-enabled"
+                checked={config.logo?.enabled || false}
+                onCheckedChange={(checked) => {
+                  updateConfig({ 
+                    logo: { 
+                      ...config.logo,
+                      enabled: checked,
+                      size_percentage: config.logo?.size_percentage || 20,
+                      padding: config.logo?.padding || 5,
+                      shape: config.logo?.shape || 'square'
+                    } 
+                  });
+                  markTouched('logo.enabled');
+                }}
+              />
+            </div>
+
+            {config.logo?.enabled && (
+              <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+                {/* File Upload */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Imagen del Logo</Label>
+                  <div className="flex items-center justify-center w-full">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-200 border-dashed rounded-lg cursor-pointer bg-slate-50 dark:bg-slate-800/50 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Shapes className="w-8 h-8 mb-2 text-slate-400" />
+                        <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
+                          <span className="font-semibold">Click para subir</span>
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          PNG, JPG, SVG (MAX. 2MB)
+                        </p>
+                      </div>
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file && file.size <= 2 * 1024 * 1024) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              console.log('🖼️ [PlaceholderForm] Logo loaded for placeholder');
+                              updateConfig({ 
+                                logo: { 
+                                  ...config.logo,
+                                  data: reader.result as string,
+                                  enabled: true,
+                                  size_percentage: config.logo?.size_percentage || 20,
+                                  padding: config.logo?.padding || 5,
+                                  shape: config.logo?.shape || 'square'
+                                } 
+                              });
+                              markTouched('logo.data');
+                            };
+                            reader.readAsDataURL(file);
+                          } else if (file) {
+                            toast.error('El archivo es demasiado grande. Máximo 2MB.');
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  {config.logo?.data && (
+                    <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <span className="text-sm text-green-600 dark:text-green-400">Logo cargado</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateConfig({ 
+                            logo: { 
+                              ...config.logo,
+                              data: undefined
+                            } 
+                          });
+                          markTouched('logo.data');
+                        }}
+                        className="text-sm text-red-600 hover:text-red-700"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Logo Size */}
+                <div className="space-y-2">
+                  <Label className="flex items-center justify-between">
+                    <span>Tamaño del Logo</span>
+                    <span className="text-sm font-semibold text-blue-600">
+                      {config.logo?.size_percentage || 20}%
+                    </span>
+                  </Label>
+                  <Slider
+                    value={[config.logo?.size_percentage || 20]}
+                    onValueChange={([value]) => {
+                      updateConfig({ 
+                        logo: { 
+                          ...config.logo,
+                          size_percentage: value
+                        } 
+                      });
+                      markTouched('logo.size_percentage');
+                    }}
+                    min={10}
+                    max={30}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Logo Shape */}
+                <div className="space-y-2">
+                  <Label>Forma del Logo</Label>
+                  <Select
+                    value={config.logo?.shape || 'square'}
+                    onValueChange={(value: 'square' | 'circle' | 'rounded_square') => {
+                      updateConfig({ 
+                        logo: { 
+                          ...config.logo,
+                          shape: value
+                        } 
+                      });
+                      markTouched('logo.shape');
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="square">Cuadrado</SelectItem>
+                      <SelectItem value="circle">Círculo</SelectItem>
+                      <SelectItem value="rounded_square">Cuadrado Redondeado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Logo Padding */}
+                <div className="space-y-2">
+                  <Label className="flex items-center justify-between">
+                    <span>Relleno del Logo</span>
+                    <span className="text-sm font-semibold text-blue-600">
+                      {config.logo?.padding || 5}px
+                    </span>
+                  </Label>
+                  <Slider
+                    value={[config.logo?.padding || 5]}
+                    onValueChange={([value]) => {
+                      updateConfig({ 
+                        logo: { 
+                          ...config.logo,
+                          padding: value
+                        } 
+                      });
+                      markTouched('logo.padding');
+                    }}
+                    min={0}
+                    max={20}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>

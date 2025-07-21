@@ -558,12 +558,26 @@ export const useQRGenerationState = () => {
               enabled: false
             }
           } : undefined,
-          logo: formData.options?.logo_enabled && formData.options?.logo_data ? {
-            data: formData.options.logo_data,
-            size_percentage: formData.options.logo_size || 20,
-            shape: formData.options.logo_shape || 'square',
-            padding: formData.options.logo_padding || 5
-          } : undefined,
+          logo: (() => {
+            const logoEnabled = formData.options?.logo_enabled;
+            const logoData = formData.options?.logo_data;
+            console.log('🖼️ [useQRGenerationState] Logo config:', {
+              enabled: logoEnabled,
+              hasData: !!logoData,
+              dataLength: logoData ? logoData.length : 0,
+              dataPreview: logoData ? logoData.substring(0, 50) + '...' : 'none'
+            });
+            
+            if (logoEnabled && logoData) {
+              return {
+                data: formData.options.logo_data,
+                size_percentage: formData.options.logo_size || 20,
+                shape: formData.options.logo_shape || 'square',
+                padding: formData.options.logo_padding || 5
+              };
+            }
+            return undefined;
+          })(),
           effects: formData.options?.effects && formData.options.effects.length > 0 ? 
             formData.options.effects.map((effect: string) => ({
               effect_type: effect as 'shadow' | 'glow' | 'blur' | 'noise' | 'vintage',

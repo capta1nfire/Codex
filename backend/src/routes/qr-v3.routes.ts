@@ -75,10 +75,10 @@ function transformFormOptionsToCustomization(options: any): any {
     };
   }
 
-  // Transform logo
-  if (options.logo_image) {
+  // Transform logo - support both logo_image and logo_data fields
+  if (options.logo_image || options.logo_data) {
     customization.logo = {
-      data: options.logo_image,
+      data: options.logo_image || options.logo_data,
       size_percentage: options.logo_size || 20,
       padding: options.logo_padding || 0,
       background: options.logo_background,

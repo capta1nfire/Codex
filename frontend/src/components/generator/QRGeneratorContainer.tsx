@@ -242,6 +242,12 @@ export function QRGeneratorContainer() {
     
     // Debug form data
     console.log('[onSubmit] Full form data:', JSON.stringify(formData, null, 2));
+    console.log('🖼️ [onSubmit] Logo config:', {
+      logo_enabled: formData.options?.logo_enabled,
+      logo_data_exists: !!formData.options?.logo_data,
+      logo_data_length: formData.options?.logo_data?.length || 0,
+      logo_size: formData.options?.logo_size
+    });
     console.log('[onSubmit] Eye styles:', {
       use_separated: formData.options?.use_separated_eye_styles,
       eye_shape: formData.options?.eye_shape,

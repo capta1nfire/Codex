@@ -761,6 +761,8 @@ function GenerationOptions({
                                 value={field.value || "#2563EB"}
                                 onChange={(color) => {
                                   field.onChange(color);
+                                  console.log('[Main Gradient] Color1 changed to:', color);
+                                  console.log('[Main Gradient] Eye border gradient:', getValues('options.eye_border_color_gradient'));
                                   setTimeout(() => {
                                     const currentFormValues = getValues();
                                     onSubmit(currentFormValues);
@@ -1231,7 +1233,7 @@ function GenerationOptions({
                     <Controller
                       name="options.eye_border_color_mode"
                       control={control}
-                      defaultValue="inherit"
+                      defaultValue="gradient"
                       render={({ field: modeField }) => {
                         const mode = modeField.value || 'inherit';
                         
@@ -1329,6 +1331,9 @@ function GenerationOptions({
                                           value={field.value || '#0066FF'}
                                           onChange={(e) => {
                                             field.onChange(e.target.value);
+                                            console.log('[Eye Border Gradient] Color1 changed to:', e.target.value);
+                                            console.log('[Eye Border Gradient] Main gradient color1:', getValues('options.gradient_color1'));
+                                            console.log('[Eye Border Gradient] Full eye border gradient:', getValues('options.eye_border_color_gradient'));
                                             setTimeout(() => {
                                               const currentFormValues = getValues();
                                               onSubmit(currentFormValues);
@@ -1392,6 +1397,28 @@ function GenerationOptions({
                                   />
                                 </div>
                                 
+                                {/* Swap Colors Button for Eye Border */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const color1 = getValues('options.eye_border_color_gradient.color1');
+                                    const color2 = getValues('options.eye_border_color_gradient.color2');
+                                    setValue('options.eye_border_color_gradient.color1', color2);
+                                    setValue('options.eye_border_color_gradient.color2', color1);
+                                    setTimeout(() => {
+                                      const currentFormValues = getValues();
+                                      onSubmit(currentFormValues);
+                                    }, 100);
+                                  }}
+                                  className="w-full flex items-center justify-center gap-2 py-1.5 px-2 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200 mt-2"
+                                  disabled={isLoading}
+                                >
+                                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16" />
+                                  </svg>
+                                  <span className="text-xs font-medium">Intercambiar</span>
+                                </button>
+                                
                                 {/* Angle Control for Eye Border Gradient */}
                                 <div className="mt-2">
                                   <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
@@ -1442,7 +1469,7 @@ function GenerationOptions({
                       <Controller
                         name="options.eye_color_mode"
                         control={control}
-                        defaultValue="inherit"
+                        defaultValue="gradient"
                         render={({ field: modeField }) => {
                           const mode = modeField.value || 'inherit';
                           
@@ -1603,6 +1630,28 @@ function GenerationOptions({
                                     />
                                   </div>
                                   
+                                  {/* Swap Colors Button for Eye Center */}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const color1 = getValues('options.eye_color_gradient.color1');
+                                      const color2 = getValues('options.eye_color_gradient.color2');
+                                      setValue('options.eye_color_gradient.color1', color2);
+                                      setValue('options.eye_color_gradient.color2', color1);
+                                      setTimeout(() => {
+                                        const currentFormValues = getValues();
+                                        onSubmit(currentFormValues);
+                                      }, 100);
+                                    }}
+                                    className="w-full flex items-center justify-center gap-2 py-1.5 px-2 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200 mt-2"
+                                    disabled={isLoading}
+                                  >
+                                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16" />
+                                    </svg>
+                                    <span className="text-xs font-medium">Intercambiar</span>
+                                  </button>
+                                  
                                   {/* Angle Control for Eye Center Gradient */}
                                   <div className="mt-2">
                                     <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
@@ -1708,7 +1757,17 @@ function GenerationOptions({
                                       if (file && file.size <= 2 * 1024 * 1024) {
                                         const reader = new FileReader();
                                         reader.onloadend = () => {
+                                          console.log('🖼️ [GenerationOptions] Logo loaded:', {
+                                            size: file.size,
+                                            type: file.type,
+                                            dataLength: reader.result?.toString().length || 0
+                                          });
                                           field.onChange(reader.result);
+                                          // Also update logo_enabled if not already set
+                                          const logoEnabledField = control._fields['options.logo_enabled'];
+                                          if (logoEnabledField && !logoEnabledField._f.value) {
+                                            control.setValue('options.logo_enabled', true);
+                                          }
                                         };
                                         reader.readAsDataURL(file);
                                       }

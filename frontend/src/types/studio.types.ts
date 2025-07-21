@@ -113,6 +113,7 @@ export const QRConfigSchema = z.object({
   // Configuración de logo (para plantillas)
   logo: z.object({
     enabled: z.boolean(),
+    data: z.string().optional(), // Base64 image data
     size_percentage: z.number().min(10).max(30),
     padding: z.number().min(0).max(20),
     shape: z.enum(['square', 'circle', 'rounded_square']),
