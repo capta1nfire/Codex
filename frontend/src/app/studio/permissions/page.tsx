@@ -32,7 +32,6 @@ import {
 import { StudioGuard } from '@/components/studio/StudioGuard';
 import { StudioAction } from '@/hooks/useStudioPermissions';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import toast from 'react-hot-toast';
 

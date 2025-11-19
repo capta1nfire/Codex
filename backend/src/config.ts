@@ -71,7 +71,7 @@ export const config: Config = {
     process.env.RATE_LIMIT_MAX || (process.env.NODE_ENV === 'development' ? '50000' : '1000'), // 50x más en desarrollo
     10
   ),
-  MAX_REQUEST_SIZE: process.env.MAX_REQUEST_SIZE || '1mb',
+  MAX_REQUEST_SIZE: process.env.MAX_REQUEST_SIZE || '10mb',
 
   JWT_SECRET: process.env.JWT_SECRET || 'dev-jwt-secret-key-change-in-production',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '1h',

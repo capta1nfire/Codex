@@ -79,7 +79,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const fetchUser = useCallback(async (token: string) => {
     setIsLoading(true);
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
       const response = await fetch(`${backendUrl}/api/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -178,7 +178,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     console.log('[AuthContext] Login called with rememberMe:', rememberMe);
     setIsLoading(true);
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
       const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
         headers: {

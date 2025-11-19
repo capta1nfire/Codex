@@ -100,7 +100,7 @@ export default function ProductionReadinessChecker() {
   }, []);
 
   const runHealthCheck = async (checkName: string): Promise<ReadinessCheck> => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
     const rustUrl = process.env.NEXT_PUBLIC_RUST_SERVICE_URL || 'http://localhost:3002';
 
     try {

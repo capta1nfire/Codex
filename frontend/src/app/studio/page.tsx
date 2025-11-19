@@ -29,17 +29,15 @@ import {
   FileText, 
   Activity,
   AlertCircle,
-  CheckCircle2,
   RefreshCw,
   Shield,
   Zap,
   BarChart3
 } from 'lucide-react';
-import Link from 'next/link';
 import { StudioTabs } from '@/components/studio/StudioTabs';
 
 export default function StudioPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { configs, isLoading: studioLoading, error, loadConfigs } = useStudio();
   const router = useRouter();
 

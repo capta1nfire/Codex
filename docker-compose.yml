@@ -3,11 +3,11 @@ version: '3.8' # Especifica la versión de Compose
 services:
   # Servicio para la base de datos PostgreSQL
   postgres_db:
-    image: postgres:15-alpine # Usamos una imagen oficial de PostgreSQL (versión 15, ligera)
+    image: postgres:15 # Usamos una imagen oficial de PostgreSQL (versión 15, estándar para mejor compatibilidad)
     container_name: qreable_postgres # Nombre para el contenedor
     environment:
       POSTGRES_USER: qreable_user # Nombre de usuario para la base de datos
-      POSTGRES_PASSWORD: qreable_password # Contraseña (¡CAMBIAR por una más segura si quieres!)
+      POSTGRES_PASSWORD: qreable_password # Contraseña estándar del proyecto
       POSTGRES_DB: qreable_db # Nombre de la base de datos a crear
     ports:
       - "5432:5432" # Mapea el puerto 5432 del contenedor al puerto 5432 de tu máquina

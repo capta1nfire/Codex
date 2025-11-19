@@ -78,7 +78,7 @@ export const useQRGenerationV3Enhanced = (): UseQRGenerationV3EnhancedReturn => 
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
       
       // Prepare request body
       const requestBody = {

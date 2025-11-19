@@ -1,12 +1,14 @@
 /**
- * QR Engine v2 API Client
+ * QR Engine v3 API Client
  * Provides a clean interface to interact with the new high-performance QR generation engine
- * 
+ *
  * API Endpoints:
- * - POST /api/v2/qr - Generate QR code
- * - POST /api/v2/qr/batch - Batch generation
- * - GET /api/v2/qr/preview - Real-time preview
- * - POST /api/v2/qr/validate - Validate data
+ * - POST /api/v3/qr/generate - Generate QR code
+ * - POST /api/v3/qr/batch - Batch generation
+ * - GET /api/v3/qr/preview - Real-time preview
+ * - POST /api/v3/qr/validate - Validate data
+ *
+ * Note: This file maintains the "v2" name for backward compatibility but uses v3 endpoints
  */
 
 import { env } from '@/config/env';
@@ -134,7 +136,7 @@ export class QREngineV2Client {
   private authToken?: string;
 
   constructor(authToken?: string) {
-    this.baseURL = env.backendUrl || 'http://localhost:3004';
+    this.baseURL = env.backendUrl || 'http://localhost:3001';
     this.authToken = authToken;
   }
 
@@ -146,10 +148,10 @@ export class QREngineV2Client {
   }
 
   /**
-   * Generate a QR code with v2 engine
+   * Generate a QR code with v3 engine
    */
   async generate(request: QRv2GenerateRequest): Promise<QRv2GenerateResponse> {
-    const response = await fetch(`${this.baseURL}/api/v2/qr/generate`, {
+    const response = await fetch(`${this.baseURL}/api/v3/qr/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -170,7 +172,7 @@ export class QREngineV2Client {
    * Validate QR data and options
    */
   async validate(request: QRv2GenerateRequest): Promise<QRv2ValidateResponse> {
-    const response = await fetch(`${this.baseURL}/api/v2/qr/validate`, {
+    const response = await fetch(`${this.baseURL}/api/v3/qr/validate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -191,7 +193,7 @@ export class QREngineV2Client {
    * Generate multiple QR codes in batch
    */
   async batch(request: QRv2BatchRequest): Promise<QRv2BatchResponse> {
-    const response = await fetch(`${this.baseURL}/api/v2/qr/batch`, {
+    const response = await fetch(`${this.baseURL}/api/v3/qr/batch`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

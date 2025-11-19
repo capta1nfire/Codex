@@ -14,33 +14,29 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useStudio } from '@/components/studio/StudioProvider';
-import { StudioGuard, StudioFeature } from '@/components/studio/StudioGuard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StudioFeature } from '@/components/studio/StudioGuard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
   Loader2,
   Save,
-  Plus,
   Trash2,
   Copy,
   FileText,
+  Sparkles,
+  Settings2,
+  Info,
+  Link,
   Wifi,
   User,
-  Link,
-  Phone,
   Mail,
+  Phone,
   MapPin,
   Calendar,
-  CreditCard,
-  Globe,
-  Info,
-  Sparkles,
-  Settings2
+  CreditCard
 } from 'lucide-react';
 import { 
   StudioConfigType, 
@@ -119,18 +115,14 @@ const TEMPLATE_TYPES = [
 ];
 
 export default function TemplateEditorPage() {
-  const router = useRouter();
   const { 
-    getConfigByType, 
     saveConfig, 
     isLoading,
-    error,
     configs
   } = useStudio();
   
   const [selectedType, setSelectedType] = useState<string>('url');
   const [templates, setTemplates] = useState<Record<string, QRConfig>>({});
-  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Cargar plantillas existentes
@@ -152,7 +144,6 @@ export default function TemplateEditorPage() {
   // Pilar 3: Seleccionar tipo de plantilla
   const handleSelectType = (typeId: string) => {
     setSelectedType(typeId);
-    setActiveTemplate(typeId);
   };
 
   // Pilar 2: Guardar plantilla
@@ -167,7 +158,7 @@ export default function TemplateEditorPage() {
         type: StudioConfigType.TEMPLATE,
         name: `Plantilla ${templateType.name}`,
         description: `Configuración personalizada para códigos QR de tipo ${templateType.name}`,
-        templateType: typeId,
+        templateType: typeId as any,
         config: config,
       });
       
@@ -261,7 +252,7 @@ export default function TemplateEditorPage() {
                         <Icon className={`h-5 w-5 text-${type.color}-600`} />
                       </div>
                       {hasTemplate && (
-                        <Badge variant="success" className="text-xs">
+                        <Badge variant="default" className="text-xs bg-green-100 text-green-700 hover:bg-green-100">
                           Configurada
                         </Badge>
                       )}

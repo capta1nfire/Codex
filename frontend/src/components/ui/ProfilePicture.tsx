@@ -43,7 +43,7 @@ const profilePictureVariants = cva(
 
 const ProfilePicture: React.FC<ProfilePictureProps> = ({ user, size = 'md', className = '' }) => {
   // Renamed from Avatar
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
   // Get initials - moved outside conditional
   const initials = useMemo(() => {

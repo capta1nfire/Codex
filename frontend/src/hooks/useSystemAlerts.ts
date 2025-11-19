@@ -112,7 +112,7 @@ export const useSystemMonitoring = () => {
 
   const checkSystemHealth = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:3004/health', {
+      const response = await fetch('http://localhost:3001/health', {
         method: 'GET',
         headers: { 'Cache-Control': 'no-cache' }
       });

@@ -90,7 +90,7 @@ const menuItems: MenuItem[] = [
     description: 'Crear códigos de barras'
   },
   {
-    href: 'http://localhost:3004/api-docs/',
+    href: 'http://localhost:3001/api-docs/',
     label: 'API Docs',
     icon: <FileText className="h-5 w-5" />,
     category: 'Core',

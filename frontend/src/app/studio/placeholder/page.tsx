@@ -14,9 +14,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useStudio } from '@/components/studio/StudioProvider';
-import { StudioGuard, StudioFeature } from '@/components/studio/StudioGuard';
+import { StudioFeature } from '@/components/studio/StudioGuard';
 import { PlaceholderForm } from '@/components/studio/placeholder/PlaceholderForm';
 import { PlaceholderPreview } from '@/components/studio/placeholder/PlaceholderPreview';
 import { PlaceholderPresets } from '@/components/studio/placeholder/PlaceholderPresets';
@@ -29,7 +28,6 @@ import {
   Save,
   RotateCcw,
   Sparkles,
-  Info,
   Settings,
   Palette,
   Copy,
@@ -45,7 +43,6 @@ import toast from 'react-hot-toast';
 import { validateQRConfig } from '@/schemas/studio.schema';
 
 export default function PlaceholderEditorPage() {
-  const router = useRouter();
   const { 
     getConfigByType, 
     saveConfig, 
@@ -54,7 +51,6 @@ export default function PlaceholderEditorPage() {
     error,
     isDirty,
     setActiveConfig,
-    activeConfig,
     markAsDirty
   } = useStudio();
   
@@ -77,6 +73,21 @@ export default function PlaceholderEditorPage() {
     }
     
     const existingConfig = getConfigByType(StudioConfigType.PLACEHOLDER);
+    
+    console.log('[PlaceholderEditorPage] Loading config on mount:', {
+      isLoading,
+      hasInitialized,
+      existingConfig,
+      configKeys: existingConfig?.config ? Object.keys(existingConfig.config) : [],
+      logoInfo: existingConfig?.config?.logo ? {
+        enabled: existingConfig.config.logo.enabled,
+        hasData: !!existingConfig.config.logo.data,
+        dataLength: existingConfig.config.logo.data?.length,
+        dataPreview: existingConfig.config.logo.data?.substring(0, 100),
+        size: existingConfig.config.logo.size_percentage,
+        shape: existingConfig.config.logo.shape
+      } : 'No logo in config'
+    });
     
     if (existingConfig) {
       setLocalConfig(existingConfig.config as QRConfig);
@@ -120,6 +131,14 @@ export default function PlaceholderEditorPage() {
       };
       
       console.log('[PlaceholderEditorPage] Sending config to save:', configToSave);
+      
+      // Log específico para persistencia del logo
+      console.log('🖼️ [PlaceholderEditorPage] Logo persistence check:', {
+        hasLogo: !!localConfig.logo,
+        logoEnabled: localConfig.logo?.enabled,
+        logoDataLength: localConfig.logo?.data?.length || 0,
+        logoDataPreview: localConfig.logo?.data ? localConfig.logo.data.substring(0, 50) + '...' : 'none'
+      });
       
       await saveConfig(configToSave);
       
@@ -309,7 +328,7 @@ export default function PlaceholderEditorPage() {
                     <dd className="font-medium">
                       {localConfig.use_separated_eye_styles 
                         ? `Borde: ${localConfig.eye_border_style || 'square'}, Centro: ${localConfig.eye_center_style || 'square'}`
-                        : localConfig.eye_shape || localConfig.eye_border_style || 'square'}
+                        : localConfig.eye_border_style || 'square'}
                     </dd>
                   </div>
                   {qrMetadata && (
@@ -335,7 +354,7 @@ export default function PlaceholderEditorPage() {
 
           {/* Panel de preview */}
           <div className="lg:sticky lg:top-24 lg:h-[85vh]">
-            <Card className="overflow-hidden h-full flex flex-col">
+            <Card className="overflow-hidden h-full flex flex-col bg-gradient-to-br from-white/60 via-blue-50/40 to-white/60 dark:from-slate-900/60 dark:via-blue-950/40 dark:to-slate-900/60 backdrop-blur-xl border border-blue-100/40 dark:border-blue-900/40 shadow-xl shadow-blue-100/20 dark:shadow-blue-900/20">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -397,7 +416,7 @@ export default function PlaceholderEditorPage() {
                   key={previewKey}
                   config={localConfig}
                   showControls={false}
-                  onDownload={setPreviewKey}
+                  onDownload={() => setPreviewKey(prev => prev + 1)}
                   onMetadataChange={setQrMetadata}
                 />
               </CardContent>

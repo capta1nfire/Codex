@@ -37,7 +37,7 @@ El frontend de CODEX es una aplicación web moderna construida con Next.js 14 qu
 | Testing | Vitest + Playwright | 3.1.4 / 1.52.0 | Testing unitario y E2E |
 
 ### Dependencias Críticas
-- **Backend API**: Sin él no hay funcionalidad (puerto 3004)
+- **Backend API**: Sin él no hay funcionalidad (puerto 3001)
 - **Next.js**: Framework core de la aplicación
 - **AuthContext**: Sistema de autenticación global
 
@@ -61,7 +61,7 @@ npm install
 ### Configuración
 1. Copiar `.env.example` a `.env.local`
 2. Configurar las variables requeridas (ver sección 5)
-3. Asegurar que el backend está corriendo en puerto 3004
+3. Asegurar que el backend está corriendo en puerto 3001
 
 ### Ejecución
 ```bash
@@ -172,7 +172,7 @@ QRV3WithState - Componente completo con estados
 ### Requeridas
 | Variable | Descripción | Ejemplo |
 |----------|-------------|---------|
-| `NEXT_PUBLIC_BACKEND_URL` | URL del backend API | `http://localhost:3004` |
+| `NEXT_PUBLIC_BACKEND_URL` | URL del backend API | `http://localhost:3001` |
 | `NEXT_PUBLIC_RUST_SERVICE_URL` | URL del servicio Rust | `http://localhost:3002` |
 
 ### Opcionales
@@ -187,7 +187,7 @@ QRV3WithState - Componente completo con estados
 ## 6. Comunicación con Otros Servicios
 
 ### Servicios de los que Depende
-- **Backend API**: Toda la lógica de negocio - Puerto `3004`
+- **Backend API**: Toda la lógica de negocio - Puerto `3001`
   - Autenticación: `/api/auth/*`
   - Generación: `/api/v2/qr/*`, `/api/v1/barcode`
   - Usuarios: `/api/users/*`

@@ -13,7 +13,7 @@ async function globalSetup(_config: FullConfig) {
 }
 
 async function waitForBackend(retries = 30, delay = 1000) {
-  const backendUrl = process.env.BACKEND_URL || 'http://localhost:3004';
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
   
   for (let i = 0; i < retries; i++) {
     try {
@@ -34,7 +34,7 @@ async function waitForBackend(retries = 30, delay = 1000) {
 
 async function seedTestData() {
   try {
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3004';
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
     
     // Create test user
     const testUser = {

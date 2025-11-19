@@ -409,13 +409,18 @@ export const useQRGenerationState = () => {
           });
         }
         
+        // Determine if we should use separated eye styles based on actual values
+        const hasEyeBorderStyle = !!formData.options?.eye_border_style;
+        const hasEyeCenterStyle = !!formData.options?.eye_center_style;
+        const shouldUseSeparatedStyles = formData.options?.use_separated_eye_styles || hasEyeBorderStyle || hasEyeCenterStyle;
+
         const customizationConfig = {
-          // Only include eye_shape if NOT using separated styles
-          ...(formData.options?.use_separated_eye_styles ? {} : {
+          // Only include eye_shape if NOT using separated styles AND no separated values exist
+          ...(!shouldUseSeparatedStyles ? {
             eye_shape: formData.options?.eye_shape || 'square'
-          }),
-          // Only include separated styles if using separated mode
-          ...(formData.options?.use_separated_eye_styles ? {
+          } : {}),
+          // Include separated styles if using separated mode OR if separated values exist
+          ...(shouldUseSeparatedStyles ? {
             eye_border_style: formData.options?.eye_border_style || 'square',
             eye_center_style: formData.options?.eye_center_style || 'square'
           } : {}),
@@ -561,12 +566,7 @@ export const useQRGenerationState = () => {
           logo: (() => {
             const logoEnabled = formData.options?.logo_enabled;
             const logoData = formData.options?.logo_data;
-            console.log('🖼️ [useQRGenerationState] Logo config:', {
-              enabled: logoEnabled,
-              hasData: !!logoData,
-              dataLength: logoData ? logoData.length : 0,
-              dataPreview: logoData ? logoData.substring(0, 50) + '...' : 'none'
-            });
+            // Logo configuration prepared for generation
             
             if (logoEnabled && logoData) {
               return {

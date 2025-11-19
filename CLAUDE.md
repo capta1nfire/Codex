@@ -32,7 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 # Process monitoring
 lsof -i :3000        # Check port (not netstat -tulpn)
-lsof -i :3004        # Backend port
+lsof -i :3001        # Backend port
 lsof -i :3002        # Rust port
 
 # Open browser
@@ -169,7 +169,7 @@ QReable Project/
 ├── 🤖 MULTI_AGENT_COLLABORATION_PROTOCOL.md  # Multi-agent rules
 ├── 🛡️ ecosystem.config.js   # PM2 configuration
 ├── 📁 frontend/             # Next.js 14 app (Port 3000)
-├── 📁 backend/              # Express API (Port 3004)
+├── 📁 backend/              # Express API (Port 3001)
 └── 📁 rust_generator/       # Rust barcode service (Port 3002)
 ```
 
@@ -280,7 +280,7 @@ cd frontend && npx tsc --noEmit
 docker exec -it qreable_postgres psql -U qreable_user -d qreable_db
 
 # 5. Test specific endpoint
-curl -X POST http://localhost:3004/api/v3/qr/generate \
+curl -X POST http://localhost:3001/api/v3/qr/generate \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{"data":"Test","options":{"error_correction":"H"}}'
@@ -524,7 +524,7 @@ Quick reminder:
 #### Current API Structure (v3 Primary)
 ```bash
 # QR Code v3 (Primary Engine)
-curl -X POST http://localhost:3004/api/v3/qr/generate \
+curl -X POST http://localhost:3001/api/v3/qr/generate \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
@@ -551,7 +551,7 @@ curl -X POST http://localhost:3002/api/v3/qr/enhanced \
 
 #### Other Barcodes (v1)
 ```bash
-curl -X POST http://localhost:3004/api/v1/barcode \
+curl -X POST http://localhost:3001/api/v1/barcode \
   -H "Content-Type: application/json" \
   -d '{
     "barcode_type": "code128",
@@ -641,7 +641,7 @@ vm_stat  # macOS
 ### Check Performance
 ```bash
 # Backend metrics
-curl http://localhost:3004/metrics
+curl http://localhost:3001/metrics
 
 # Frontend bundle analysis
 cd frontend && npm run analyze
@@ -658,7 +658,7 @@ cd rust_generator && cargo bench
 ```bash
 # Check port availability
 lsof -i :3000  # Frontend
-lsof -i :3004  # Backend
+lsof -i :3001  # Backend
 lsof -i :3002  # Rust
 
 # Check logs
@@ -696,7 +696,7 @@ rm -rf .next
 ### Authentication Issues
 ```bash
 # Test with correct role (WEBADMIN not ADMIN)
-curl -X POST http://localhost:3004/api/auth/login \
+curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@example.com","password":"password"}'
 
@@ -750,7 +750,7 @@ logs/
 ### Health Checks
 ```bash
 # Backend health
-curl http://localhost:3004/health/status
+curl http://localhost:3001/health/status
 
 # Frontend health
 curl http://localhost:3000/api/health

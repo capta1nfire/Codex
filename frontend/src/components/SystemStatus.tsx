@@ -198,8 +198,8 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ isAdvancedMode: externalAdv
 
       // ✅ Verificar servicios en paralelo
       const [backendResult, databaseResult, rustResult] = await Promise.allSettled([
-        checkService('Backend', 'http://localhost:3004/health'),
-        checkService('Database', 'http://localhost:3004/health/db'),
+        checkService('Backend', 'http://localhost:3001/health'),
+        checkService('Database', 'http://localhost:3001/health/db'),
         checkService('Rust Generator', 'http://localhost:3002/health')
       ]);
 
@@ -331,7 +331,7 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ isAdvancedMode: externalAdv
       // Set loading state for this specific action
       setServiceActions(prev => ({ ...prev, [actionKey]: 'loading' }));
       
-      const response = await fetch(`http://localhost:3004/api/services/${serviceName.toLowerCase()}/${action}`, {
+      const response = await fetch(`http://localhost:3001/api/services/${serviceName.toLowerCase()}/${action}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

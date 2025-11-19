@@ -168,6 +168,7 @@ export const qrConfigSchema = z.object({
   // Campos adicionales opcionales
   logo: z.object({
     enabled: z.boolean(),
+    data: z.string().optional(), // Base64 encoded image data
     size_percentage: z.number().min(10).max(30).optional(),
     padding: z.number().min(0).max(20).optional(),
     shape: z.enum(['square', 'circle', 'rounded_square']).optional(),

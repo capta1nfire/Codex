@@ -35,8 +35,8 @@ if [ ! -d "rust_generator" ]; then
     exit 1
 fi
 
-# Iniciar Backend (Puerto 3004)
-echo "🔧 Iniciando Backend (Puerto 3004)..."
+# Iniciar Backend (Puerto 3001)
+echo "🔧 Iniciando Backend (Puerto 3001)..."
 cd backend && npm run dev &
 BACKEND_PID=$!
 cd ..
@@ -63,7 +63,7 @@ echo ""
 echo "🎯 ¡Todos los servidores iniciados!"
 echo "=================================="
 echo "📱 Frontend:  http://localhost:3000"
-echo "🔧 Backend:   http://localhost:3004"
+echo "🔧 Backend:   http://localhost:3001"
 echo "⚡ Rust Gen:  http://localhost:3002"
 echo ""
 echo "💡 Presiona Ctrl+C para detener todos los servidores"

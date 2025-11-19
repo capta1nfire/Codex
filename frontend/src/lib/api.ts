@@ -24,7 +24,7 @@ class ApiClient {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+    this.baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
   }
 
   /**

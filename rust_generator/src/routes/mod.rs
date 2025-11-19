@@ -1,5 +1,2 @@
-// QR Engine v2 module
-pub mod qr_v2;
-
-// QR Engine v3 - Structured data
+// QR Engine v3 - Structured data (Primary and only QR engine)
 pub mod qr_v3;

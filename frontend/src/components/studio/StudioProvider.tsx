@@ -115,8 +115,25 @@ export function StudioProvider({ children }: StudioProviderProps) {
       const response = await api.get<{ configs: any[] }>('/api/studio/configs');
       
       // Pilar 1: Validar datos recibidos
-      const validatedConfigs = response.configs.map((config: any) => {
+      console.log('[StudioProvider] Raw configs from API:', response.configs);
+      
+      const validatedConfigs = response.configs.map((config: any, index: number) => {
         try {
+          console.log(`[StudioProvider] Validating config ${index}:`, {
+            id: config.id,
+            type: config.type,
+            name: config.name,
+            hasConfig: !!config.config,
+            configKeys: config.config ? Object.keys(config.config) : [],
+            logoInfo: config.config?.logo ? {
+              enabled: config.config.logo.enabled,
+              hasData: !!config.config.logo.data,
+              dataLength: config.config.logo.data?.length,
+              dataPreview: config.config.logo.data?.substring(0, 100),
+              size: config.config.logo.size_percentage,
+              shape: config.config.logo.shape
+            } : 'No logo'
+          });
           return validateStudioConfig(config);
         } catch (error) {
           console.warn('Configuración inválida omitida:', config.id, error);
@@ -124,7 +141,14 @@ export function StudioProvider({ children }: StudioProviderProps) {
         }
       }).filter(Boolean) as StudioConfig[];
       
-      // Configs validated successfully
+      console.log('[StudioProvider] Validated configs:', validatedConfigs);
+      const placeholderConfig = validatedConfigs.find(c => c.type === StudioConfigType.PLACEHOLDER);
+      console.log('[StudioProvider] Placeholder config detail:', {
+        placeholderConfig: placeholderConfig,
+        logoInPlaceholder: placeholderConfig?.config?.logo,
+        logoDataLength: placeholderConfig?.config?.logo?.data?.length || 0,
+        logoEnabled: placeholderConfig?.config?.logo?.enabled
+      });
       
       updateState({
         configs: validatedConfigs,
@@ -343,12 +367,13 @@ export function StudioProvider({ children }: StudioProviderProps) {
 
   // Pilar 2: Cargar configuraciones al montar con protección
   useEffect(() => {
-    // Cargar configuraciones para todos los usuarios (necesarias para el placeholder)
-    // Solo SUPERADMIN puede editar, pero todos necesitan leer
-    if (user && !hasLoadedRef.current && !isLoadingRef.current) {
+    // Para QR Studio (SUPERADMIN), SÍ cargar configuraciones
+    // Para página principal, usará la API pública de placeholder
+    if (user && user.role === 'SUPERADMIN' && !hasLoadedRef.current) {
+      console.log('[StudioProvider] Loading configs for SUPERADMIN user');
       loadConfigs();
     }
-  }, [user]); // Remove loadConfigs from deps to prevent loops
+  }, [user, loadConfigs]);
   
   // Pilar 2: Limpiar estado al desmontar
   useEffect(() => {

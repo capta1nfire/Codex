@@ -70,7 +70,6 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
   const [previousSvgContent, setPreviousSvgContent] = useState<string>('');
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [showDownloadOverlay, setShowDownloadOverlay] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
   const overlayTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   // UNIVERSAL placeholder detection for ALL barcode types
@@ -289,38 +288,7 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
     return cleanup || undefined;
   }, [displayState.showEmptyState, startVideoCycle]);
   
-  // QR Loading Animation with Blue Corner Graphics
-  const loadingSkeleton = useMemo(() => (
-    <div className="relative mx-auto w-fit animate-fadeIn">
-      <div className="p-6 pb-4 flex justify-center">
-        <div className="bg-transparent rounded-lg p-2">
-            <div className="w-[300px] h-[300px] rounded flex flex-col items-center justify-center">
-              <div className="relative">
-                <div className="grid grid-cols-5 gap-1 p-2">
-                  {[...Array(25)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-4 h-4 rounded-sm bg-slate-200 dark:bg-slate-300 animate-pulse"
-                      style={{
-                        animationDelay: `${i * 50}ms`,
-                        opacity: Math.random() > 0.3 ? 1 : 0.3
-                      }}
-                    />
-                  ))}
-                </div>
-                {/* Blue corner borders - QR detection patterns */}
-                <div className="absolute top-0 left-0 w-8 h-8 border-4 border-blue-600 border-r-0 border-b-0 rounded-tl-lg" />
-                <div className="absolute top-0 right-0 w-8 h-8 border-4 border-blue-600 border-l-0 border-b-0 rounded-tr-lg" />
-                <div className="absolute bottom-0 left-0 w-8 h-8 border-4 border-blue-600 border-r-0 border-t-0 rounded-bl-lg" />
-              </div>
-              <p className="text-sm text-slate-600 font-medium mt-6">
-                Generando código...
-              </p>
-            </div>
-        </div>
-      </div>
-    </div>
-  ), []);
+  // Loading skeleton removed - unused
   
   // Memoized QR display component
   const qrDisplay = useMemo(() => {
@@ -506,13 +474,11 @@ const PreviewSectionComponent: React.FC<PreviewSectionProps> = ({
             <div 
               className="relative w-[320px] h-[320px] flex items-center justify-center overflow-visible z-10 rounded-lg"
               onMouseEnter={() => {
-                setIsHovering(true);
                 if (qrData && !isPlaceholderData(qrData) && displayState.showRealBarcode) {
                   setShowDownloadOverlay(true);
                 }
               }}
               onMouseLeave={() => {
-                setIsHovering(false);
                 setShowDownloadOverlay(false);
               }}
             >

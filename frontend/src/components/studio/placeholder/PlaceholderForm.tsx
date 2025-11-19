@@ -39,7 +39,7 @@ import { EyeStyleSelector } from '@/components/studio/EyeStyleSelector';
 import { DataPatternSelector } from '@/components/studio/DataPatternSelector';
 import { QR_V3_EYE_CENTER_STYLES } from '@/constants/qrV3Options';
 import { EYE_CENTER_SVG_PATHS } from '@/constants/eyeStyleSvgPaths';
-import { validateQRConfig, validateColorContrast } from '@/schemas/studio.schema';
+import { validateQRConfig } from '@/schemas/studio.schema';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -49,13 +49,12 @@ interface PlaceholderFormProps {
   onPreviewUpdate: () => void;
 }
 
-export function PlaceholderForm({ 
-  config, 
-  onChange, 
-  onPreviewUpdate 
+export function PlaceholderForm({
+  config,
+  onChange,
+  onPreviewUpdate
 }: PlaceholderFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [warnings, setWarnings] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Set<string>>(new Set());
   
   // Pilar 3: Helpers para actualización simple con validación
@@ -77,27 +76,6 @@ export function PlaceholderForm({
 
   const updateColors = useCallback((colorUpdates: Partial<QRConfig['colors']>) => {
     const newColors = { ...config.colors, ...colorUpdates };
-    
-    // Validar contraste si ambos colores están definidos
-    if (newColors.foreground && newColors.background) {
-      const contrastValidation = validateColorContrast(
-        newColors.foreground,
-        newColors.background
-      );
-      
-      if (!contrastValidation.isValid) {
-        setWarnings(prev => ({
-          ...prev,
-          contrast: contrastValidation.message || 'Contraste insuficiente'
-        }));
-      } else {
-        setWarnings(prev => {
-          const { contrast, ...rest } = prev;
-          return rest;
-        });
-      }
-    }
-    
     updateConfig({
       colors: newColors
     });
@@ -130,7 +108,6 @@ export function PlaceholderForm({
 
   // Mostrar indicador de validación general
   const hasErrors = Object.keys(errors).length > 0;
-  const hasWarnings = Object.keys(warnings).length > 0;
   const isValid = !hasErrors;
   
   return (
@@ -154,11 +131,6 @@ export function PlaceholderForm({
             </>
           )}
         </div>
-        {hasWarnings && (
-          <Badge variant="secondary" className="bg-amber-100 text-amber-700">
-            {Object.keys(warnings).length} advertencia{Object.keys(warnings).length > 1 ? 's' : ''}
-          </Badge>
-        )}
       </div>
       <Tabs defaultValue="basics" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
@@ -310,64 +282,7 @@ export function PlaceholderForm({
 
         {/* Configuración de Colores */}
         <TabsContent value="colors" className="space-y-4 mt-4">
-          {/* Colores básicos */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Colores Básicos
-            </h3>
-            
-            {/* Color de primer plano */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Color Principal</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={config.colors?.foreground || '#000000'}
-                    onChange={(e) => updateColors({ foreground: e.target.value })}
-                    className="h-10 w-20 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    value={config.colors?.foreground || '#000000'}
-                    onChange={(e) => updateColors({ foreground: e.target.value })}
-                    placeholder="#000000"
-                    className={cn(
-                      "flex-1 font-mono text-sm",
-                      touched.has('colors.foreground') && errors['colors.foreground'] && "border-red-500"
-                    )}
-                    onBlur={() => markTouched('colors.foreground')}
-                  />
-                </div>
-              </div>
-              
-              {/* Color de fondo */}
-              <div className="space-y-2">
-                <Label>Color de Fondo</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={config.colors?.background || '#FFFFFF'}
-                    onChange={(e) => updateColors({ background: e.target.value })}
-                    className="h-10 w-20 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    value={config.colors?.background || '#FFFFFF'}
-                    onChange={(e) => updateColors({ background: e.target.value })}
-                    placeholder="#FFFFFF"
-                    className={cn(
-                      "flex-1 font-mono text-sm",
-                      touched.has('colors.background') && errors['colors.background'] && "border-red-500"
-                    )}
-                    onBlur={() => markTouched('colors.background')}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Colores de ojos */}
+          {/* Colores de ojos */}
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-slate-700">Colores de Ojos (Opcional)</h4>
               <div className="grid grid-cols-2 gap-4">
@@ -430,72 +345,16 @@ export function PlaceholderForm({
                 </div>
               </div>
             </div>
-            
-            {/* Mostrar advertencia de contraste */}
-            {warnings.contrast && (
-              <Alert className="border-amber-200 bg-amber-50">
-                <AlertCircle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-700 text-sm">
-                  {warnings.contrast}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {/* Mostrar errores de validación de colores */}
-            {(errors['colors.foreground'] || errors['colors.background']) && touched.has('colors.foreground') && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-sm">
-                  {errors['colors.foreground'] || errors['colors.background']}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {/* Fondo transparente */}
-            <div className="mt-4 p-3 bg-slate-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="transparent-bg" className="text-sm cursor-pointer">
-                    Fondo transparente
-                  </Label>
-                  <p className="text-xs text-slate-500 mt-0.5">Útil para sobreponer el QR en imágenes</p>
-                </div>
-                <Switch
-                  id="transparent-bg"
-                  checked={config.transparent_background || false}
-                  onCheckedChange={(checked) => updateConfig({ transparent_background: checked })}
-                />
-              </div>
-            </div>
-          </div>
 
           {/* Sección de Gradiente */}
+          {config.gradient?.enabled && (
           <div className="space-y-4 mt-6">
             <h3 className="text-sm font-medium flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
               Configuración de Gradiente
             </h3>
-            
-            {/* Activar gradiente */}
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <Label htmlFor="gradient-enabled" className="text-sm cursor-pointer">
-                  Activar gradiente
-                </Label>
-                <p className="text-xs text-slate-500 mt-0.5">Usar gradiente en lugar de color sólido</p>
-              </div>
-              <Switch
-                id="gradient-enabled"
-                checked={config.gradient?.enabled || false}
-                onCheckedChange={(checked) => {
-                  updateGradient({ enabled: checked });
-                  markTouched('gradient.enabled');
-                }}
-              />
-            </div>
 
             {/* Opciones de gradiente */}
-            {config.gradient?.enabled && (
               <div className="space-y-4 p-4 border rounded-lg bg-slate-50/50">
                 {/* Tipo de gradiente */}
                 <div className="space-y-2">
@@ -659,8 +518,8 @@ export function PlaceholderForm({
                   />
                 </div>
               </div>
-            )}
           </div>
+          )}
 
         </TabsContent>
 

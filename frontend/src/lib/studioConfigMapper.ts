@@ -80,12 +80,19 @@ export function mapStudioConfigToFormOptions(config: QRConfig): FormOptions {
     formOptions.data_pattern = config.data_pattern as FormOptions['data_pattern'];
   }
 
-  // Map frame
+  // Map frame - all fields
   if (config.frame) {
     formOptions.frame_enabled = config.frame.enabled;
     formOptions.frame_style = (config.frame as any).style;
     formOptions.frame_text = (config.frame as any).text;
     formOptions.frame_text_position = (config.frame as any).text_position;
+    formOptions.frame_color = config.frame.color;
+    formOptions.frame_background_color = (config.frame as any).background_color;
+    formOptions.frame_text_size = (config.frame as any).text_size;
+    formOptions.frame_text_font = (config.frame as any).text_font;
+    formOptions.frame_padding = (config.frame as any).padding;
+    formOptions.frame_border_width = (config.frame as any).border_width;
+    formOptions.frame_corner_radius = (config.frame as any).corner_radius;
   }
   
   // Map error correction
@@ -94,8 +101,35 @@ export function mapStudioConfigToFormOptions(config: QRConfig): FormOptions {
   // Map transparent background
   formOptions.transparent_background = config.transparent_background;
 
+  // Map logo configuration
+  if (config.logo && config.logo.enabled && config.logo.data) {
+    console.log('[studioConfigMapper] 🖼️ Mapping logo:', {
+      enabled: config.logo.enabled,
+      hasData: !!config.logo.data,
+      dataLength: config.logo.data?.length,
+      size: config.logo.size_percentage,
+      shape: config.logo.shape
+    });
+    
+    formOptions.logo_enabled = true;
+    formOptions.logo_data = config.logo.data;
+    formOptions.logo_size = config.logo.size_percentage || 20;
+    formOptions.logo_shape = config.logo.shape || 'square';
+    formOptions.logo_padding = config.logo.padding || 5;
+  }
+
+  // Map effects
+  if (config.effects && Array.isArray(config.effects)) {
+    formOptions.effects = config.effects.map(effect => effect.type);
+  }
+
   console.log('[studioConfigMapper] 🎯 FINAL formOptions:', formOptions);
   console.log('[studioConfigMapper] 📐 FINAL gradient_angle:', formOptions.gradient_angle);
+  console.log('[studioConfigMapper] 🖼️ FINAL logo:', {
+    enabled: formOptions.logo_enabled,
+    hasData: !!formOptions.logo_data,
+    dataLength: formOptions.logo_data?.length
+  });
   
   return formOptions;
 } 

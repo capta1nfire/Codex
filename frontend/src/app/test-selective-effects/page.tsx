@@ -129,7 +129,7 @@ export default function TestSelectiveEffectsPage() {
 
     setIsGenerating(true);
     try {
-      const response = await fetch('http://localhost:3004/api/v3/qr/enhanced', {
+      const response = await fetch('http://localhost:3001/api/v3/qr/enhanced', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

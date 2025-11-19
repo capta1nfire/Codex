@@ -154,6 +154,7 @@ const qrConfigSchema = z.object({
   logo: z
     .object({
       enabled: z.boolean(),
+      data: z.string().optional(), // Base64 image data
       size_percentage: z.number().min(10).max(30).optional(),
       padding: z.number().min(0).max(20).optional(),
       shape: z.enum(['square', 'circle', 'rounded_square']).optional(),
@@ -235,6 +236,20 @@ router.get('/configs/:type/:templateType?', requireSuperAdmin, async (req, res, 
  */
 router.post('/configs', requireSuperAdmin, async (req, res, next) => {
   try {
+    console.log('[Studio Routes] POST /configs - Request body:', {
+      type: req.body.type,
+      name: req.body.name,
+      configKeys: req.body.config ? Object.keys(req.body.config) : [],
+      logoInfo: req.body.config?.logo ? {
+        enabled: req.body.config.logo.enabled,
+        hasData: !!req.body.config.logo.data,
+        dataLength: req.body.config.logo.data?.length,
+        dataPreview: req.body.config.logo.data?.substring(0, 100),
+        size: req.body.config.logo.size_percentage,
+        shape: req.body.config.logo.shape
+      } : 'No logo'
+    });
+    
     // Validar body
     const validatedData = upsertConfigSchema.parse(req.body);
 
@@ -256,6 +271,19 @@ router.post('/configs', requireSuperAdmin, async (req, res, next) => {
     }
 
     const config = await studioService.upsertConfig(req.user!.id, validatedData);
+
+    console.log('[Studio Routes] Config saved:', {
+      id: config.id,
+      type: config.type,
+      logoInfo: config.config?.logo ? {
+        enabled: config.config.logo.enabled,
+        hasData: !!config.config.logo.data,
+        dataLength: config.config.logo.data?.length,
+        dataPreview: config.config.logo.data?.substring(0, 100),
+        size: config.config.logo.size_percentage,
+        shape: config.config.logo.shape
+      } : 'No logo in saved config'
+    });
 
     logger.info(`Configuración ${config.id} creada/actualizada por ${req.user!.email}`);
     res.json({

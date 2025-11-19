@@ -12,18 +12,16 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStudio } from '@/components/studio/StudioProvider';
-import { StudioGuard, StudioFeature } from '@/components/studio/StudioGuard';
+import { StudioFeature } from '@/components/studio/StudioGuard';
 import { TemplateManager } from '@/components/studio/templates/TemplateManager';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Plus,
   ArrowLeft,
-  FileText,
   Upload,
   Download,
   RefreshCw
@@ -60,7 +58,7 @@ export default function TemplateListPage() {
   };
 
   // Duplicar plantilla
-  const handleDuplicate = (template: StudioConfig) => {
+  const handleDuplicate = (_template: StudioConfig) => {
     // Por ahora solo mostramos un mensaje
     toast('Función de duplicar próximamente disponible');
   };

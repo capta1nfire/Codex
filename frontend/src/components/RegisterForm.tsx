@@ -40,7 +40,7 @@ export default function RegisterForm() {
     setIsLoading(true);
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
       const response = await fetch(`${backendUrl}/api/auth/register`, {
         method: 'POST',
         headers: {

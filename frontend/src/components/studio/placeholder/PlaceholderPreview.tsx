@@ -128,7 +128,6 @@ export function PlaceholderPreview({
     }
   };
 
-
   return (
     <div className="h-full flex flex-col">
       {/* Controles - Si se proporciona renderControls, usarlo, sino usar los controles por defecto */}
@@ -165,37 +164,83 @@ export function PlaceholderPreview({
         </div>
       ) : null}
 
-      {/* Área de preview */}
-      <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 p-4 rounded-lg w-[95%] mx-auto flex-1 flex flex-col">
-
-        {/* QR Code */}
-        <div className="relative flex-1 flex items-center justify-center">
-          <div className="bg-white p-4 rounded-lg shadow-lg overflow-hidden">
-            {isLoading ? (
-              <div className="w-full h-full flex items-center justify-center">
-                <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-              </div>
-            ) : (error || localError) ? (
-              <div className="w-full h-full flex items-center justify-center p-8 text-red-600">
-                <div className="text-center">
-                  <p className="text-sm font-medium">Error generando QR</p>
-                  <p className="text-xs mt-1">{error || localError}</p>
+      {/* Área de preview - QR Studio design workshop with larger size */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-[500px]">
+          <div className="relative animate-fadeIn">
+            <div className="bg-transparent rounded-lg w-[500px]">
+              <div className="relative w-[500px] h-[500px] flex items-center justify-center">
+              {/* Dynamic background layer - larger for studio */}
+              {enhancedData && !config.transparent_background && (
+                <div 
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[480px] rounded-2xl shadow-[0_0_3px_rgba(0,0,0,0.1)]"
+                  style={{ backgroundColor: config.colors?.background || '#FFFFFF' }}
+                />
+              )}
+              
+              {/* Glass frame effect for transparent background */}
+              {enhancedData && config.transparent_background && (
+                <div 
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[480px] rounded-2xl pointer-events-none"
+                  style={{
+                    boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.8), inset 0 -1px 2px rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                  }}
+                />
+              )}
+              
+              {/* QR container - larger for studio design */}
+              <div className="relative w-[480px] h-[480px] flex items-center justify-center overflow-visible z-10 rounded-lg">
+                {isLoading ? (
+                  <div 
+                    className="absolute inset-0 flex items-center justify-center z-20"
+                    style={{ backgroundColor: config.transparent_background ? 'transparent' : (config.colors?.background || '#FFFFFF') }}
+                  >
+                    <div className="flex flex-col items-center">
+                      <div className="grid grid-cols-5 gap-2 p-2">
+                        {[...Array(25)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="w-6 h-6 rounded-sm bg-slate-200 dark:bg-slate-300 animate-pulse"
+                            style={{
+                              animationDelay: `${i * 50}ms`,
+                              opacity: Math.random() > 0.3 ? 1 : 0.3
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-sm text-slate-600 font-medium mt-4">
+                        Generando código...
+                      </p>
+                    </div>
+                  </div>
+                ) : (error || localError) ? (
+                  <div className="absolute inset-0 flex items-center justify-center p-8 text-red-600">
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Error generando QR</p>
+                      <p className="text-xs mt-1">{error || localError}</p>
+                    </div>
+                  </div>
+                ) : enhancedData ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <EnhancedQRV3 
+                      data={enhancedData} 
+                      size={470}
+                      totalModules={enhancedData.metadata.total_modules}
+                      dataModules={enhancedData.metadata.data_modules}
+                      version={enhancedData.metadata.version}
+                      errorCorrection={enhancedData.metadata.error_correction}
+                      transparentBackground={config.transparent_background}
+                      backgroundColor={config.colors?.background || '#FFFFFF'}
+                      logoSizeRatio={enhancedData.overlays?.logo?.size || undefined}
+                    />
+                  </div>
+                ) : null}
                 </div>
               </div>
-            ) : enhancedData ? (
-              <EnhancedQRV3 
-                data={enhancedData} 
-                size={500}
-                totalModules={enhancedData.metadata.total_modules}
-                dataModules={enhancedData.metadata.data_modules}
-                version={enhancedData.metadata.version}
-                errorCorrection={enhancedData.metadata.error_correction}
-                transparentBackground={config.transparent_background}
-              />
-            ) : null}
+            </div>
           </div>
         </div>
-
       </div>
       
       {/* Botón oculto para descarga que puede ser activado desde fuera */}

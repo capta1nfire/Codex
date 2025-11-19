@@ -12,7 +12,7 @@ import {
   SmartQRTemplate
 } from '../types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 class SmartQRService {
   private baseUrl: string;

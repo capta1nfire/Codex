@@ -146,9 +146,10 @@ export const generateFormSchema = z.object({
       eye_color_mode: z.enum(['inherit', 'solid', 'gradient']).optional(),
       eye_color_solid: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
       eye_color_gradient: z.object({
-        type: z.enum(['linear', 'radial']).optional(),
+        type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']).optional(),
         color1: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
         color2: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
+        angle: z.number().min(0).max(360).optional(),
         direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
       }).optional(),
       
@@ -156,9 +157,10 @@ export const generateFormSchema = z.object({
       eye_border_color_mode: z.enum(['inherit', 'solid', 'gradient']).optional(),
       eye_border_color_solid: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
       eye_border_color_gradient: z.object({
-        type: z.enum(['linear', 'radial']).optional(),
+        type: z.enum(['linear', 'radial', 'conic', 'diamond', 'spiral']).optional(),
         color1: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
         color2: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
+        angle: z.number().min(0).max(360).optional(),
         direction: z.enum(['top-bottom', 'left-right', 'diagonal', 'center-out']).optional(),
       }).optional(),
     })

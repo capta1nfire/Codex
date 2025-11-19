@@ -40,7 +40,7 @@ export const useBarcodeGeneration = (): UseBarcodeGenerationReturn => {
     };
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
       const requestUrl = `${backendUrl}/api/generate`;
       
       // Obtener token de autenticación

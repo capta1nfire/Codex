@@ -10,7 +10,7 @@
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │ 🌐 FRONTEND     │     │ 🔧 BACKEND      │     │ ⚡ RUST GEN     │
-│ Puerto: 3000    │────▶│ Puerto: 3004    │────▶│ Puerto: 3002    │
+│ Puerto: 3000    │────▶│ Puerto: 3001    │────▶│ Puerto: 3002    │
 │ Next.js 14      │     │ Express/Prisma  │     │ Axum/QR v2      │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
@@ -37,7 +37,7 @@ pm2 status
 
 # Acceder
 http://localhost:3000  # Frontend
-http://localhost:3004  # Backend API
+http://localhost:3001  # Backend API
 http://localhost:3002  # Rust Engine
 ```
 

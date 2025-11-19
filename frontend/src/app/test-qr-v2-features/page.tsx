@@ -94,7 +94,7 @@ export default function TestQRv2FeaturesPage() {
     setLoading(test.id);
     
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
       const response = await fetch(`${backendUrl}/api/v2/qr/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

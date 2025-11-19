@@ -32,7 +32,7 @@ use serde_json;
 
 // Imports locales
 mod validators;
-mod routes; // Re-enabled for v2 endpoint support
+mod routes; // QR Engine v3 routes
 
 // Re-export types needed by main
 use qreable_generator::engine;
@@ -639,16 +639,7 @@ async fn main() {
         .route("/analytics/performance", get(performance_analytics_handler))
         .route("/metrics/test", get(test_metrics_handler))
         .route("/metrics/debug", get(debug_metrics_handler))
-        // QR Engine v2 endpoints
-        .route("/api/qr/generate", post(routes::qr_v2::generate_handler))
-        .route("/api/qr/batch", post(routes::qr_v2::batch_handler))
-        .route("/api/qr/validate", post(routes::qr_v2::validate_handler))
-        .route("/api/qr/preview", get(routes::qr_v2::preview_handler))
-        // QR Engine v2 cache endpoints
-        .route("/api/qr/cache/stats", get(qr_cache_stats_handler))
-        .route("/api/qr/cache/clear", post(qr_cache_clear_handler))
-        .route("/api/qr/cache/warm", post(qr_cache_warm_handler))
-        // QR Engine v3 - Structured data
+        // QR Engine v3 - Structured data (Primary and only QR engine)
         .nest("/", routes::qr_v3::routes(routes::qr_v3::QrV3State {
             engine: Arc::new(engine::QrEngine::new()),
             cache: Arc::new(qreable_generator::cache::redis::RedisCache::new("redis://localhost:6379", "qr_engine_v3", 3600).unwrap_or_else(|_| qreable_generator::cache::redis::RedisCache::disabled())),

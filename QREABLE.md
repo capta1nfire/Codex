@@ -439,7 +439,7 @@ Para asegurar la excelencia técnica en la implementación integral, se adoptar�
 ### **🔴 PRODUCTION PORTS (DEFINITIVE)**
 ```bash
 Frontend (Next.js):       3000  # Main user interface
-Backend (Express):        3004  # API and business logic  
+Backend (Express):        3001  # API and business logic
 Rust Generator (Axum):    3002  # High-performance code generation for all types
 Database (PostgreSQL):    5432  # Data persistence
 Redis Cache:              6379  # Caching layer
@@ -457,20 +457,20 @@ Redis Cache:              6379  # Caching layer
 npm run dev
 
 # 🏠 MANUAL: Individual services
-cd backend && npm run dev       # Port 3004
-cd frontend && npm run dev      # Port 3000  
+cd backend && npm run dev       # Port 3001
+cd frontend && npm run dev      # Port 3000
 cd rust_generator && cargo run # Port 3002
 ```
 
 ### **🌐 DEVELOPMENT URLS**
 - **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:3004
+- **Backend API**: http://localhost:3001
 - **Rust Service**: http://localhost:3002 (All barcode types)
-- **Health Check**: http://localhost:3004/health/status
-- **API Docs**: http://localhost:3004/api-docs
+- **Health Check**: http://localhost:3001/health/status
+- **API Docs**: http://localhost:3001/api-docs
 
 ### **🚨 HISTORICAL NOTE**
-Previous agents have used conflicting ports (3001 vs 3004 for backend). This section **OVERRIDES** all previous configurations.
+As of 2025-11-10, backend has been permanently moved from port 3004 to port 3001. This section represents the **SINGLE SOURCE OF TRUTH** for all port configurations.
 
 **🎯 v1.3.0 UPDATE:** All services now support the complete range of barcode types with optimizations for the most critical ones.
 

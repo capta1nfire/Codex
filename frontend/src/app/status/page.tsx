@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 // Puedes configurar la URL base de tu backend en env
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export default function StatusPage() {
   const [dbUp, setDbUp] = useState<boolean | null>(null);

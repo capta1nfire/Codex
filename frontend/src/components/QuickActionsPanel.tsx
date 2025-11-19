@@ -25,7 +25,7 @@ export default function QuickActionsPanel() {
       title: 'API Docs',
       description: 'Documentación API',
       icon: FileText,
-      href: 'http://localhost:3004/api-docs/',
+      href: 'http://localhost:3001/api-docs/',
       external: true,
       variant: 'outline' as const
     },

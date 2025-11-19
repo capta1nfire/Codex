@@ -54,6 +54,7 @@ interface QRConfig {
   error_correction?: string;
   logo?: {
     enabled: boolean;
+    data?: string; // Base64 image data
     size_percentage?: number;
     padding?: number;
     shape?: string;
@@ -80,6 +81,24 @@ export class StudioService {
         },
         orderBy: [{ type: 'asc' }, { templateType: 'asc' }, { updatedAt: 'desc' }],
       });
+
+      // Log placeholder config details
+      const placeholderConfig = configs.find(c => c.type === 'placeholder');
+      if (placeholderConfig) {
+        logger.info('[StudioService] Placeholder config found:', {
+          id: placeholderConfig.id,
+          hasConfig: !!placeholderConfig.config,
+          configKeys: placeholderConfig.config ? Object.keys(placeholderConfig.config) : [],
+          logoInfo: (placeholderConfig.config as any)?.logo ? {
+            enabled: (placeholderConfig.config as any).logo.enabled,
+            hasData: !!(placeholderConfig.config as any).logo.data,
+            dataLength: (placeholderConfig.config as any).logo.data?.length,
+            dataPreview: (placeholderConfig.config as any).logo.data?.substring(0, 100),
+            size: (placeholderConfig.config as any).logo.size_percentage,
+            shape: (placeholderConfig.config as any).logo.shape
+          } : 'No logo in placeholder config'
+        });
+      }
 
       return configs;
     } catch (error) {
@@ -169,6 +188,14 @@ export class StudioService {
       name: data.name,
       templateType: data.templateType,
       configKeys: Object.keys(data.config),
+      logoInfo: data.config.logo ? {
+        enabled: data.config.logo.enabled,
+        hasData: !!data.config.logo.data,
+        dataLength: data.config.logo.data?.length,
+        dataPreview: data.config.logo.data?.substring(0, 100),
+        size: data.config.logo.size_percentage,
+        shape: data.config.logo.shape
+      } : 'No logo'
     });
 
     try {
@@ -188,6 +215,17 @@ export class StudioService {
 
       if (existing) {
         logger.info(`[StudioService] Updating existing config with ID: ${existing.id}`);
+        
+        // Log the logo being saved
+        const configToSave = data.config as any;
+        logger.info(`[StudioService] Logo being saved:`, {
+          hasLogo: !!configToSave.logo,
+          logoEnabled: configToSave.logo?.enabled,
+          hasLogoData: !!configToSave.logo?.data,
+          logoDataLength: configToSave.logo?.data?.length,
+          logoDataPreview: configToSave.logo?.data?.substring(0, 100)
+        });
+        
         config = await prisma.studioConfig.update({
           where: { id: existing.id },
           data: {
@@ -197,6 +235,22 @@ export class StudioService {
             version: { increment: 1 },
             updatedAt: new Date(),
           },
+        });
+        
+        // Verify what was actually saved
+        const savedConfig = await prisma.studioConfig.findUnique({
+          where: { id: existing.id }
+        });
+        
+        logger.info(`[StudioService] Logo after save:`, {
+          configId: savedConfig?.id,
+          hasConfig: !!savedConfig?.config,
+          logoInSaved: (savedConfig?.config as any)?.logo ? {
+            enabled: (savedConfig?.config as any).logo.enabled,
+            hasData: !!(savedConfig?.config as any).logo.data,
+            dataLength: (savedConfig?.config as any).logo.data?.length,
+            dataPreview: (savedConfig?.config as any).logo.data?.substring(0, 100)
+          } : 'No logo in saved config'
         });
       } else {
         config = await prisma.studioConfig.create({

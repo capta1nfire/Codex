@@ -16,5 +16,5 @@ vi.mock('next/navigation', () => ({
 }));
 
 // Mock environment variables
-process.env.NEXT_PUBLIC_BACKEND_URL = 'http://localhost:3004';
+process.env.NEXT_PUBLIC_BACKEND_URL = 'http://localhost:3001';
 process.env.NEXT_PUBLIC_RUST_SERVICE_URL = 'http://localhost:3002'; 

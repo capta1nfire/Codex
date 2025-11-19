@@ -577,7 +577,7 @@ export async function getServiceStatus(serviceName: string): Promise<ServiceResu
             status: 'running',
             pid: process.pid,
             uptime: process.uptime(),
-            port: process.env.PORT || 3004,
+            port: process.env.PORT || 3001,
           },
         };
 

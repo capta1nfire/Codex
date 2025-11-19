@@ -633,7 +633,7 @@ export const LinkForm: React.FC<LinkFormProps> = ({
                       src={metadata.favicon} 
                       alt="" 
                       className="w-4 h-4 rounded-sm flex-shrink-0"
-                      onLoad={(e) => {
+                      onLoad={() => {
                         console.log('[Favicon] Successfully loaded:', metadata.favicon);
                       }}
                       onError={(e) => {

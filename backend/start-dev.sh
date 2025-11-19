@@ -3,7 +3,7 @@
 # Backend development starter with stability improvements
 # Uses tsx WITHOUT watch to prevent constant restarts
 
-echo "🔧 Starting Backend (Port 3004) - Stable Mode..."
+echo "🔧 Starting Backend (Port 3001) - Stable Mode..."
 
 # Set environment
 export NODE_ENV=development

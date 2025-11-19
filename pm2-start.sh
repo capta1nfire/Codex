@@ -36,7 +36,7 @@ echo -e "${YELLOW}🧹 Limpiando procesos anteriores...${NC}"
 pm2 delete all 2>/dev/null || true
 
 # Matar procesos en puertos
-for port in 3000 3002 3004; do
+for port in 3000 3001 3002; do
     pids=$(lsof -ti :$port 2>/dev/null)
     if [ ! -z "$pids" ]; then
         echo -e "${CYAN}   • Liberando puerto $port${NC}"
@@ -69,7 +69,7 @@ pm2 status
 echo ""
 echo -e "${CYAN}====================================${NC}"
 echo -e "${WHITE}📱 Frontend:     ${BLUE}http://localhost:3000${NC}"
-echo -e "${WHITE}🔧 Backend:      ${BLUE}http://localhost:3004${NC}"
+echo -e "${WHITE}🔧 Backend:      ${BLUE}http://localhost:3001${NC}"
 echo -e "${WHITE}⚡ Rust Gen:     ${BLUE}http://localhost:3002${NC}"
 echo ""
 echo -e "${WHITE}📋 Comandos útiles:${NC}"

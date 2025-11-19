@@ -218,31 +218,14 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
     def => def.type === 'gradient' && (def as QRGradientDef).per_module
   );
   
-  console.log('[EnhancedQRV3] 🚨 DIAGNÓSTICO URGENTE - Gradientes recibidos:', {
-    definitions: data?.definitions,
-    gradientCount: data?.definitions?.filter(def => def.type === 'gradient').length,
-    gradientTypes: data?.definitions?.filter(def => def.type === 'gradient').map(def => ({
-      id: def.id,
-      type: (def as QRGradientDef).gradient_type,
-      colors: (def as QRGradientDef).colors,
-      angle: (def as QRGradientDef).angle,
-      hasAngle: (def as QRGradientDef).angle !== undefined,
-      angleValue: (def as QRGradientDef).angle ?? 'undefined'
-    }))
-  });
+  // Gradient diagnostics (commented out to reduce console noise)
+  // Uncomment for debugging gradient issues
+  // console.log('[EnhancedQRV3] Gradients received:', { ... });
   
-  // Log específico para gradientes de ojos
-  const eyeGradients = data?.definitions?.filter(def => 
-    def.type === 'gradient' && (def.id.includes('eye') || def.id === 'grad_eyes')
-  );
-  if (eyeGradients && eyeGradients.length > 0) {
-    console.log('[EnhancedQRV3] 👁️ Eye gradients detail:', eyeGradients.map(grad => ({
-      id: grad.id,
-      angle: (grad as QRGradientDef).angle,
-      type: (grad as QRGradientDef).gradient_type,
-      colors: (grad as QRGradientDef).colors
-    })));
-  }
+  // Eye gradient logging (commented out to reduce console noise)
+  // const eyeGradients = data?.definitions?.filter(def => 
+  //   def.type === 'gradient' && (def.id.includes('eye') || def.id === 'grad_eyes')
+  // );
   
   // EnhancedQRV3 render initialized with data
   
@@ -266,15 +249,23 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
     return `${adjustedQuietZone} ${adjustedQuietZone} ${adjustedSize} ${adjustedSize}`;
   }, [dataModules, QUIET_ZONE, data?.styles]);
   
+  // DEBUG: Log dimensions and spacing (commented out to reduce console noise)
+  // console.log('[EnhancedQRV3] Container dimensions:', {
+  //   padding: size * QUIET_ZONE / totalModules * 0.35,
+  //   calculatedPadding: `${size * QUIET_ZONE / totalModules * 0.35}px`,
+  //   viewBox,
+  //   bgColor
+  // });
+  
   // Renderizar definiciones (gradientes y efectos)
   const definitions = useMemo(() => {
-    const defs = [];
+    const defs: React.ReactElement[] = [];
     
     // Add standard definitions from data
     if (data.definitions && data.definitions.length > 0) {
       data.definitions.forEach((def) => {
         if (def.type === 'gradient') {
-          defs.push(renderGradient(def as QRGradientDef, dataModules));
+          defs.push(renderGradient(def as QRGradientDef));
         } else if (def.type === 'effect') {
           defs.push(renderEffect(def as QREffectDef));
         }
@@ -293,11 +284,8 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
       ) as QRGradientDef | undefined;
       
       if (gradDef) {
-        console.log('[EnhancedQRV3] Creating per-module gradients:', {
-          gradientType: gradDef.gradient_type,
-          colors: gradDef.colors,
-          moduleCount: data.paths.data_modules.length
-        });
+        // Per-module gradient creation (commented out to reduce console noise)
+        // console.log('[EnhancedQRV3] Creating per-module gradients:', { ... });
         
         data.paths.data_modules.forEach((module) => {
           const gradientId = `grad_module_${module.x}_${module.y}`;
@@ -329,17 +317,9 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
             // SVG angles are measured clockwise from the positive X axis
             const x2 = 50 + 50 * Math.cos(angleRad);
             const y2 = 50 + 50 * Math.sin(angleRad);
-            const x1 = 50;
-            const y1 = 50;
             
-            console.log(`[EnhancedQRV3] 📐 Linear gradient calculation for ${gradientId}:`, {
-              angle,
-              angleRad,
-              x1: `${x1}%`,
-              y1: `${y1}%`,
-              x2: `${x2}%`,
-              y2: `${y2}%`
-            });
+            // Linear gradient calculation (commented out to reduce console noise)
+            // console.log(`[EnhancedQRV3] Linear gradient calculation for ${gradientId}:`, { ... });
             
             defs.push(
               <linearGradient
@@ -475,15 +455,10 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
           {/* IMPORTANT: Render EITHER individual modules OR single path, never both */}
           {data?.paths?.data_modules && data.paths.data_modules.length > 0 ? (
             <g>
-              {console.log('[EnhancedQRV3] About to render modules:', {
-                moduleCount: data.paths.data_modules.length,
-                firstFiveModules: data.paths.data_modules.slice(0, 5)
-              })}
+              {/* Module rendering debug (commented out to reduce console noise) */}
               {data.paths.data_modules.map((module, index) => {
-              // Debug individual module rendering
-              if (index < 5) {
-                console.log(`[EnhancedQRV3] Module ${index}:`, module);
-              }
+              // Debug individual module rendering (commented out to reduce console noise)
+              // if (index < 5) console.log(`[EnhancedQRV3] Module ${index}:`, module);
               
               // For per-module gradients, we just need to reference the pre-defined gradients
               if (hasPerModuleGradient) {
@@ -678,16 +653,11 @@ export const EnhancedQRV3: React.FC<EnhancedQRV3Props> = ({
 
 // Funciones auxiliares para renderizar elementos
 
-function renderGradient(gradient: QRGradientDef, viewBoxSize: number): React.ReactElement {
+function renderGradient(gradient: QRGradientDef): React.ReactElement {
   const key = `gradient-${gradient.id}`;
   
-  console.log('[EnhancedQRV3] 🚨 RENDERIZANDO GRADIENTE:', {
-    id: gradient.id,
-    type: gradient.gradient_type,
-    colors: gradient.colors,
-    angle: gradient.angle,
-    key: key
-  });
+  // Gradient rendering debug (commented out to reduce console noise)
+  // console.log('[EnhancedQRV3] RENDERIZANDO GRADIENTE:', { ... });
   
   switch (gradient.gradient_type.toLowerCase()) {
     case 'linear':
@@ -701,17 +671,9 @@ function renderGradient(gradient: QRGradientDef, viewBoxSize: number): React.Rea
       const x2 = 50 + 50 * Math.cos(radians);
       const y2 = 50 + 50 * Math.sin(radians);
       
-      console.log(`[EnhancedQRV3] Linear gradient angle calculation:`, {
-        gradientId: gradient.id,
-        originalAngle: angle,
-        radians: radians,
-        x1: "50%",
-        y1: "50%", 
-        x2: `${x2}%`,
-        y2: `${y2}%`,
-        colors: gradient.colors,
-        stopDistribution: gradient.colors.length === 2 ? '0%-100% (full distribution)' : 'uniform'
-      });
+      // Linear gradient angle calculation (commented out to reduce console noise)
+      // Uncomment for debugging gradient angles
+      // console.log(`[EnhancedQRV3] Linear gradient angle calculation:`, { ... });
       
       return (
         <linearGradient
@@ -734,14 +696,8 @@ function renderGradient(gradient: QRGradientDef, viewBoxSize: number): React.Rea
               offset = (i / (gradient.colors.length - 1)) * 100;
             }
             
-            console.log(`[EnhancedQRV3] Linear gradient stop ${i}:`, {
-              gradientType: gradient.gradient_type,
-              gradientId: gradient.id,
-              colorIndex: i,
-              color: color,
-              offset: `${offset}%`,
-              totalColors: gradient.colors.length
-            });
+            // Linear gradient stop debug (commented out to reduce console noise)
+            // console.log(`[EnhancedQRV3] Linear gradient stop ${i}:`, { ... });
             
             return (
               <stop
@@ -828,7 +784,7 @@ function renderGradient(gradient: QRGradientDef, viewBoxSize: number): React.Rea
           r="50%"
           {...(gradient.per_module ? { gradientUnits: "objectBoundingBox" } : {})}
         >
-          {gradient.colors.map((color, i) => {
+          {gradient.colors.map((_color, i) => {
             // Create spiral effect by alternating colors more frequently
             const stops = [];
             for (let j = 0; j <= 100; j += 20) {
@@ -905,13 +861,7 @@ function renderEffect(effect: QREffectDef): React.ReactElement {
 }
 
 function renderLogo(logo: QRLogo, totalModules: number, hasExclusion: boolean = false): React.ReactElement {
-  console.log('[renderLogo] Input:', { 
-    logo, 
-    totalModules, 
-    hasExclusion,
-    srcPreview: logo.src ? logo.src.substring(0, 100) + '...' : 'none',
-    isSVG: logo.src?.includes('image/svg+xml')
-  });
+  // Rendering logo with exclusion zone
   
   // Logo size is a percentage of the total QR size
   const logoSize = totalModules * logo.size;
@@ -924,18 +874,7 @@ function renderLogo(logo: QRLogo, totalModules: number, hasExclusion: boolean = 
   // Padding needs to be scaled relative to the QR size
   // Convert padding from pixels to viewBox units
   // Increase padding to create more white space around logo for better QR readability
-  const paddingInUnits = (logo.padding * 1.5) * totalModules / 300; // Increased padding for better contrast
-  
-  console.log('[renderLogo] Calculated:', {
-    logoSize,
-    logoX,
-    logoY,
-    paddingInUnits,
-    shape: logo.shape,
-    rectX: logoX - logoSize/2 - paddingInUnits,
-    rectY: logoY - logoSize/2 - paddingInUnits,
-    rectSize: logoSize + paddingInUnits * 2
-  });
+  // Logo calculations complete
   
   // For SVG images, we need to handle them differently
   // SVG in <image> tags sometimes have issues with data URIs

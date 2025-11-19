@@ -140,7 +140,7 @@ export const useQRGenerationV3 = (): UseQRGenerationV3Return => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
       const response = await fetch(`${backendUrl}/api/v3/qr/generate`, {
         method: 'POST',
         headers,

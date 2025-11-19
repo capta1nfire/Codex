@@ -29,7 +29,7 @@ interface StudioLayoutProps {
 }
 
 export default function StudioLayout({ children }: StudioLayoutProps) {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -37,9 +37,9 @@ export default function StudioLayout({ children }: StudioLayoutProps) {
 
   useEffect(() => {
     // Pilar 1: Seguridad - Validación estricta en cada cambio
-    if (!loading) {
+    if (!isLoading) {
       const authorized = user && user.role === 'SUPERADMIN';
-      setIsAuthorized(authorized);
+      setIsAuthorized(!!authorized);
       
       if (!authorized) {
         // Pequeño delay para evitar flash de contenido
@@ -54,10 +54,10 @@ export default function StudioLayout({ children }: StudioLayoutProps) {
         setIsInitialLoad(false);
       }
     }
-  }, [user, loading, router, isInitialLoad]);
+  }, [user, isLoading, router, isInitialLoad]);
 
   // Pilar 2: Manejo robusto de estados de carga
-  if (loading || isInitialLoad) {
+  if (isLoading || isInitialLoad) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">

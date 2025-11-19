@@ -2,6 +2,117 @@
 
 All notable changes to the CODEX project are documented in the [docs/](./docs/) directory.
 
+## 2025-11-10
+
+### ✅ Added
+- **Database Initialization**: PostgreSQL database successfully configured with all tables and seed data
+  - Created User and StudioConfig tables via Prisma migrations
+  - Seeded 4 users: admin@qreable.com, user@qreable.com, premium@qreable.com, capta1nfire@me.com
+  - Workaround: Migrations must be run from inside Docker container due to macOS client compatibility issues
+
+### 🎨 Improved
+- **QR Studio Mapping to Backend**: Fixed complete mapping from Studio config to v3 API format
+  - **Eye Colors**: Map eye colors from `config.colors.eye_colors.outer/inner` with backward compatibility
+  - **Effects**: Changed from `effect_type` to `type` field, added all optional effect parameters
+  - **Frame**: Complete frame mapping including all 11 fields: `frame_type`, `color`, `text`, `text_position`, `text_size`, `text_font`, `background_color`, `padding`, `border_width`, `corner_radius`
+  - Fixed mapping in both `useStudioConfigToCustomization.ts` and `studioConfigMapper.ts`
+  - Fixed 400 validation errors by using 'solid' mode instead of 'custom' for eye colors
+- **Attractive Factory Defaults**: Aligned QR Studio and main page to showcase personalization capabilities
+  - Both now default to modern circular eyes, dots pattern, and blue radial gradient (#2563EB → #000000)
+  - Updated `DEFAULT_QR_CONFIG` in `studio.types.ts` and `defaultFormValues.ts` for consistency
+  - Factory defaults now demonstrate QReable's customization power instead of plain black QR codes
+  - Ensures consistent "reset to factory" behavior: attractive, modern QR that shows what's possible
+
+### 🔧 Fixed
+- **Eye Styles from Placeholder**: Fixed eye styles being forced to 'square' instead of respecting placeholder config
+  - **GenerationOptions.tsx**: Only sets 'square' as fallback if values are undefined (respects placeholder circles)
+  - **useQRGenerationState.ts**: Auto-detects separated eye styles when eye_border/center_style values exist
+  - Fixed logic that sent `eye_shape: 'square'` when `use_separated_eye_styles` was false but circle styles were present
+  - Fixes discrepancy where QR Studio showed circles but main page showed squares
+  - Ensures placeholder configuration from Studio is properly respected in main page
+- **Eye Styles from Placeholder**: Fixed eye styles being forced to 'square' instead of respecting placeholder config
+  - **GenerationOptions.tsx**: Only sets 'square' as fallback if values are undefined (respects placeholder circles)
+  - **useQRGenerationState.ts**: Auto-detects separated eye styles when eye_border/center_style values exist
+  - Fixed logic that sent `eye_shape: 'square'` when `use_separated_eye_styles` was false but circle styles were present
+  - Fixes discrepancy where QR Studio showed circles but main page showed squares
+  - Ensures placeholder configuration from Studio is properly respected in main page
+- **Eye Styles from Placeholder**: Fixed eye styles being forced to 'square' instead of respecting placeholder config
+  - **GenerationOptions.tsx**: Only sets 'square' as fallback if values are undefined (respects placeholder circles)
+  - **useQRGenerationState.ts**: Auto-detects separated eye styles when eye_border/center_style values exist
+  - Fixed logic that sent `eye_shape: 'square'` when `use_separated_eye_styles` was false but circle styles were present
+  - Fixes discrepancy where QR Studio showed circles but main page showed squares
+  - Ensures placeholder configuration from Studio is properly respected in main page
+- **Eye Styles from Placeholder**: Fixed eye styles being forced to 'square' instead of respecting placeholder config
+  - **GenerationOptions.tsx**: Only sets 'square' as fallback if values are undefined (respects placeholder circles)
+  - **useQRGenerationState.ts**: Auto-detects separated eye styles when eye_border/center_style values exist
+  - Fixed logic that sent `eye_shape: 'square'` when `use_separated_eye_styles` was false but circle styles were present
+  - Fixes discrepancy where QR Studio showed circles but main page showed squares
+  - Ensures placeholder configuration from Studio is properly respected in main page
+- **Eye Styles from Placeholder**: Fixed eye styles being forced to 'square' instead of respecting placeholder config
+  - **GenerationOptions.tsx**: Only sets 'square' as fallback if values are undefined (respects placeholder circles)
+  - **useQRGenerationState.ts**: Auto-detects separated eye styles when eye_border/center_style values exist
+  - Fixed logic that sent `eye_shape: 'square'` when `use_separated_eye_styles` was false but circle styles were present
+  - Fixes discrepancy where QR Studio showed circles but main page showed squares
+  - Ensures placeholder configuration from Studio is properly respected in main page
+- **Eye Styles Toggle Loop**: Fixed infinite regeneration loop caused by `use_separated_eye_styles` toggle
+  - GenerationOptions was forcing `true` even when value was explicitly `false`
+  - Changed condition to only set default when value is `undefined` or `null`
+  - Eliminates constant value changes between `true`/`false` causing unnecessary QR regenerations
+  - Reduces component mount/regeneration cycles from 10+ to 2-3 (React Strict Mode doubles in dev)
+  - Performance: Initial QR generation now completes in 1-2 cycles instead of constant loops
+- **Backend Port Configuration**: Migrated backend from port 3004 to port 3001
+  - Updated all configuration files: `.env`, `ecosystem.config.cjs`, `start-dev.sh`
+  - Updated frontend environment files to point to new backend port
+  - Updated 22+ TypeScript/TSX files in frontend with new backend URL
+  - Updated project documentation: START_HERE.md, README.md, QREABLE.md, CLAUDE.md
+  - All services now running on correct ports: Frontend (3000), Backend (3001), Rust (3002)
+- **PostgreSQL Password**: Standardized to `qreable_password` as documented in `.env.example`
+- **QR API Migration**: Updated frontend to use v3 API endpoints
+  - Fixed `useBarcodeGenerationV2.ts` to call `/api/v3/qr/generate` instead of non-existent `/api/v2/qr/generate`
+  - Updated `qr-engine-v2.ts` client to use v3 endpoints (`/api/v3/qr/*`)
+  - Fixed 404 errors when generating QR codes
+  - Maintained backward compatibility with "v2" naming in files
+
+### 🔧 Fixed (Later on 2025-11-10)
+- **Database Connection from macOS**: Resolved PostgreSQL connection issue
+  - **Root Cause**: Local PostgreSQL server (Homebrew) was conflicting with Docker container on port 5432
+  - **Solution**: Completely uninstalled PostgreSQL@14 and PostgreSQL@16 from Homebrew
+  - **Result**: Prisma can now connect successfully from macOS host
+  - **Authentication**: Login endpoint working correctly with database
+  - Only Docker PostgreSQL remains, eliminating future port conflicts
+  - Documented in TROUBLESHOOTING.md for future reference
+
+### 🗑️ Removed
+- **PostgreSQL Homebrew installations**: Uninstalled postgresql@14 and postgresql@16
+  - Freed ~115MB of disk space
+  - Eliminated port 5432 conflicts permanently
+  - Docker PostgreSQL is now the sole database instance
+- **QR Engine v2 Legacy Code**: Removed deprecated v2 code from Rust generator
+  - Removed `rust_generator/src/routes/qr_v2.rs` (516 lines)
+  - Removed `rust_generator/src/routes/qr_v2_fixed.rs` (499 lines)
+  - Removed v2 route handlers from `main.rs` (`/api/qr/generate`, `/api/qr/batch`, etc.)
+  - QR Engine v3 is now the sole QR generation engine
+  - Total: ~1,015 lines of deprecated code removed
+
+## 2025-07-30
+
+### ✅ Added
+- **Centralized Placeholder Configuration Manager**: Created `placeholderConfigManager.ts` for consistent placeholder handling
+  - Centralized fetching and caching of Studio placeholder configuration
+  - Provides unified interface for all components needing placeholder config
+  - Includes cache management with 5-minute expiration for performance
+
+### 🔧 Fixed
+- **QR Default Configuration**: Fixed inconsistency between initial QR and user-customized QRs
+  - Removed hardcoded gradient values from `defaultFormValues.ts`
+  - Default values now serve as neutral fallbacks only
+  - Studio placeholder configuration is now the single source of truth for default QR appearance
+  - Ensures consistent QR appearance across initial load, refresh, and user customization
+- **Initial QR Load**: Fixed issue where placeholder config wasn't applied on page load
+  - Placeholder configuration now loads as primary source on initial mount
+  - Defaults only used when no placeholder configuration exists
+  - Added proper error handling with fallback to defaults
+
 ## 2025-01-18
 
 ### 🔧 Fixed

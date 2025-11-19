@@ -259,7 +259,7 @@ const AdvancedOptionsMenu: React.FC<AdvancedOptionsMenuProps> = ({
 
             {/* ✅ API Docs */}
             <a
-              href="http://localhost:3004/api-docs/"
+              href="http://localhost:3001/api-docs/"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setIsOpen(false)}

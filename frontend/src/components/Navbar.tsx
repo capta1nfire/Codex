@@ -65,7 +65,7 @@ export default function Navbar() {
       isBeta: true,
     },
     {
-      href: 'http://localhost:3004/api-docs/',
+      href: 'http://localhost:3001/api-docs/',
       label: 'API Docs',
       icon: <FileText className="h-4 w-4 md:mr-2 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />,
       isActive: false,

@@ -115,7 +115,7 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
                   value={config.colors?.foreground || '#000000'}
                   onChange={(e) => updateColors({ foreground: e.target.value })}
                   className="h-10 w-14 cursor-pointer border border-slate-200 rounded"
-                  disabled={disabled}
+                  disabled={disabled || config.gradient?.enabled}
                 />
                 <Input
                   type="text"
@@ -123,11 +123,14 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
                   onChange={(e) => updateColors({ foreground: e.target.value })}
                   placeholder="#000000"
                   className="flex-1 font-mono text-sm"
-                  disabled={disabled}
+                  disabled={disabled || config.gradient?.enabled}
                 />
               </div>
+              {config.gradient?.enabled && (
+                <p className="text-xs text-slate-400 italic">Color controlado por gradiente</p>
+              )}
             </div>
-            
+
             {/* Color de Fondo */}
             <div className="space-y-2">
               <Label className="text-xs font-medium text-slate-600">Color de Fondo</Label>
@@ -137,7 +140,7 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
                   value={config.colors?.background || '#FFFFFF'}
                   onChange={(e) => updateColors({ background: e.target.value })}
                   className="h-10 w-14 cursor-pointer border border-slate-200 rounded"
-                  disabled={disabled}
+                  disabled={disabled || config.transparent_background}
                 />
                 <Input
                   type="text"
@@ -145,21 +148,41 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
                   onChange={(e) => updateColors({ background: e.target.value })}
                   placeholder="#FFFFFF"
                   className="flex-1 font-mono text-sm"
-                  disabled={disabled}
+                  disabled={disabled || config.transparent_background}
                 />
               </div>
             </div>
           </div>
         </div>
 
+        {/* Fondo Transparente */}
+        <div className="flex items-center justify-between py-2 px-3 bg-slate-50 rounded-lg">
+          <div>
+            <Label htmlFor="transparent-bg" className="text-sm font-medium cursor-pointer">
+              Fondo transparente
+            </Label>
+            <p className="text-xs text-slate-500 mt-0.5">Útil para sobreponer en otras imágenes</p>
+          </div>
+          <Switch
+            id="transparent-bg"
+            checked={config.transparent_background || false}
+            onCheckedChange={(checked) => onChange({ transparent_background: checked })}
+            disabled={disabled}
+          />
+        </div>
+
         {/* Sección de Gradiente - Material Design */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-slate-500" />
-              Gradiente
-            </Label>
+          <div className="flex items-center justify-between py-2 px-3 bg-slate-50 rounded-lg">
+            <div>
+              <Label htmlFor="gradient-enabled" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-slate-500" />
+                Gradiente
+              </Label>
+              <p className="text-xs text-slate-500 mt-0.5">Aplicar gradiente de colores al patrón</p>
+            </div>
             <Switch
+              id="gradient-enabled"
               checked={config.gradient?.enabled || false}
               onCheckedChange={(checked) => updateGradient({ enabled: checked })}
               disabled={disabled}

@@ -5,7 +5,7 @@ echo "========================================"
 
 # Test 1: Heart shape básico
 echo -e "\n1. Heart shape básico:"
-curl -X POST http://localhost:3004/api/v3/qr/enhanced \
+curl -X POST http://localhost:3001/api/v3/qr/enhanced \
   -H "Content-Type: application/json" \
   -d '{
     "data": "TEST HEART",
@@ -23,7 +23,7 @@ curl -X POST http://localhost:3004/api/v3/qr/enhanced \
 
 # Test 2: Heart con gradientes independientes
 echo -e "\n\n2. Heart con gradientes independientes:"
-curl -X POST http://localhost:3004/api/v3/qr/enhanced \
+curl -X POST http://localhost:3001/api/v3/qr/enhanced \
   -H "Content-Type: application/json" \
   -d '{
     "data": "HEART GRADIENT TEST",

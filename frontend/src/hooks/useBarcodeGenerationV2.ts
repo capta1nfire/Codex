@@ -1,12 +1,14 @@
 /**
- * Enhanced barcode generation hook with API v1/v2 integration
- * 
+ * Enhanced barcode generation hook with API v1/v3 integration
+ *
  * API Structure:
- * - QR CODES: /api/v2/qr (high-performance v2 engine)
- * - OTHER BARCODES: /api/v1/barcode (legacy engine)
- * 
+ * - QR CODES: /api/v3/qr (high-performance v3 engine)
+ * - OTHER BARCODES: /api/v1/barcode (standard engine)
+ *
  * Legacy endpoints (/api/generate, /api/qr) remain functional
  * with deprecation warnings for backward compatibility.
+ *
+ * Note: Hook maintains "V2" name for backward compatibility but uses v3 endpoints
  */
 
 import { useState, useCallback } from 'react';
@@ -68,16 +70,16 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
       setIsUsingV2(useV2);
 
       if (payload.barcode_type === 'qrcode' || payload.barcode_type === 'qr') {
-        // ALWAYS use QR Engine v2 for QR codes
-        // Use QR Engine v2 for QR codes
-        setIsUsingV2(true);
-        
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
-        const requestUrl = `${backendUrl}/api/v2/qr/generate`;
-        
-        // Convert old format to v2 format
-        const v2Request = migrateQRRequest(payload);
-        console.log('[useBarcodeGenerationV2] v2Request after migration:', v2Request);
+        // ALWAYS use QR Engine v3 for QR codes
+        // Use QR Engine v3 for QR codes
+        setIsUsingV2(true); // Keep this true for backward compatibility with UI indicators
+
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const requestUrl = `${backendUrl}/api/v3/qr/generate`;
+
+        // Convert old format to v3 format
+        const v3Request = migrateQRRequest(payload);
+        console.log('[useBarcodeGenerationV2] v3Request after migration:', v3Request);
         
         // Add gradient options if present
         if (formData.options) {
@@ -87,9 +89,9 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
           
           // Handle gradients properly
           if (opts.gradient_enabled) {
-            v2Request.options = v2Request.options || {};
-            
-            v2Request.options.gradient = {
+            v3Request.options = v3Request.options || {};
+
+            v3Request.options.gradient = {
               type: opts.gradient_type || 'linear',
               colors: [opts.gradient_color1 || '#000000', opts.gradient_color2 || '#666666'],
               angle: opts.gradient_direction === 'left-right' ? 0 : 
@@ -100,25 +102,25 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
             };
             
             // Override colors when gradient is enabled
-            if (v2Request.options.gradient.colors && v2Request.options.gradient.colors.length > 0) {
-              v2Request.options.foregroundColor = v2Request.options.gradient.colors[0];
+            if (v3Request.options.gradient.colors && v3Request.options.gradient.colors.length > 0) {
+              v3Request.options.foregroundColor = v3Request.options.gradient.colors[0];
             }
           }
-          
-          // Map additional v2 options
-          if (opts.eyeShape) v2Request.options!.eyeShape = opts.eyeShape;
-          if (opts.dataPattern) v2Request.options!.dataPattern = opts.dataPattern;
-          if (opts.eyeColor) v2Request.options!.eyeColor = opts.eyeColor;
+
+          // Map additional v3 options
+          if (opts.eyeShape) v3Request.options!.eyeShape = opts.eyeShape;
+          if (opts.dataPattern) v3Request.options!.dataPattern = opts.dataPattern;
+          if (opts.eyeColor) v3Request.options!.eyeColor = opts.eyeColor;
           
           // Map effects if present
           if (opts.effects) {
-            v2Request.options!.effects = [];
+            v3Request.options!.effects = [];
             
             // Check each effect type
             ['shadow', 'glow', 'blur', 'noise', 'vintage'].forEach((effectType) => {
               const effect = opts.effects?.[effectType];
               if (effect?.enabled) {
-                v2Request.options!.effects!.push({
+                v3Request.options!.effects!.push({
                   type: effectType,
                   intensity: effect.intensity || 1.0,
                   ...(effect.color && { color: effect.color })
@@ -129,7 +131,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
           
           // Map frame options
           if (opts.frame?.style && opts.frame.style !== 'none') {
-            v2Request.options!.frame = {
+            v3Request.options!.frame = {
               style: opts.frame.style,
               text: opts.frame.text,
               color: opts.frame.color || '#000000',
@@ -147,18 +149,18 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
           headers['Authorization'] = `Bearer ${token}`;
         }
         
-        // Send request to v2 API
-        console.log('[useBarcodeGenerationV2] Final v2Request being sent:', JSON.stringify(v2Request, null, 2));
-        
+        // Send request to v3 API
+        console.log('[useBarcodeGenerationV2] Final v3Request being sent:', JSON.stringify(v3Request, null, 2));
+
         const response = await fetch(requestUrl, {
           method: 'POST',
           headers,
-          body: JSON.stringify(v2Request),
+          body: JSON.stringify(v3Request),
           signal: AbortSignal.timeout(10000),
         });
 
         const result = await response.json();
-        console.log('[useBarcodeGenerationV2] v2 API response:', {
+        console.log('[useBarcodeGenerationV2] v3 API response:', {
           success: result.success,
           hasSvg: !!result.svg,
           svgLength: result.svg?.length,
@@ -185,7 +187,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
         setMetadata({
           generationTimeMs: result.metadata?.processingTimeMs || result.performance?.processingTimeMs,
           fromCache: result.cached || false,
-          engineVersion: '2.0.0',
+          engineVersion: '3.0.0',
           complexityLevel: result.metadata?.complexityLevel,
           qualityScore: result.metadata?.qualityScore,
         });
@@ -196,7 +198,7 @@ export const useBarcodeGenerationV2 = (): UseBarcodeGenerationReturn => {
         // Use legacy API for non-QR barcodes
         setIsUsingV2(false);
         
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004';
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
         const requestUrl = `${backendUrl}/api/v1/barcode`;
         
         const token = localStorage.getItem('authToken');

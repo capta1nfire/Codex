@@ -106,7 +106,7 @@ export function useStudioWebSocket(options: UseStudioWebSocketOptions = {}): Stu
         throw new Error('No se pudo obtener token de autenticación');
       }
 
-      const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004', {
+      const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001', {
         path: '/ws/studio',
         auth: { token },
         transports: ['websocket'],

@@ -11,7 +11,7 @@ async function globalTeardown(config: FullConfig) {
 
 async function cleanupTestData() {
   try {
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3004';
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
     
     // Optionally clean up test user and data
     // For now, we'll leave test data in place for debugging

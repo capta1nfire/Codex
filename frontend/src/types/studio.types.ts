@@ -238,11 +238,11 @@ export const DEFAULT_COLORS: ColorConfig = {
 };
 
 export const DEFAULT_GRADIENT: GradientConfig = {
-  enabled: true,  // Changed to match page.tsx default
-  gradient_type: 'radial',  // Changed to match page.tsx default
-  colors: ['#2563EB', '#000000'],  // ✅ CAMBIAR A AZUL CODEX + NEGRO como página principal
+  enabled: true,  // Mostrar capacidades de personalización desde el inicio
+  gradient_type: 'radial',  // Gradiente radial más atractivo visualmente
+  colors: ['#2563EB', '#000000'],  // Azul CODEX + Negro para demostrar gradientes
   angle: 90,
-  apply_to_eyes: true,  // ✅ CAMBIAR A TRUE para que los ojos hereden el gradiente
+  apply_to_eyes: true,  // Los ojos heredan el gradiente para efecto cohesivo
   apply_to_data: true,
   stroke_style: {
     enabled: false,
@@ -253,17 +253,16 @@ export const DEFAULT_GRADIENT: GradientConfig = {
 };
 
 export const DEFAULT_QR_CONFIG: QRConfig = {
-  use_separated_eye_styles: true,  // ✅ CAMBIAR A TRUE para match con página principal
-  // When using separated styles, we need both border and center styles
-  eye_border_style: 'circle',  // ✅ Anillo exterior circular como en página principal
-  eye_center_style: 'circle',  // ✅ Centro circular como en página principal
-  data_pattern: 'dots',  // ✅ CAMBIAR A DOTS para match con página principal
+  use_separated_eye_styles: true,
+  // Valores atractivos que demuestran personalización
+  eye_border_style: 'circle',  // Círculos más modernos y amigables
+  eye_center_style: 'circle',  // Consistencia visual
+  data_pattern: 'dots',  // Puntos más modernos que cuadrados
   colors: DEFAULT_COLORS,
   gradient: DEFAULT_GRADIENT,
   effects: [],
   error_correction: 'M',
-  // NOTA: El marco está temporalmente deshabilitado en useQRGenerationState.ts
-  // para sincronizar con la página principal que no muestra marco
+  // NOTE: Frame temporarily disabled to match main page behavior
   
   // Nuevos campos para colores de ojos - por defecto heredan del patrón principal
   eye_border_color_mode: 'inherit',
