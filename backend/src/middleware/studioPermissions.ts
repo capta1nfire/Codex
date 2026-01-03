@@ -5,7 +5,7 @@
  * y es fácilmente extensible para futuros roles
  */
 
-import { UserRole } from '@prisma/client';
+import { Role as UserRole } from '@prisma/client';
 import { Request, Response, NextFunction } from 'express';
 
 // Definición de acciones posibles en Studio

@@ -50,7 +50,7 @@ const localStrategy = new LocalStrategy(localOptions, async (email, password, do
     if (user && user.isActive) {
       // Usuario autenticado y activo
       // Devolver el objeto usuario sanitizado (sin contraseña)
-      return done(null, userStore.sanitizeUser(user));
+      return done(null, userStore.sanitizeUser(user) as Express.User);
     } else {
       // Credenciales inválidas o usuario inactivo
       return done(null, false, { message: 'Credenciales inválidas' });
@@ -76,7 +76,7 @@ const apiKeyStrategy = async (req: Request, _res: Response, next: NextFunction) 
     if (user && user.isActive) {
       // API key válida, usuario encontrado y activo
       // Asignar el usuario sanitizado a req.user
-      req.user = userStore.sanitizeUser(user);
+      req.user = userStore.sanitizeUser(user) as Express.User;
     }
 
     next();

@@ -8,13 +8,15 @@ export interface GradientConfig {
   type: 'linear' | 'radial' | 'conic' | 'diamond' | 'spiral';
   colors: string[];
   angle?: number;
+  applyToEyes?: boolean;
+  applyToData?: boolean;
 }
 
 export interface LogoConfig {
   url: string;
   size: number;
   padding?: number;
-  shape?: 'square' | 'circle' | 'rounded';
+  shape?: 'square' | 'circle' | 'rounded' | 'rounded_square';
 }
 
 export interface TemplateConfig {

@@ -83,7 +83,7 @@ export class StudioService {
       });
 
       // Log placeholder config details
-      const placeholderConfig = configs.find(c => c.type === 'placeholder');
+      const placeholderConfig = configs.find(c => c.type === ('placeholder' as any));
       if (placeholderConfig) {
         logger.info('[StudioService] Placeholder config found:', {
           id: placeholderConfig.id,

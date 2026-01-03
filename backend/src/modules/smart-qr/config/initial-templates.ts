@@ -15,6 +15,8 @@ export interface TemplateDefinition {
       type: 'linear' | 'radial' | 'conic' | 'diamond' | 'spiral';
       colors: string[];
       angle?: number;
+      applyToEyes?: boolean;
+      applyToData?: boolean;
     };
     eyeShape?: string;
     eyeBorderStyle?: string;

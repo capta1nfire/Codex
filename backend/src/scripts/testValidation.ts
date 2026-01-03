@@ -128,6 +128,7 @@ interface TestResult {
   url: string;
   success: boolean;
   exists: boolean;
+  accessible?: boolean;
   method: string;
   responseTime: number;
   statusCode?: number;

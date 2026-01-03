@@ -17,17 +17,16 @@ export const authController = {
    */
   async register(req: Request, res: Response, next: NextFunction) {
     try {
-      // Obtener los nuevos campos del body
-      const { email, password, firstName, lastName, username } = req.body;
+      // Obtener los nuevos campos del body (username se genera automáticamente)
+      const { email, password, firstName, lastName } = req.body;
       let user;
       try {
-        // Crear el usuario con los nuevos campos
+        // Crear el usuario con los campos del schema
         user = await userStore.createUser({
           email,
           password,
           firstName,
           lastName, // Pasamos lastName (puede ser undefined)
-          username, // Pasamos username
           role: UserRole.USER,
         });
       } catch (error) {

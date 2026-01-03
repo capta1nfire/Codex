@@ -35,18 +35,18 @@ export const prisma =
 
 // Event listeners para monitoreo
 if (process.env.NODE_ENV !== 'production') {
-  prisma.$on('query', (e) => {
+  (prisma.$on as any)('query', (e: any) => {
     if (e.duration > 1000) {
       logger.warn(`Slow query detected (${e.duration}ms): ${e.query}`);
     }
   });
 }
 
-prisma.$on('error', (e) => {
+(prisma.$on as any)('error', (e: any) => {
   logger.error('Prisma error:', e);
 });
 
-prisma.$on('warn', (e) => {
+(prisma.$on as any)('warn', (e: any) => {
   logger.warn('Prisma warning:', e);
 });
 

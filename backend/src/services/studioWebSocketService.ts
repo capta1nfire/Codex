@@ -118,7 +118,7 @@ export class StudioWebSocketService {
   private async subscribeToRedis() {
     try {
       const subscriber = redisCache.duplicate();
-      await subscriber.subscribe(this.REDIS_CHANNEL);
+      await subscriber.subscribe(this.REDIS_CHANNEL, () => {});
 
       subscriber.on('message', (channel, message) => {
         if (channel === this.REDIS_CHANNEL) {

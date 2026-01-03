@@ -31,7 +31,8 @@ export interface QrOptions {
 
   // Advanced features
   gradient?: {
-    type: string;
+    type?: string;
+    gradient_type?: string;
     colors: string[];
     angle?: number;
     enabled?: boolean;
@@ -298,7 +299,7 @@ class QrServiceUnified {
         request: transformedRequest,
       });
 
-      const response = await this.axiosClient.post<any>('/api/qr/generate', transformedRequest);
+      const response = await this.axiosClient.post('/api/qr/generate', transformedRequest);
 
       // Handle both v1 and v2 response formats
       if (response.data.qr_code) {
@@ -322,11 +323,13 @@ class QrServiceUnified {
           cached: response.data.cached || false,
         };
       } else {
-        throw new AppError('Invalid response format from QR engine', ErrorCode.INTERNAL_ERROR);
+        throw new AppError('Invalid response format from QR engine', 500, ErrorCode.INTERNAL_SERVER);
       }
     } catch (error) {
+      if (error instanceof AppError) throw error;
+
       if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as AxiosError<{ message?: string }>;
         logger.error('QR generation error:', {
           status: axiosError.response?.status,
           data: axiosError.response?.data,
@@ -336,20 +339,21 @@ class QrServiceUnified {
         if (axiosError.response?.status === 400) {
           throw new AppError(
             axiosError.response.data?.message || 'Invalid QR code parameters',
+            400,
             ErrorCode.VALIDATION_ERROR
           );
         }
 
         if (axiosError.code === 'ECONNABORTED' || axiosError.code === 'ETIMEDOUT') {
-          throw new AppError('QR generation timeout', ErrorCode.TIMEOUT_ERROR);
+          throw new AppError('QR generation timeout', 504, ErrorCode.SERVICE_UNAVAILABLE);
         }
 
         if (axiosError.code === 'ECONNREFUSED') {
-          throw new AppError('QR engine service unavailable', ErrorCode.SERVICE_UNAVAILABLE);
+          throw new AppError('QR engine service unavailable', 503, ErrorCode.SERVICE_UNAVAILABLE);
         }
       }
 
-      throw new AppError('Failed to generate QR code', ErrorCode.INTERNAL_ERROR);
+      throw new AppError('Failed to generate QR code', 500, ErrorCode.INTERNAL_SERVER);
     }
   }
 
@@ -368,12 +372,14 @@ class QrServiceUnified {
         options: this.transformToSnakeCase(item.options),
       }));
 
-      const response = await this.axiosClient.post<QrBatchResponse>('/api/qr/batch', {
+      const response = await this.axiosClient.post('/api/qr/batch', {
         items: transformedItems,
-      });
+      }) as { data: QrBatchResponse };
 
       return response.data;
     } catch (error) {
+      if (error instanceof AppError) throw error;
+
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
         logger.error('QR batch generation error:', {
@@ -382,15 +388,15 @@ class QrServiceUnified {
         });
 
         if (axiosError.response?.status === 400) {
-          throw new AppError('Invalid batch parameters', ErrorCode.VALIDATION_ERROR);
+          throw new AppError('Invalid batch parameters', 400, ErrorCode.VALIDATION_ERROR);
         }
 
         if (axiosError.code === 'ECONNREFUSED') {
-          throw new AppError('QR engine service unavailable', ErrorCode.SERVICE_UNAVAILABLE);
+          throw new AppError('QR engine service unavailable', 503, ErrorCode.SERVICE_UNAVAILABLE);
         }
       }
 
-      throw new AppError('Failed to generate QR codes in batch', ErrorCode.INTERNAL_ERROR);
+      throw new AppError('Failed to generate QR codes in batch', 500, ErrorCode.INTERNAL_SERVER);
     }
   }
 
@@ -404,10 +410,10 @@ class QrServiceUnified {
         options: this.transformToSnakeCase(request.options),
       };
 
-      const response = await this.axiosClient.post<QrValidateResponse>(
+      const response = await this.axiosClient.post(
         '/api/qr/validate',
         transformedRequest
-      );
+      ) as { data: QrValidateResponse };
 
       return response.data;
     } catch (error) {
@@ -418,7 +424,7 @@ class QrServiceUnified {
         }
       }
 
-      throw new AppError('Failed to validate QR code', ErrorCode.INTERNAL_ERROR);
+      throw new AppError('Failed to validate QR code', 500, ErrorCode.INTERNAL_SERVER);
     }
   }
 
@@ -427,11 +433,11 @@ class QrServiceUnified {
    */
   async getCacheStats(): Promise<QrCacheStats> {
     try {
-      const response = await this.axiosClient.get<QrCacheStats>('/api/qr/cache/stats');
+      const response = await this.axiosClient.get('/api/qr/cache/stats') as { data: QrCacheStats };
       return response.data;
     } catch (error) {
       logger.error('Failed to get cache stats:', error);
-      throw new AppError('Failed to get cache statistics', ErrorCode.INTERNAL_ERROR);
+      throw new AppError('Failed to get cache statistics', 500, ErrorCode.INTERNAL_SERVER);
     }
   }
 
@@ -440,11 +446,11 @@ class QrServiceUnified {
    */
   async clearCache(): Promise<{ cleared: number }> {
     try {
-      const response = await this.axiosClient.post<{ cleared: number }>('/api/qr/cache/clear');
+      const response = await this.axiosClient.post('/api/qr/cache/clear') as { data: { cleared: number } };
       return response.data;
     } catch (error) {
       logger.error('Failed to clear cache:', error);
-      throw new AppError('Failed to clear cache', ErrorCode.INTERNAL_ERROR);
+      throw new AppError('Failed to clear cache', 500, ErrorCode.INTERNAL_SERVER);
     }
   }
 
@@ -563,11 +569,11 @@ export const checkQREngineHealth = () => qrService.healthCheck();
 export async function getQRPreview(params: any): Promise<{ svg: string }> {
   try {
     const queryString = new URLSearchParams(params).toString();
-    const response = await qrService.axiosClient.get(`/api/qr/preview?${queryString}`);
+    const response = await axios.get(`${QR_ENGINE_URL}/api/qr/preview?${queryString}`);
     return { svg: response.data };
   } catch (error) {
     logger.error('[QR Service] Preview failed:', error);
-    throw new AppError('Failed to generate preview', ErrorCode.INTERNAL_ERROR);
+    throw new AppError('Failed to generate preview', 500, ErrorCode.INTERNAL_SERVER);
   }
 }
 

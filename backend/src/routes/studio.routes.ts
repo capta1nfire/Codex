@@ -270,18 +270,19 @@ router.post('/configs', requireSuperAdmin, async (req, res, next) => {
       );
     }
 
-    const config = await studioService.upsertConfig(req.user!.id, validatedData);
+    const config = await studioService.upsertConfig(req.user!.id, validatedData as any);
 
+    const configData = config.config as any;
     console.log('[Studio Routes] Config saved:', {
       id: config.id,
       type: config.type,
-      logoInfo: config.config?.logo ? {
-        enabled: config.config.logo.enabled,
-        hasData: !!config.config.logo.data,
-        dataLength: config.config.logo.data?.length,
-        dataPreview: config.config.logo.data?.substring(0, 100),
-        size: config.config.logo.size_percentage,
-        shape: config.config.logo.shape
+      logoInfo: configData?.logo ? {
+        enabled: configData.logo.enabled,
+        hasData: !!configData.logo.data,
+        dataLength: configData.logo.data?.length,
+        dataPreview: configData.logo.data?.substring(0, 100),
+        size: configData.logo.size_percentage,
+        shape: configData.logo.shape
       } : 'No logo in saved config'
     });
 
@@ -353,7 +354,7 @@ router.post('/configs/apply-all', requireSuperAdmin, async (req, res, next) => {
     // Validar configuración
     const validatedConfig = qrConfigSchema.parse(config);
 
-    await studioService.applyToAllTemplates(req.user!.id, validatedConfig);
+    await studioService.applyToAllTemplates(req.user!.id, validatedConfig as any);
 
     logger.info(`Configuración aplicada a todas las plantillas por ${req.user!.email}`);
     res.json({

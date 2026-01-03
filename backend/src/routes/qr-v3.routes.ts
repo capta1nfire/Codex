@@ -714,7 +714,7 @@ router.post(
       let scannabilityAnalysis = null;
       if (rustResponse.success && options?.customization) {
         try {
-          scannabilityAnalysis = scannabilityService.calculateScore(options.customization);
+          scannabilityAnalysis = scannabilityService.calculateScore(options.customization as any);
           logger.info('Scannability score calculated', {
             score: scannabilityAnalysis.score,
             issueCount: scannabilityAnalysis.issues.length,
@@ -824,49 +824,51 @@ router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => 
     const rustGeneratorUrl = process.env.RUST_GENERATOR_URL || 'http://localhost:3002';
 
     // Transform options from camelCase to snake_case for Rust
-    const transformedOptions = options
+    // Use any to handle the flexible camelCase/snake_case dual naming
+    const opts = options as any;
+    const transformedOptions = opts
       ? {
-          error_correction: options.error_correction || options.errorCorrection || 'M',
-          customization: options.customization
+          error_correction: opts.error_correction || opts.errorCorrection || 'M',
+          customization: opts.customization
             ? {
-                colors: options.customization.colors
+                colors: opts.customization.colors
                   ? {
-                      ...options.customization.colors,
-                      eye_colors: options.customization.eye_colors,
+                      ...opts.customization.colors,
+                      eye_colors: opts.customization.eye_colors,
                     }
-                  : options.customization.eye_colors
+                  : opts.customization.eye_colors
                     ? {
                         foreground: '#000000',
                         background: '#FFFFFF',
-                        eye_colors: options.customization.eye_colors,
+                        eye_colors: opts.customization.eye_colors,
                       }
                     : undefined,
                 // New enhanced eye color fields
-                eye_color_mode: options.customization.eye_color_mode,
-                eye_color_solid: options.customization.eye_color_solid,
-                eye_color_gradient: options.customization.eye_color_gradient,
-                eye_border_color_mode: options.customization.eye_border_color_mode,
-                eye_border_color_solid: options.customization.eye_border_color_solid,
-                eye_border_color_gradient: options.customization.eye_border_color_gradient,
+                eye_color_mode: opts.customization.eye_color_mode,
+                eye_color_solid: opts.customization.eye_color_solid,
+                eye_color_gradient: opts.customization.eye_color_gradient,
+                eye_border_color_mode: opts.customization.eye_border_color_mode,
+                eye_border_color_solid: opts.customization.eye_border_color_solid,
+                eye_border_color_gradient: opts.customization.eye_border_color_gradient,
                 // Forward the new gradient fields for eyes
-                eye_border_gradient: options.customization.eye_border_gradient,
-                eye_center_gradient: options.customization.eye_center_gradient,
-                gradient: options.customization.gradient,
-                eye_shape: options.customization.eye_shape || options.customization.eyeShape,
+                eye_border_gradient: opts.customization.eye_border_gradient,
+                eye_center_gradient: opts.customization.eye_center_gradient,
+                gradient: opts.customization.gradient,
+                eye_shape: opts.customization.eye_shape || opts.customization.eyeShape,
                 eye_border_style:
-                  options.customization.eye_border_style || options.customization.eyeBorderStyle,
+                  opts.customization.eye_border_style || opts.customization.eyeBorderStyle,
                 eye_center_style:
-                  options.customization.eye_center_style || options.customization.eyeCenterStyle,
+                  opts.customization.eye_center_style || opts.customization.eyeCenterStyle,
                 data_pattern:
-                  options.customization.data_pattern || options.customization.dataPattern,
-                effects: options.customization.effects,
-                selective_effects: options.customization.selective_effects
+                  opts.customization.data_pattern || opts.customization.dataPattern,
+                effects: opts.customization.effects,
+                selective_effects: opts.customization.selective_effects
                   ? {
-                      ...(options.customization.selective_effects.eyes && {
+                      ...(opts.customization.selective_effects.eyes && {
                         eyes: {
-                          ...options.customization.selective_effects.eyes,
-                          effects: options.customization.selective_effects.eyes.effects?.map(
-                            (effect) => {
+                          ...opts.customization.selective_effects.eyes,
+                          effects: opts.customization.selective_effects.eyes.effects?.map(
+                            (effect: any) => {
                               const { type, ...otherProps } = effect;
                               return {
                                 ...otherProps,
@@ -876,11 +878,11 @@ router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => 
                           ),
                         },
                       }),
-                      ...(options.customization.selective_effects.data && {
+                      ...(opts.customization.selective_effects.data && {
                         data: {
-                          ...options.customization.selective_effects.data,
-                          effects: options.customization.selective_effects.data.effects?.map(
-                            (effect) => {
+                          ...opts.customization.selective_effects.data,
+                          effects: opts.customization.selective_effects.data.effects?.map(
+                            (effect: any) => {
                               const { type, ...otherProps } = effect;
                               return {
                                 ...otherProps,
@@ -890,11 +892,11 @@ router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => 
                           ),
                         },
                       }),
-                      ...(options.customization.selective_effects.frame && {
+                      ...(opts.customization.selective_effects.frame && {
                         frame: {
-                          ...options.customization.selective_effects.frame,
-                          effects: options.customization.selective_effects.frame.effects?.map(
-                            (effect) => {
+                          ...opts.customization.selective_effects.frame,
+                          effects: opts.customization.selective_effects.frame.effects?.map(
+                            (effect: any) => {
                               const { type, ...otherProps } = effect;
                               return {
                                 ...otherProps,
@@ -904,11 +906,11 @@ router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => 
                           ),
                         },
                       }),
-                      ...(options.customization.selective_effects.global && {
+                      ...(opts.customization.selective_effects.global && {
                         global: {
-                          ...options.customization.selective_effects.global,
-                          effects: options.customization.selective_effects.global.effects?.map(
-                            (effect) => {
+                          ...opts.customization.selective_effects.global,
+                          effects: opts.customization.selective_effects.global.effects?.map(
+                            (effect: any) => {
                               const { type, ...otherProps } = effect;
                               return {
                                 ...otherProps,
@@ -920,10 +922,10 @@ router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => 
                       }),
                     }
                   : undefined,
-                frame_style: options.customization.frame_style || options.customization.frameStyle,
-                logo: options.customization.logo,
+                frame_style: opts.customization.frame_style || opts.customization.frameStyle,
+                logo: opts.customization.logo,
                 logo_size_ratio:
-                  options.customization.logo_size_ratio || options.customization.logoSizeRatio,
+                  opts.customization.logo_size_ratio || opts.customization.logoSizeRatio,
               }
             : undefined,
         }
@@ -1010,7 +1012,7 @@ router.post('/enhanced', optionalAuth, generationRateLimit, async (req, res) => 
     let scannabilityAnalysis = null;
     if (rustResponse.success && options?.customization) {
       try {
-        scannabilityAnalysis = scannabilityService.calculateScore(options.customization);
+        scannabilityAnalysis = scannabilityService.calculateScore(options.customization as any);
         logger.info('Scannability score calculated', {
           score: scannabilityAnalysis.score,
           issueCount: scannabilityAnalysis.issues.length,

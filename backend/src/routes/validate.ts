@@ -42,7 +42,7 @@ interface UrlMetadata {
   lastModified?: string;
   server?: string;
   cached: boolean;
-  validationMethod: 'quick' | 'enhanced' | 'dns';
+  validationMethod: 'quick' | 'enhanced' | 'dns' | 'stealth' | 'behavioral' | 'browser';
   attempts: number;
   debugInfo?: any;
 }
@@ -283,7 +283,7 @@ router.delete('/cache', async (req, res) => {
     const cacheKeys = await redis.keys('url_validation:v3:*');
 
     if (cacheKeys.length > 0) {
-      await redis.del(...cacheKeys);
+      await redis.del(cacheKeys);
     }
 
     return res.json({

@@ -150,10 +150,10 @@ export const generateBarcode = async (
         suggestion: 'Verifica los logs del servicio Rust.',
       };
       try {
-        const rustErrorData = await rustResponse.json();
+        const rustErrorData = await rustResponse.json() as { error?: string; suggestion?: string };
         errorBody = {
           error: rustErrorData.error || `Servicio Rust devolvió error ${rustResponse.status}`,
-          suggestion: rustErrorData.suggestion,
+          suggestion: rustErrorData.suggestion || errorBody.suggestion,
         };
       } catch (e) {
         logger.warn('[BarcodeService] No se pudo parsear error JSON de Rust', e);
@@ -278,7 +278,7 @@ export const generateBarcodesBatch = async (
       };
 
       try {
-        const rustErrorData = await rustResponse.json();
+        const rustErrorData = await rustResponse.json() as { error?: string; suggestion?: string };
         errorBody = {
           error: rustErrorData.error || errorBody.error,
           suggestion: rustErrorData.suggestion || errorBody.suggestion,
@@ -297,7 +297,13 @@ export const generateBarcodesBatch = async (
     }
 
     // Procesar respuesta exitosa
-    const rustResult = await rustResponse.json();
+    const rustResult = await rustResponse.json() as {
+      success: boolean;
+      results: BatchResult[];
+      summary: BatchSummary;
+      error?: string;
+      suggestion?: string;
+    };
 
     if (rustResult.success && Array.isArray(rustResult.results)) {
       const totalTime = Date.now() - startTime;
