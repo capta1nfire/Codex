@@ -109,10 +109,10 @@ export function QRGeneratorContainer() {
     const newOptions: Partial<GenerationOptions> = {
       fgColor: customization.colors?.foreground || '#000000',
       bgColor: customization.colors?.background || '#FFFFFF',
-      eyeShape: customization.eye_shape || 'square',
-      dataShape: customization.data_pattern || 'square',
+      eyeShape: (customization.eye_shape || 'square') as 'square' | 'rounded' | 'circle',
+      dataShape: (customization.data_pattern || 'square') as 'square' | 'dots' | 'rounded',
       gradient_enabled: customization.gradient?.enabled || false,
-      gradient_type: customization.gradient?.gradient_type,
+      gradient_type: customization.gradient?.gradient_type as 'linear' | 'radial' | undefined,
       gradient_colors: customization.gradient?.colors,
       gradient_direction: customization.gradient?.angle,
       // Include frame options if present
@@ -150,6 +150,7 @@ export function QRGeneratorContainer() {
           <QRContentSelector
             selectedQRType={context.qrType}
             onQRTypeChange={handleQRTypeChange}
+            isLoading={false}
           />
         )}
 
@@ -179,7 +180,10 @@ export function QRGeneratorContainer() {
         {/* Smart QR Button (only for link type) */}
         {context.barcodeType === 'qrcode' && context.qrType === 'link' && (
           <div className="flex justify-center">
-            <SmartQRButton onGenerate={handleSmartQR} />
+            <SmartQRButton
+              url={context.formData.url || ''}
+              onGenerate={handleSmartQR}
+            />
           </div>
         )}
 

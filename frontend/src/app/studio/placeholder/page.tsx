@@ -285,7 +285,6 @@ export default function PlaceholderEditorPage() {
                   <TabsContent value="presets" className="space-y-4">
                     <PlaceholderPresets
                       onApply={handleApplyPreset}
-                      currentConfig={localConfig}
                     />
                   </TabsContent>
 
@@ -416,7 +415,6 @@ export default function PlaceholderEditorPage() {
                   key={previewKey}
                   config={localConfig}
                   showControls={false}
-                  onDownload={() => setPreviewKey(prev => prev + 1)}
                   onMetadataChange={setQrMetadata}
                 />
               </CardContent>

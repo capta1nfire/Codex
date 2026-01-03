@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, Palette, Sparkles, Plus, X, Maximize2, Droplets } from 'lucide-react';
+import { Eye, Palette, Sparkles, Plus, X } from 'lucide-react';
 import { QRConfig } from '@/types/studio.types';
 import { QR_V3_EYE_BORDER_STYLES, QR_V3_EYE_CENTER_STYLES } from '@/constants/qrV3Options';
 import { EYE_BORDER_SVG_PATHS, EYE_CENTER_SVG_PATHS } from '@/constants/eyeStyleSvgPaths';
@@ -37,21 +37,33 @@ export function EyeStyleSelector({ config, onChange, disabled = false }: EyeStyl
   const currentBorderStyle = config.eye_border_style || 'square';
   const currentCenterStyle = config.eye_center_style || 'square';
 
-  const updateEyeColors = (colorUpdates: Partial<QRConfig['eye_colors']>) => {
+  const updateEyeColors = (colorUpdates: any) => {
     onChange({
-      eye_colors: { ...config.eye_colors, ...colorUpdates }
+      eye_colors: { ...(config as any).eye_colors, ...colorUpdates }
+    } as any);
+  };
+
+  const updateEyeBorderGradient = (gradientUpdates: any) => {
+    onChange({
+      eye_border_gradient: {
+        enabled: config.eye_border_gradient?.enabled ?? false,
+        gradient_type: config.eye_border_gradient?.gradient_type ?? 'linear',
+        colors: config.eye_border_gradient?.colors ?? ['#000000', '#333333'],
+        ...config.eye_border_gradient,
+        ...gradientUpdates
+      }
     });
   };
 
-  const updateEyeBorderGradient = (gradientUpdates: Partial<QRConfig['eye_border_gradient']>) => {
+  const updateEyeCenterGradient = (gradientUpdates: any) => {
     onChange({
-      eye_border_gradient: { ...config.eye_border_gradient, ...gradientUpdates }
-    });
-  };
-
-  const updateEyeCenterGradient = (gradientUpdates: Partial<QRConfig['eye_center_gradient']>) => {
-    onChange({
-      eye_center_gradient: { ...config.eye_center_gradient, ...gradientUpdates }
+      eye_center_gradient: {
+        enabled: config.eye_center_gradient?.enabled ?? false,
+        gradient_type: config.eye_center_gradient?.gradient_type ?? 'linear',
+        colors: config.eye_center_gradient?.colors ?? ['#000000', '#333333'],
+        ...config.eye_center_gradient,
+        ...gradientUpdates
+      }
     });
   };
 
@@ -88,9 +100,9 @@ export function EyeStyleSelector({ config, onChange, disabled = false }: EyeStyl
                           : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                       }`}
                       onClick={() => {
-                        onChange({ 
-                          eye_border_style: style.value,
-                          use_separated_eye_styles: true 
+                        onChange({
+                          eye_border_style: style.value as any,
+                          use_separated_eye_styles: true
                         });
                       }}
                       disabled={disabled}
@@ -130,9 +142,9 @@ export function EyeStyleSelector({ config, onChange, disabled = false }: EyeStyl
                           : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                       }`}
                       onClick={() => {
-                        onChange({ 
-                          eye_center_style: style.value,
-                          use_separated_eye_styles: true 
+                        onChange({
+                          eye_center_style: style.value as any,
+                          use_separated_eye_styles: true
                         });
                       }}
                       disabled={disabled}
@@ -173,14 +185,14 @@ export function EyeStyleSelector({ config, onChange, disabled = false }: EyeStyl
                     <div className="flex gap-2">
                       <Input
                         type="color"
-                        value={config.eye_colors?.outer || config.colors?.foreground || '#000000'}
+                        value={(config as any).eye_colors?.outer || config.colors?.foreground || '#000000'}
                         onChange={(e) => updateEyeColors({ outer: e.target.value })}
                         className="h-10 w-14 cursor-pointer border border-slate-200 rounded"
                         disabled={disabled}
                       />
                       <Input
                         type="text"
-                        value={config.eye_colors?.outer || config.colors?.foreground || '#000000'}
+                        value={(config as any).eye_colors?.outer || config.colors?.foreground || '#000000'}
                         onChange={(e) => updateEyeColors({ outer: e.target.value })}
                         placeholder="#000000"
                         className="flex-1 font-mono text-sm"
@@ -195,14 +207,14 @@ export function EyeStyleSelector({ config, onChange, disabled = false }: EyeStyl
                     <div className="flex gap-2">
                       <Input
                         type="color"
-                        value={config.eye_colors?.inner || config.colors?.foreground || '#000000'}
+                        value={(config as any).eye_colors?.inner || config.colors?.foreground || '#000000'}
                         onChange={(e) => updateEyeColors({ inner: e.target.value })}
                         className="h-10 w-14 cursor-pointer border border-slate-200 rounded"
                         disabled={disabled}
                       />
                       <Input
                         type="text"
-                        value={config.eye_colors?.inner || config.colors?.foreground || '#000000'}
+                        value={(config as any).eye_colors?.inner || config.colors?.foreground || '#000000'}
                         onChange={(e) => updateEyeColors({ inner: e.target.value })}
                         placeholder="#000000"
                         className="flex-1 font-mono text-sm"
@@ -489,7 +501,14 @@ export function EyeStyleSelector({ config, onChange, disabled = false }: EyeStyl
                     checked={config.gradient?.apply_to_eyes ?? true}
                     onCheckedChange={(checked) => {
                       onChange({
-                        gradient: { ...config.gradient, apply_to_eyes: checked }
+                        gradient: {
+                          enabled: config.gradient?.enabled ?? false,
+                          gradient_type: config.gradient?.gradient_type ?? 'linear',
+                          apply_to_eyes: checked,
+                          apply_to_data: config.gradient?.apply_to_data ?? true,
+                          colors: config.gradient?.colors ?? ['#000000', '#333333'],
+                          ...config.gradient
+                        }
                       });
                     }}
                     disabled={disabled}

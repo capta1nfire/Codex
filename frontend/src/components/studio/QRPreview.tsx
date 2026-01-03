@@ -21,13 +21,11 @@ import { QRConfig } from '@/types/studio.types';
 interface QRPreviewProps {
   config: QRConfig;
   size?: number;
-  text?: string;
 }
 
-export function QRPreview({ 
-  config, 
-  size = 300,
-  text = 'https://codex.example.com'
+export function QRPreview({
+  config,
+  size = 300
 }: QRPreviewProps) {
   // Generate mock QR data based on config
   const qrData = useMemo((): QREnhancedData => {
@@ -61,7 +59,8 @@ export function QRPreview({
       }
     };
     
-    const selectedEyeShape = eyeShapes[config.eye_shape || 'square'] || eyeShapes.square;
+    const eyeShapeKey = ((config as any).eye_shape || 'square') as keyof typeof eyeShapes;
+    const selectedEyeShape = eyeShapes[eyeShapeKey] || eyeShapes.square;
     
     // Determine colors
     const foregroundColor = config.gradient?.enabled && config.gradient?.colors?.length >= 2
@@ -74,9 +73,9 @@ export function QRPreview({
       paths: {
         data: mockDataPath,
         eyes: [
-          { type: 'top-left', path: selectedEyeShape.topLeft, shape: config.eye_shape || 'square' },
-          { type: 'top-right', path: selectedEyeShape.topRight, shape: config.eye_shape || 'square' },
-          { type: 'bottom-left', path: selectedEyeShape.bottomLeft, shape: config.eye_shape || 'square' }
+          { type: 'top-left', path: selectedEyeShape.topLeft, shape: (config as any).eye_shape || 'square' },
+          { type: 'top-right', path: selectedEyeShape.topRight, shape: (config as any).eye_shape || 'square' },
+          { type: 'bottom-left', path: selectedEyeShape.bottomLeft, shape: (config as any).eye_shape || 'square' }
         ]
       },
       styles: {
@@ -86,7 +85,7 @@ export function QRPreview({
         },
         eyes: {
           fill: config.gradient?.apply_to_eyes ? foregroundColor : (config.colors?.foreground || '#000000'),
-          shape: config.eye_shape
+          shape: (config as any).eye_shape
         },
         background: {
           fill: backgroundColor

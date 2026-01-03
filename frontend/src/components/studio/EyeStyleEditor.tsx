@@ -15,13 +15,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Info, Grid3x3 } from 'lucide-react';
 import { QRConfig } from '@/types/studio.types';
-import { QR_V3_EYE_SHAPES, QR_V3_EYE_BORDER_STYLES, QR_V3_EYE_CENTER_STYLES } from '@/constants/qrV3Options';
+import { QR_V3_EYE_BORDER_STYLES, QR_V3_EYE_CENTER_STYLES } from '@/constants/qrV3Options';
 import { EYE_BORDER_SVG_PATHS, EYE_CENTER_SVG_PATHS } from '@/constants/eyeStyleSvgPaths';
 import { EyeBorderColorEditor } from './EyeBorderColorEditor';
 import { EyeCenterColorEditor } from './EyeCenterColorEditor';
@@ -38,21 +37,22 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
   const handleModeChange = (checked: boolean) => {
     if (checked) {
       // Cambiar a modo separado - mantener valores existentes si los hay
+      const eyeShape = (config as any).eye_shape;
       onChange({
         use_separated_eye_styles: true,
-        eye_border_style: config.eye_border_style || config.eye_shape || 'circle',
-        eye_center_style: config.eye_center_style || config.eye_shape || 'circle',
-        eye_shape: undefined  // Limpiar eye_shape en modo separado
-      });
+        eye_border_style: config.eye_border_style || eyeShape || 'circle',
+        eye_center_style: config.eye_center_style || eyeShape || 'circle',
+      } as any);
     } else {
       // Cambiar a modo unificado - aplicar el mismo estilo a ambos
-      const unifiedStyle = config.eye_shape || config.eye_border_style || 'square';
+      const eyeShape = (config as any).eye_shape;
+      const unifiedStyle = eyeShape || config.eye_border_style || 'square';
       onChange({
         use_separated_eye_styles: false,
         eye_shape: unifiedStyle,
         eye_border_style: unifiedStyle,
         eye_center_style: unifiedStyle,
-      });
+      } as any);
     }
   };
 
@@ -60,9 +60,9 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
     // En modo unificado, actualizar todos los estilos con el mismo valor
     onChange({
       eye_shape: value,
-      eye_border_style: value,
-      eye_center_style: value,
-    });
+      eye_border_style: value as any,
+      eye_center_style: value as any,
+    } as any);
   };
 
   return (
@@ -101,8 +101,8 @@ export function EyeStyleEditor({ config, onChange, disabled = false }: EyeStyleE
                       variant="outline"
                       size="sm"
                       className={`flex items-center justify-center p-2 min-h-16 min-w-16 transition-all duration-200 ${
-                        config.eye_shape === style.value || config.eye_border_style === style.value
-                          ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100' 
+                        (config as any).eye_shape === style.value || config.eye_border_style === style.value
+                          ? 'border-blue-500 border-2 bg-blue-50 hover:bg-blue-100'
                           : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                       }`}
                       onClick={() => handleUnifiedStyleChange(style.value)}

@@ -4,7 +4,7 @@ import React from 'react';
 import { Crown, Shield, Star, Building2, User, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type UserRole = 'STARTER' | 'PRO' | 'ENTERPRISE' | 'ADMIN' | 'SUPERADMIN';
+type UserRole = 'USER' | 'STARTER' | 'PRO' | 'ENTERPRISE' | 'PREMIUM' | 'ADVANCED' | 'WEBADMIN' | 'ADMIN' | 'SUPERADMIN';
 
 interface RoleBadgeProps {
   role: UserRole;

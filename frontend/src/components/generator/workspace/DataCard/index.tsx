@@ -10,11 +10,10 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { QRContentSelector } from '@/components/generator/QRContentSelector';
 import { QRForm } from '@/components/generator/QRForms';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 
 interface DataCardProps {
   selectedType: string;
@@ -33,11 +32,9 @@ interface DataCardProps {
   };
   errors: any;
   register: any;
-  setValue: any;
-  getValues: any;
   onQRTypeChange: (type: string) => void;
   onQRFormChange: (type: string, field: string, value: any) => void;
-  onUrlValidationComplete: (exists: boolean | null, error: any, url: string) => void;
+  onUrlValidationComplete: (exists: boolean, error: string | null, url?: string) => void;
   onGenerateAnyway: () => void;
   trackInput: (value: string) => void;
   className?: string;
@@ -56,8 +53,6 @@ export function DataCard({
   urlValidationState,
   errors,
   register,
-  setValue,
-  getValues,
   onQRTypeChange,
   onQRFormChange,
   onUrlValidationComplete,
@@ -154,7 +149,7 @@ export function DataCard({
           <div className="flex gap-3 animate-fade-in">
             <Input
               {...register('data', {
-                onChange: (e) => trackInput(e.target.value)
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) => trackInput(e.target.value)
               })}
               placeholder="Ingresa el contenido del código..."
               className={cn(

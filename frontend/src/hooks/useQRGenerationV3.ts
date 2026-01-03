@@ -80,6 +80,7 @@ export interface QRV3Customization {
     effect_type: 'shadow' | 'glow' | 'blur' | 'noise' | 'vintage';
     config?: Record<string, any>;
   }>;
+  logo_size_ratio?: number;
 }
 
 export interface QRV3Options {

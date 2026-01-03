@@ -6,7 +6,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Lock, AlertCircle } from 'lucide-react';
+import { Sparkles, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { SmartQRModal } from './SmartQRModal';

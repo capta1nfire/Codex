@@ -10,7 +10,7 @@
  */
 
 import React from 'react';
-import { CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { AlertCircle, XCircle } from 'lucide-react';
 
 interface ScannabilityAnalysis {
   score: number;

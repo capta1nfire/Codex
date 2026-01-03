@@ -41,10 +41,11 @@ export function mapStudioConfigToFormOptions(config: QRConfig): FormOptions {
     });
     
     formOptions.gradient_enabled = config.gradient.enabled;
-    if (config.gradient.gradient_type === 'linear' || config.gradient.gradient_type === 'radial' || 
-        config.gradient.gradient_type === 'conic' || config.gradient.gradient_type === 'diamond' || 
+    if (config.gradient.gradient_type === 'linear' || config.gradient.gradient_type === 'radial' ||
+        config.gradient.gradient_type === 'conic' || config.gradient.gradient_type === 'diamond' ||
         config.gradient.gradient_type === 'spiral') {
-       formOptions.gradient_type = config.gradient.gradient_type;
+       // Cast to expected type - backend supports more types than the form schema
+       formOptions.gradient_type = config.gradient.gradient_type as 'linear' | 'radial';
     }
     // Safe access to gradient colors array
     if (config.gradient.colors && config.gradient.colors.length >= 2) {
@@ -80,19 +81,20 @@ export function mapStudioConfigToFormOptions(config: QRConfig): FormOptions {
     formOptions.data_pattern = config.data_pattern as FormOptions['data_pattern'];
   }
 
-  // Map frame - all fields
+  // Map frame - all fields (use type assertions for properties not in strict type)
   if (config.frame) {
-    formOptions.frame_enabled = config.frame.enabled;
-    formOptions.frame_style = (config.frame as any).style;
-    formOptions.frame_text = (config.frame as any).text;
-    formOptions.frame_text_position = (config.frame as any).text_position;
-    formOptions.frame_color = config.frame.color;
-    formOptions.frame_background_color = (config.frame as any).background_color;
-    formOptions.frame_text_size = (config.frame as any).text_size;
-    formOptions.frame_text_font = (config.frame as any).text_font;
-    formOptions.frame_padding = (config.frame as any).padding;
-    formOptions.frame_border_width = (config.frame as any).border_width;
-    formOptions.frame_corner_radius = (config.frame as any).corner_radius;
+    const frame = config.frame as any;
+    (formOptions as any).frame_enabled = frame.enabled;
+    (formOptions as any).frame_style = frame.style;
+    (formOptions as any).frame_text = frame.text;
+    (formOptions as any).frame_text_position = frame.text_position;
+    (formOptions as any).frame_color = frame.color;
+    (formOptions as any).frame_background_color = frame.background_color;
+    (formOptions as any).frame_text_size = frame.text_size;
+    (formOptions as any).frame_text_font = frame.text_font;
+    (formOptions as any).frame_padding = frame.padding;
+    (formOptions as any).frame_border_width = frame.border_width;
+    (formOptions as any).frame_corner_radius = frame.corner_radius;
   }
   
   // Map error correction

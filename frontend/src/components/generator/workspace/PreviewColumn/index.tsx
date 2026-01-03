@@ -14,7 +14,7 @@ import { PreviewSection } from '@/components/generator/PreviewSectionV3';
 
 interface PreviewColumnProps {
   svgContent: string | null;
-  enhancedData: string | null;
+  enhancedData: any;
   isLoading: boolean;
   barcodeType: string;
   isUserTyping: boolean;
@@ -57,7 +57,7 @@ export function PreviewColumn({
       
       {/* Functional preview component */}
       <PreviewSection
-        svgContent={svgContent}
+        svgContent={svgContent || ''}
         enhancedData={enhancedData}
         isLoading={isLoading}
         barcodeType={barcodeType}
@@ -67,10 +67,6 @@ export function PreviewColumn({
         isUserTyping={isUserTyping}
         validationError={validationError}
         isInitialDisplay={false}
-        className={cn(
-          "sticky top-6 relative z-30",
-          "animate-fade-in-delayed"
-        )}
         urlGenerationState={urlGenerationState}
       />
       

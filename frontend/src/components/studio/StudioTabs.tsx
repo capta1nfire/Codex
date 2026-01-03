@@ -11,11 +11,9 @@
 
 'use client';
 
-import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Settings,
@@ -228,7 +226,7 @@ export function StudioTabs() {
         hover: 'hover:border-orange-300 dark:hover:border-orange-700'
       }
     };
-    return colorMap[color] || colorMap.blue;
+    return colorMap[color as keyof typeof colorMap] || colorMap.blue;
   };
 
   return (

@@ -15,10 +15,7 @@
 
 import { QRConfig } from '@/types/studio.types';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { 
   Sparkles, 
   Palette, 
@@ -35,7 +32,6 @@ import { cn } from '@/lib/utils';
 
 interface PlaceholderPresetsProps {
   onApply: (config: QRConfig) => void;
-  currentConfig: QRConfig;
 }
 
 // Definición de presets profesionales
@@ -45,7 +41,7 @@ const presets: Array<{
   description: string;
   icon: React.ComponentType<{ className?: string }>;
   tags: string[];
-  config: QRConfig;
+  config: Partial<QRConfig> & Record<string, any>;
 }> = [
   {
     id: 'classic',
@@ -290,9 +286,8 @@ const presets: Array<{
   },
 ];
 
-export function PlaceholderPresets({ 
-  onApply, 
-  currentConfig 
+export function PlaceholderPresets({
+  onApply
 }: PlaceholderPresetsProps) {
   // Comparar si el preset actual coincide con alguno
   const getCurrentPresetId = () => {

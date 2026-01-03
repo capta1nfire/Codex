@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Grid3x3, Palette, Sparkles, Plus, X, Square, Maximize2, Droplets } from 'lucide-react';
+import { Grid3x3, Palette, Sparkles, Plus, X, Maximize2, Droplets } from 'lucide-react';
 import { QRConfig } from '@/types/studio.types';
 import { QR_V3_DATA_PATTERNS } from '@/constants/qrV3Options';
 import { DATA_PATTERN_SVG_PATHS } from '@/constants/eyeStyleSvgPaths';
@@ -36,13 +36,26 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
 
   const updateColors = (colorUpdates: Partial<QRConfig['colors']>) => {
     onChange({
-      colors: { ...config.colors, ...colorUpdates }
+      colors: {
+        background: config.colors?.background || '#FFFFFF',
+        foreground: config.colors?.foreground || '#000000',
+        ...config.colors,
+        ...colorUpdates
+      }
     });
   };
 
   const updateGradient = (gradientUpdates: Partial<QRConfig['gradient']>) => {
     onChange({
-      gradient: { ...config.gradient, ...gradientUpdates }
+      gradient: {
+        enabled: config.gradient?.enabled ?? false,
+        gradient_type: config.gradient?.gradient_type ?? 'linear',
+        apply_to_eyes: config.gradient?.apply_to_eyes ?? false,
+        apply_to_data: config.gradient?.apply_to_data ?? true,
+        colors: config.gradient?.colors ?? ['#000000', '#333333'],
+        ...config.gradient,
+        ...gradientUpdates
+      }
     });
   };
 
@@ -384,8 +397,9 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
                             <Input
                               type="color"
                               value={config.gradient?.stroke_style?.color || '#FFFFFF'}
-                              onChange={(e) => updateGradient({ 
+                              onChange={(e) => updateGradient({
                                 stroke_style: {
+                                  enabled: config.gradient?.stroke_style?.enabled ?? true,
                                   ...(config.gradient?.stroke_style || {}),
                                   color: e.target.value
                                 }
@@ -396,8 +410,9 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
                             <Input
                               type="text"
                               value={config.gradient?.stroke_style?.color || '#FFFFFF'}
-                              onChange={(e) => updateGradient({ 
+                              onChange={(e) => updateGradient({
                                 stroke_style: {
+                                  enabled: config.gradient?.stroke_style?.enabled ?? true,
                                   ...(config.gradient?.stroke_style || {}),
                                   color: e.target.value
                                 }
@@ -417,8 +432,9 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
                           </Label>
                           <Slider
                             value={[config.gradient?.stroke_style?.width || 0.5]}
-                            onValueChange={([value]) => updateGradient({ 
+                            onValueChange={([value]) => updateGradient({
                               stroke_style: {
+                                enabled: config.gradient?.stroke_style?.enabled ?? true,
                                 ...(config.gradient?.stroke_style || {}),
                                 width: value
                               }
@@ -446,8 +462,9 @@ export function DataPatternSelector({ config, onChange, disabled = false }: Data
                           </Label>
                           <Slider
                             value={[config.gradient?.stroke_style?.opacity || 0.3]}
-                            onValueChange={([value]) => updateGradient({ 
+                            onValueChange={([value]) => updateGradient({
                               stroke_style: {
+                                enabled: config.gradient?.stroke_style?.enabled ?? true,
                                 ...(config.gradient?.stroke_style || {}),
                                 opacity: value
                               }

@@ -16,6 +16,8 @@ export interface StyleTemplate {
   isPremium: boolean;
   config: QRV3Customization & {
     // Additional template-specific options
+    eye_border_style?: string;
+    eye_center_style?: string;
     frame?: {
       frame_type: 'simple' | 'rounded' | 'decorated';
       text?: string;

@@ -18,9 +18,8 @@ import { useStudioPermissions, StudioAction } from '@/hooks/useStudioPermissions
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  ShieldOff, 
-  Lock, 
+import {
+  ShieldOff,
   AlertTriangle,
   Home,
   Crown
@@ -54,7 +53,7 @@ export function StudioGuard({
   title = 'Acceso Restringido',
   description = 'No tienes permisos para acceder a esta funcionalidad.',
 }: StudioGuardProps) {
-  const { hasPermission, role, features } = useStudioPermissions();
+  const { hasPermission, role } = useStudioPermissions();
   
   // Pilar 1: Validación estricta de permisos
   const allPermissions = permission ? [permission, ...permissions] : permissions;

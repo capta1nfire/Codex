@@ -7,21 +7,17 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { 
-  Zap, 
-  TrendingUp, 
-  Database, 
+import {
+  Zap,
+  TrendingUp,
   Activity,
   Palette,
-  Image,
   Shapes,
   Sparkles,
-  Frame,
   RefreshCw,
   Clock,
   AlertCircle,
   CheckCircle2,
-  XCircle,
   Star,
   Cpu,
   Shield

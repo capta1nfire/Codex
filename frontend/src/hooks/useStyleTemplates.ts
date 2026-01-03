@@ -29,7 +29,8 @@ export function useStyleTemplates(): UseStyleTemplatesReturn {
     const { frame, ...qrConfig } = template.config;
     
     // Ensure all required fields are present
-    const customization: QRV3Customization = {
+    // Using type assertion for extended properties not in base QRV3Customization
+    const customization = {
       colors: qrConfig.colors || {
         foreground: '#000000',
         background: '#FFFFFF'
@@ -42,7 +43,7 @@ export function useStyleTemplates(): UseStyleTemplatesReturn {
       effects: qrConfig.effects || [],
       // Include frame if present in template
       frame: frame
-    };
+    } as QRV3Customization;
 
     return customization;
   }, []);

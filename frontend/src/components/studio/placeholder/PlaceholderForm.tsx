@@ -22,25 +22,21 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Palette, 
-  Shapes, 
+import {
+  Palette,
+  Shapes,
   Sparkles,
-  Eye,
   Grid3x3,
   Zap,
   AlertCircle,
-  CheckCircle2,
-  Info
+  CheckCircle2
 } from 'lucide-react';
 import { EyeStyleSelector } from '@/components/studio/EyeStyleSelector';
 import { DataPatternSelector } from '@/components/studio/DataPatternSelector';
 import { QR_V3_EYE_CENTER_STYLES } from '@/constants/qrV3Options';
 import { EYE_CENTER_SVG_PATHS } from '@/constants/eyeStyleSvgPaths';
 import { validateQRConfig } from '@/schemas/studio.schema';
-import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 interface PlaceholderFormProps {
@@ -55,7 +51,7 @@ export function PlaceholderForm({
   onPreviewUpdate
 }: PlaceholderFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Set<string>>(new Set());
+  const [, setTouched] = useState<Set<string>>(new Set());
   
   // Pilar 3: Helpers para actualización simple con validación
   const updateConfig = useCallback((updates: Partial<QRConfig>) => {
@@ -75,14 +71,26 @@ export function PlaceholderForm({
   }, [config, onChange, onPreviewUpdate]);
 
   const updateColors = useCallback((colorUpdates: Partial<QRConfig['colors']>) => {
-    const newColors = { ...config.colors, ...colorUpdates };
     updateConfig({
-      colors: newColors
+      colors: {
+        background: config.colors?.background || '#FFFFFF',
+        foreground: config.colors?.foreground || '#000000',
+        ...config.colors,
+        ...colorUpdates
+      }
     });
   }, [config.colors, updateConfig]);
 
   const updateGradient = useCallback((gradientUpdates: Partial<QRConfig['gradient']>) => {
-    const newGradient = { ...config.gradient, ...gradientUpdates };
+    const newGradient = {
+      enabled: config.gradient?.enabled ?? false,
+      gradient_type: config.gradient?.gradient_type ?? 'linear',
+      apply_to_eyes: config.gradient?.apply_to_eyes ?? false,
+      apply_to_data: config.gradient?.apply_to_data ?? true,
+      colors: config.gradient?.colors ?? ['#000000', '#333333'],
+      ...config.gradient,
+      ...gradientUpdates
+    };
     console.log('[PlaceholderForm] updateGradient called:', {
       currentGradient: config.gradient,
       updates: gradientUpdates,
@@ -92,7 +100,20 @@ export function PlaceholderForm({
       gradient: newGradient
     });
   }, [config.gradient, updateConfig]);
-  
+
+  const updateLogo = useCallback((logoUpdates: Partial<QRConfig['logo']>) => {
+    updateConfig({
+      logo: {
+        enabled: config.logo?.enabled ?? false,
+        shape: config.logo?.shape ?? 'square',
+        padding: config.logo?.padding ?? 0,
+        size_percentage: config.logo?.size_percentage ?? 20,
+        ...config.logo,
+        ...logoUpdates
+      }
+    });
+  }, [config.logo, updateConfig]);
+
   // Marcar campo como tocado
   const markTouched = useCallback((field: string) => {
     setTouched(prev => new Set(prev).add(field));
@@ -152,7 +173,6 @@ export function PlaceholderForm({
           />
 
           {/* Selector de estilos de ojos - Con el mismo diseño que DataPatternSelector */}
-          {console.log('[PlaceholderForm] Rendering EyeStyleSelector with config:', config)}
           <div key="eye-style-selector-wrapper">
             <EyeStyleSelector
               config={config}
@@ -226,24 +246,24 @@ export function PlaceholderForm({
                     <div className="flex gap-2">
                       <Input
                         type="color"
-                        value={config.eye_colors?.inner || config.colors?.foreground || '#000000'}
-                        onChange={(e) => updateColors({ 
-                          eye_colors: { 
-                            ...config.eye_colors, 
-                            inner: e.target.value 
+                        value={(config as any).eye_colors?.inner || config.colors?.foreground || '#000000'}
+                        onChange={(e) => updateColors({
+                          eye_colors: {
+                            ...(config as any).eye_colors,
+                            inner: e.target.value
                           }
-                        })}
+                        } as any)}
                         className="h-10 w-14 cursor-pointer border border-slate-200 rounded"
                       />
                       <Input
                         type="text"
-                        value={config.eye_colors?.inner || config.colors?.foreground || '#000000'}
-                        onChange={(e) => updateColors({ 
-                          eye_colors: { 
-                            ...config.eye_colors, 
-                            inner: e.target.value 
+                        value={(config as any).eye_colors?.inner || config.colors?.foreground || '#000000'}
+                        onChange={(e) => updateColors({
+                          eye_colors: {
+                            ...(config as any).eye_colors,
+                            inner: e.target.value
                           }
-                        })}
+                        } as any)}
                         placeholder="#000000"
                         className="flex-1 font-mono text-sm"
                       />
@@ -262,7 +282,7 @@ export function PlaceholderForm({
             </Label>
             <Select
               value={config.error_correction || 'M'}
-              onValueChange={(value) => updateConfig({ error_correction: value })}
+              onValueChange={(value) => updateConfig({ error_correction: value as 'L' | 'M' | 'Q' | 'H' })}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -362,7 +382,7 @@ export function PlaceholderForm({
                   <Select
                     value={config.gradient?.gradient_type || 'linear'}
                     onValueChange={(value) => {
-                      updateGradient({ gradient_type: value });
+                      updateGradient({ gradient_type: value as 'linear' | 'radial' | 'diamond' | 'conic' | 'spiral' });
                       markTouched('gradient.gradient_type');
                     }}
                   >
@@ -533,10 +553,10 @@ export function PlaceholderForm({
             
             {/* Lista de efectos disponibles */}
             <div className="space-y-2">
-              {['shadow', 'glow', 'blur', 'noise', 'vintage'].map((effectType) => {
+              {(['shadow', 'glow', 'blur', 'noise', 'vintage'] as const).map((effectType) => {
                 const effect = config.effects?.find(e => e.type === effectType);
                 const isEnabled = !!effect;
-                
+
                 return (
                   <div key={effectType} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
@@ -602,15 +622,7 @@ export function PlaceholderForm({
                 id="logo-enabled"
                 checked={config.logo?.enabled || false}
                 onCheckedChange={(checked) => {
-                  updateConfig({ 
-                    logo: { 
-                      ...config.logo,
-                      enabled: checked,
-                      size_percentage: config.logo?.size_percentage || 20,
-                      padding: config.logo?.padding || 5,
-                      shape: config.logo?.shape || 'square'
-                    } 
-                  });
+                  updateLogo({ enabled: checked });
                   markTouched('logo.enabled');
                 }}
               />
@@ -651,16 +663,7 @@ export function PlaceholderForm({
                                 dataUriLength: result.length
                               });
                               
-                              updateConfig({ 
-                                logo: { 
-                                  ...config.logo,
-                                  data: result,
-                                  enabled: true,
-                                  size_percentage: config.logo?.size_percentage || 20,
-                                  padding: config.logo?.padding || 5,
-                                  shape: config.logo?.shape || 'square'
-                                } 
-                              });
+                              updateLogo({ data: result, enabled: true });
                               markTouched('logo.data');
                             };
                             reader.readAsDataURL(file);
@@ -677,12 +680,7 @@ export function PlaceholderForm({
                       <button
                         type="button"
                         onClick={() => {
-                          updateConfig({ 
-                            logo: { 
-                              ...config.logo,
-                              data: undefined
-                            } 
-                          });
+                          updateLogo({ data: undefined });
                           markTouched('logo.data');
                         }}
                         className="text-sm text-red-600 hover:text-red-700"
@@ -704,12 +702,7 @@ export function PlaceholderForm({
                   <Slider
                     value={[config.logo?.size_percentage || 20]}
                     onValueChange={([value]) => {
-                      updateConfig({ 
-                        logo: { 
-                          ...config.logo,
-                          size_percentage: value
-                        } 
-                      });
+                      updateLogo({ size_percentage: value });
                       markTouched('logo.size_percentage');
                     }}
                     min={10}
@@ -725,12 +718,7 @@ export function PlaceholderForm({
                   <Select
                     value={config.logo?.shape || 'square'}
                     onValueChange={(value: 'square' | 'circle' | 'rounded_square') => {
-                      updateConfig({ 
-                        logo: { 
-                          ...config.logo,
-                          shape: value
-                        } 
-                      });
+                      updateLogo({ shape: value });
                       markTouched('logo.shape');
                     }}
                   >
@@ -756,12 +744,7 @@ export function PlaceholderForm({
                   <Slider
                     value={[config.logo?.padding || 5]}
                     onValueChange={([value]) => {
-                      updateConfig({ 
-                        logo: { 
-                          ...config.logo,
-                          padding: value
-                        } 
-                      });
+                      updateLogo({ padding: value });
                       markTouched('logo.padding');
                     }}
                     min={0}

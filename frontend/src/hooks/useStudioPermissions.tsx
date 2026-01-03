@@ -125,7 +125,7 @@ interface UseStudioPermissionsReturn {
   features: StudioFeatures;
   
   // Límites del usuario
-  limits: typeof studioLimits[UserRole];
+  limits: typeof studioLimits[keyof typeof studioLimits];
   
   // Información del rol
   role: UserRole | null;
@@ -177,7 +177,8 @@ export function useStudioPermissions(): UseStudioPermissionsReturn {
   const hasPermission = useMemo(() => {
     return (action: StudioAction): boolean => {
       if (!role) return false;
-      return studioPermissions[role]?.[action] ?? false;
+      const permissions = studioPermissions[role as keyof PermissionMatrix];
+      return permissions?.[action] ?? false;
     };
   }, [role]);
 
@@ -193,22 +194,24 @@ export function useStudioPermissions(): UseStudioPermissionsReturn {
 
   const limits = useMemo(() => {
     if (!role) return studioLimits['USER'];
-    return studioLimits[role] || studioLimits['USER'];
+    return studioLimits[role as keyof typeof studioLimits] || studioLimits['USER'];
   }, [role]);
 
   const isFeatureEnabled = useMemo(() => {
     return (feature: string): boolean => {
-      const currentPhaseData = studioPhaseConfig.phases[studioPhaseConfig.currentPhase];
+      const phaseKey = studioPhaseConfig.currentPhase as keyof typeof studioPhaseConfig.phases;
+      const currentPhaseData = studioPhaseConfig.phases[phaseKey];
       return currentPhaseData.features.includes(feature);
     };
   }, []);
 
   const canAccessStudio = useMemo(() => {
     if (!role) return false;
-    
+
     // Verificar fase actual
-    const currentPhaseData = studioPhaseConfig.phases[studioPhaseConfig.currentPhase];
-    const isRoleEnabledInPhase = currentPhaseData.enabledRoles.includes(role);
+    const phaseKey = studioPhaseConfig.currentPhase as keyof typeof studioPhaseConfig.phases;
+    const currentPhaseData = studioPhaseConfig.phases[phaseKey];
+    const isRoleEnabledInPhase = currentPhaseData.enabledRoles.includes(role as UserRole);
     
     // Verificar permisos
     const hasReadPermission = hasPermission(StudioAction.READ);
@@ -244,7 +247,7 @@ export function useStudioPermissions(): UseStudioPermissionsReturn {
     hasPermission,
     features,
     limits,
-    role,
+    role: role as UserRole | null,
     currentPhase: studioPhaseConfig.currentPhase,
     isFeatureEnabled,
     getPermissionDeniedMessage,

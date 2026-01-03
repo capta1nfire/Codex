@@ -27,14 +27,14 @@ const createInitialContext = (studioConfig?: any): GeneratorContext => {
     size: 300,
     scale: 2,
     margin: 4,
-    errorCorrectionLevel: 'M',
+    errorCorrectionLevel: 'M' as const,
     fgColor: '#000000',
     bgColor: '#FFFFFF',
     gradient_enabled: true,
-    gradient_type: 'radial',
+    gradient_type: 'radial' as const,
     gradient_colors: ['#000000', '#666666'],
-    eyeShape: 'rounded',
-    dataShape: 'square'
+    eyeShape: 'rounded' as const,
+    dataShape: 'square' as const
   };
 
   // If Studio config is available, merge it with defaults
@@ -45,15 +45,16 @@ const createInitialContext = (studioConfig?: any): GeneratorContext => {
       fgColor: studioConfig.colors?.foreground || defaultOptions.fgColor,
       bgColor: studioConfig.colors?.background || defaultOptions.bgColor,
       gradient_enabled: studioConfig.gradient?.enabled || defaultOptions.gradient_enabled,
-      gradient_type: studioConfig.gradient?.gradient_type || defaultOptions.gradient_type,
+      gradient_type: (studioConfig.gradient?.gradient_type || defaultOptions.gradient_type) as 'linear' | 'radial',
       gradient_colors: studioConfig.gradient?.colors || defaultOptions.gradient_colors,
-      eyeShape: studioConfig.eye_shape || 
-                (studioConfig.use_separated_eye_styles ? undefined : studioConfig.eye_border_style),
+      eyeShape: (studioConfig.eye_shape ||
+                (studioConfig.use_separated_eye_styles ? undefined : studioConfig.eye_border_style) ||
+                defaultOptions.eyeShape) as 'square' | 'rounded' | 'circle' | undefined,
       eye_border_style: studioConfig.eye_border_style,
       eye_center_style: studioConfig.eye_center_style,
       use_separated_eye_styles: studioConfig.use_separated_eye_styles,
-      dataShape: studioConfig.data_pattern || defaultOptions.dataShape,
-      errorCorrectionLevel: studioConfig.error_correction || defaultOptions.errorCorrectionLevel
+      dataShape: (studioConfig.data_pattern || defaultOptions.dataShape) as 'square' | 'dots' | 'rounded',
+      errorCorrectionLevel: (studioConfig.error_correction || defaultOptions.errorCorrectionLevel) as 'L' | 'M' | 'Q' | 'H'
     };
 
     return {
@@ -418,8 +419,7 @@ function generatorReducer(
               formData: {
                 ...state.context.formData,
                 [event.field]: event.value
-              },
-              error: undefined
+              }
             }
           };
         default:
@@ -463,15 +463,17 @@ export function useQRGeneratorOrchestrator() {
 
   // Refs for managing timers
   const typingTimerRef = useRef<NodeJS.Timeout>();
-  const validationTimerRef = useRef<NodeJS.Timeout>();
-  const generationTimerRef = useRef<NodeJS.Timeout>();
   const postValidationTimerRef = useRef<NodeJS.Timeout>();
 
   // External hooks
-  const { validateUrl } = useUrlValidation();
-  const { 
-    generateQR, 
-    reset: resetGeneration,
+  const {
+    validateUrl,
+    metadata: validationMetadata,
+    isValidating,
+    error: validationError
+  } = useUrlValidation();
+  const {
+    generateQR,
     svgContent: generatedSvgContent,
     enhancedData: generatedEnhancedData,
     scannabilityAnalysis: generatedScannabilityAnalysis
@@ -493,27 +495,30 @@ export function useQRGeneratorOrchestrator() {
     }
   }, [state.value, state.context.formData, state.context.dynamicDebounceTime]);
 
-  // Handle validation
+  // Trigger validation when entering validating state
   useEffect(() => {
     if (state.value === 'validating') {
       const url = state.context.formData.url || '';
-      
-      validateUrl(url).then(
-        (metadata) => {
-          dispatch({ 
-            type: 'VALIDATION_SUCCESS', 
-            metadata: metadata || { exists: false }
-          });
-        },
-        (error) => {
-          dispatch({ 
-            type: 'VALIDATION_FAILURE', 
-            error: error.message 
-          });
-        }
-      );
+      validateUrl(url);
     }
-  }, [state.value, state.context.formData.url]);
+  }, [state.value, state.context.formData.url, validateUrl]);
+
+  // Handle validation completion
+  useEffect(() => {
+    if (state.value === 'validating' && !isValidating) {
+      if (validationError) {
+        dispatch({
+          type: 'VALIDATION_FAILURE',
+          error: validationError
+        });
+      } else if (validationMetadata) {
+        dispatch({
+          type: 'VALIDATION_SUCCESS',
+          metadata: validationMetadata
+        });
+      }
+    }
+  }, [state.value, isValidating, validationMetadata, validationError]);
 
   // Handle auto-generation
   useEffect(() => {
@@ -537,21 +542,31 @@ export function useQRGeneratorOrchestrator() {
   // Handle generation
   useEffect(() => {
     if (state.value === 'generating') {
+      // Map GenerationOptions to GenerateFormData format
+      const { options } = state.context;
       const generateData = {
         barcode_type: state.context.barcodeType,
         data: state.context.formData.url || state.context.formData.text || '',
-        options: state.context.options
+        options: {
+          ...options,
+          // Map gradient_direction from number to string enum if needed
+          gradient_direction: typeof options.gradient_direction === 'number'
+            ? (['top-bottom', 'left-right', 'diagonal', 'center-out'] as const)[options.gradient_direction % 4]
+            : options.gradient_direction,
+          // Map ecl/errorCorrectionLevel
+          ecl: options.errorCorrectionLevel
+        }
       };
 
       // Call generateQR without expecting a return value
-      generateQR(generateData).catch((error) => {
+      generateQR(generateData as any).catch((error) => {
         dispatch({
           type: 'GENERATION_FAILURE',
           error: error
         });
       });
     }
-  }, [state.value]);
+  }, [state.value, generateQR]);
 
   // Update state when generation completes
   useEffect(() => {

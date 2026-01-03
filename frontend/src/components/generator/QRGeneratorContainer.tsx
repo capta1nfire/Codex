@@ -31,18 +31,13 @@ import { SmartQRButton } from '@/features/smart-qr/components';
 // Type selector
 import { BarcodeTypeTabs } from './BarcodeTypeTabs';
 
-// Custom hooks - EXACTOS del original
+// Custom hooks
 import { useQRGenerationState } from '@/hooks/useQRGenerationState';
 import { useUrlValidation } from '@/hooks/useUrlValidation';
 import { useTypingTracker } from '@/hooks/useTypingTracker';
-// import { useStudio } from '@/components/studio/StudioProvider';  // REMOVED - Always use public API
-// import { StudioConfigType } from '@/types/studio.types';  // REMOVED - Not needed
-import { api } from '@/lib/api';
-import { mapStudioConfigToFormOptions } from '@/lib/studioConfigMapper';
-import { 
-  fetchPlaceholderConfig, 
+import {
   getPlaceholderFormOptions,
-  clearPlaceholderCache 
+  clearPlaceholderCache
 } from '@/lib/placeholderConfigManager';
 
 // Constantes del original
@@ -677,14 +672,14 @@ export function QRGeneratorContainer() {
         };
         
         console.log('[InitialMount] Applied placeholder configuration:', {
-          gradient_enabled: initialFormData.options.gradient_enabled,
-          gradient_type: initialFormData.options.gradient_type,
-          gradient_angle: initialFormData.options.gradient_angle,
-          data_pattern: initialFormData.options.data_pattern,
-          use_separated_eye_styles: initialFormData.options.use_separated_eye_styles,
-          hasLogo: !!initialFormData.options.logo_enabled,
-          fgcolor: initialFormData.options.fgcolor,
-          bgcolor: initialFormData.options.bgcolor
+          gradient_enabled: initialFormData.options?.gradient_enabled,
+          gradient_type: initialFormData.options?.gradient_type,
+          gradient_angle: initialFormData.options?.gradient_angle,
+          data_pattern: initialFormData.options?.data_pattern,
+          use_separated_eye_styles: initialFormData.options?.use_separated_eye_styles,
+          hasLogo: !!initialFormData.options?.logo_enabled,
+          fgcolor: initialFormData.options?.fgcolor,
+          bgcolor: initialFormData.options?.bgcolor
         });
       } else {
         console.log('[InitialMount] No placeholder config found, using defaults');
@@ -872,7 +867,10 @@ export function QRGeneratorContainer() {
       if (isGenerating || generationState === 'GENERATING') return;
       
       const currentValues = getValues();
-      const currentFormData = { ...qrFormData, options: currentValues.options || {} };
+      const currentFormData = {
+        ...currentValues,
+        options: currentValues.options || {}
+      };
       
       // Only refresh if we're showing the default QR (not user-generated)
       if (selectedType === 'qrcode' && 
@@ -928,7 +926,7 @@ export function QRGeneratorContainer() {
             }
             
             // Generate with new config - only for QR codes
-            if (updatedFormData.barcode_type === 'qrcode') {
+            if (selectedType === 'qrcode') {
               onSubmit(updatedFormData);
               console.log('[QRGeneratorContainer] Regenerated QR with refreshed placeholder config');
             }
@@ -1246,8 +1244,6 @@ export function QRGeneratorContainer() {
                     realTimeValidationError={realTimeValidationError}
                     errors={errors}
                     register={register}
-                    setValue={setValue}
-                    getValues={getValues}
                     onQRTypeChange={handleQRTypeChange}
                     onQRFormChange={handleQRFormChange}
                     isValidatingUrl={isValidatingUrl}

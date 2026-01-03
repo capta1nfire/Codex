@@ -18,13 +18,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
+import {
   Search,
   Copy,
   Trash2,
   Edit,
   Download,
-  Upload,
   Filter,
   MoreVertical,
   CheckCircle,
@@ -158,9 +157,9 @@ export function TemplateManager({
                 Todos los tipos
               </DropdownMenuItem>
               {uniqueTypes.map(type => (
-                <DropdownMenuItem 
-                  key={type}
-                  onClick={() => setFilterType(type)}
+                <DropdownMenuItem
+                  key={type || 'unknown'}
+                  onClick={() => setFilterType(type || null)}
                 >
                   {TEMPLATE_ICONS[type || ''] || '📄'} {type}
                 </DropdownMenuItem>
@@ -243,7 +242,7 @@ export function TemplateManager({
                 </Badge>
                 
                 {template.isActive && (
-                  <Badge variant="success">
+                  <Badge variant="default">
                     <CheckCircle className="h-3 w-3 mr-1" />
                     Activa
                   </Badge>

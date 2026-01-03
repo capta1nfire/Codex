@@ -24,12 +24,9 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
+import {
   Settings,
   Palette,
-  Type,
-  Shield,
-  Zap,
   Info,
   Wifi,
   User,
@@ -240,7 +237,7 @@ export function TemplateForm({
                         />
                       )}
                       
-                      {field.type === 'select' && field.options && (
+                      {field.type === 'select' && 'options' in field && field.options && (
                         <Select
                           value={typeConfig[field.id] || field.options[0]}
                           onValueChange={(value) => updateTypeConfig(field.id, value)}
@@ -249,7 +246,7 @@ export function TemplateForm({
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {field.options.map((option) => (
+                            {field.options.map((option: string) => (
                               <SelectItem key={option} value={option}>
                                 {option}
                               </SelectItem>
@@ -284,7 +281,7 @@ export function TemplateForm({
                   </div>
                   <div>
                     <span className="text-slate-600">Estado:</span>
-                    <Badge variant="success" className="ml-2">
+                    <Badge variant="default" className="ml-2">
                       Activa
                     </Badge>
                   </div>

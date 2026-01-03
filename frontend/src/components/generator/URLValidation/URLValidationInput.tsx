@@ -5,7 +5,7 @@
  * This is a pure presentation component that receives all state via props.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -34,7 +34,7 @@ export function URLValidationInput({
   onEditingIntentChange,
   className
 }: URLValidationInputProps) {
-  const [isFocused, setIsFocused] = useState(false);
+  const [, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const previousValueRef = useRef<string>(url);
   

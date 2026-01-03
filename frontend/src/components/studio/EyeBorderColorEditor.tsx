@@ -17,9 +17,8 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
-import { Palette, Sparkles, Plus, X, Maximize2, Droplets } from 'lucide-react';
+import { Palette, Plus, X, Maximize2, Droplets } from 'lucide-react';
 import { QRConfig } from '@/types/studio.types';
 import toast from 'react-hot-toast';
 
@@ -33,13 +32,24 @@ export function EyeBorderColorEditor({ config, onChange, disabled = false }: Eye
   
   const updateBorderColors = (colorUpdates: Partial<QRConfig['eye_border_colors']>) => {
     onChange({
-      eye_border_colors: { ...config.eye_border_colors, ...colorUpdates }
+      eye_border_colors: {
+        primary: config.eye_border_colors?.primary || '#000000',
+        secondary: config.eye_border_colors?.secondary || '#000000',
+        ...config.eye_border_colors,
+        ...colorUpdates
+      }
     });
   };
 
   const updateBorderGradient = (gradientUpdates: Partial<QRConfig['eye_border_gradient']>) => {
     onChange({
-      eye_border_gradient: { ...config.eye_border_gradient, ...gradientUpdates }
+      eye_border_gradient: {
+        enabled: config.eye_border_gradient?.enabled ?? false,
+        gradient_type: config.eye_border_gradient?.gradient_type ?? 'linear',
+        colors: config.eye_border_gradient?.colors ?? ['#000000', '#333333'],
+        ...config.eye_border_gradient,
+        ...gradientUpdates
+      }
     });
   };
 
@@ -81,9 +91,14 @@ export function EyeBorderColorEditor({ config, onChange, disabled = false }: Eye
                   : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
               }`}
               onClick={() => {
-                onChange({ 
+                onChange({
                   eye_border_color_mode: 'custom',
-                  eye_border_gradient: { ...config.eye_border_gradient, enabled: false },
+                  eye_border_gradient: {
+                    enabled: false,
+                    gradient_type: config.eye_border_gradient?.gradient_type ?? 'linear',
+                    colors: config.eye_border_gradient?.colors ?? ['#000000', '#333333'],
+                    ...config.eye_border_gradient
+                  },
                   eye_border_colors: config.eye_border_colors || { primary: '#000000', secondary: '#666666' }
                 });
               }}
@@ -100,9 +115,14 @@ export function EyeBorderColorEditor({ config, onChange, disabled = false }: Eye
                   : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
               }`}
               onClick={() => {
-                onChange({ 
+                onChange({
                   eye_border_color_mode: 'custom',
-                  eye_border_gradient: { ...config.eye_border_gradient, enabled: true }
+                  eye_border_gradient: {
+                    enabled: true,
+                    gradient_type: config.eye_border_gradient?.gradient_type ?? 'linear',
+                    colors: config.eye_border_gradient?.colors ?? ['#000000', '#333333'],
+                    ...config.eye_border_gradient
+                  }
                 });
               }}
               disabled={disabled}

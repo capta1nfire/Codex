@@ -9,9 +9,6 @@ import React from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import { TemplateGallery } from './TemplateGallery';
 import { StyleTemplate } from '@/types/styleTemplates';

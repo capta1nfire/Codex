@@ -21,7 +21,7 @@ export async function urlValidationService(
   if (!validation.isValid) {
     return {
       exists: false,
-      error: validation.error || 'URL no válida'
+      error: validation.message || 'URL no válida'
     };
   }
 
@@ -285,6 +285,7 @@ export async function generateInitialCode(
       margin: 4,
       errorCorrectionLevel: 'M',
       fgColor: '#000000',
+      bgColor: '#FFFFFF',
       gradient_enabled: true,
       gradient_type: 'radial',
       gradient_colors: ['#000000', '#666666'],

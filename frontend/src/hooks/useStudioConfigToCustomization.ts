@@ -14,13 +14,16 @@ import { QRV3Customization } from '@/types/generator.types';
 
 export function useStudioConfigToCustomization(config: QRConfig): QRV3Customization {
   return useMemo(() => {
+    // Access eye_shape through type assertion since it's not in QRConfig type
+    const eyeShape = (config as any).eye_shape;
+
     const customization: QRV3Customization = {
       // Eye styles
       ...(config.use_separated_eye_styles ? {
         eye_border_style: config.eye_border_style || 'circle',
         eye_center_style: config.eye_center_style || 'circle',
-      } : config.eye_shape ? {
-        eye_shape: config.eye_shape,
+      } : eyeShape ? {
+        eye_shape: eyeShape,
       } : {}),
       
       // Data pattern
@@ -55,7 +58,7 @@ export function useStudioConfigToCustomization(config: QRConfig): QRV3Customizat
     } else if (eyeBorderColor) {
       // If eye border color is set but mode is not custom, use it anyway
       customization.eye_border_color_solid = eyeBorderColor;
-      customization.eye_border_color_mode = 'solid';
+      customization.eye_border_color_mode = 'custom';
     }
     
     // Handle eye border width and opacity
@@ -84,7 +87,7 @@ export function useStudioConfigToCustomization(config: QRConfig): QRV3Customizat
     } else if (eyeCenterColor) {
       // If eye center color is set but mode is not custom, use it anyway
       customization.eye_color_solid = eyeCenterColor;
-      customization.eye_color_mode = 'solid';
+      customization.eye_color_mode = 'custom';
     }
 
     // Main gradient
@@ -104,18 +107,20 @@ export function useStudioConfigToCustomization(config: QRConfig): QRV3Customizat
     // Effects - Map with all available fields
     if (config.effects && config.effects.length > 0) {
       customization.effects = config.effects.map(effect => ({
-        type: effect.type,  // Backend expects 'type', not 'effect_type'
-        intensity: effect.intensity,
-        color: (effect as any).color,
-        strength: (effect as any).strength,
-        frequency: (effect as any).frequency,
-        direction: (effect as any).direction,
-        width: (effect as any).width,
-        offset_x: (effect as any).offset_x,
-        offset_y: (effect as any).offset_y,
-        blur_radius: (effect as any).blur_radius,
-        spread_radius: (effect as any).spread_radius,
-        opacity: (effect as any).opacity,
+        effect_type: effect.type,
+        config: {
+          intensity: effect.intensity,
+          color: (effect as any).color,
+          strength: (effect as any).strength,
+          frequency: (effect as any).frequency,
+          direction: (effect as any).direction,
+          width: (effect as any).width,
+          offset_x: (effect as any).offset_x,
+          offset_y: (effect as any).offset_y,
+          blur_radius: (effect as any).blur_radius,
+          spread_radius: (effect as any).spread_radius,
+          opacity: (effect as any).opacity,
+        }
       }));
     }
 

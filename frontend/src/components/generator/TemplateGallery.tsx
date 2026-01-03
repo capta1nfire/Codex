@@ -8,19 +8,17 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Sparkles, 
-  X, 
+import {
+  Sparkles,
+  X,
   Filter,
-  TrendingUp,
-  Clock,
   Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TemplateCard } from './TemplateCard';
-import { STYLE_TEMPLATES, getTemplatesByCategory } from '@/data/styleTemplates';
+import { getTemplatesByCategory } from '@/data/styleTemplates';
 import { TEMPLATE_CATEGORIES } from '@/types/styleTemplates';
 import { StyleTemplate } from '@/types/styleTemplates';
 

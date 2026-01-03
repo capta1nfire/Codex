@@ -14,9 +14,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { 
-  StudioState, 
-  StudioActions, 
+import {
+  StudioState,
   StudioContextValue,
   StudioConfig,
   QRConfig,
@@ -52,7 +51,7 @@ export function StudioProvider({ children }: StudioProviderProps) {
   const hasLoadedRef = useRef(false);
   
   // Integrar WebSocket para sincronización en tiempo real
-  const { isConnected, subscribeToConfig, requestSync } = useStudioWebSocket({
+  useStudioWebSocket({
     onConfigUpdate: (event) => {
       // Actualizar estado local cuando llega una actualización
       if (event.action === 'delete') {
@@ -324,10 +323,7 @@ export function StudioProvider({ children }: StudioProviderProps) {
       await api.post('/api/studio/configs/apply-all', { config });
       await loadConfigs();
       
-      toast({
-        title: 'Éxito',
-        description: 'Configuración aplicada a todas las plantillas',
-      });
+      toast.success('Configuración aplicada a todas las plantillas');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error aplicando configuración';
       setState(prev => ({

@@ -236,7 +236,7 @@ export const useQRGenerationState = () => {
       ];
       
       // Check if the data contains any placeholder value (case insensitive)
-      return inputData && placeholders.some(placeholder => 
+      return !!inputData && placeholders.some(placeholder =>
         inputData.toLowerCase().includes(placeholder.toLowerCase())
       );
     };
@@ -294,9 +294,6 @@ export const useQRGenerationState = () => {
         const smartConfig = options.smartQRConfig;
         
         // Smart QR config mapping
-        
-        // When using a Smart QR with a specific eyeShape, don't use separated eye styles
-        const hasSpecificEyeShape = smartConfig.eyeShape && smartConfig.eyeShape !== 'square';
         
         const customization: any = {
           // Check if template uses separated eye styles
@@ -570,10 +567,10 @@ export const useQRGenerationState = () => {
             
             if (logoEnabled && logoData) {
               return {
-                data: formData.options.logo_data,
-                size_percentage: formData.options.logo_size || 20,
-                shape: formData.options.logo_shape || 'square',
-                padding: formData.options.logo_padding || 5
+                data: logoData,
+                size_percentage: formData.options?.logo_size || 20,
+                shape: formData.options?.logo_shape || 'square',
+                padding: formData.options?.logo_padding || 5
               };
             }
             return undefined;

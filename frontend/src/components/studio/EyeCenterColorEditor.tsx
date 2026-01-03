@@ -17,9 +17,8 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
-import { Palette, Sparkles, Plus, X } from 'lucide-react';
+import { Palette, Plus, X } from 'lucide-react';
 import { QRConfig } from '@/types/studio.types';
 import toast from 'react-hot-toast';
 
@@ -33,13 +32,24 @@ export function EyeCenterColorEditor({ config, onChange, disabled = false }: Eye
   
   const updateCenterColors = (colorUpdates: Partial<QRConfig['eye_center_colors']>) => {
     onChange({
-      eye_center_colors: { ...config.eye_center_colors, ...colorUpdates }
+      eye_center_colors: {
+        primary: config.eye_center_colors?.primary || '#000000',
+        secondary: config.eye_center_colors?.secondary || '#000000',
+        ...config.eye_center_colors,
+        ...colorUpdates
+      }
     });
   };
 
   const updateCenterGradient = (gradientUpdates: Partial<QRConfig['eye_center_gradient']>) => {
     onChange({
-      eye_center_gradient: { ...config.eye_center_gradient, ...gradientUpdates }
+      eye_center_gradient: {
+        enabled: config.eye_center_gradient?.enabled ?? false,
+        gradient_type: config.eye_center_gradient?.gradient_type ?? 'linear',
+        colors: config.eye_center_gradient?.colors ?? ['#000000', '#333333'],
+        ...config.eye_center_gradient,
+        ...gradientUpdates
+      }
     });
   };
 
@@ -81,9 +91,14 @@ export function EyeCenterColorEditor({ config, onChange, disabled = false }: Eye
                   : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
               }`}
               onClick={() => {
-                onChange({ 
+                onChange({
                   eye_center_color_mode: 'custom',
-                  eye_center_gradient: { ...config.eye_center_gradient, enabled: false },
+                  eye_center_gradient: {
+                    enabled: false,
+                    gradient_type: config.eye_center_gradient?.gradient_type ?? 'linear',
+                    colors: config.eye_center_gradient?.colors ?? ['#000000', '#333333'],
+                    ...config.eye_center_gradient
+                  },
                   eye_center_colors: config.eye_center_colors || { primary: '#000000', secondary: '#666666' }
                 });
               }}
@@ -100,9 +115,14 @@ export function EyeCenterColorEditor({ config, onChange, disabled = false }: Eye
                   : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
               }`}
               onClick={() => {
-                onChange({ 
+                onChange({
                   eye_center_color_mode: 'custom',
-                  eye_center_gradient: { ...config.eye_center_gradient, enabled: true }
+                  eye_center_gradient: {
+                    enabled: true,
+                    gradient_type: config.eye_center_gradient?.gradient_type ?? 'linear',
+                    colors: config.eye_center_gradient?.colors ?? ['#000000', '#333333'],
+                    ...config.eye_center_gradient
+                  }
                 });
               }}
               disabled={disabled}

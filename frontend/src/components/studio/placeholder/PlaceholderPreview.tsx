@@ -13,29 +13,22 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { QRConfig } from '@/types/studio.types';
 import { EnhancedQRV3 } from '@/components/generator/EnhancedQRV3';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Download, 
-  Info,
+import {
+  Download,
   Copy,
-  Check,
-  Loader2
+  Check
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useQRGenerationState } from '@/hooks/useQRGenerationState';
-import { GenerateFormData } from '@/schemas/generate.schema';
 import { useStudioConfigToCustomization } from '@/hooks/useStudioConfigToCustomization';
 import { useQRGenerationV3Enhanced } from '@/hooks/useQRGenerationV3Enhanced';
 
 interface PlaceholderPreviewProps {
   config: QRConfig;
   showControls?: boolean;
-  onDownload?: () => void;
   onMetadataChange?: (metadata: any) => void;
   renderControls?: (props: {
     handleCopyConfig: () => void;
@@ -48,18 +41,17 @@ interface PlaceholderPreviewProps {
 // URL placeholder que se usa en la página principal
 const PLACEHOLDER_URL = 'https://tu-sitio-web.com';
 
-export function PlaceholderPreview({ 
-  config, 
+export function PlaceholderPreview({
+  config,
   showControls = true,
-  onDownload,
   onMetadataChange,
   renderControls
 }: PlaceholderPreviewProps) {
   const [copied, setCopied] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastConfigHash, setLastConfigHash] = useState<string>('');
+  const qrContainerRef = useRef<HTMLDivElement>(null);
   
   // Use the QR generation hooks
   const v3Enhanced = useQRGenerationV3Enhanced();
@@ -96,10 +88,17 @@ export function PlaceholderPreview({
 
   // Descargar QR como SVG
   const handleDownload = () => {
-    if (!v3Enhanced.svgData) return;
-    
+    if (!qrContainerRef.current || !enhancedData) return;
+
     try {
-      const blob = new Blob([v3Enhanced.svgData], { type: 'image/svg+xml' });
+      const svgElement = qrContainerRef.current.querySelector('svg');
+      if (!svgElement) {
+        toast.error('No se encontró el SVG para descargar');
+        return;
+      }
+
+      const svgData = new XMLSerializer().serializeToString(svgElement);
+      const blob = new Blob([svgData], { type: 'image/svg+xml' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -108,7 +107,7 @@ export function PlaceholderPreview({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       toast.success('QR descargado exitosamente');
     } catch (err) {
       toast.error('Error al descargar el QR');
@@ -222,7 +221,7 @@ export function PlaceholderPreview({
                     </div>
                   </div>
                 ) : enhancedData ? (
-                  <div className="absolute inset-0 flex items-center justify-center">
+                  <div ref={qrContainerRef} className="absolute inset-0 flex items-center justify-center">
                     <EnhancedQRV3 
                       data={enhancedData} 
                       size={470}

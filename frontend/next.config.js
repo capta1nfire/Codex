@@ -1,8 +1,21 @@
-const { withSentryConfig } = require('@sentry/nextjs');
-
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
+
+// Sentry deshabilitado temporalmente - proyecto no configurado en sentry.io
+// Para reactivar:
+// 1. Crear proyecto en sentry.io
+// 2. Configurar SENTRY_ORG y SENTRY_PROJECT en .env
+// 3. Cambiar ENABLE_SENTRY a 'true'
+const ENABLE_SENTRY = process.env.ENABLE_SENTRY === 'true';
+
+let withSentryConfig;
+if (ENABLE_SENTRY) {
+  withSentryConfig = require('@sentry/nextjs').withSentryConfig;
+} else {
+  // Bypass Sentry completamente
+  withSentryConfig = (config) => config;
+}
 
 const nextConfig = {
   // Enable modern optimizations
@@ -75,30 +88,29 @@ const nextConfig = {
 };
 
 const finalSentryOptions = {
-  // Opciones de Sentry configuradas por el asistente y otras configuraciones deseadas:
-  // Para todas las opciones disponibles, consulta:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
+  // Sentry desactivado temporalmente hasta configurar proyecto correctamente
+  // Para reactivar: configurar org/project válidos en sentry.io
 
-  org: 'capta1nfire',
-  project: 'javascript-nextjs',
+  org: process.env.SENTRY_ORG || 'capta1nfire',
+  project: process.env.SENTRY_PROJECT || 'javascript-nextjs',
 
-  // Solo mostrar logs de subida de source maps en CI
-  silent: !process.env.CI,
+  // Desactivar upload de sourcemaps hasta tener proyecto válido
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN || process.env.DISABLE_SENTRY === 'true',
+  },
 
-  // Subir un conjunto más amplio de source maps para mejores stack traces (aumenta el tiempo de build)
-  widenClientFileUpload: true,
+  // Silenciar errores de Sentry en build
+  silent: true,
 
-  // Enrutar las solicitudes del navegador a Sentry a través de una reescritura de Next.js para eludir ad-blockers.
-  // Esto puede aumentar la carga de tu servidor y tu factura de hosting.
-  // Nota: Verifica que la ruta configurada no coincida con tu middleware de Next.js.
-  tunnelRoute: '/monitoring',
+  // Desactivar telemetría
+  telemetry: false,
 
-  // Eliminar automáticamente las declaraciones del logger de Sentry para reducir el tamaño del bundle
-  disableLogger: true,
+  // No fallar el build si Sentry falla
+  hideSourceMaps: true,
 
-  // Habilita la instrumentación automática de Vercel Cron Monitors.
-  automaticVercelMonitors: true,
+  // Deshabilitar en desarrollo
+  disableServerWebpackPlugin: process.env.NODE_ENV !== 'production',
+  disableClientWebpackPlugin: process.env.NODE_ENV !== 'production',
 };
 
 // Envolver la configuración de Next.js (que ya incluye withBundleAnalyzer)

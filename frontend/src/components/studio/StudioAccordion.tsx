@@ -12,7 +12,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   Accordion,
@@ -22,7 +21,6 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Settings,
   Palette,
@@ -46,7 +44,7 @@ interface StudioSection {
   items: StudioSectionItem[];
   badge?: {
     text: string;
-    variant: 'default' | 'secondary' | 'success' | 'destructive';
+    variant: 'default' | 'secondary' | 'outline' | 'destructive';
   };
 }
 
@@ -78,7 +76,7 @@ export function StudioAccordion() {
       icon: Settings,
       color: 'text-blue-600',
       badge: stats.global > 0 ? 
-        { text: 'Configurado', variant: 'success' } : 
+        { text: 'Configurado', variant: 'default' } : 
         { text: 'Pendiente', variant: 'secondary' },
       items: [
         {
@@ -102,7 +100,7 @@ export function StudioAccordion() {
       icon: Palette,
       color: 'text-purple-600',
       badge: stats.placeholder > 0 ? 
-        { text: 'Personalizado', variant: 'success' } : 
+        { text: 'Personalizado', variant: 'default' } : 
         { text: 'Por defecto', variant: 'secondary' },
       items: [
         {

@@ -22,8 +22,8 @@ export default function QRSelectiveRenderer({ qrData, className = '' }: QRSelect
     const size = 300; // Tamaño fijo para la vista previa
     
     // Crear filtros SVG de las definiciones
-    const filters = definitions?.filter(def => def.type === 'effect').map(def => {
-      const { id, effect_type, component } = def;
+    const filters = definitions?.filter((def: any) => def.type === 'effect').map((def: any) => {
+      const { id, effect_type } = def;
       return `<filter id="${id}">
         ${getFilterDefinition(effect_type)}
       </filter>`;
@@ -65,7 +65,7 @@ export default function QRSelectiveRenderer({ qrData, className = '' }: QRSelect
           </g>
           
           {/* Ojos del QR */}
-          {paths.eyes?.map((eye, index) => (
+          {paths.eyes?.map((eye: any, index: number) => (
             <g 
               key={index}
               fill={styles?.eyes?.fill || "#000000"}
@@ -87,7 +87,7 @@ export default function QRSelectiveRenderer({ qrData, className = '' }: QRSelect
         
         {/* Overlay de información */}
         <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-          {definitions?.filter(d => d.type === 'effect').length || 0} efectos
+          {definitions?.filter((d: any) => d.type === 'effect').length || 0} efectos
         </div>
       </div>
     );
